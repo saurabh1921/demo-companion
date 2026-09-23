@@ -1,0 +1,1038 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Abans SAP Posting — Live POC Dashboard</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  /* ── Boomi FY27 brand palette ─────────────────────────────────────────────
+     Coral #FF7C66 · Purple #A03291 · Navy #072B55 · Light gray #EDEDED
+     Secondary: Periwinkle #4B4FE2 · Blue #0085F0 · Green #0EC38B
+     Signature gradient is always coral → purple, left to right, never reversed.
+     Text is only white (on dark), navy (on very light) or black (on white).
+     Sentence case everywhere — no ALL CAPS, per the guidelines.            */
+  :root{
+    color-scheme: light;
+    --coral:#FF7C66;
+    --purple:#A03291;
+    --navy:#072B55;
+    --white:#FFFFFF;
+    --gray:#EDEDED;
+    --black:#000000;
+    --peri:#4B4FE2;
+    --blue:#0085F0;
+    --green:#0EC38B;
+
+    --navy-70:rgba(7,43,85,.70);
+    --navy-55:rgba(7,43,85,.55);
+    --navy-12:rgba(7,43,85,.12);
+    --navy-06:rgba(7,43,85,.06);
+    --white-70:rgba(255,255,255,.72);
+    --white-24:rgba(255,255,255,.24);
+
+    --grad:linear-gradient(90deg,#FF7C66 0%,#A03291 100%);
+    --f:"Poppins",system-ui,sans-serif;
+    --m:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--gray);color:var(--black);font-family:var(--f);font-weight:300;font-size:15px;line-height:1.5}
+  .wrap{max-width:1320px;margin:0 auto;padding:0 22px 80px}
+
+  h1,h2,h3{margin:0;font-weight:500;letter-spacing:-.04em;text-wrap:balance;color:var(--navy)}
+  h1{font-size:clamp(20px,2.1vw,26px)}
+  h2{font-size:clamp(21px,2.3vw,30px);margin-bottom:10px}
+  h3{font-size:17px;font-weight:600;letter-spacing:0}
+  p{margin:0 0 12px;color:var(--navy-70);line-height:1.5}
+  .lede{font-size:16px;max-width:76ch}
+  code,.mono{font-family:var(--m);font-variant-numeric:tabular-nums}
+  code{font-size:.86em;background:var(--navy-06);padding:1px 6px;border-radius:4px;color:var(--navy)}
+  .label{font-family:var(--f);font-weight:600;font-size:12px;letter-spacing:0;color:var(--purple);margin:0 0 10px}
+
+  /* gradient accent bar — the primary visual motif */
+  .accent{height:4px;background:var(--grad);border-radius:2px;width:104px;margin:0 0 16px}
+  .accent.wide{width:100%;margin:0}
+
+  /* ── top bar ── */
+  .topbar{background:var(--navy);position:sticky;top:0;z-index:40}
+  .topbar .grad{height:4px;background:var(--grad)}
+  .topbar .in{max-width:1320px;margin:0 auto;padding:14px 22px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  /* Placeholder for boomi-logo-white.png — the wordmark is the only place
+     lowercase "boomi" is permitted. Swap in the official asset. */
+  .logo{font-weight:600;font-size:21px;letter-spacing:-.04em;color:var(--white);line-height:1}
+  .logo i{font-style:normal;color:var(--coral)}
+  .topbar h1{color:var(--white);font-size:15px;font-weight:500}
+  .topbar .grow{flex:1}
+  .chip{font-family:var(--f);font-weight:600;font-size:11.5px;padding:5px 12px;border-radius:999px;border:1px solid var(--white-24);color:var(--white-70)}
+  .chip.live{border-color:var(--green);color:var(--green)}
+
+  section{padding:36px 0;border-bottom:1px solid var(--navy-12)}
+
+  /* ── console ── */
+  .console{border-radius:12px;overflow:hidden;background:var(--white);box-shadow:0 2px 10px rgba(7,43,85,.08)}
+  .bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:15px 18px;background:var(--navy)}
+  button{font-family:var(--f);font-weight:600;font-size:13.5px;border:1px solid var(--navy-12);background:var(--white);color:var(--navy);padding:9px 16px;border-radius:8px;cursor:pointer}
+  button:hover:not(:disabled){border-color:var(--purple);color:var(--purple)}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  .bar button{background:transparent;border-color:var(--white-24);color:var(--white)}
+  .bar button:hover:not(:disabled){background:rgba(255,255,255,.12);border-color:var(--white);color:var(--white)}
+  .bar button.cta{background:var(--grad);border:none;color:var(--white);font-size:14.5px;padding:11px 22px;font-weight:600}
+  .bar button.cta:hover:not(:disabled){filter:brightness(1.08);color:var(--white)}
+  button:focus-visible{outline:2px solid var(--coral);outline-offset:2px}
+  .seg{display:flex;border:1px solid var(--white-24);border-radius:8px;overflow:hidden}
+  .seg button{border:none;border-right:1px solid var(--white-24);border-radius:0;font-family:var(--m);font-size:11.5px;padding:8px 11px;font-weight:500}
+  .seg button:last-child{border-right:none}
+  .seg button[aria-pressed="true"]{background:var(--coral);color:var(--white)}
+  .bar .clock{font-family:var(--m);font-size:11.5px;color:var(--white-70)}
+
+  .pipe{display:grid;grid-template-columns:repeat(6,1fr);gap:1px;background:var(--navy-12)}
+  .st{background:var(--white);padding:14px 13px;min-width:0}
+  .st em{display:block;font-style:normal;font-weight:600;font-size:11px;color:var(--navy-55);margin-bottom:5px}
+  .st strong{display:block;font-weight:500;font-size:13.5px;color:var(--navy);line-height:1.2;margin-bottom:5px}
+  .st .sv{font-family:var(--m);font-size:11px;color:var(--navy-55)}
+  .st.on{background:rgba(0,133,240,.08)} .st.on em{color:var(--blue)} .st.on .sv{color:var(--blue)}
+  .st.done{background:rgba(14,195,139,.10)} .st.done em{color:var(--navy)} .st.done .sv{color:var(--navy)}
+  .prog{height:5px;background:var(--gray)}
+  .prog i{display:block;height:100%;background:var(--grad);width:0;transition:width .18s linear}
+
+  .grid3{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) minmax(0,1fr);gap:1px;background:var(--navy-12)}
+  @media (max-width:1040px){.grid3{grid-template-columns:1fr}.pipe{grid-template-columns:repeat(3,1fr)}}
+  @media (max-width:620px){.pipe{grid-template-columns:repeat(2,1fr)}}
+  .pane{background:var(--white);min-width:0;display:flex;flex-direction:column}
+  .pane h4{margin:0;padding:11px 15px;font-size:12px;font-weight:600;color:var(--navy);border-bottom:1px solid var(--navy-12);background:var(--navy-06);display:flex;justify-content:space-between;gap:8px}
+  .pane h4 span{color:var(--purple)}
+  .scroll{overflow-y:auto;max-height:400px}
+
+  .rec{display:grid;grid-template-columns:24px 1fr auto;gap:10px;padding:10px 15px;border-bottom:1px solid var(--navy-06);align-items:start}
+  .rec .ix{font-family:var(--m);font-size:10.5px;color:var(--navy-55);padding-top:3px}
+  .rec .ref{font-family:var(--m);font-size:12.5px;font-weight:500;color:var(--navy)}
+  .rec .meta{font-size:11.5px;color:var(--navy-55);line-height:1.35}
+  .rec.is-idle{opacity:.45}
+  .pill{display:inline-block;font-family:var(--f);font-weight:600;font-size:10.5px;padding:3px 9px;border-radius:999px;white-space:nowrap}
+  .p-idle{background:var(--navy-06);color:var(--navy-55)}
+  .p-busy{background:rgba(0,133,240,.12);color:var(--blue)}
+  .p-good{background:rgba(14,195,139,.16);color:var(--navy)}
+  .p-warn{background:rgba(160,50,145,.12);color:var(--purple)}
+  .p-bad{background:rgba(255,124,102,.20);color:var(--navy)}
+
+  .row{display:flex;justify-content:space-between;gap:10px;padding:8px 15px;border-bottom:1px solid var(--navy-06);font-family:var(--m);font-size:11.5px;color:var(--navy)}
+  .row.seedrow{background:var(--navy-06);color:var(--navy-55)}
+  .doc{width:100%;text-align:left;border:none;border-radius:0;border-bottom:1px solid var(--navy-06);background:var(--white);padding:10px 15px;cursor:pointer;display:flex;justify-content:space-between;gap:10px;align-items:center;font-family:var(--m);font-size:11.5px}
+  .doc:hover{background:rgba(14,195,139,.08)}
+  .doc b{font-weight:500;color:var(--navy)}
+  .doc small{font-family:var(--f);font-size:11px;color:var(--navy-55)}
+  .empty{padding:20px 15px;font-size:12.5px;color:var(--navy-55)}
+
+  .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--navy-12);border-top:1px solid var(--navy-12)}
+  @media (max-width:760px){.tiles{grid-template-columns:repeat(2,1fr)}}
+  .tile{background:var(--white);padding:16px 17px}
+  .tile b{display:block;font-weight:500;font-size:34px;line-height:1;margin-bottom:5px;font-variant-numeric:tabular-nums;letter-spacing:-.04em}
+  .tile.g b{color:var(--green)} .tile.w b{color:var(--purple)} .tile.r b{color:var(--coral)}
+  .tile.n b{color:var(--navy);font-size:20px}
+  .tile span{display:block;font-size:12px;color:var(--navy-70);line-height:1.3}
+
+  /* FB03 viewer */
+  .fb03{border-radius:12px;overflow:hidden;background:var(--white);margin-top:18px;box-shadow:0 2px 10px rgba(7,43,85,.08)}
+  .fb03 .hd{background:var(--navy);color:var(--white);padding:12px 16px;font-size:12px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+  .fb03 .hd b{font-weight:600}
+  .kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(152px,1fr));gap:1px;background:var(--navy-12)}
+  .kv div{background:var(--white);padding:10px 14px}
+  .kv dt{font-size:11px;font-weight:600;color:var(--navy-55);margin-bottom:3px}
+  .kv dd{margin:0;font-family:var(--m);font-size:12.5px;color:var(--navy)}
+  table{border-collapse:collapse;width:100%;font-size:13px}
+  th,td{text-align:left;padding:8px 13px;border-bottom:1px solid var(--navy-06);color:var(--navy)}
+  th{font-size:11.5px;font-weight:600;color:var(--navy-55);background:var(--navy-06)}
+  td.num{text-align:right;font-family:var(--m);font-variant-numeric:tabular-nums}
+  tfoot td{border-top:1px solid var(--navy-12);font-weight:600;background:var(--navy-06)}
+  .tw{overflow-x:auto}
+
+  .note{border-left:4px solid var(--coral);background:rgba(255,124,102,.09);padding:14px 16px;margin:0 0 14px;border-radius:8px;font-size:13.5px;color:var(--navy)}
+  .note b{display:block;font-weight:600;font-size:12.5px;color:var(--navy);margin-bottom:4px}
+  .note.ok{border-left-color:var(--green);background:rgba(14,195,139,.10)} .note.ok b{color:var(--navy)}
+  .note.info{border-left-color:var(--purple);background:rgba(160,50,145,.08)} .note.info b{color:var(--purple)}
+
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:30px}
+  @media (max-width:860px){.two{grid-template-columns:1fr}}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+  .cardx{background:var(--white);padding:0 0 17px;border-radius:12px;overflow:hidden;box-shadow:0 1px 6px rgba(7,43,85,.07)}
+  .cardx .cap{height:4px;background:var(--grad)}
+  .cardx .bd{padding:15px 18px 0}
+  .cardx h3{margin-bottom:7px;font-size:15.5px} .cardx p{margin:0;font-size:13px}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(176px,1fr));gap:1px;background:var(--navy-12);border-radius:12px;overflow:hidden}
+  .sc{background:var(--white);padding:17px 18px}
+  .sc b{display:block;font-weight:500;font-size:30px;line-height:1;color:var(--coral);margin-bottom:5px;font-variant-numeric:tabular-nums;letter-spacing:-.04em}
+  .sc.p b{color:var(--purple)} .sc.g b{color:var(--green)} .sc.n b{color:var(--navy)}
+  .sc span{display:block;font-size:12px;color:var(--navy-70);line-height:1.3}
+  pre.raw{margin:0;background:var(--navy);color:var(--white-70);padding:15px 17px;border-radius:10px;overflow-x:auto;font-family:var(--m);font-size:11px;line-height:1.7}
+  pre.raw .t{color:var(--coral);font-weight:500} pre.raw .k{color:var(--white)}
+  ul.clean{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:11px}
+  ul.clean li{display:flex;gap:12px;font-size:14px;color:var(--navy-70);line-height:1.5}
+  ul.clean li b{color:var(--navy);font-weight:600}
+  ul.clean .mk{flex:none;width:9px;height:9px;border-radius:2px;background:var(--grad);margin-top:6px}
+  ul.clean .mk.g{background:var(--green)} ul.clean .mk.p{background:var(--purple)}
+  ul.clean .n{flex:none;width:22px;font-family:var(--m);font-size:12px;color:var(--purple);padding-top:2px}
+
+  .diagwrap{border-radius:12px;overflow:hidden;background:var(--white);box-shadow:0 1px 6px rgba(7,43,85,.07)}
+  .diagscroll{overflow-x:auto}
+  .diagscroll svg{display:block;min-width:1020px;width:100%;height:auto}
+
+  /* ── deck ── */
+  .deckbox{border-radius:12px;overflow:hidden;background:var(--navy);box-shadow:0 2px 12px rgba(7,43,85,.14)}
+  .deckbox:fullscreen{border-radius:0;display:flex;flex-direction:column;justify-content:center;padding:2vh 2vw}
+  .deckbox:fullscreen .stage{height:84vh}
+  .deckctl{display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--navy);flex-wrap:wrap}
+  .deckctl button{background:transparent;border-color:var(--white-24);color:var(--white);font-size:14px;padding:10px 20px}
+  .deckctl button:hover:not(:disabled){background:var(--grad);border-color:transparent;color:var(--white)}
+  .deckctl .count{font-family:var(--m);font-size:12.5px;color:var(--white-70);min-width:58px;text-align:center;font-variant-numeric:tabular-nums}
+  .deckctl .grow{flex:1}
+  .dots{display:flex;gap:6px}
+  .dots i{width:8px;height:8px;border-radius:2px;background:var(--white-24);cursor:pointer;display:block}
+  .dots i.on{background:var(--coral)}
+  .stage{position:relative;height:min(68vh,580px);background:var(--gray);overflow:hidden}
+  .sl{position:absolute;inset:0;padding:40px 48px;display:none;flex-direction:column;overflow-y:auto}
+  .sl.on{display:flex}
+  .sl h2{font-size:clamp(21px,2.6vw,34px);margin-bottom:6px;max-width:30ch}
+  .sl .sub{font-size:clamp(14px,1.4vw,16.5px);color:var(--navy-70);max-width:66ch;margin:14px 0 18px;line-height:1.5}
+  .sl .label{color:var(--purple)}
+  /* dark + gradient slide variants, alternated so no two neighbours match */
+  .sl.dark{background:var(--navy)}
+  .sl.dark h2,.sl.dark h3{color:var(--white)} .sl.dark .sub,.sl.dark p{color:var(--white-70)}
+  .sl.dark .label{color:var(--coral)}
+  .sl.dark ul.clean li{color:var(--white-70)} .sl.dark ul.clean li b{color:var(--white)}
+  .sl.dark .sc{background:rgba(255,255,255,.06)} .sl.dark .sc span{color:var(--white-70)}
+  .sl.dark .stats{background:var(--white-24)}
+  .sl.dark table th{background:rgba(255,255,255,.06);color:var(--white-70)}
+  .sl.dark table td{color:var(--white-70);border-bottom-color:var(--white-24)}
+  .sl.dark tfoot td{background:rgba(255,255,255,.06);color:var(--white)}
+  .sl.grad{background:var(--grad)}
+  .sl.grad h2{color:var(--white);max-width:26ch;font-size:clamp(24px,3.1vw,40px)}
+  .sl.grad .sub{color:var(--white)} .sl.grad .label{color:var(--white)}
+  .sl.grad .meta{margin-top:auto;padding-top:18px;border-top:1px solid var(--white-24);display:flex;gap:36px;flex-wrap:wrap;font-size:12px;color:var(--white)}
+  .sl.grad .meta b{display:block;font-weight:600;margin-top:2px}
+  .sl .sphere-slot{position:absolute;top:18px;right:22px;font-size:10.5px;color:var(--navy-55);font-weight:600}
+  .sl.dark .sphere-slot,.sl.grad .sphere-slot{color:var(--white-70)}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+<!-- SEDC-WIDTH:START -->
+<!-- Re-runnable width override injected by scripts/set-page-width.mjs — do not hand-edit, re-run the script instead. -->
+<style>
+  .wrap { max-width: 1440px; }
+  .in { max-width: 1440px; }
+</style>
+<!-- SEDC-WIDTH:END -->
+</head>
+<body>
+<!-- SEDC-NAV:START -->
+<style>
+  .sedc-nav * { box-sizing: border-box; }
+  .sedc-nav {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    margin: 0;
+    background: #072B55;
+    color: #ffffff;
+    font-family: 'Poppins',Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    font-size: 14px;
+    line-height: 1.4;
+  }
+  .sedc-nav-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 10px 20px;
+  }
+  .sedc-nav-brand {
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+  }
+  .sedc-nav-brand:hover,
+  .sedc-nav-brand:focus {
+    text-decoration: underline;
+  }
+  .sedc-nav-jump {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .sedc-nav-label {
+    white-space: nowrap;
+    color: #ffffff;
+  }
+  .sedc-nav-select {
+    font-family: inherit;
+    font-size: 13px;
+    color: #072B55;
+    background: #ffffff;
+    border: 1px solid #ffffff;
+    border-radius: 4px;
+    padding: 5px 8px;
+    max-width: 60vw;
+  }
+  .sedc-nav-rule {
+    height: 3px;
+    width: 100%;
+    background: linear-gradient(90deg,#FF7C66 0%,#A03291 100%);
+  }
+</style>
+<div class="sedc-nav" role="navigation" aria-label="SE Demo Companion navigation">
+  <div class="sedc-nav-bar">
+    <a class="sedc-nav-brand" href="../index.html" target="_top">SE Demo Companion</a>
+    <div class="sedc-nav-jump">
+      <label class="sedc-nav-label" for="sedc-nav-select">Jump to use case</label>
+      <select class="sedc-nav-select" id="sedc-nav-select" onchange="(function(sel){try{var opt=sel.options[sel.selectedIndex];var url=opt&&opt.getAttribute('data-href');if(!url)return;try{window.top.location.href=url;}catch(e){window.location.href=url;}}catch(e){}})(this)">
+        <option value="amc-fee-change-agent" data-href="./amc-fee-change-agent.html">AMC fee-change agent — Finnomena</option>
+        <option value="bvtpa-claims-integration-demo" data-href="./bvtpa-claims-integration-demo.html">Blue Venture TPA claims integration demo — Blue Venture TPA</option>
+        <option value="bvtpa-claims-adjudication-cio-brief" data-href="./bvtpa-claims-adjudication-cio-brief.html">Claims adjudication CIO brief — Blue Venture TPA</option>
+        <option value="delivery-status-sync-demo" data-href="./delivery-status-sync-demo.html">Delivery status sync demo — TOTO</option>
+        <option value="boomi-tenant-ceo-dashboard" data-href="./boomi-tenant-ceo-dashboard.html">Boomi tenant CEO dashboard — Boomi internal tenant</option>
+        <option value="boomi-tenant-30-day-report" data-href="./boomi-tenant-30-day-report.html">Boomi tenant operations report, 30-day view — Boomi internal tenant</option>
+        <option value="json-to-xml-order-integration" data-href="./json-to-xml-order-integration.html">JSON to XML order integration, executive documentation — NTT</option>
+        <option value="edi-850-flight-deck" data-href="./edi-850-flight-deck.html">EDI 850 flight deck — Infosys</option>
+        <option value="whatsapp-to-sap-master-agent" data-href="./whatsapp-to-sap-master-agent.html">WhatsApp to SAP master agent — Boomi internal build</option>
+        <option value="student-xml-to-crm-json" data-href="./student-xml-to-crm-json.html">Student XML to CRM JSON — Attura</option>
+        <option value="sap-accounting-document-poc-outcome" data-href="./sap-accounting-document-poc-outcome.html">SAP accounting document automation, POC outcome — Abans PLC</option>
+        <option value="abans-sap-posting-poc-dashboard" data-href="./abans-sap-posting-poc-dashboard.html" selected>Abans SAP posting, live POC dashboard — Abans PLC</option>
+        <option value="order-intake-api-fan-out" data-href="./order-intake-api-fan-out.html">Order intake API with multi-target fan-out — LTIMindtree</option>
+        <option value="electromart-track-and-reschedule" data-href="./electromart-track-and-reschedule.html">ElectroMart track order and reschedule delivery — ElectroMart (demo brand)</option>
+        <option value="enterprise-portal-ai-agent" data-href="./enterprise-portal-ai-agent.html">Enterprise portal with an embedded AI agent — ITG</option>
+        <option value="o2c-qad-build-journey" data-href="./o2c-qad-build-journey.html">O2C-QAD build journey — Boomi internal build</option>
+        <option value="boomi-accenture-trivia" data-href="./boomi-accenture-trivia.html">Boomi x Accenture trivia — Boomi internal build</option>
+        <option value="cloud-runtime-sizing-calculator" data-href="./cloud-runtime-sizing-calculator.html">Boomi public cloud runtime sizing estimator — Boomi internal build</option>
+        <option value="coupa-netsuite-vendor-bill" data-href="./coupa-netsuite-vendor-bill.html">Vendor bill pipeline, Coupa to NetSuite — Boomi internal build</option>
+        <option value="coupa-oracle-s2p-console" data-href="./coupa-oracle-s2p-console.html">Source-to-pay flow console, Coupa to Oracle Fusion — Boomi internal build</option>
+        <option value="epic-rauland-adt-nurse-call" data-href="./epic-rauland-adt-nurse-call.html">Epic ADT to Rauland Responder 5, nurse call integration — Boomi internal build</option>
+        <option value="epic-salesforce-trial-screening" data-href="./epic-salesforce-trial-screening.html">Clinical trial screening console, Epic to Salesforce — Meridian Research (demo brand)</option>
+        <option value="jc-hifi-order-tracker" data-href="./jc-hifi-order-tracker.html">JC Hi-Fi order tracker, customer self-service — JC Hi-Fi (demo brand)</option>
+        <option value="pacific-bank-onboarding" data-href="./pacific-bank-onboarding.html">Pacific onboarding console, retail bank customer onboarding — Pacific Islands Community Bank (demo brand)</option>
+        <option value="sea-data-product-assistant" data-href="./sea-data-product-assistant.html">SEA regional performance, data products and an agent over two ERPs — Boomi internal build</option>
+        <option value="servicenow-jira-incident-sync" data-href="./servicenow-jira-incident-sync.html">Incident sync prototype, ServiceNow to Jira — Boomi internal build</option>
+        <option value="zendesk-magento-order-status" data-href="./zendesk-magento-order-status.html">Order status bot and flow inspector, Zendesk to Magento — Avery Products (demo brand)</option>
+        <option value="zoho-netsuite-invoice-sync" data-href="./zoho-netsuite-invoice-sync.html">Invoice sync console, Zoho CRM to NetSuite — Boomi internal build</option>
+      </select>
+    </div>
+  </div>
+  <div class="sedc-nav-rule"></div>
+</div>
+<!-- SEDC-NAV:END -->
+
+
+<div class="topbar">
+  <div class="in">
+    <span class="logo">boomi<i>.</i></span>
+    <h1>SAP accounting document POC &mdash; live dashboard</h1>
+    <span class="grow"></span>
+    <span class="chip live" id="hdrStatus">Ready</span>
+    <span class="chip">Abans PLC</span>
+  </div>
+  <div class="grad"></div>
+</div>
+
+<div class="wrap">
+
+<!-- ══════ 1 · LIVE RUN ══════ -->
+<section>
+  <p class="label">Live run</p>
+  <h2>Run the integration</h2>
+  <div class="accent"></div>
+  <p class="lede">Nine genuine records from <code>API_API0017_10JUL2025.JSON</code>, with their duplicates
+  exactly as they appear in the real file. The ledger already holds five documents posted during the real
+  POC run on 10 September &mdash; so watch the first two records get refused rather than posted twice.</p>
+  <p style="font-size:12px;color:var(--navy-55)">Simulated locally in the browser from the real POC extract and ledger &mdash; no live SAP or Boomi connection runs during this replay.</p>
+
+  <div class="console">
+    <div class="bar">
+      <button class="cta" id="run" type="button">Run the integration</button>
+      <button id="again" type="button" disabled>Run again, same file</button>
+      <button id="reset" type="button">Reset</button>
+      <div class="seg" role="group" aria-label="Playback speed">
+        <button data-speed="1" aria-pressed="true" type="button">1&times;</button>
+        <button data-speed="3" aria-pressed="false" type="button">3&times;</button>
+        <button data-speed="12" aria-pressed="false" type="button">12&times;</button>
+      </div>
+      <span class="grow"></span>
+      <span class="clock" id="clock">Idle</span>
+    </div>
+
+    <div class="pipe" id="pipe">
+      <div class="st" data-st="read"><em>1 &middot; Read</em><strong>Collect extract</strong><span class="sv">Waiting</span></div>
+      <div class="st" data-st="split"><em>2 &middot; Parse</em><strong>Split records</strong><span class="sv">Waiting</span></div>
+      <div class="st" data-st="check"><em>3 &middot; Protect</em><strong>Already posted?</strong><span class="sv">Waiting</span></div>
+      <div class="st" data-st="map"><em>4 &middot; Transform</em><strong>Map to SAP</strong><span class="sv">Waiting</span></div>
+      <div class="st" data-st="post"><em>5 &middot; Post</em><strong>Post to SAP</strong><span class="sv">Waiting</span></div>
+      <div class="st" data-st="report"><em>6 &middot; Report</em><strong>Run summary</strong><span class="sv">Waiting</span></div>
+    </div>
+    <div class="prog"><i id="bar"></i></div>
+
+    <div class="grid3">
+      <div class="pane"><h4>Records in this batch <span id="recCount">0 processed</span></h4>
+        <div class="scroll" id="feed"></div></div>
+      <div class="pane"><h4>Posted documents ledger <span id="ledCount">5</span></h4>
+        <div class="scroll" id="ledger"></div></div>
+      <div class="pane"><h4>Documents created in SAP <span id="sapCount">0</span></h4>
+        <div class="scroll" id="saplist"><div class="empty">Nothing posted yet. Select <b>Run the integration</b>.</div></div></div>
+    </div>
+
+    <div class="tiles">
+      <div class="tile g"><b id="cPosted">0</b><span>Posted to SAP</span></div>
+      <div class="tile w"><b id="cDup">0</b><span>Skipped as duplicate</span></div>
+      <div class="tile r"><b id="cErr">0</b><span>Quarantined</span></div>
+      <div class="tile n"><b id="cEta">&mdash;</b><span>Full 10,353 record file, projected</span></div>
+    </div>
+  </div>
+
+  <div id="docview"></div>
+  <p style="margin:14px 0 0;font-size:13px">Select any SAP document above to open it as it would appear in
+  transaction <code>FB03</code>.</p>
+</section>
+
+<!-- ══════ 2 · architecture ══════ -->
+<section>
+  <p class="label">Architecture</p>
+  <h2>What was built, and where the posting happens</h2>
+  <div class="accent"></div>
+  <p class="lede">Three zones: the Abans extract, the Boomi integration, and SAP. Everything in the middle
+  band is a Boomi process step that exists and runs today.</p>
+  <div class="diagwrap"><div class="diagscroll">
+  <svg viewBox="0 0 1020 600" role="img" aria-label="Architecture diagram of the Abans to SAP integration">
+    <defs>
+      <linearGradient id="bg" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#FF7C66"/><stop offset="1" stop-color="#A03291"/>
+      </linearGradient>
+      <marker id="ar" markerWidth="9" markerHeight="9" refX="7" refY="3.2" orient="auto">
+        <path d="M0,0 L7,3.2 L0,6.4 z" fill="#072B55"/></marker>
+      <marker id="arp" markerWidth="9" markerHeight="9" refX="7" refY="3.2" orient="auto">
+        <path d="M0,0 L7,3.2 L0,6.4 z" fill="#A03291"/></marker>
+      <style>
+        .lane{fill:#FFFFFF;stroke:rgba(7,43,85,.12)}
+        .lane2{fill:#EDEDED;stroke:rgba(7,43,85,.12)}
+        .lnm{font:600 12px Poppins,sans-serif;fill:rgba(7,43,85,.55)}
+        .bx{fill:#FFFFFF;stroke:rgba(7,43,85,.22);stroke-width:1.4}
+        .bxp{fill:rgba(160,50,145,.08);stroke:#A03291;stroke-width:1.6}
+        .bxg{fill:rgba(14,195,139,.10);stroke:#0EC38B;stroke-width:1.6}
+        .bxc{fill:rgba(255,124,102,.14);stroke:#FF7C66;stroke-width:1.6}
+        .bxn{fill:#072B55}
+        .tt{font:500 12.5px Poppins,sans-serif;fill:#072B55}
+        .tw{font:300 11px Poppins,sans-serif;fill:rgba(7,43,85,.62)}
+        .tn{font:500 12.5px Poppins,sans-serif;fill:#FFFFFF}
+        .tnw{font:300 11px Poppins,sans-serif;fill:rgba(255,255,255,.72)}
+        .ln{stroke:#072B55;stroke-width:1.4;fill:none}
+        .lnp{stroke:#A03291;stroke-width:1.8;fill:none}
+        .lbl{font:600 10.5px Poppins,sans-serif;fill:rgba(7,43,85,.62)}
+      </style>
+    </defs>
+
+    <rect class="lane" x="0" y="0" width="1020" height="96"/>
+    <rect class="lane2" x="0" y="96" width="1020" height="384"/>
+    <rect class="lane" x="0" y="480" width="1020" height="120"/>
+    <rect x="0" y="0" width="5" height="600" fill="url(#bg)"/>
+    <text class="lnm" x="18" y="28">Abans PLC</text>
+    <text class="lnm" x="18" y="124">Boomi Integration &middot; cloud runtime</text>
+    <text class="lnm" x="18" y="508">SAP S/4HANA</text>
+
+    <rect class="bx" x="60" y="34" width="212" height="48" rx="8"/>
+    <text class="tt" x="74" y="55">Extract file on VM</text>
+    <text class="tw" x="74" y="71">API_API0017 &middot; 10,353 records</text>
+
+    <rect class="bx" x="60" y="150" width="152" height="52" rx="8"/>
+    <text class="tt" x="74" y="171">Collect extract</text><text class="tw" x="74" y="188">Disk or SFTP</text>
+    <rect class="bx" x="240" y="150" width="152" height="52" rx="8"/>
+    <text class="tt" x="254" y="171">Split records</text><text class="tw" x="254" y="188">Tilde to documents</text>
+    <rect class="bx" x="420" y="150" width="152" height="52" rx="8"/>
+    <text class="tt" x="434" y="171">Read reference</text><text class="tw" x="434" y="188">REF_DOC_NO</text>
+
+    <path class="bxp" d="M668,141 L757,176 L668,211 L579,176 z"/>
+    <text class="tt" x="668" y="172" text-anchor="middle">Already</text>
+    <text class="tt" x="668" y="188" text-anchor="middle">posted?</text>
+
+    <rect class="bxp" x="806" y="150" width="166" height="52" rx="8"/>
+    <text class="tt" x="820" y="171">Skip, no SAP call</text><text class="tw" x="820" y="188">Counted as duplicate</text>
+
+    <rect class="bx" x="420" y="256" width="152" height="52" rx="8"/>
+    <text class="tt" x="434" y="277">Map to BAPI</text><text class="tw" x="434" y="294">Accounts, dates, items</text>
+    <rect class="bx" x="600" y="256" width="172" height="52" rx="8"/>
+    <text class="tt" x="614" y="277">Post to SAP</text><text class="tw" x="614" y="294">Boomi for SAP connector</text>
+
+    <path class="bxp" d="M888,247 L967,282 L888,317 L809,282 z"/>
+    <text class="tt" x="888" y="279" text-anchor="middle">SAP</text>
+    <text class="tt" x="888" y="295" text-anchor="middle">accepted?</text>
+
+    <rect class="bxg" x="600" y="368" width="172" height="52" rx="8"/>
+    <text class="tt" x="614" y="389">Record in ledger</text><text class="tw" x="614" y="406">Only after SAP confirms</text>
+    <rect class="bxc" x="806" y="368" width="166" height="52" rx="8"/>
+    <text class="tt" x="820" y="389">Quarantine</text><text class="tw" x="820" y="406">Not ledgered, so retried</text>
+    <rect class="bx" x="60" y="368" width="332" height="52" rx="8"/>
+    <text class="tt" x="74" y="389">Run summary</text>
+    <text class="tw" x="74" y="406">Posted, skipped and quarantined, per run</text>
+
+    <rect class="bxn" x="600" y="510" width="172" height="54" rx="8"/>
+    <text class="tn" x="614" y="533">BAPI_ACC_DOCUMENT_POST</text>
+    <text class="tnw" x="614" y="550">With transaction commit</text>
+    <rect class="bxn" x="806" y="510" width="166" height="54" rx="8"/>
+    <text class="tn" x="820" y="533">Accounting document</text>
+    <text class="tnw" x="820" y="550">BKPF &middot; ACDOCA &middot; FB03</text>
+
+    <path class="ln" d="M166,82 L166,150" marker-end="url(#ar)"/>
+    <path class="ln" d="M212,176 L240,176" marker-end="url(#ar)"/>
+    <path class="ln" d="M392,176 L420,176" marker-end="url(#ar)"/>
+    <path class="ln" d="M572,176 L579,176" marker-end="url(#ar)"/>
+    <path class="ln" d="M757,176 L806,176" marker-end="url(#ar)"/>
+    <text class="lbl" x="766" y="169">Yes</text>
+    <path class="lnp" d="M668,211 L668,232 L496,232 L496,256" marker-end="url(#arp)"/>
+    <text class="lbl" x="546" y="226">No, never posted</text>
+    <path class="lnp" d="M572,282 L600,282" marker-end="url(#arp)"/>
+    <path class="lnp" d="M772,282 L809,282" marker-end="url(#arp)"/>
+    <path class="lnp" d="M686,308 L686,510" marker-end="url(#arp)"/>
+    <text class="lbl" x="694" y="468">Request</text>
+    <path class="lnp" d="M772,537 L806,537" marker-end="url(#arp)"/>
+    <path class="ln" d="M888,317 L888,342 L686,342 L686,368" marker-end="url(#ar)"/>
+    <text class="lbl" x="742" y="336">Yes, confirmed</text>
+    <path class="ln" d="M928,317 L928,368" marker-end="url(#ar)"/>
+    <text class="lbl" x="934" y="346">No</text>
+    <path class="ln" d="M600,394 L392,394" marker-end="url(#ar)"/>
+  </svg>
+  </div></div>
+  <div class="note info" style="margin-top:18px">
+    <b>The one design decision that matters most</b>
+    The ledger is written only after SAP confirms the document exists. A failed posting is never recorded as
+    done, so the next run retries it rather than losing it. Reversing those two steps is the easiest way to
+    create silent data loss in an integration like this.
+  </div>
+</section>
+
+<!-- ══════ 3 · the input ══════ -->
+<section>
+  <p class="label">The input</p>
+  <h2>One file, ten thousand records, two thousand actual documents</h2>
+  <div class="accent"></div>
+  <div class="stats" style="margin-bottom:20px">
+    <div class="sc"><b>10,353</b><span>Records in the file</span></div>
+    <div class="sc n"><b>2,223</b><span>Distinct accounting documents</span></div>
+    <div class="sc p"><b>1,910</b><span>Documents appearing five times each</span></div>
+    <div class="sc"><b>8,130</b><span>Records that must not post again</span></div>
+  </div>
+  <p>Not a single JSON document &mdash; individual documents run together, separated by a tilde:</p>
+  <pre class="raw">{<span class="k">"COMP_CODE"</span>:"2000",<span class="k">"HEADER_TXT"</span>:"CASH SALES",<span class="k">"REF_DOC_NO"</span>:"205-CS-11859",<span class="k">"ITEMS"</span>:[ ... ]}<span class="t">~</span>{<span class="k">"REF_DOC_NO"</span>:"217-CS-26766", ... }<span class="t">~</span>{ ... }</pre>
+  <div class="two" style="margin-top:22px">
+    <div>
+      <h3 style="margin-bottom:10px">Abans sends</h3>
+      <div class="tw"><table><tbody>
+        <tr><th>Reference</th><td class="mono">205-CS-11859</td></tr>
+        <tr><th>Company code</th><td class="mono">2000</td></tr>
+        <tr><th>Document date</th><td class="mono">2025-07-09</td></tr>
+        <tr><th>Item number</th><td class="mono">1, 2, 3</td></tr>
+        <tr><th>G/L account</th><td class="mono">21700002</td></tr>
+        <tr><th>Currency</th><td class="mono">LKR, and USD in some records</td></tr>
+      </tbody></table></div>
+    </div>
+    <div>
+      <h3 style="margin-bottom:10px">SAP requires</h3>
+      <div class="tw"><table><tbody>
+        <tr><th>Reference</th><td class="mono">205-CS-11859 <small style="color:var(--navy-55)">unchanged, the audit link</small></td></tr>
+        <tr><th>Company code</th><td class="mono">1010 <small style="color:var(--purple)">demo substitute</small></td></tr>
+        <tr><th>Document date</th><td class="mono">20250709 <small style="color:var(--navy-55)">reformatted</small></td></tr>
+        <tr><th>Item number</th><td class="mono">0000000001 <small style="color:var(--navy-55)">padded to ten</small></td></tr>
+        <tr><th>G/L account</th><td class="mono">0050200000 <small style="color:var(--purple)">translated</small></td></tr>
+        <tr><th>Currency</th><td class="mono">EUR <small style="color:var(--purple)">demo substitute</small></td></tr>
+      </tbody></table></div>
+    </div>
+  </div>
+  <div class="note" style="margin-top:20px">
+    <b>Account translation is a lookup table, not code</b>
+    Four Abans accounts are mapped to demo system equivalents. The extract actually contains eight, so
+    unmapped ones fall through to a fallback account and are flagged in the run &mdash; visible as a
+    <span class="pill p-bad">Fallback</span> badge in the document viewer above. On an Abans SAP system the
+    table is emptied and accounts pass through untouched.
+  </div>
+</section>
+
+<!-- ══════ 4 · cases ══════ -->
+<section>
+  <p class="label">Failure handling</p>
+  <h2>Four situations are handled explicitly</h2>
+  <div class="accent"></div>
+  <div class="cards">
+    <div class="cardx"><div class="cap"></div><div class="bd"><h3>Already posted before</h3>
+      <p>Matched against the ledger and skipped. SAP is never contacted, so a second posting is impossible.</p></div></div>
+    <div class="cardx"><div class="cap"></div><div class="bd"><h3>Repeated within the same file</h3>
+      <p>The ledger updates as each document posts, so a second copy in the same batch is caught moments later.</p></div></div>
+    <div class="cardx"><div class="cap"></div><div class="bd"><h3>SAP rejects the posting</h3>
+      <p>The reason is captured and the document quarantined. Deliberately not ledgered, so the next run retries it.</p></div></div>
+    <div class="cardx"><div class="cap"></div><div class="bd"><h3>A record is corrupt</h3>
+      <p>Quarantined alone with its reason. Every other record in the file continues to post normally.</p></div></div>
+  </div>
+</section>
+
+<!-- ══════ 5 · scope ══════ -->
+<section>
+  <p class="label">Scope</p>
+  <h2>What is proven, and what stands in for Abans configuration</h2>
+  <div class="accent"></div>
+  <div class="two">
+    <div>
+      <h3 style="margin-bottom:12px">Proven against real SAP</h3>
+      <ul class="clean">
+        <li><span class="mk g"></span><span>Reading and splitting the actual extract, unmodified</span></li>
+        <li><span class="mk g"></span><span>Duplicate detection across runs and within a batch</span></li>
+        <li><span class="mk g"></span><span>Amounts, balancing and line item counts</span></li>
+        <li><span class="mk g"></span><span>The posting mechanism, including the SAP transaction commit</span></li>
+        <li><span class="mk g"></span><span>Traceability from Abans reference to SAP document number</span></li>
+        <li><span class="mk g"></span><span>Rejection and corrupt record handling, demonstrated live</span></li>
+      </ul>
+    </div>
+    <div>
+      <h3 style="margin-bottom:12px">Substituted for the demonstration</h3>
+      <ul class="clean">
+        <li><span class="mk p"></span><span>Company code <b>1010</b> on a Boomi demo SAP system, not Abans's <b>2000</b></span></li>
+        <li><span class="mk p"></span><span>G/L accounts translated to demo equivalents</span></li>
+        <li><span class="mk p"></span><span>Amounts posted in EUR at unchanged magnitudes, pending an LKR rate</span></li>
+        <li><span class="mk p"></span><span>Posting date set to today, since July 2025 is a closed period</span></li>
+        <li><span class="mk p"></span><span>Customer and vendor line types not yet routed, 50 records affected</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ══════ 6 · deck ══════ -->
+<section style="border-bottom:none">
+  <p class="label">Executive summary</p>
+  <h2>Ten slides for the steering conversation</h2>
+  <div class="accent"></div>
+  <p class="lede">Navigate with the buttons, the arrow keys, or the markers. Fullscreen makes it presentable
+  as it stands.</p>
+
+  <div class="deckbox" id="deckbox">
+    <div class="deckctl">
+      <button id="dPrev" type="button">Back</button>
+      <button id="dNext" type="button">Next</button>
+      <span class="count" id="dCount">1 / 10</span>
+      <div class="dots" id="dDots"></div>
+      <span class="grow"></span>
+      <button id="dFull" type="button">Fullscreen</button>
+    </div>
+    <div class="stage" id="dStage">
+
+      <!-- 1 gradient title -->
+      <div class="sl grad on">
+        <span class="sphere-slot">Sphere field: place 8 official sphere PNGs here</span>
+        <p class="label">Proof of concept &middot; Outcome</p>
+        <h2>Boomi now posts Abans accounting documents directly into SAP</h2>
+        <p class="sub">Replacing the manual hand-off from JSON to Excel to a watched directory with an
+        automated, de-duplicated integration. Connect everything, to achieve anything.&trade;</p>
+        <div class="meta">
+          <div>Prepared for<b>Abans PLC</b></div>
+          <div>Prepared by<b>Altria Boomi Integration Team</b></div>
+          <div>Date<b>10 September 2026</b></div>
+        </div>
+      </div>
+
+      <!-- 2 light stats -->
+      <div class="sl">
+        <p class="label">The outcome</p>
+        <h2>Documents posted, and a second run posted nothing twice</h2>
+        <div class="accent"></div>
+        <div class="stats">
+          <div class="sc g"><b>7</b><span>Documents created in SAP, each confirmed by SAP</span></div>
+          <div class="sc g"><b>0</b><span>Duplicates when the same file ran again</span></div>
+          <div class="sc g"><b>1</b><span>Corrupt record quarantined, siblings unaffected</span></div>
+        </div>
+        <p class="sub">SAP documents <code>0100000023</code> to <code>0100000029</code>, company code
+        <code>1010</code>, fiscal year <code>2026</code>. Verifiable in transaction <code>FB03</code>.</p>
+      </div>
+
+      <!-- 3 dark numbered list -->
+      <div class="sl dark">
+        <span class="sphere-slot">Corner burst: 5 spheres, top right</span>
+        <p class="label">Where we started</p>
+        <h2>Four manual steps stood between the extract and SAP</h2>
+        <ul class="clean" style="margin-top:16px">
+          <li><span class="n">1</span><span>The JSON extract lands on a virtual machine.</span></li>
+          <li><span class="n">2</span><span><b>Manual.</b> A person converts it to Excel.</span></li>
+          <li><span class="n">3</span><span><b>Manual.</b> The file is moved to a watched directory.</span></li>
+          <li><span class="n">4</span><span>A custom ABAP program uploads it into SAP.</span></li>
+        </ul>
+        <p class="sub">Described by Abans as costly and slow, taking hours, with no systematic protection
+        against posting the same document twice.</p>
+      </div>
+
+      <!-- 4 light stats + callout -->
+      <div class="sl">
+        <p class="label">What the data told us</p>
+        <h2>The extracts repeat themselves</h2>
+        <div class="accent"></div>
+        <div class="stats">
+          <div class="sc"><b>10,353</b><span>Records, 11.6 MB, 8 to 10 July 2025</span></div>
+          <div class="sc n"><b>2,223</b><span>Distinct documents</span></div>
+          <div class="sc p"><b>4.7&times;</b><span>Average repetition</span></div>
+        </div>
+        <div class="note" style="margin-top:18px"><b>Why this drove the design</b>
+        Posting every record as it arrives would have created roughly 8,130 duplicate financial documents.
+        Deduplication is the core of the solution, not a refinement.</div>
+      </div>
+
+      <!-- 5 dark six-step -->
+      <div class="sl dark">
+        <p class="label">What we built</p>
+        <h2>One Boomi process, from extract to posted SAP document</h2>
+        <ul class="clean" style="margin-top:16px">
+          <li><span class="n">1</span><span><b>Collect</b> the extract, with no manual step.</span></li>
+          <li><span class="n">2</span><span><b>Split</b> the run-together JSON into individual documents.</span></li>
+          <li><span class="n">3</span><span><b>Check</b> each one against a durable ledger of everything posted before.</span></li>
+          <li><span class="n">4</span><span><b>Map</b> it to the accounting document structure SAP expects.</span></li>
+          <li><span class="n">5</span><span><b>Post</b> to SAP and read back its confirmation.</span></li>
+          <li><span class="n">6</span><span><b>Report</b> posted, skipped and errored, per run.</span></li>
+        </ul>
+      </div>
+
+      <!-- 6 light table -->
+      <div class="sl">
+        <p class="label">Against the agreed criteria</p>
+        <h2>Five of six success criteria met</h2>
+        <div class="accent"></div>
+        <div class="tw"><table><tbody>
+          <tr><td style="width:16px"><span class="mk g" style="display:block"></span></td><td>Extract read and parsed without manual intervention</td></tr>
+          <tr><td><span class="mk g" style="display:block"></span></td><td>Documents post to SAP with header and line items mapped</td></tr>
+          <tr><td><span class="mk g" style="display:block"></span></td><td>Re-running the same extract creates no duplicate postings</td></tr>
+          <tr><td><span class="mk g" style="display:block"></span></td><td>Malformed records quarantined with a reason</td></tr>
+          <tr><td><span class="mk g" style="display:block"></span></td><td>Per run visibility of posted, skipped and errored</td></tr>
+          <tr><td><span class="mk p" style="display:block"></span></td><td>Documented path to extend to remaining files and volumes</td></tr>
+        </tbody></table></div>
+      </div>
+
+      <!-- 7 dark throughput table -->
+      <div class="sl dark">
+        <p class="label">Throughput</p>
+        <h2>The full extract completes unattended in twelve to twenty minutes</h2>
+        <div class="tw" style="margin-top:14px"><table>
+          <thead><tr><th>Work</th><th>Volume</th><th>Measured rate</th><th>Time</th></tr></thead>
+          <tbody>
+            <tr><td>Documents posted to SAP</td><td class="mono">2,223</td><td class="mono">250 to 460 ms</td><td class="mono">9 to 17 min</td></tr>
+            <tr><td>Duplicates recognised</td><td class="mono">8,130</td><td class="mono">about 15 ms</td><td class="mono">about 2 min</td></tr>
+            <tr><td>Reading and splitting 11.6 MB</td><td class="mono">1 file</td><td class="mono">&mdash;</td><td class="mono">about 1 min</td></tr>
+          </tbody>
+          <tfoot><tr><td>Total, unattended</td><td class="mono">10,353</td><td></td><td class="mono">12 to 20 min</td></tr></tfoot>
+        </table></div>
+        <p class="sub">Against hours today. Posting is serialised for safety; moving the duplicate check to a
+        database would allow parallel posting and cut this to minutes.</p>
+      </div>
+
+      <!-- 8 light two-column -->
+      <div class="sl">
+        <p class="label">Scope of the demonstration</p>
+        <h2>What is real, and what stands in</h2>
+        <div class="accent"></div>
+        <div class="two" style="gap:24px">
+          <ul class="clean">
+            <li><span class="mk g"></span><span>The actual extract, unmodified</span></li>
+            <li><span class="mk g"></span><span>Duplicate detection, both kinds</span></li>
+            <li><span class="mk g"></span><span>Amounts and balancing</span></li>
+            <li><span class="mk g"></span><span>The SAP posting mechanism and commit</span></li>
+            <li><span class="mk g"></span><span>Reference to document traceability</span></li>
+          </ul>
+          <ul class="clean">
+            <li><span class="mk p"></span><span>Company code 1010 on a Boomi demo system</span></li>
+            <li><span class="mk p"></span><span>G/L accounts translated to demo equivalents</span></li>
+            <li><span class="mk p"></span><span>EUR at unchanged magnitudes, pending an LKR rate</span></li>
+            <li><span class="mk p"></span><span>Posting date today, July 2025 is closed</span></li>
+            <li><span class="mk p"></span><span>Customer and vendor lines not yet routed</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- 9 gradient callout -->
+      <div class="sl grad">
+        <span class="sphere-slot">Minimal: 2 spheres, top right</span>
+        <p class="label">Open question</p>
+        <h2>One clarification could change the design</h2>
+        <p class="sub" style="font-size:clamp(15px,1.7vw,20px);max-width:56ch">The existing ABAP program may
+        apply derivations or validations of its own, beyond simply calling SAP's posting interface. If it does,
+        those rules must be reproduced &mdash; otherwise documents could post that today's process would have
+        rejected.</p>
+        <p class="sub" style="margin-top:auto"><b>Needs the Abans SAP team.</b> This is the only open item that
+        could materially change the build, and it is worth answering before the next phase is scoped.</p>
+      </div>
+
+      <!-- 10 dark next steps -->
+      <div class="sl dark">
+        <span class="sphere-slot">Corner burst: 5 spheres, top right</span>
+        <p class="label">Next steps</p>
+        <h2>Three things turn this into a production integration</h2>
+        <ul class="clean" style="margin-top:16px;gap:14px">
+          <li><span class="n">1</span><span><b>Point it at an Abans SAP environment.</b> Company code, chart of
+          accounts, document type and posting periods become the real ones, and account translation is no longer
+          needed. Configuration, not development.</span></li>
+          <li><span class="n">2</span><span><b>Confirm the ABAP program's additional logic</b>, the open question
+          on the previous slide.</span></li>
+          <li><span class="n">3</span><span><b>Extend to the remaining extracts and full volume.</b> Add customer
+          and vendor line types, cover API0018 and API0023, and move the ledger to a database for parallel
+          posting.</span></li>
+        </ul>
+        <p class="sub">The mechanism is proven. What remains is configuration, one clarification, and a scoped
+        extension, not further proof of concept.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer style="padding-top:26px">
+  <p style="font-size:12.5px;max-width:86ch">Built to the Boomi FY27 brand guidelines: Poppins throughout,
+  official palette only, sentence case, coral to purple gradient in the correct direction. Two official assets
+  are not embedded and are marked as drop-in points &mdash; the <b>Sphere</b> PNGs, which the guidelines
+  require rather than substituted shapes, and the <b>logo</b> asset, currently a text wordmark.
+  Companion documents: <code>EXEC-SUMMARY-DECK.html</code>, <code>HANDOVER.md</code>, <code>RUNBOOK.md</code>.</p>
+</footer>
+</div>
+
+<script>
+var SRC = [
+{r:"9179622481",h:"Credit note settlement",dd:"2025-07-09",occ:1,items:[
+ {n:"01",c:"LKR",a:3544,g:"21000011",t:"CREDIT NOTE SETTLEMENT"},
+ {n:"02",c:"LKR",a:-3544,g:"41500001",t:"CREDIT NOTE SETTLEMENT"}]},
+{r:"RRGM-00310C",h:"Credit note",dd:"2025-07-08",occ:2,items:[
+ {n:"01",c:"LKR",a:313497,g:"41500001",t:"RE-0106060-S D CHANDRA WEERAKODI"},
+ {n:"02",c:"LKR",a:-313497,g:"21000011",t:"RE-0106060-S D CHANDRA WEERAKODI"}]},
+{r:"83-CS-126647-V",h:"Cash sales service",dd:"2025-07-09",occ:3,items:[
+ {n:"1",c:"LKR",a:790,g:"21000010",t:"0107866|A KANDAUDAGE"},
+ {n:"2",c:"LKR",a:-669,g:"50100002",t:"0107866|A KANDAUDAGE"},
+ {n:"3",c:"LKR",a:-121,g:"21700002",t:"0107866|A KANDAUDAGE"}]},
+{r:"190-CS-22392",h:"Cash sales",dd:"2025-07-09",occ:5,items:[
+ {n:"1",c:"LKR",a:-3783,g:"21700002",t:"FL-0110834-J A RANGA SISIL JAYAKODY"},
+ {n:"2",c:"LKR",a:24800,g:"41500001",t:"FL-0110834-J A RANGA SISIL JAYAKODY"},
+ {n:"3",c:"LKR",a:-3305,g:"50000000",t:"FL-0110834-J A RANGA SISIL JAYAKODY"},
+ {n:"4",c:"LKR",a:-17712,g:"50000000",t:"FL-0110834-J A RANGA SISIL JAYAKODY"}]},
+{r:"28-CS-69446",h:"Cash sales",dd:"2025-07-09",occ:5,items:[
+ {n:"1",c:"USD",a:599,g:"40700009",t:"0111470|M FERNANDO"},
+ {n:"2",c:"USD",a:-599,g:"50100001",t:"0111470|M FERNANDO"}]},
+{r:"205-CS-11859",h:"Cash sales",dd:"2025-07-09",occ:5,items:[
+ {n:"1",c:"LKR",a:-1400,g:"21700002",t:"EL-0115144-WARNAKULASOORIYA MAHAMUTHUGALA KANKANAM"},
+ {n:"2",c:"LKR",a:9179,g:"41500001",t:"EL-0115144-WARNAKULASOORIYA MAHAMUTHUGALA KANKANAM"},
+ {n:"3",c:"LKR",a:-7779,g:"50000000",t:"EL-0115144-WARNAKULASOORIYA MAHAMUTHUGALA KANKANAM"}]},
+{r:"217-CS-26766",h:"Cash sales",dd:"2025-07-09",occ:5,items:[
+ {n:"1",c:"LKR",a:-5629,g:"21700002",t:"NA"},
+ {n:"2",c:"LKR",a:36900,g:"41500001",t:"NA"},
+ {n:"3",c:"LKR",a:-31271,g:"50000000",t:"NA"}]},
+{r:"83-CS-126632",h:"Cash sales",dd:"2025-07-09",occ:5,items:[
+ {n:"1",c:"LKR",a:14000,g:"21000010",t:"0107866|A KANDAUDAGE"},
+ {n:"2",c:"LKR",a:-2136,g:"21700002",t:"0107866|A KANDAUDAGE"},
+ {n:"3",c:"LKR",a:-11864,g:"50100002",t:"0107866|A KANDAUDAGE"}]},
+{r:"83-CS-126650",h:"Cash sales",dd:"2025-07-09",occ:5,items:[
+ {n:"1",c:"LKR",a:89937,g:"21000010",t:"0107866|A KANDAUDAGE"},
+ {n:"2",c:"LKR",a:-13719,g:"21700002",t:"0107866|A KANDAUDAGE"},
+ {n:"3",c:"LKR",a:-76218,g:"50100002",t:"0107866|A KANDAUDAGE"}]}
+];
+var XREF={"21000011":"0050100000","41500001":"0050150000","21700002":"0050200000","50000000":"0050300000"};
+var FALLBACK="0050100000";
+var SEED=["205-CS-11859","9179622481","9179297541","9179748261","9179967352"];
+
+var SPEED=1,BELNR=30,running=false,ledger,queue,counts,timer,t0;
+var $=function(s){return document.querySelector(s);};
+var el=function(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e;};
+var fmt=function(n){return n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});};
+
+function buildQueue(){
+  var q=[],pass;
+  for(pass=0;pass<3;pass++){SRC.forEach(function(d){if(pass<Math.min(d.occ,3))q.push({d:d,copy:pass+1});});}
+  q.splice(5,0,{d:{r:"83-CS-126701",h:"Cash sales",dd:"2025-07-09",occ:1,corrupt:true,items:[
+    {n:"1",c:"LKR",a:"NOT_A_NUMBER",g:"21000010",t:"Corrupt amount, injected test record"},
+    {n:"2",c:"LKR",a:-4500,g:"21700002",t:"Corrupt amount, injected test record"}]},copy:1});
+  return q;
+}
+function reset(){
+  clearTimeout(timer);running=false;BELNR=30;
+  ledger=SEED.slice();queue=buildQueue();counts={posted:0,dup:0,err:0,done:0};
+  $('#run').disabled=false;$('#again').disabled=true;
+  $('#clock').textContent='Idle';$('#bar').style.width='0';
+  $('#hdrStatus').textContent='Ready';
+  ['cPosted','cDup','cErr'].forEach(function(k){$('#'+k).textContent='0';});
+  $('#cEta').innerHTML='&mdash;';
+  $('#recCount').textContent='0 processed';$('#sapCount').textContent='0';
+  $('#saplist').innerHTML='<div class="empty">Nothing posted yet. Select <b>Run the integration</b>.</div>';
+  $('#docview').innerHTML='';
+  document.querySelectorAll('#pipe .st').forEach(function(s){s.className='st';s.querySelector('.sv').textContent='Waiting';});
+  drawLedger();drawFeed();
+}
+function drawLedger(){
+  var b=$('#ledger');b.innerHTML='';
+  ledger.forEach(function(ref,i){
+    var seeded=i<SEED.length,r=el('div','row'+(seeded?' seedrow':''));
+    r.appendChild(el('span',null,ref));
+    r.appendChild(el('span',null,seeded?'From 10 Sep run':'This run'));
+    b.appendChild(r);
+  });
+  $('#ledCount').textContent=ledger.length;
+}
+function drawFeed(){
+  var b=$('#feed');b.innerHTML='';
+  queue.forEach(function(q,i){
+    var row=el('div','rec is-idle');row.id='rec'+i;
+    row.appendChild(el('span','ix',String(i+1)));
+    var mid=el('div');mid.appendChild(el('div','ref',q.d.r));
+    mid.appendChild(el('div','meta',q.d.h+' &middot; '.replace('&middot;','·')+q.d.items.length+' lines'+(q.copy>1?' · copy '+q.copy+' of '+Math.min(q.d.occ,3):'')));
+    row.appendChild(mid);
+    var p=el('span','pill p-idle','Queued');p.id='pill'+i;row.appendChild(p);
+    b.appendChild(row);
+  });
+}
+function stage(n,s,v){
+  var e=document.querySelector('#pipe .st[data-st="'+n+'"]');if(!e)return;
+  e.className='st'+(s?' '+s:'');if(v!=null)e.querySelector('.sv').textContent=v;
+}
+function setPill(i,c,t){
+  var p=$('#pill'+i);if(!p)return;p.className='pill '+c;p.textContent=t;
+  var r=$('#rec'+i);if(r)r.classList.remove('is-idle');
+}
+function addSapDoc(q,belnr){
+  var l=$('#saplist');if(l.querySelector('.empty'))l.innerHTML='';
+  var b=el('button','doc');b.type='button';
+  var s=el('span');s.innerHTML='<b>'+belnr+'</b> &nbsp; '+q.d.r;b.appendChild(s);
+  b.appendChild(el('small',null,q.d.items.length+' lines'));
+  b.addEventListener('click',function(){showDoc(q,belnr);});
+  l.insertBefore(b,l.firstChild);
+  $('#sapCount').textContent=counts.posted;
+}
+function showDoc(q,belnr){
+  var unmapped=q.d.items.some(function(it){return !XREF[it.g];});
+  var rows=q.d.items.map(function(it,ix){
+    var m=XREF[it.g]||FALLBACK;
+    return '<tr><td class="mono">'+String(ix+1).padStart(10,'0')+'</td><td class="mono">'+m+
+      (XREF[it.g]?'':' <span class="pill p-bad" style="margin-left:5px">Fallback</span>')+
+      '</td><td class="mono" style="color:var(--navy-55)">'+it.g+'</td><td>'+it.t+'</td>'+
+      '<td class="num">'+fmt(it.a)+'</td></tr>';
+  }).join('');
+  var tot=q.d.items.reduce(function(s,it){return s+it.a;},0);
+  $('#docview').innerHTML='<div class="fb03"><div class="hd">'+
+    '<span>SAP, display document &middot; transaction <b>FB03</b></span>'+
+    '<span>Document <b>'+belnr+'</b> &nbsp; Company code <b>1010</b> &nbsp; Fiscal year <b>2026</b></span></div>'+
+    '<div class="kv">'+
+    '<div><dt>Document number</dt><dd>'+belnr+'</dd></div>'+
+    '<div><dt>Reference from Abans</dt><dd>'+q.d.r+'</dd></div>'+
+    '<div><dt>Document type</dt><dd>SA</dd></div>'+
+    '<div><dt>Document date</dt><dd>'+q.d.dd.replace(/-/g,'')+'</dd></div>'+
+    '<div><dt>Posting date</dt><dd>Today</dd></div>'+
+    '<div><dt>Currency</dt><dd>EUR</dd></div></div>'+
+    '<div class="tw"><table><thead><tr><th>Item</th><th>G/L account</th><th>Abans account</th><th>Text</th>'+
+    '<th style="text-align:right">Amount</th></tr></thead><tbody>'+rows+'</tbody>'+
+    '<tfoot><tr><td colspan="4">Balance, must be zero for SAP to accept the document</td>'+
+    '<td class="num">'+fmt(tot)+'</td></tr></tfoot></table></div>'+
+    (unmapped?'<div class="note" style="margin:0;border-radius:0">At least one account was not in the translation table and used the fallback. On an Abans system this does not occur.</div>':'')+
+    '</div>';
+}
+function run(second){
+  if(running)return;running=true;
+  $('#run').disabled=true;$('#again').disabled=true;
+  $('#hdrStatus').textContent='Running';
+  counts={posted:0,dup:0,err:0,done:0};
+  ['cPosted','cDup','cErr'].forEach(function(k){$('#'+k).textContent='0';});
+  if(second){queue=buildQueue();drawFeed();$('#docview').innerHTML='';
+    $('#saplist').innerHTML='<div class="empty">Second run, nothing should post.</div>';$('#sapCount').textContent='0';}
+  t0=Date.now();stage('read','on','Reading');step(-2);
+}
+function step(i){
+  var base=420/SPEED;
+  if(i===-2){timer=setTimeout(function(){stage('read','done','1 file, 11.6 MB');stage('split','on','Splitting');step(-1);},base);return;}
+  if(i===-1){timer=setTimeout(function(){stage('split','done','10,353 records');step(0);},base);return;}
+  if(i>=queue.length){finish();return;}
+  var q=queue[i];
+  stage('check','on','Checking '+q.d.r);setPill(i,'p-busy','Checking');
+  $('#clock').textContent='Record '+(i+1)+' of '+queue.length;
+  timer=setTimeout(function(){
+    if(ledger.indexOf(q.d.r)!==-1){
+      counts.dup++;$('#cDup').textContent=counts.dup;
+      var why=(SEED.indexOf(q.d.r)!==-1&&q.copy===1)?'posted 10 Sep':'already in this batch';
+      setPill(i,'p-warn','Duplicate, '+why);stage('check','done','Duplicate');advance(i);return;
+    }
+    stage('check','done','Not posted');
+    if(q.d.corrupt){
+      stage('map','on','Mapping');
+      timer=setTimeout(function(){
+        counts.err++;$('#cErr').textContent=counts.err;
+        setPill(i,'p-bad','Quarantined, bad amount');
+        stage('map','done','Rejected');stage('post','','Skipped');advance(i);
+      },base*0.7);return;
+    }
+    stage('map','on','Mapping '+q.d.items.length+' lines');setPill(i,'p-busy','Transforming');
+    timer=setTimeout(function(){
+      stage('map','done','Ready');stage('post','on','Posting to SAP');setPill(i,'p-busy','Posting to SAP');
+      timer=setTimeout(function(){
+        var belnr='01000000'+String(BELNR++);
+        counts.posted++;$('#cPosted').textContent=counts.posted;
+        ledger.push(q.d.r);drawLedger();
+        setPill(i,'p-good','Posted, '+belnr);
+        stage('post','done','SAP doc '+belnr);
+        addSapDoc(q,belnr);advance(i);
+      },base*0.85);
+    },base*0.55);
+  },base*0.5);
+}
+function advance(i){
+  counts.done++;$('#recCount').textContent=counts.done+' processed';
+  $('#bar').style.width=(counts.done/queue.length*100)+'%';step(i+1);
+}
+function finish(){
+  running=false;stage('report','done','Complete');
+  $('#clock').textContent='Complete in '+((Date.now()-t0)/1000).toFixed(1)+' s, simulated';
+  $('#hdrStatus').textContent='Run complete';
+  $('#cEta').textContent='12 to 20 min';
+  $('#run').disabled=true;$('#again').disabled=false;
+  if(counts.posted===0){
+    $('#saplist').innerHTML='<div class="empty"><b>Nothing was posted.</b> Every record was recognised as '+
+      'already posted. This is the result that matters most, because re-processing the same extract cannot '+
+      'create duplicate financial documents.</div>';
+  }
+}
+document.querySelectorAll('.seg button').forEach(function(b){
+  b.addEventListener('click',function(){
+    SPEED=+b.dataset.speed;
+    document.querySelectorAll('.seg button').forEach(function(x){x.setAttribute('aria-pressed',x===b?'true':'false');});
+  });
+});
+$('#run').addEventListener('click',function(){run(false);});
+$('#again').addEventListener('click',function(){run(true);});
+$('#reset').addEventListener('click',reset);
+reset();
+
+/* deck */
+var slides=Array.prototype.slice.call(document.querySelectorAll('#dStage .sl'));
+var di=0,dots=$('#dDots');
+slides.forEach(function(_,n){
+  var d=document.createElement('i');d.title='Slide '+(n+1);
+  d.addEventListener('click',function(){go(n);});dots.appendChild(d);
+});
+function go(n){
+  di=Math.max(0,Math.min(slides.length-1,n));
+  slides.forEach(function(s,k){s.classList.toggle('on',k===di);});
+  Array.prototype.forEach.call(dots.children,function(d,k){d.classList.toggle('on',k===di);});
+  $('#dCount').textContent=(di+1)+' / '+slides.length;
+  $('#dPrev').disabled=di===0;$('#dNext').disabled=di===slides.length-1;
+  $('#dStage').scrollTop=0;
+}
+$('#dPrev').addEventListener('click',function(){go(di-1);});
+$('#dNext').addEventListener('click',function(){go(di+1);});
+$('#dFull').addEventListener('click',function(){
+  var box=$('#deckbox');
+  if(document.fullscreenElement){document.exitFullscreen();}
+  else if(box.requestFullscreen){box.requestFullscreen();}
+});
+document.addEventListener('fullscreenchange',function(){
+  $('#dFull').textContent=document.fullscreenElement?'Exit fullscreen':'Fullscreen';
+});
+document.addEventListener('keydown',function(e){
+  var box=$('#deckbox');
+  var visible=document.fullscreenElement===box||box.getBoundingClientRect().top<window.innerHeight*0.6;
+  if(!visible)return;
+  if(e.key==='ArrowRight'){e.preventDefault();go(di+1);}
+  if(e.key==='ArrowLeft'){e.preventDefault();go(di-1);}
+});
+go(0);
+</script>
+</body>
+</html>
