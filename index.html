@@ -1,0 +1,1708 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SE Demo Companion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<style>
+:root{
+  --navy:#072B55; --coral:#FF7C66; --purple:#A03291; --gray:#EDEDED;
+  --white:#FFFFFF; --blue:#0085F0; --green:#0EC38B;
+  --grad:linear-gradient(90deg,#FF7C66 0%,#A03291 100%);
+  --bg:#EDEDED; --surface:#FFFFFF; --text:#000000; --text-dim:rgba(7,43,85,.62);
+  --chip:rgba(7,43,85,.05); --border:rgba(7,43,85,.10);
+  --shadow:0 1px 2px rgba(7,43,85,.06),0 8px 24px rgba(7,43,85,.07);
+  --radius:14px;
+}
+[data-theme="dark"]{
+  --bg:#041C38; --surface:#0A2F5A; --text:#FFFFFF; --text-dim:rgba(255,255,255,.66);
+  --chip:rgba(255,255,255,.07); --border:rgba(255,255,255,.14);
+  --shadow:0 8px 28px rgba(0,0,0,.38);
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--bg); color:var(--text);
+  font-family:'Poppins',Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  font-weight:300; line-height:1.5; -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3{font-weight:500; letter-spacing:-.02em; margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+
+/* header — the portal's ONE heading. The prototypes carry a second, separate
+   nav bar (scripts/inject-nav.mjs) because there it is the only way back here;
+   the portal deliberately has no copy of it, because the grid below IS the
+   list of use cases and a second "SE Demo Companion" wordmark above this one
+   was just a duplicate heading. */
+.hdr{background:var(--navy);color:#fff;padding:22px 0 0}
+.hdr-row{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.brand{font-size:20px;font-weight:500;letter-spacing:-.02em}
+.brand span{font-weight:300;opacity:.72}
+.hdr-sub{font-size:13px;opacity:.72;margin-top:4px;padding-bottom:18px}
+.accent{height:4px;background:var(--grad)}
+.tbtn{
+  background:transparent;border:1px solid rgba(255,255,255,.28);color:#fff;
+  border-radius:999px;padding:7px 14px;font:inherit;font-size:12px;cursor:pointer;
+  display:inline-flex;align-items:center;gap:7px;
+}
+.tbtn:hover{background:rgba(255,255,255,.10)}
+
+/* .stat-n / .stat-l are the detail overlay's impact figures. They were once
+   shared with a hero rollup band at the top of the page; that band is gone
+   (no aggregate figures anywhere), so these now belong to .sheet-stats alone. */
+.stat-n{font-size:38px;font-weight:500;color:var(--coral);letter-spacing:-.03em;line-height:1}
+.stat-l{font-size:12px;color:var(--text-dim);margin-top:6px}
+
+/* layout */
+#controls{position:sticky;top:0;z-index:20;background:var(--bg);
+  border-bottom:1px solid var(--border);padding:8px 0}
+#grid{padding:22px 0 48px}
+
+.grid{display:grid;gap:18px;grid-template-columns:repeat(auto-fill,minmax(290px,1fr))}
+.card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  box-shadow:var(--shadow);overflow:hidden;cursor:pointer;text-align:left;
+  padding:0;font:inherit;color:inherit;display:flex;flex-direction:column;
+  transition:transform .14s ease,box-shadow .14s ease;
+}
+.card:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(7,43,85,.14)}
+.card:focus-visible{outline:2px solid var(--coral);outline-offset:2px}
+.card-strip{height:44px;background:var(--grad);display:flex;align-items:center;padding:0 16px}
+.card-init{font-size:13px;font-weight:600;color:#fff;letter-spacing:.02em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.card-body{padding:16px;display:flex;flex-direction:column;gap:9px;flex:1}
+.eyebrow{font-size:11px;font-weight:600;color:var(--coral);letter-spacing:.01em}
+.card-title{font-size:17px;font-weight:500;letter-spacing:-.02em}
+.card-cust{font-size:13px;color:var(--text-dim)}
+/* Attribution, not a headline: coral-family brand colour and an icon make it
+   easy to find, but it is 11.5px against the title's 17px and sits below the
+   customer, so it cannot compete with either. */
+.card-auth{display:flex;align-items:center;gap:5px;font-size:11.5px;font-weight:500;
+  color:var(--purple);letter-spacing:.01em}
+.card-auth i{font-size:13px}
+[data-theme="dark"] .card-auth{color:var(--coral)}
+.card-sum{font-size:13px;color:var(--text-dim)}
+.impact{display:flex;align-items:baseline;gap:7px;margin-top:2px}
+.impact-n{font-size:26px;font-weight:500;color:var(--coral);letter-spacing:-.02em;line-height:1}
+.impact-u{font-size:12px;color:var(--text-dim)}
+.impact-tbd{font-size:12px;color:var(--text-dim);font-style:normal;opacity:.75}
+/* An estimated figure is deliberately subordinate to a sourced one: never coral,
+   smaller, muted, and always prefixed "Est." so it cannot read as a measured fact. */
+.impact-est{font-size:12.5px;font-weight:500;color:var(--text-dim);margin-top:5px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto;padding-top:6px}
+.chip{background:var(--chip);border:1px solid var(--border);border-radius:999px;
+  padding:3px 10px;font-size:11px;color:var(--text-dim)}
+.badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600}
+.badge.published{color:var(--green)}
+.badge.local{color:var(--blue)}
+.badge.pending{color:var(--text-dim)}
+.dot{width:6px;height:6px;border-radius:50%;background:currentColor;display:inline-block}
+.more{display:block;margin:26px auto 0;background:var(--navy);color:#fff;border:0;
+  border-radius:999px;padding:11px 26px;font:inherit;font-size:13px;cursor:pointer}
+[data-theme="dark"] .more{background:var(--grad)}
+.empty{text-align:center;color:var(--text-dim);padding:56px 0;font-size:14px}
+/* ONE LINE, at every width. The row never wraps: below the width where ten
+   controls genuinely fit, it scrolls horizontally instead, and the search box
+   is sticky at the start of that scroll port so it can never scroll out of
+   reach - the original defect this bar exists to fix. */
+.ctl-row{display:flex;gap:6px;align-items:center;flex-wrap:nowrap;
+  overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;padding-bottom:1px}
+.search{position:sticky;left:0;z-index:2;flex:1 1 170px;min-width:150px;
+  background:var(--bg);padding-right:2px}
+.search i{position:absolute;left:11px;top:50%;transform:translateY(-50%);
+  color:var(--text-dim);font-size:14px;pointer-events:none}
+.search input{
+  width:100%;padding:6px 12px 6px 30px;border-radius:999px;font:inherit;font-size:12.5px;
+  border:1px solid var(--border);background:var(--surface);color:var(--text)}
+.search input:focus{outline:2px solid var(--coral);outline-offset:1px;border-color:transparent}
+/* Fixed, compact basis so the dropdowns never fight the flexing search box.
+   A long chosen value ("Platform operations") ellipsises rather than widening
+   the control - the full value is readable in the open list and in the result
+   set, so nothing is lost and the row cannot be blown apart by the data. */
+.ctl-row select{flex:0 0 auto;width:88px;padding:6px 8px;border-radius:999px;
+  font:inherit;font-size:12px;line-height:1.15;border:1px solid var(--border);
+  background:var(--surface);color:var(--text);cursor:pointer;text-overflow:ellipsis}
+#sort{width:128px}
+#count{font-size:12px;color:var(--text-dim);white-space:nowrap;flex:0 0 auto}
+#clear{flex:0 0 auto}
+#clear{background:none;border:0;color:var(--purple);font:inherit;font-size:12.5px;
+  cursor:pointer;text-decoration:underline;white-space:nowrap}
+[data-theme="dark"] #clear{color:var(--coral)}
+@media (max-width:480px){
+  .ctl-row{gap:5px}
+  .ctl-row select{font-size:11px;padding:5px 7px;width:82px}
+  #sort{width:118px}
+}
+/* The result count is the most droppable control, so it is the first thing to
+   go when ten controls stop fitting one line. It is redundant anyway - the
+   grid below shows what matched. */
+@media (max-width:1099px){
+  #count{display:none}
+}
+#overlay[hidden]{display:none}
+#overlay{position:fixed;inset:0;z-index:60;display:flex;align-items:flex-start;
+  justify-content:center;padding:36px 18px;overflow:auto;background:rgba(7,43,85,.52)}
+.sheet{background:var(--surface);color:var(--text);border-radius:var(--radius);
+  width:min(720px,100%);box-shadow:0 24px 60px rgba(0,0,0,.30);overflow:hidden}
+.sheet-strip{height:6px;background:var(--grad)}
+.sheet-in{padding:26px 28px 30px}
+.sheet-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}
+.sheet h2{font-size:26px;letter-spacing:-.03em;margin:6px 0 2px}
+.sheet-cust{font-size:14px;color:var(--text-dim)}
+.sheet-auth{font-size:12.5px;font-weight:500;color:var(--purple);margin-top:5px}
+[data-theme="dark"] .sheet-auth{color:var(--coral)}
+.xbtn{background:var(--chip);border:1px solid var(--border);border-radius:50%;
+  width:34px;height:34px;cursor:pointer;color:var(--text);font-size:16px;flex:none}
+.xbtn:focus-visible{outline:2px solid var(--coral);outline-offset:2px}
+.sheet-stats{display:flex;gap:40px;margin:20px 0 4px;flex-wrap:wrap}
+.sheet-stats .stat-n.est{font-size:24px;color:var(--text-dim)}
+.stat-b{font-size:11px;color:var(--text-dim);margin-top:5px}
+.sec p.workings{color:var(--text-dim)}
+.sec{margin-top:22px}
+.sec h3{font-size:11px;font-weight:600;color:var(--text-dim);margin-bottom:8px}
+.sec p{margin:0;font-size:14px}
+.sec ul{margin:0;padding-left:18px;font-size:14px}
+.sec ol{margin:0;padding-left:20px;font-size:14px}
+.sec li{margin-bottom:4px}
+.sec ol li{margin-bottom:7px}
+.lead{margin:20px 0 0;font-size:15px;line-height:1.62}
+.lead + .lead{margin-top:12px}
+/* Adjacent systems are NOT what the demo integrates. Dashed and hollow so the
+   difference from the solid `systems` chips is visible before the label is
+   read; the label says it too. */
+.chip.adj{background:transparent;border-style:dashed;font-style:normal}
+/* The costing model. Boxed, tabular and selectable, because an SE puts the
+   customer's own numbers into it live in the room. */
+.model{border:1px solid var(--border);border-radius:var(--radius);
+  background:var(--chip);padding:16px 16px 14px}
+.model h3{color:var(--coral);font-size:12px;margin-bottom:6px}
+.model p.model-warn{font-size:12.5px;color:var(--text-dim);margin:0 0 11px}
+.model p.model-unit{font-size:13px;margin:0 0 12px}
+.model-t{width:100%;border-collapse:collapse;font-size:13px}
+.model-t th{text-align:left;font-weight:600;font-size:11px;color:var(--text-dim);
+  padding:0 10px 6px 0;border-bottom:1px solid var(--border)}
+.model-t td{padding:7px 10px 7px 0;border-bottom:1px solid var(--border);vertical-align:top}
+.model-t tr:last-child td{border-bottom:0}
+.model-t td.ph{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  white-space:nowrap;font-weight:500}
+.model p.model-ex{font-size:13px;margin:13px 0 0;line-height:1.6}
+.model-ex-l{display:block;font-size:11px;font-weight:600;color:var(--text-dim);margin-bottom:4px}
+.rel{display:flex;flex-direction:column;gap:7px;align-items:flex-start}
+.rel a{font-size:13.5px;color:var(--purple);text-decoration:none;
+  display:inline-flex;align-items:center;gap:7px}
+.rel a:hover{text-decoration:underline}
+[data-theme="dark"] .rel a{color:var(--coral)}
+.runfrom{margin-top:26px;padding-top:14px;border-top:1px solid var(--border)}
+.runfrom .lbl{display:block;font-size:11px;font-weight:600;color:var(--text-dim);
+  margin-bottom:5px}
+.runfrom code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:12px;color:var(--text-dim);word-break:break-all}
+.open-btn{display:inline-flex;align-items:center;gap:9px;margin-top:26px;
+  background:var(--grad);color:#fff;border:0;border-radius:999px;
+  padding:13px 26px;font:inherit;font-size:14px;font-weight:500;
+  cursor:pointer;text-decoration:none}
+.soon{display:inline-flex;align-items:center;gap:9px;margin-top:26px;
+  background:var(--chip);border:1px dashed var(--border);color:var(--text-dim);
+  border-radius:999px;padding:13px 26px;font-size:14px}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="wrap">
+    <div class="hdr-row">
+      <div>
+        <div class="brand">SE Demo Companion</div>
+      </div>
+      <button class="tbtn" id="theme-toggle" type="button" aria-label="Switch to dark theme">
+        <i class="ph ph-moon" aria-hidden="true"></i><span id="theme-label">Dark</span>
+      </button>
+    </div>
+    <div class="hdr-sub">Prototypes built by Solution Engineers. Search by industry, system, partner, author, or the conversation it fits.</div>
+  </div>
+  <div class="accent"></div>
+</header>
+
+<div id="controls"><div class="wrap"></div></div>
+<main id="grid"><div class="wrap"></div></main>
+<div id="overlay" hidden></div>
+
+<script>
+/* PURE:START */
+// The costing model is searchable like everything else - an SE hunting
+// "cost per invoice" or "tickets deflected" is looking for exactly this.
+function modelBlob(mo){
+  if(!mo) return '';
+  return [mo.unit || '', mo.example || '',
+    (mo.inputs||[]).map(function(i){ return (i.name||'') + ' ' + (i.source||''); }).join(' ')
+  ].join(' ');
+}
+// Every prose and vocabulary field on the entry, author included, so the one
+// free-text box reaches all 23 keys' worth of content and not a subset.
+function searchBlob(uc){
+  return [
+    uc.title, uc.customer, uc.industry, uc.author, uc.summary, uc.narrative,
+    uc.partnersNote, uc.misc, uc.originalPath,
+    (uc.partners||[]).join(' '), (uc.systems||[]).join(' '),
+    (uc.adjacentSystems||[]).join(' '),
+    (uc.products||[]).join(' '), (uc.conversations||[]).join(' '),
+    (uc.demoFlow||[]).join(' '),
+    (uc.relatedPages||[]).map(function(p){ return p.label || ''; }).join(' '),
+    (uc.tags||[]).join(' '),
+    (uc.impact && uc.impact.note) || '',
+    modelBlob(uc.impactModel)
+  ].join(' ').toLowerCase();
+}
+function matchesQuery(uc, query){
+  var q = (query||'').trim().toLowerCase();
+  if(!q) return true;
+  return searchBlob(uc).indexOf(q) !== -1;
+}
+// Status answers the question an SE actually has: can I send this link to
+// someone, or is it only on my machine? 'published' = a real https:// URL
+// (e.g. Google Sites); 'local' = a relative path that only resolves from
+// this machine's disk (every entry, today, thanks to Task 8); 'pending' =
+// no url at all yet.
+function deriveStatus(uc){
+  var url = uc.url || '';
+  if(!url) return 'pending';
+  return /^https:\/\//.test(url) ? 'published' : 'local';
+}
+function matchesFilters(uc, filters){
+  var f = filters || {};
+  function facet(sel, vals){
+    if(!sel || !sel.length) return true;
+    for(var i=0;i<sel.length;i++){ if(vals.indexOf(sel[i]) !== -1) return true; }
+    return false;
+  }
+  return facet(f.industry, [uc.industry])
+      && facet(f.systems,  uc.systems  || [])
+      && facet(f.partners, uc.partners || [])
+      && facet(f.products, uc.products || [])
+      && facet(f.author,   [uc.author])
+      && facet(f.status,   [deriveStatus(uc)]);
+}
+function deriveFacets(list){
+  var out = {industry:[],systems:[],partners:[],products:[],author:[],status:[]};
+  function push(key, v){ if(v && out[key].indexOf(v) === -1) out[key].push(v); }
+  (list||[]).forEach(function(uc){
+    push('industry', uc.industry);
+    (uc.systems ||[]).forEach(function(v){ push('systems', v); });
+    (uc.partners||[]).forEach(function(v){ push('partners', v); });
+    (uc.products||[]).forEach(function(v){ push('products', v); });
+    push('author', uc.author);
+    push('status', deriveStatus(uc));
+  });
+  Object.keys(out).forEach(function(k){ out[k].sort(); });
+  return out;
+}
+function impactScore(uc){
+  if(!uc.impact) return -1;
+  return (uc.impact.hours||0) * 1e6 + (uc.impact.dollars||0);
+}
+function sortEntries(list, mode){
+  var a = (list||[]).slice();
+  function byTitle(x,y){ return String(x.title).localeCompare(String(y.title)); }
+  if(mode === 'az')      return a.sort(byTitle);
+  if(mode === 'impact')  return a.sort(function(x,y){
+    return (impactScore(y) - impactScore(x)) || byTitle(x,y); });
+  if(mode === 'industry')return a.sort(function(x,y){
+    return String(x.industry).localeCompare(String(y.industry)) || byTitle(x,y); });
+  return a.sort(function(x,y){
+    return String(y.added).localeCompare(String(x.added)) || byTitle(x,y); });
+}
+// Per-figure provenance. An impact carries basis:{hours:...,dollars:...}; a
+// figure counts as sourced ONLY when the entry says so, so anything missing,
+// malformed or unknown falls back to 'estimated' and can never over-claim.
+function basisOf(impact, key){
+  var b = impact && impact.basis;
+  return (b && typeof b === 'object' && b[key] === 'sourced') ? 'sourced' : 'estimated';
+}
+// There is deliberately NO aggregation of impact figures anywhere in this
+// portal. A hero band of totals used to sit at the top of the page, with a
+// summing helper behind it; both are gone. Impact is reported per entry only,
+// which also means an impactModel - a table of PLACEHOLDER inputs, never a
+// measured figure - has nothing it could ever be summed into. A contract test
+// asserts no summing helper and no total element comes back.
+function initials(customer){
+  var parts = String(customer||'').trim().split(/\s+/).filter(Boolean);
+  if(!parts.length) return '—';
+  if(parts.length === 1) return parts[0].slice(0,2).toUpperCase();
+  return (parts[0][0] + parts[1][0]).toUpperCase();
+}
+function formatNumber(n){ return String(n||0).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+/* PURE:END */
+/* ────────────────────────────────────────────────────────────────
+   USE CASES — this is the only block you ever edit.
+   Copy the template, fill it in, add it to the array. That is it.
+
+   EVERY entry carries ALL 23 keys, in EXACTLY the order below. An entry with
+   nothing to put in a field gets '' or [] or null — never a missing key. A
+   contract test compares Object.keys() against the documented order on every
+   entry, so a key in the wrong place or a key left out fails the build.
+
+   industry, systems, partners, products and author are CONTROLLED VOCABULARY.
+   Their values must come from the five CANON_ arrays declared just below this
+   comment — do not invent a new spelling or a new value without adding it to
+   the canon list first, and prune a canon value when the last entry using it
+   goes, or it becomes a dropdown option that matches nothing.
+
+   {
+     id:            'kebab-case-unique-id',
+     title:         'What the prototype is called',
+     customer:      'Customer or account name',
+     industry:      'One industry, e.g. Financial services — must be in CANON_INDUSTRIES',
+     author:        'Who built it — must be in CANON_AUTHORS. Shown on the card face,
+                     searchable, and one of the six dropdown facets.',
+     summary:       'One or two lines shown on the card.',
+     narrative:     'The full problem statement, in prose, shown as the lead paragraph of
+                     the detail overlay. Blank lines separate paragraphs. '' if none.',
+     impact:        { hours:    480,
+                      dollars:  14400,
+                      basis:    {hours:'sourced', dollars:'estimated'},
+                      note:     'per fee cycle',
+                      workings: '9 manual steps x ~12 min x ~40 documents a week x 48 weeks.' },
+                    //  ^ use null when the prototype gives you no basis at all.
+                    //    An honest null is better than an invented number.
+                    //
+                    //    impact is either null or an object with EXACTLY these five
+                    //    keys, in this order: hours, dollars, basis, note, workings.
+                    //
+                    //    basis records provenance PER FIGURE, because an entry can
+                    //    legitimately have a sourced hours figure and an estimated
+                    //    dollar figure - the dollars are derived by multiplying by a
+                    //    rate the source never mentions. Use 'sourced' only when the
+                    //    prototype literally states that number; anything else is
+                    //    'estimated' and renders muted, smaller and prefixed "Est.".
+                    //
+                    //    workings is REQUIRED whenever either basis value is
+                    //    'estimated'. State the assumptions in one or two sentences -
+                    //    it is shown to the reader as the justification for the number.
+                    //
+                    //    dollars for an estimated figure must equal
+                    //    hours x RATE_USD_PER_HOUR. A test enforces it, so change the
+                    //    constant, then the dollars - never one without the other.
+     impactModel:   { inputs:  [{name:'Invoices per month', placeholder:'10,000',
+                                 source:'AP team'}],
+                      example: 'The arithmetic worked through with those placeholders.',
+                      unit:    'cost per invoice' },
+                    //  ^ null when the source states no model.
+                    //
+                    //    impactModel is NOT impact and must NEVER be promoted into it.
+                    //    It is a table of PLACEHOLDER inputs an SE re-runs live with
+                    //    the customer's own numbers. The bar for impact.basis
+                    //    'estimated' is a figure grounded in something the source
+                    //    states about THAT account; a placeholder table is not that.
+                    //    The overlay renders it under "Sizing model — not a measured
+                    //    figure", and there is no aggregate figure anywhere in the
+                    //    portal for it to leak into. Tests enforce both.
+     demoFlow:      ['One entry per step, in order, in the words you would use while
+                      presenting'],          // [] if none. Rendered as a numbered list.
+     partners:      ['LTIMindtree'],           // values from CANON_PARTNERS
+     partnersNote:  'Why that partner, whose asset it is, or that no partner is named
+                     and you need to find out.',   // '' if none
+     systems:       ['SAP','NetSuite'],        // values from CANON_SYSTEMS — named products only
+                                               // systems the demo ACTUALLY integrates
+     adjacentSystems: ['A tax engine if there is VAT or GST treatment'],
+                    //  ^ adjacent / commonly raised only. Anything the demo really
+                    //    integrates belongs in `systems` and must not be repeated
+                    //    here. Free text, not controlled vocabulary, because these
+                    //    are conversation prompts rather than facet values — they
+                    //    render as dashed chips under their own heading. [] if none.
+     products:      ['Integration','Agentstudio'], // values from CANON_PRODUCTS
+     conversations: ['Where this use case is useful in a customer conversation'],
+     misc:          'Anything else that makes it interesting.',
+     tags:          ['extra','search','terms'],
+     url:           'use-case-prototypes/kebab-case-unique-id.html',
+                    //  ^ relative path to the local copy while the demo runs from file://.
+                    //    A published https:// URL is equally valid once available;
+                    //    use '' only if nothing exists yet.
+     relatedPages:  [{label:'Start here — the written narrative',
+                      file:'use-case-prototypes/kebab-case-unique-id-why.html'}],
+                    //  ^ companion pages that exist in use-case-prototypes/ but are
+                    //    not catalogued as their own use case. `file` is a relative
+                    //    path resolved exactly like `url`. Order matters: list the
+                    //    page the source says to read first, first. [] if none.
+     originalPath:  '~/Claude/bc_projects/Something/prototype/thing.html',
+                    //  ^ where the original still lives and can be run live, from the
+                    //    source's own "Copied from" line. '' if unknown. Rendered in
+                    //    a monospace line under "Run live from".
+     source:        'relative/path/to/original.html',
+     added:         '2026-09-22'
+   }
+   ──────────────────────────────────────────────────────────────── */
+// Controlled vocabulary for industry, systems, partners and products.
+// Any new USE_CASES entry must use values drawn from these four lists —
+// do not introduce a new spelling or a new value without adding it here
+// first, alphabetically, to keep the facet dropdowns (Task 9) stable.
+var CANON_SYSTEMS    = ['Cloudflare','Coupa','Epic','Gmail','Jira','Magento','NetSuite','Oracle','QAD','Rauland','Salesforce','SAP','ServiceNow','Twilio','WhatsApp','Zendesk','Zoho'];
+var CANON_PRODUCTS   = ['Agentstudio','Boomi for SAP','Data Hub','Event Streams','Flow','Integration'];
+var CANON_PARTNERS   = ['Accenture','Altria','Aware','Datacom','Infosys','LTIMindtree','Valtatech'];
+var CANON_INDUSTRIES = ['Cross-industry','Education','Financial services','Healthcare','Insurance','Manufacturing','Platform operations','Retail','Telecommunications'];
+// Who built it. The fifth controlled vocabulary and the sixth dropdown facet:
+// "who do I ask about this one?" is a question a shared SE portal should
+// answer in one click, and it gets more useful as more SEs contribute.
+// Add yourself here, alphabetically by first name, before your first entry.
+var CANON_AUTHORS    = ['Richard Yang','Saurabh Singh'];
+// Blended APJ back-office operations rate, USD. THIS IS THE ONE NUMBER TO CHANGE.
+// Every estimated dollar figure in the portal derives from it.
+var RATE_USD_PER_HOUR = 30;
+var USE_CASES = [
+  {
+    id: 'amc-fee-change-agent',
+    title: 'AMC fee-change agent',
+    customer: 'Finnomena',
+    industry: 'Financial services',
+    author: 'Saurabh Singh',
+    summary: 'A walkthrough of a mimicked Boomi Flow in which an agent reads the AMC mailbox, extracts a fee change, and waits for one compliance approval before the investor notice and website update go out. Nine manual steps become one decision.',
+    narrative: '',
+    impact: {hours:9600,
+             dollars:288000,
+             basis:{hours:'sourced', dollars:'estimated'},
+             note:'current effort baseline, customer-stated',
+             workings:'The hours are stated by the source: 10 people at half a 160-hour month each, every month, is 9,600 hours a year. No dollar figure appears anywhere in the source, so the dollars are derived - 9,600 hours at the blended rate of USD 30 an hour - and are an estimate even though the hours are not.'},
+    impactModel: null,
+    demoFlow: [],
+    partners: [],
+    partnersNote: '',
+    systems: ['Gmail'],
+    adjacentSystems: [],
+    products: ['Integration', 'Agentstudio', 'Flow'],
+    conversations: ['Agentic AI with a human approval gate', 'Back-office effort reduction in asset servicing'],
+    misc: 'Impact from the demo page section headed "What this saves": "9,600 hrs a year spent reading, re-keying and re-checking notices" and "60 person-months / 5 people worth of full-time capacity returned to the business". Those hours are sourced; the dollar figure on this entry is not in the source at all - it is the hours multiplied by the portal\'s blended rate, and is labelled an estimate wherever it appears. The page states its own basis: "Every hour figure comes from one number Finnomena gave us - 10 people, half a month each, every month - at a 160-hour month. Nothing else here is measured." So this is a customer-supplied estimate of current effort presented as the claimed saving, not a measured post-implementation result. It is also the whole-mailbox baseline rather than the fee-change path this prototype covers - the page closes: "Fee changes are one notice type in this mailbox. Holidays, factsheets and KYC reminders follow the same pattern, which is where the rest of the 800 hours sits." So the 9,600 hours span every notice type in that mailbox, while this prototype automates fee changes only; the fee-change share is smaller and is not stated anywhere in the source. Emails, fund codes and fee percentages on the page are illustrative. The page calls the extraction step AgentStudio. Also touches: Email (IMAP) for other notice types in the mailbox, and a web CMS for the investor notice/website update — dropped from the systems facet under the named-products-only rule.',
+    tags: ['fee change', 'asset management', 'human in the loop', 'email intake', 'notice generation'],
+    url: 'use-case-prototypes/amc-fee-change-agent.html',
+    relatedPages: [],
+    originalPath: '',
+    source: 'Finnomena/Fintech-Asset-Mgmt-AMC-fee-change-agent-demo.html',
+    added: '2026-09-15'
+  },
+  {
+    id: 'bvtpa-claims-integration-demo',
+    title: 'Blue Venture TPA claims integration demo',
+    customer: 'Blue Venture TPA',
+    industry: 'Insurance',
+    author: 'Saurabh Singh',
+    summary: 'Demo in which three hospital claim formats are normalised into one canonical claim, adjudicated against member eligibility, and routed to cashless settlement, member reimbursement or the adjudicator queue.',
+    narrative: '',
+    impact: null,
+    impactModel: null,
+    demoFlow: [],
+    partners: ['Aware'],
+    partnersNote: '',
+    systems: [],
+    adjacentSystems: [],
+    products: ['Integration'],
+    conversations: ['Claims intake and adjudication automation',
+                    'Onboarding a new provider without changing the rules',
+                    'Business-owned reference data'],
+    misc: 'Effort sizing for this engagement is carried on the companion entry "Claims adjudication CIO brief", which is where the manual baseline is described - qualitatively, not as a figure; it is deliberately not repeated here so the portal rollup does not count one engagement twice. This page itself states no impact figure and states up front: "Every figure, claim, member and provider identifier on this page is synthetic demo data generated for illustration." The operational numbers shown (1,284 claims today, 97.1% success, 1.8 sec average latency, 99.98% API availability) are synthetic dashboard volume and latency, not savings. Real build facts: 12 components, 52 process shapes, last execution COMPLETE in 4.65 sec, 0 external connections. Eligibility, panel status and contracts are Boomi Cross Reference tables; the canvas labels that node Data Hub. Bilingual English and Thai throughout. Also touches: SFTP, hospital claim feeds (CSV and key-value text), a provider portal upload channel, and the BVTPA claims platform — all dropped from the systems facet under the named-products-only rule.',
+    tags: ['claims', 'adjudication', 'TPA', 'canonical model', 'cross reference', 'bilingual', 'Thai'],
+    url: 'use-case-prototypes/bvtpa-claims-integration-demo.html',
+    relatedPages: [],
+    originalPath: '',
+    source: 'Blue Venture TPA- Aware/Aware-Blue-Venture-TPA-bvtpa-claims-integration-demo.html',
+    added: '2026-09-16'
+  },
+  {
+    id: 'bvtpa-claims-adjudication-cio-brief',
+    title: 'Claims adjudication CIO brief',
+    customer: 'Blue Venture TPA',
+    industry: 'Insurance',
+    author: 'Saurabh Singh',
+    summary: 'Bilingual executive brief for BVTPA IT leadership covering the business problem, what was built, the rule ladder in order, the evidence from the last verified run, and the path to production.',
+    narrative: '',
+    impact: {hours:2000,
+             dollars:60000,
+             basis:{hours:'estimated', dollars:'estimated'},
+             note:'per year, estimated - not a figure the source states',
+             workings:'The brief states that the variety of hospital formats is absorbed by people today: staff re-key claim data, chase missing pre-authorisation codes and check policy status by hand, and the rule ladder lists four checks per claim. Assumed about 6 minutes of that handling per claim, and about 80 claims a working day - deliberately far below the 1,284 a day the sibling demo page shows, which that page labels synthetic - over 250 working days. 6/60 x 80 x 250 = 2,000 hours.'},
+    impactModel: null,
+    demoFlow: [],
+    partners: ['Aware'],
+    partnersNote: '',
+    systems: [],
+    adjacentSystems: [],
+    products: ['Integration'],
+    conversations: ['CIO-level claims modernisation case',
+                    'Consistency and auditability of automated decisions',
+                    'Demo to production roadmap'],
+    misc: 'The source states no impact figure. The hours and dollars on this entry are the portal\'s own estimate, labelled as such on the card and in the detail sheet, with every assumption set out under "How this number is derived". The brief itself describes the manual baseline only qualitatively - staff re-key claim data, chase missing pre-authorisation codes and check policy status by hand - and it is explicit that this is a demo: "All hospitals, insurers, policy numbers and claim amounts are invented for demonstration" and "The runtime used is a Boomi training cloud, not a production runtime." The only measured numbers are run evidence - 8 claims in, 8 out, 0 errored documents, 4.65 sec end to end. Section 8 lists six path-to-production steps including "Agree volume, latency and availability targets before go-live", which is where a real impact number would come from. Also touches: hospital claim feeds, BVTPA member records, and the target-state settlement, reimbursement and workqueue systems — all dropped from the systems facet under the named-products-only rule.',
+    tags: ['CIO brief', 'executive', 'claims', 'bilingual', 'Thai', 'path to production'],
+    url: 'use-case-prototypes/bvtpa-claims-adjudication-cio-brief.html',
+    relatedPages: [],
+    originalPath: '',
+    source: 'Blue Venture TPA- Aware/documentation/BVTPA-Claims-Adjudication-CIO-Brief.html',
+    added: '2026-09-16'
+  },
+  {
+    id: 'delivery-status-sync-demo',
+    title: 'Delivery status sync demo',
+    customer: 'TOTO',
+    industry: 'Manufacturing',
+    author: 'Saurabh Singh',
+    summary: 'A single-screen animation of a delivery status change in a warehouse or ERP system flowing through a Boomi process to a customer tracking portal, with a step-by-step process log.',
+    narrative: '',
+    impact: null,
+    impactModel: null,
+    demoFlow: [],
+    partners: [],
+    partnersNote: '',
+    systems: [],
+    adjacentSystems: [],
+    products: ['Integration'],
+    conversations: ['Explaining an integration to a non-technical audience in one screen',
+                    'Keeping a customer tracking portal in step with warehouse or ERP status changes'],
+    misc: 'No figures of any kind on the page, so nothing to verify. The smallest prototype in the set at 12 KB. Order, product and customer on screen are a single hardcoded sample (ORD-48213). The ERP is labelled generically as "Warehouse / ERP (e.g. SAP)" - SAP is given as an example, not as the system integrated. The page never names TOTO; the account is identified only by the project folder (TOTO Demo). Also touches: a generic warehouse/ERP system and a customer tracking portal — dropped from the systems facet under the named-products-only rule. Industry inferred: Manufacturing — low confidence, TOTO-folder-derived; the page itself never states an industry.',
+    tags: ['delivery status', 'order tracking', 'animation', 'whiteboard demo'],
+    url: 'use-case-prototypes/delivery-status-sync-demo.html',
+    relatedPages: [],
+    originalPath: '',
+    source: 'TOTO Demo/boomi_delivery_status_sync_demo.html',
+    added: '2026-07-21'
+  },
+  {
+    id: 'boomi-tenant-ceo-dashboard',
+    title: 'Boomi tenant CEO dashboard',
+    customer: 'Boomi internal tenant',
+    industry: 'Platform operations',
+    author: 'Saurabh Singh',
+    summary: 'An interactive dashboard over one Boomi tenant: deployments, process executions, errors, discards, dormant packages and recommended actions, built from live AtomSphere platform API data.',
+    narrative: '',
+    impact: null,
+    impactModel: null,
+    demoFlow: [],
+    partners: [],
+    partnersNote: '',
+    systems: [],
+    adjacentSystems: [],
+    products: ['Integration'],
+    conversations: ['Tenant health and platform governance review',
+                    'Identifying dormant deployments and cleanup candidates'],
+    misc: 'No business impact figure. All numbers are tenant operations telemetry (15 deployments, 12,644 executions, 99.53% success) for account boomi_saurabhsingh-FI5Q23, not savings. This is the interactive companion to the 30-day report in the same folder. It sits under the NTT Demo folder but is tenant-wide, covering the O2C-QAD, ElectroMart and NTTDemo projects. Also touches: the Boomi AtomSphere platform API — dropped from the systems facet under the named-products-only rule (it is the reporting API, not a named integration target). Industry inferred: Platform operations — the page is about a Boomi tenant, not a customer vertical.',
+    tags: ['tenant operations', 'dashboard', 'platform API', 'governance', 'monitoring'],
+    url: 'use-case-prototypes/boomi-tenant-ceo-dashboard.html',
+    relatedPages: [],
+    originalPath: '',
+    source: 'NTT Demo/Tenant-Dashboard.html',
+    added: '2026-05-19'
+  },
+  {
+    id: 'boomi-tenant-30-day-report',
+    title: 'Boomi tenant operations report, 30-day view',
+    customer: 'Boomi internal tenant',
+    industry: 'Platform operations',
+    author: 'Saurabh Singh',
+    summary: 'A 30-day operations report for one Boomi tenant with an executive snapshot, per-process detail, every error and discard, dormant deployments, and a prioritised P0 to P3 recommendation list.',
+    narrative: '',
+    impact: null,
+    impactModel: null,
+    demoFlow: [],
+    partners: [],
+    partnersNote: '',
+    systems: [],
+    adjacentSystems: [],
+    products: ['Integration'],
+    conversations: ['Tenant health and platform governance review', 'Post-deployment operational hygiene'],
+    misc: 'No business impact figure. The figures are operational telemetry for the window 2026-04-18 to 2026-05-18 on account boomi_saurabhsingh-FI5Q23: 12,644 executions, 99.53% success, 15 errors, 45 concurrency discards, 8.78 sec average execution. Useful as an example of what Boomi platform reporting can produce, not as a savings claim. Methodology section names the exact platform API endpoints queried. Also touches: the Boomi AtomSphere platform API — dropped from the systems facet under the named-products-only rule. Industry inferred: Platform operations — same reasoning as the companion CEO dashboard.',
+    tags: ['tenant operations', '30-day report', 'platform API', 'errors', 'dormant deployments'],
+    url: 'use-case-prototypes/boomi-tenant-30-day-report.html',
+    relatedPages: [],
+    originalPath: '',
+    source: 'NTT Demo/Tenant-30-Day-Report.html',
+    added: '2026-05-18'
+  },
+  {
+    id: 'json-to-xml-order-integration',
+    title: 'JSON to XML order integration, executive documentation',
+    customer: 'NTT',
+    industry: 'Telecommunications',
+    author: 'Saurabh Singh',
+    summary: 'Bilingual English and Bahasa Indonesia executive documentation for a six-shape Boomi process that turns a modern JSON order into the nested XML a legacy ERP expects, with no custom code.',
+    narrative: '',
+    impact: null,
+    impactModel: null,
+    demoFlow: [],
+    partners: [],
+    partnersNote: '',
+    systems: [],
+    adjacentSystems: [],
+    products: ['Integration'],
+    conversations: ['Legacy modernisation and the N x M point-to-point problem',
+                    'Low-code versus hand-coded transformation',
+                    'AI-assisted build'],
+    misc: 'Deliberately left with no impact. The document does state build effort - "Time from blank canvas to verified output ~10 minutes" against "Custom Java/.NET ... Time to first version 1-3 days" - but that is delivery effort for this build, not a business saving produced by running the integration, so it is not recorded as impact. Other figures are technical: 5 components, 0 lines of custom code, ~135 ms end-to-end runtime, ~4-5 person-days estimated to reach production. Sample order payload is invented. Also touches: a legacy XML-based ERP and mobile app/e-commerce/partner API channels (JSON) — dropped from the systems facet under the named-products-only rule. Industry inferred: Telecommunications — low confidence; this is NTT’s own sector, but the page itself is about generic order-XML transformation, not a telecom process.',
+    tags: ['JSON to XML', 'legacy ERP', 'mapping', 'bilingual', 'Bahasa Indonesia', 'executive documentation'],
+    url: 'use-case-prototypes/json-to-xml-order-integration.html',
+    relatedPages: [],
+    originalPath: '',
+    source: 'NTT Demo/NTTDemo-Executive-Documentation-Bilingual.html',
+    added: '2026-05-18'
+  },
+  {
+    id: 'edi-850-flight-deck',
+    title: 'EDI 850 flight deck',
+    customer: 'Infosys',
+    industry: 'Manufacturing',
+    author: 'Saurabh Singh',
+    summary: 'A simulated operations screen for inbound X12 4010 purchase orders: a receive, validate, acknowledge and map pipeline, a streaming transaction feed, and a drill-down showing raw X12 next to the internal order JSON. Traffic is generated in the browser, not read from a Boomi runtime.',
+    narrative: '',
+    impact: null,
+    impactModel: null,
+    demoFlow: [],
+    partners: ['Infosys'],
+    partnersNote: '',
+    systems: [],
+    adjacentSystems: [],
+    products: [],
+    conversations: ['Operational visibility over inbound EDI purchase orders',
+                    'Showing what a raw X12 850 looks like next to the internal order it becomes',
+                    'Validation and 997 acknowledgement in an EDI onboarding conversation'],
+    misc: 'No impact and no Boomi product named. The page states: "Simulated traffic for demonstration - transactions are generated locally, not read from a Boomi runtime." All counters start at zero and are generated in the browser; the ten trading partners and all SKUs are invented. Pipeline stages shown are Trading Partner Receipt, EDI Validation, 997 Acknowledgment, Mapping to Internal Order, Output. The page never names Infosys; the account is identified only by the project folder (Infosys HYD Aug), which is also the sole basis for the partner entry. Also touches: EDI X12 850 purchase orders and EDI 997 functional acknowledgments — dropped from the systems facet under the named-products-only rule. Industry inferred: Manufacturing — basis is the inbound X12 850 purchase-order pattern the page depicts.',
+    tags: ['EDI', 'X12', '850', '997', 'purchase orders', 'live feed', 'simulated'],
+    url: 'use-case-prototypes/edi-850-flight-deck.html',
+    relatedPages: [],
+    originalPath: '',
+    source: 'Infosys HYD Aug/dashboard/edi850-flight-deck.html',
+    added: '2026-08-17'
+  },
+  {
+    id: 'whatsapp-to-sap-master-agent',
+    title: 'WhatsApp to SAP master agent',
+    customer: 'Boomi internal build',
+    industry: 'Cross-industry',
+    author: 'Saurabh Singh',
+    summary: 'Bilingual solution documentation for a conversational integration: a WhatsApp question arrives via Twilio, Boomi acknowledges instantly, an AI agent queries SAP, and the answer is pushed back to the same chat.',
+    narrative: '',
+    impact: null,
+    impactModel: null,
+    demoFlow: [],
+    partners: [],
+    partnersNote: '',
+    systems: ['SAP', 'Twilio', 'WhatsApp'],
+    adjacentSystems: [],
+    products: ['Integration', 'Agentstudio'],
+    conversations: ['Conversational self-service over SAP',
+                    'Reaching frontline staff without SAP GUI access',
+                    'Async acknowledgement pattern for slow AI calls'],
+    misc: 'No business impact figure, and no defensible estimate either. The document describes the manual burden only qualitatively - "Routine questions are funnelled to back-office staff, creating delays and cost" - and never gives a question volume, a handling time or a headcount, so every multiplier in an estimate would have to be invented. It is also a reference build with no named customer, so there is nobody whose hours these would be: sizing this one needs a customer baseline first. The numbers present are execution telemetry from 8 real runs across 2 test sessions: 100% success, 0 errors, average duration 57.6 sec, range 31.1 to 107.0 sec. The source calls the agent runtime "Boomi AI Agent Garden"; recorded here as Agentstudio. Account boomi_saurabhsingh-FI5Q23, cloud Test Atom, process v5. Industry inferred: Cross-industry — this is a reference build with no named customer.',
+    tags: ['WhatsApp', 'Twilio', 'SAP', 'conversational', 'agent', 'TwiML', 'bilingual', 'Thai'],
+    url: 'use-case-prototypes/whatsapp-to-sap-master-agent.html',
+    relatedPages: [],
+    originalPath: '',
+    source: 'whatsapp to SAP PO/WhatsApp-to-SAP-Master-Agent-Documentation.html',
+    added: '2026-06-30'
+  },
+  {
+    id: 'student-xml-to-crm-json',
+    title: 'Student XML to CRM JSON',
+    customer: 'Attura',
+    industry: 'Education',
+    author: 'Saurabh Singh',
+    summary: 'Executive brief for an integration that receives a student record as XML over HTTPS, validates it against a profile, maps it to CRM JSON and POSTs it downstream in under a second, removing the manual hand-off between the student information system and the CRM.',
+    narrative: '',
+    impact: {hours:150,
+             dollars:4500,
+             basis:{hours:'estimated', dollars:'estimated'},
+             note:'per year, estimated - not a figure the source states',
+             workings:'The brief states the integration eliminates the manual hand-off between the student information system and the CRM, and the field mapping shows five fields per student record. Assumed about 5 minutes to re-key and check those five fields per record, and about 1,800 records a year, roughly one intake cohort. 5/60 x 1,800 = 150 hours.'},
+    impactModel: null,
+    demoFlow: [],
+    partners: [],
+    partnersNote: '',
+    systems: [],
+    adjacentSystems: [],
+    products: ['Integration'],
+    conversations: ['Removing manual re-keying between systems of record',
+                    'Reusable pattern across faculty, alumni and partner feeds'],
+    misc: 'The source states no impact figure. The hours and dollars on this entry are the portal\'s own estimate, labelled as such on the card and in the detail sheet, with every assumption set out under "How this number is derived". The brief’s three headline tiles are qualitative badges, not measurements: "Real-time Synchronization 100%", "Schema validated Zero", "Manual rekeying". Latency is described as "in under a second", which is runtime not saving. Target endpoint is still the JSONPlaceholder demo URL; step 1 of the next steps is to repoint it at a production CRM. Also touches: the student information system and a JSONPlaceholder-backed CRM demo target — dropped from the systems facet under the named-products-only rule.',
+    tags: ['education', 'student onboarding', 'XML to JSON', 'CRM', 'executive brief'],
+    url: 'use-case-prototypes/student-xml-to-crm-json.html',
+    relatedPages: [],
+    originalPath: '',
+    source: 'Attura QAD Demo May 26/student-xml-to-crm-cxo-brief.html',
+    added: '2026-05-25'
+  },
+  {
+    id: 'sap-accounting-document-poc-outcome',
+    title: 'SAP accounting document automation, POC outcome',
+    customer: 'Abans PLC',
+    industry: 'Retail',
+    author: 'Saurabh Singh',
+    summary: 'A ten-slide POC outcome report: in place of the manual JSON to Excel to watched-directory to ABAP hand-off, a Boomi process posts accounting documents straight into SAP and refuses to post the same one twice.',
+    narrative: '',
+    impact: {hours:500,
+             dollars:15000,
+             basis:{hours:'estimated', dollars:'estimated'},
+             note:'per year, estimated - not a figure the source states',
+             workings:'Two of the four steps before SAP are manual today: a person converts each JSON extract to Excel and moves it to a watched directory, and Abans describes that process as costly and slow, "takes hours". Assumed the low end of "takes hours" at about 2 hours per extract run, and one run each working day - the sample extract covers 8 to 10 July 2025, one file a day - over 250 working days. 2 x 250 = 500 hours.'},
+    impactModel: null,
+    demoFlow: [],
+    partners: ['Altria'],
+    partnersNote: '',
+    systems: ['SAP'],
+    adjacentSystems: [],
+    products: ['Integration'],
+    conversations: ['Replacing a manual finance hand-off',
+                    'Duplicate prevention and financial controls',
+                    'POC to production scoping'],
+    misc: 'The source states no impact figure. The hours and dollars on this entry are the portal\'s own estimate, labelled as such on the card and in the detail sheet, with every assumption set out under "How this number is derived". The closest the deck comes to an effort figure of its own is a qualitative customer quote about the incumbent process: "Described by Abans as costly and slow - takes hours". No hours-saved, FTE or cost figure is stated. Every other number is volume or runtime: 10,353 records in the extract, 2,223 distinct documents, 4.7x average repetition, roughly 8,130 duplicate postings prevented, full extract completing unattended in 12 to 20 minutes, and 7 documents actually created in SAP during the POC (0100000023 to 0100000029, company code 1010, verifiable in FB03). The 8,130 is duplicate postings prevented, not hours. Amounts posted in EUR on a Boomi demo SAP system, standing in for Abans company code 2000 and LKR. Also touches: a JSON extract API (API0017) on a VM and the incumbent custom ABAP upload program — dropped from the systems facet under the named-products-only rule. Industry inferred: Retail — Abans PLC is a Sri Lankan consumer-electronics retailer.',
+    tags: ['SAP', 'accounting', 'deduplication', 'finance', 'POC', 'executive deck'],
+    url: 'use-case-prototypes/sap-accounting-document-poc-outcome.html',
+    relatedPages: [],
+    originalPath: '',
+    source: 'SAP-Accounting-Document-POC/EXEC-SUMMARY-DECK.html',
+    added: '2026-09-10'
+  },
+  {
+    id: 'abans-sap-posting-poc-dashboard',
+    title: 'Abans SAP posting, live POC dashboard',
+    customer: 'Abans PLC',
+    industry: 'Retail',
+    author: 'Saurabh Singh',
+    summary: 'A browser replay of the same POC: press run and watch nine genuine records move through the six steps of collect, split, duplicate check, map, post and report, with the already-posted ones refused rather than posted twice.',
+    narrative: '',
+    impact: null,
+    impactModel: null,
+    demoFlow: [],
+    partners: ['Altria'],
+    partnersNote: '',
+    systems: ['SAP'],
+    adjacentSystems: [],
+    products: ['Integration', 'Boomi for SAP'],
+    conversations: ['Live walkthrough of an SAP posting integration',
+                    'Why the ledger is written only after SAP confirms'],
+    misc: 'Effort sizing for this POC is carried on the companion entry "SAP accounting document automation, POC outcome"; it is deliberately not repeated here so the portal rollup does not count one engagement twice. This page itself states no impact figure: the only effort language is the customer quote about the incumbent path: "Described by Abans as costly and slow, taking hours, with no systematic protection against posting the same document twice", and later "Against hours today" next to the 12 to 20 minute throughput line. Neither is a quantified saving. The nine records replayed in the browser are genuine records from API_API0017_10JUL2025.JSON, and the ledger is pre-seeded with five documents from the real 10 September POC run. Companion documents: EXEC-SUMMARY-DECK.html, HANDOVER.md, RUNBOOK.md. Also touches: a JSON extract API (API0017) on a VM — dropped from the systems facet under the named-products-only rule; the specific SAP S/4HANA transactions and tables named in the original systems list (BAPI_ACC_DOCUMENT_POST, BKPF, ACDOCA, FB03) collapse to the single canonical value SAP. Industry inferred: Retail — same customer as the companion POC-outcome deck.',
+    tags: ['SAP', 'BAPI', 'accounting', 'deduplication', 'runnable demo', 'POC'],
+    url: 'use-case-prototypes/abans-sap-posting-poc-dashboard.html',
+    relatedPages: [],
+    originalPath: '',
+    source: 'SAP-Accounting-Document-POC/POC-WALKTHROUGH.html',
+    added: '2026-09-10'
+  },
+  {
+    id: 'order-intake-api-fan-out',
+    title: 'Order intake API with multi-target fan-out',
+    customer: 'LTIMindtree',
+    industry: 'Cross-industry',
+    author: 'Saurabh Singh',
+    summary: 'Technical architecture document for a synchronous REST endpoint that accepts an order, enriches the customer via an external API, maps to a canonical schema and fans out to three channels in one fault-tolerant execution.',
+    narrative: '',
+    impact: null,
+    impactModel: null,
+    demoFlow: [],
+    partners: ['LTIMindtree'],
+    partnersNote: '',
+    systems: [],
+    adjacentSystems: [],
+    products: ['Integration', 'Event Streams'],
+    conversations: ['API-led order intake',
+                    'Branch fan-out to multiple targets with error isolation',
+                    'Thin WSS wrapper over a testable subprocess'],
+    misc: 'No impact figures on the page and none claimed. The only numbers are build inventory: 12 components, 3 fan-out targets, 1 live endpoint, 7 DPP map functions. Deployed to a local MyMacAtom on localhost:9090, so it is a pattern reference rather than a customer-facing result. Branch 1 and Branch 2 are currently Notify placeholders; the next-steps section says to swap them for a real DB connector and the Event Streams connector. Also touches: JSONPlaceholder (enrichment), a placeholder warehouse DB, and curl/Postman as an HTTP client — dropped from the systems facet under the named-products-only rule. Industry inferred: Cross-industry — this is a generic order-intake pattern with no named customer vertical.',
+    tags: ['API', 'fan-out', 'enrichment', 'DPP', 'WSS', 'accelerator', 'architecture document'],
+    url: 'use-case-prototypes/order-intake-api-fan-out.html',
+    relatedPages: [],
+    originalPath: '',
+    source: 'OrderIntake-APIFanOut/OrderIntake_APIFanOut_Documentation.html',
+    added: '2026-04-10'
+  },
+  {
+    id: 'electromart-track-and-reschedule',
+    title: 'ElectroMart track order and reschedule delivery',
+    customer: 'ElectroMart (demo brand)',
+    industry: 'Retail',
+    author: 'Saurabh Singh',
+    summary: 'A customer self-service page: look up an order by ID, see status, items and delivery detail, and pick a new delivery date from a calendar while the order has not yet shipped.',
+    narrative: '',
+    impact: null,
+    impactModel: null,
+    demoFlow: [],
+    partners: [],
+    partnersNote: '',
+    systems: [],
+    adjacentSystems: [],
+    products: ['Integration'],
+    conversations: ['Customer self-service over an order-to-cash integration',
+                    'Front end talking to a Boomi-exposed API'],
+    misc: 'No impact figures and no effort claim anywhere on the page. Runs against either a local mock or the live Boomi API, selectable in the header. ElectroMart is an invented brand; the five sample orders (ORD-12345 and similar) are fixtures. Prices in rupees with GST, times in Asia/Kolkata. Footer links to separate process documentation in English, Thai, Filipino and Bahasa Indonesia. Also touches: a Boomi REST API (basic auth) and a mock order backend — dropped from the systems facet under the named-products-only rule.',
+    tags: ['order to cash', 'self-service', 'order tracking', 'reschedule', 'retail', 'API'],
+    url: 'use-case-prototypes/electromart-track-and-reschedule.html',
+    relatedPages: [{label:'Technical documentation and architecture notes', file:'use-case-prototypes/docs.html'}],
+    originalPath: '',
+    source: 'order2cash/index.html',
+    added: '2026-05-07'
+  },
+  {
+    id: 'enterprise-portal-ai-agent',
+    title: 'Enterprise portal with an embedded AI agent',
+    customer: 'ITG',
+    industry: 'Cross-industry',
+    author: 'Saurabh Singh',
+    summary: 'A full enterprise intranet mock-up - dashboard, apps, tasks, approvals, directory, system status - with a Boomi-powered assistant in the corner that answers natural-language questions about sales orders.',
+    narrative: '',
+    impact: null,
+    impactModel: null,
+    demoFlow: [],
+    partners: [],
+    partnersNote: '',
+    systems: ['NetSuite'],
+    adjacentSystems: [],
+    products: ['Agentstudio'],
+    conversations: ['Embedding an agent where employees already work',
+                    'Conversational access to ERP order data'],
+    misc: 'No impact figures. The KPI tiles on the portal (Revenue MTD $4.2M, Open Orders 128, Headcount 2,418, IT Tickets 47, eNPS +52) are invented portal furniture, not results from this integration. Branded as Acme Corp, a generic stand-in; the account is identified only by the folder name. The chat widget is labelled "Powered by Boomi Agent" and the companion bridge README describes a Boomi Agent Garden deployment that takes about 40 seconds to answer, which is why the bridge acknowledges first and pushes the reply back. Also touches: Boomi Agent Garden, accessed via a local FastAPI bridge — dropped from the systems facet under the named-products-only rule (it is the agent runtime, not a named integration target). Industry inferred: Cross-industry — the page is a generic "Acme Corp" intranet mock-up with no named customer vertical.',
+    tags: ['portal', 'intranet', 'AI assistant', 'NetSuite', 'sales orders', 'agent'],
+    url: 'use-case-prototypes/enterprise-portal-ai-agent.html',
+    relatedPages: [],
+    originalPath: '',
+    source: 'itg netsuite/portal/index.html',
+    added: '2026-07-09'
+  },
+  {
+    id: 'o2c-qad-build-journey',
+    title: 'O2C-QAD build journey',
+    customer: 'Boomi internal build',
+    industry: 'Manufacturing',
+    author: 'Saurabh Singh',
+    summary: 'A five-day build diary for a WhatsApp to Twilio to Boomi to QAD sales-order integration: every prompt, five silent-failure traps and the exact XML, Groovy and config that fixed each one.',
+    narrative: '',
+    impact: null,
+    impactModel: null,
+    demoFlow: [],
+    partners: [],
+    partnersNote: '',
+    systems: ['Cloudflare', 'QAD', 'Twilio', 'WhatsApp'],
+    adjacentSystems: [],
+    products: ['Integration'],
+    conversations: ['AI-assisted build story, end to end',
+                    'Troubleshooting QAD, WSS listeners and TwiML',
+                    'Why a naive error classifier misreports success'],
+    misc: 'No business impact figure; this is an engineering narrative, not an outcome report. The one percentage quoted is a defect being fixed: the audit dashboard showed "~50% of orders are failing" because the classifier matched the substring "err" inside QAD’s temp_err_msg element, and after the fix "Audit success-rate immediately corrected to ~98%". That is classification accuracy, not a saving. Five lessons logged: no connectionId on a WSS Start shape, always set a User-Agent for QAD behind Cloudflare, QAD soNbr is X(8), parse the result element not substrings, and TwiML bodies must be well-formed XML. Companion setup doc twilio-setup.html was excluded from this index. Industry inferred: Manufacturing — QAD is a manufacturing-sector ERP.',
+    tags: ['QAD', 'WhatsApp', 'Twilio', 'SOAP', 'Groovy', 'build journey', 'troubleshooting', 'lessons learned'],
+    url: 'use-case-prototypes/o2c-qad-build-journey.html',
+    relatedPages: [],
+    originalPath: '',
+    source: 'o2c QAD/o2c-docs/build-journey.html',
+    added: '2026-05-18'
+  },
+  {
+    id: 'boomi-accenture-trivia',
+    title: 'Boomi x Accenture trivia',
+    customer: 'Boomi internal build',
+    industry: 'Cross-industry',
+    author: 'Richard Yang',
+    summary: 'A twenty-question scored trivia quiz for closing out a partner Lunch and Learn, spanning Boomi Agentstudio, EDI and the competitive landscape — MuleSoft, SAP, Salesforce, ServiceNow, Snowflake, Workday, Oracle and Zendesk.',
+    narrative: 'Close out a partner Lunch and Learn with something that checks whether anything stuck. Twenty questions pulled from the session deck and the Q&A sheet, scored, with a completion screen.\n\nThe question set spans the platform and the competitive landscape — Boomi Agentstudio, EDI, MuleSoft, SAP, Salesforce, ServiceNow, Snowflake, Workday, Oracle and Zendesk — so it doubles as a quick read on where a partner\'s bench is strong and where it is thin.',
+    impact: null,
+    impactModel: null,
+    demoFlow: ['Run it in the last ten minutes of an enablement session, on screen, as a group.',
+               'Read each question aloud and let the room answer before you click — the argument between two wrong answers is where the teaching happens.',
+               'Use the completion screen as the prompt for what the next session should cover.'],
+    partners: ['Accenture'],
+    partnersNote: 'Accenture — the asset is branded Boomi x Accenture Trivia and was built for an Accenture Lunch and Learn. The format is reusable for any partner, but the content needs a pass to check nothing is Accenture-specific before you reuse it elsewhere.',
+    systems: [],
+    adjacentSystems: [],
+    products: [],
+    conversations: ['Partner enablement session wrap-up',
+                    'Reading where a partner SI bench is strong or thin on platform and competitive knowledge'],
+    misc: 'A teaching aid, not a use-case demo — the page itself says not to attach a dollar figure to it. Built from one specific Accenture Lunch and Learn session’s deck and Q&A sheet, branded “Boomi x Accenture Trivia”; reusable for another partner, but the content needs a pass first since some answers — especially anything on Boomi product naming, Agentstudio capabilities or competitive positioning — will have aged. The competitive questions, MuleSoft especially, make this unsuitable for a customer-facing or recorded setting; keep it to partner and internal rooms. Which questions the room misses is itself useful signal for the next enablement session and for the partner manager relationship, arguably more useful than the score.',
+    tags: ['trivia', 'partner enablement', 'quiz', 'competitive landscape', 'Lunch and Learn'],
+    url: 'use-case-prototypes/boomi-accenture-trivia.html',
+    relatedPages: [],
+    originalPath: '~/Downloads/Boomi_Trivia_Game.html',
+    source: 'demo-library/boomi-accenture-trivia/index.html',
+    added: '2026-09-22'
+  },
+  {
+    id: 'cloud-runtime-sizing-calculator',
+    title: 'Boomi public cloud runtime sizing estimator',
+    customer: 'Boomi internal build',
+    industry: 'Cross-industry',
+    author: 'Richard Yang',
+    summary: 'An internal pre-sales tool that takes peak concurrency and volume assumptions for a scenario and reports which hosted-runtime ceiling — concurrency, HTTP requests per second, queue messages per minute, monthly GB or low-latency limits — breaks first, and how many cloud attachments that implies.',
+    narrative: 'Nobody can answer "how many cloud attachments do we need?" from a process count, because Boomi does not publish a formula that maps N processes to Y runtime clouds. This estimator takes peak concurrency and volume assumptions, compares them against each hosted model\'s documented per-attachment ceilings — concurrency, HTTP requests per second, queue messages per minute, monthly GB and low-latency limits — and reports which ceiling breaks first and how many attachments that implies.\n\nIts value is that it names the binding constraint rather than producing a single number. Treat it as a working session with a customer architect rather than a demo.',
+    impact: null,
+    impactModel: null,
+    demoFlow: ['Create a scenario and set its processing pattern (batch or real-time) and process mode (general, low latency or bridge). Both apply to every process group in the scenario.',
+               'Pick the runtime model, which sets the ceilings.',
+               'Add process groups with per-group volumes; all groups inherit the scenario\'s pattern and mode.',
+               'Set the peak overlap factor — 1.0 worst case through 0.3 well spread. This is the assumption most worth arguing about in the room, because it changes the answer more than anything else.',
+               'Read the binding constraint and the required attachment count. Save JSON to keep the scenario, and Duplicate to compare options.'],
+    partners: [],
+    partnersNote: 'Not applicable — this is an internal tool. Worth sharing with partner solution architects who size deals themselves.',
+    systems: [],
+    adjacentSystems: [],
+    products: [],
+    conversations: ['Sizing cloud attachments with a customer architect in a design workshop',
+                    'Avoiding an under-provisioned go-live or an over-provisioned renewal argument'],
+    misc: 'An accuracy and risk tool, not a use-case demo or a savings model — the page carries its own disclaimer that Boomi publishes no process-count-to-cloud formula, that this estimates from whatever the user enters, and that final sizing should be confirmed with the Boomi account team; repeat that caveat out loud rather than presenting an estimate as a commitment. The genuinely useful output is naming the binding constraint (“you will hit the HTTP requests-per-second ceiling before the concurrency ceiling”), not a bare attachment count. The peak overlap factor (1.0 worst case through 0.3 well spread) is the assumption most worth arguing about in the room, since it moves the answer more than anything else. Scenario inputs reference SAP, Snowflake and EDI/AS2 traffic only as illustrative examples of workload shapes, not as systems this tool integrates with. Scenarios live in memory for the session only — save the JSON as you go if relying on it in a workshop.',
+    tags: ['sizing', 'cloud runtime', 'pre-sales', 'solution architecture', 'capacity planning'],
+    url: 'use-case-prototypes/cloud-runtime-sizing-calculator.html',
+    relatedPages: [],
+    originalPath: '~/Downloads/boomi_cloud_sizing_calculator.html',
+    source: 'demo-library/cloud-runtime-sizing-calculator/index.html',
+    added: '2026-09-22'
+  },
+  {
+    id: 'coupa-netsuite-vendor-bill',
+    title: 'Vendor bill pipeline, Coupa to NetSuite',
+    customer: 'Boomi internal build',
+    industry: 'Cross-industry',
+    author: 'Richard Yang',
+    summary: 'An invoice approved in Coupa becomes a posted Vendor Bill in NetSuite, with vendor and GL account resolved through two cross-reference tables on the way. One invoice is deliberately wired to fail so the exception path can be shown on purpose.',
+    narrative: 'An invoice approved in Coupa has to become a posted Vendor Bill in NetSuite, with the vendor and the GL account resolved correctly on the way. The resolution is the actual work: Coupa\'s vendor identifiers and commodity codes are not NetSuite\'s vendor internal ids and GL accounts, so two cross-reference tables sit in the middle.',
+    impact: null,
+    impactModel: {inputs:[{name:'Vendor bills per month', placeholder:'5,000', source:'NetSuite AP report'},
+                          {name:'Minutes to key one by hand', placeholder:'5', source:'Watch an AP clerk'},
+                          {name:'Loaded hourly cost', placeholder:'$40', source:'Finance'},
+                          {name:'Coding error rate', placeholder:'4%', source:'Count journal corrections'}],
+                  example:'5,000 bills x 5 minutes is about 417 hours a month of keying — roughly $16.7k a month, or $200k a year. That assumes zero automation today, which is rarely true, so ask what share is already automated and scale it down before you say it out loud. The error rate is the more interesting line: a mis-coded GL account is found at month-end by someone senior and the correction costs several times the original keying. Cross-reference-driven coding is what removes that class of error, not just the typing.',
+                  unit:'cost per invoice'},
+    demoFlow: ['Approve an invoice in the Coupa source panel on the left, or press Sync all approved to run the batch.',
+               'Follow it through each Boomi step to the posted Vendor Bill on the right. Pace control is slow, normal or fast.',
+               'At any step, switch between the four tabs: document at this step, field mapping, vendor cross-reference, and GL or commodity cross-reference.',
+               'The mapping tab colour-codes provenance — direct copy, resolved through a cross-reference, or a property built upstream in a Set Properties step. That is a good thirty seconds of explanation for a technical audience.',
+               'Run INV-2026-0478 last. It is deliberately wired to fail, so you can show the exception path on purpose rather than hoping something breaks.'],
+    partners: [],
+    partnersNote: 'No partner is named on this asset — needs your input.',
+    systems: ['Coupa', 'NetSuite'],
+    adjacentSystems: ['The banking or payment run that follows the posted bill',
+                      'A tax engine where there is VAT or GST treatment',
+                      'The procurement system, for purchase-order matching',
+                      'Spend analytics reading the commodity coding'],
+    products: ['Integration'],
+    conversations: ['AP automation cost-per-invoice conversation with a controller or AP manager',
+                    'Showing an exception path deliberately instead of hoping something breaks in a live demo'],
+    misc: 'No measured figure — the page itself is explicit that this is a model, not a claim, and gives placeholder inputs (5,000 vendor bills/month, 5 minutes to key one by hand, $40 loaded hourly cost, 4% coding error rate) with a worked example of 417 hours/month (~$200k/year) of keying, all to be replaced with the customer’s real numbers before quoting anything out loud; that worked figure also assumes zero automation today, which is rarely true. The coding-error rate is argued to matter more than the typing: a mis-coded GL account is usually caught at month-end by someone senior, and the correction costs several times the original keying — cross-reference-driven coding removes that error class, not just the re-keying. Two cross-reference tables carry the resolution: vendor identifiers and GL/commodity codes. Overlaps with the Coupa-to-Oracle-Fusion asset in this library — pick by ERP: this one for NetSuite. The source file path carries a stray “ZendeskToMagento” folder name from an unrelated earlier project; the artifact itself has nothing to do with Zendesk or Magento.',
+    tags: ['accounts payable', 'Coupa', 'NetSuite', 'cross reference', 'vendor bill', 'cost per invoice'],
+    url: 'use-case-prototypes/coupa-netsuite-vendor-bill.html',
+    relatedPages: [],
+    originalPath: '~/Claude/bc_projects/ZendeskToMagento/prototype/vendor-bill-pipeline.html',
+    source: 'demo-library/coupa-netsuite-vendor-bill/index.html',
+    added: '2026-09-22'
+  },
+  {
+    id: 'coupa-oracle-s2p-console',
+    title: 'Source-to-pay flow console, Coupa to Oracle Fusion',
+    customer: 'Boomi internal build',
+    industry: 'Cross-industry',
+    author: 'Richard Yang',
+    summary: 'An approved Coupa invoice is routed and reshaped into Oracle Fusion Payables, writes its ERP reference back, and a reverse flow syncs the supplier master from Fusion into Coupa — fifteen Boomi components across the two flows, built from payloads captured on a real Boomi test runtime.',
+    narrative: 'An approved invoice has to leave Coupa, be routed and reshaped, land in Oracle Fusion Payables, and send its ERP reference back so procurement can see it was paid. Plus the reverse flow: supplier master sync from Fusion into Coupa.\n\nTwo flows, fifteen Boomi components in total — and the console is explicit that swapping Coupa for Ariba, or Fusion for SAP, changes the connection and the map while the routing, error handling and write-back survive intact.',
+    impact: null,
+    impactModel: {inputs:[{name:'Invoices per month', placeholder:'10,000', source:'AP team'},
+                          {name:'Current cost per invoice', placeholder:'$6', source:'APQC-style benchmarks run $2 to $15 — get theirs'},
+                          {name:'Touchless rate today', placeholder:'40%', source:'AP system report'},
+                          {name:'Target touchless rate', placeholder:'75%', source:'Their own target, not yours'}],
+                  example:'Moving 35% of 10,000 invoices from touched to touchless, at roughly $4 saved per avoided touch, is about $14k a month or $168k a year. The console already flags the mechanism: purchase-order-backed invoices three-way match and clear themselves, so the branch shape is where the cost per invoice is decided. Non-PO invoices are the expensive tail, so ask for their PO-backed percentage early.',
+                  unit:'cost per invoice'},
+    demoFlow: ['Choose a flow: Invoice to Pay (Coupa to Oracle Fusion and back to Coupa) or Supplier Sync (Oracle Fusion to Coupa).',
+               'Press Run flow to play it end to end, or Step to advance one Boomi shape at a time while you talk over it. Speed control is 0.5x, 1x or 2x.',
+               'Watch the counters: step number, documents, runtime in milliseconds.',
+               'Switch between the field mapping, payloads and execution log tabs at any step.',
+               'Then scroll past the console — the four sections underneath are the actual pitch: reuse across clients, one build many tenants, where Peppol slots in, and where the cost per invoice sits.'],
+    partners: ['Valtatech'],
+    partnersNote: 'Valtatech — the page is explicitly headed "Prepared for Valtatech". This is a partner-facing asset, so treat the framing (practice reuse, multi-tenant, Peppol) as written for a partner delivery practice rather than an end customer.',
+    systems: ['Coupa', 'Oracle'],
+    adjacentSystems: ['A Peppol Access Point for e-invoicing compliance — the supplier flow already carries the ABN across as tax-id, which is the identifier a Peppol participant ID is built from, so the Access Point sits beside the Fusion connector on the same canvas'],
+    products: ['Integration'],
+    conversations: ['Partner source-to-pay practice conversation — one build, many tenants, reuse across clients',
+                    'Where Peppol e-invoicing fits for an Australia/New Zealand mandate'],
+    misc: 'No measured figure — explicitly a model, not a claim, with placeholder inputs (10,000 invoices/month, $6 current cost per invoice, 40% touchless today, 75% target) and a worked example of moving 35% of volume from touched to touchless at roughly $4 saved per avoided touch, ~$168k/year; ask for the customer’s own PO-backed invoice percentage early, since non-PO invoices are the expensive tail. Built for a partner delivery-practice conversation, not an end customer — the page is explicitly headed “Prepared for Valtatech”, and the reuse-across-clients and multi-tenant framing are economics arguments for the integrator’s margin, not the customer’s. Every shape, timing and payload came off an actual execution on a Boomi test runtime rather than being invented, which is worth saying out loud. Named as drop-in substitutes rather than what is actually built: SAP Ariba for Coupa, SAP for Fusion. The supplier flow carries the ABN across as tax-id, which is the identifier a Peppol participant ID is built from, so a Peppol Access Point sits beside the Fusion connector on the same canvas as a natural extension. Overlaps with the Coupa-to-NetSuite asset in this library — pick by ERP: this one for Oracle Fusion and for the partner-practice framing.',
+    tags: ['source to pay', 'Coupa', 'Oracle Fusion', 'Peppol', 'procurement', 'cost per invoice'],
+    url: 'use-case-prototypes/coupa-oracle-s2p-console.html',
+    relatedPages: [],
+    originalPath: '~/Claude/bc_projects/BCdemo/prototype/s2p-flow-console.html',
+    source: 'demo-library/coupa-oracle-s2p-console/index.html',
+    added: '2026-09-22'
+  },
+  {
+    id: 'epic-rauland-adt-nurse-call',
+    title: 'Epic ADT to Rauland Responder 5, nurse call integration',
+    customer: 'Boomi internal build',
+    industry: 'Healthcare',
+    author: 'Richard Yang',
+    summary: 'When a patient is admitted, transferred or discharged in Epic, Boomi maps and delivers the HL7 v2.5 ADT message to the Rauland Responder 5 nurse call board over MLLP, with four retry attempts, backoff, and an error queue for anything that still fails.',
+    narrative: 'When a patient is admitted, transferred or discharged in Epic, the nurse call system has to know. If it does not, the board outside the room shows the wrong patient, and the isolation precaution that should be flashing on it is not there.\n\nEpic emits HL7 v2.5 ADT over MLLP; Boomi maps and delivers it to Rauland Responder 5, with four delivery attempts and an error queue for anything that still fails.',
+    impact: null,
+    impactModel: {inputs:[{name:'ADT events per day', placeholder:'400', source:'Epic ADT volume'},
+                          {name:'Minutes of manual board upkeep per shift per unit', placeholder:'15', source:'Ask a charge nurse'},
+                          {name:'Units x shifts per day', placeholder:'12 x 3', source:'Nursing admin'},
+                          {name:'Loaded nurse cost per hour', placeholder:'$60', source:'Nursing admin'}],
+                  example:'12 units x 3 shifts x 15 minutes is about 9 hours a day — roughly $540 a day, or $197k a year — of nursing time spent keeping a board in step with the EHR, and nursing time is the scarcest resource in the building. The argument that actually carries a clinical audience is the isolation precaution: a stale board means a precaution not displayed, which is an infection-control and patient-safety event, and those are reportable. Do not put a dollar figure on that; let the clinical lead tell you what one costs them.',
+                  unit:'nursing hours of manual board upkeep'},
+    demoFlow: ['On the left, compose an ADT message: trigger event A01 admit, A02 transfer or A03 discharge, patient name and identifier (PID-3.1), unit, room and bed, and the attending clinician.',
+               'Set an isolation precaution (PV1-15): contact, droplet, airborne or neutropenic.',
+               'Send the ADT over MLLP and watch it land on the nurse call board on the right.',
+               'Now the important part: set the Rauland endpoint to Unavailable and send again. Watch four delivery attempts with 2s, 4s and 8s backoff — use the 5x speed control so it fits in a demo — then the envelope being written to the error queue at work/rauland/error-queue.',
+               'Bring the endpoint back online and show the process log\'s Notify output.'],
+    partners: [],
+    partnersNote: 'No partner is named — needs your input. Rauland-Borg is the nurse call vendor whose system is the target, not necessarily a delivery partner on this deal.',
+    systems: ['Epic', 'Rauland'],
+    adjacentSystems: ['Bed management and patient flow',
+                      'RTLS for staff and asset location',
+                      'The physical whiteboard or digital door display',
+                      'Infection control reporting',
+                      'The interface engine they already run — this often replaces or sits beside a Rhapsody or Cloverleaf interface'],
+    products: ['Integration'],
+    conversations: ['Hospital integration team asking about reliability, retry and backoff before anything else',
+                    'Isolation-precaution display as a patient-safety argument, not just a labour one'],
+    misc: 'No measured figure — the page is explicit this is a faithful simulation, not a live client, and states its own labour placeholder inputs (400 ADT events/day, 15 minutes of manual board upkeep per shift per unit, 12 units x 3 shifts/day, $60 loaded nurse cost/hour) with a worked example of about 9 hours/day (~$197k/year) of nursing time spent keeping a board in step with the EHR; nursing time is framed as the scarce resource, not the dollar figure. The stronger clinical argument is the isolation-precaution flag (PV1-15): a stale board means a precaution not displayed, which is an infection-control and patient-safety event and reportable as one — deliberately left with no dollar figure, for the clinical lead to price. The demo’s best moment is breaking the Rauland endpoint on purpose to show four delivery attempts at 2s/4s/8s backoff and the message landing in the error queue, since reliability is what a hospital integration team asks about before anything else. A cross-reference table maps unit/room/bed identifiers between Epic and Rauland. Pairs well with the Epic-to-Salesforce trial-screening asset in this library to show HL7 v2 and FHIR competence in the same meeting.',
+    tags: ['healthcare', 'Epic', 'HL7', 'ADT', 'nurse call', 'MLLP', 'patient safety'],
+    url: 'use-case-prototypes/epic-rauland-adt-nurse-call.html',
+    relatedPages: [],
+    originalPath: '~/Claude/bc_projects/Rauland_admission/prototype/rauland-adt-flow.html',
+    source: 'demo-library/epic-rauland-adt-nurse-call/index.html',
+    added: '2026-09-22'
+  },
+  {
+    id: 'epic-salesforce-trial-screening',
+    title: 'Clinical trial screening console, Epic to Salesforce',
+    customer: 'Meridian Research (demo brand)',
+    industry: 'Healthcare',
+    author: 'Richard Yang',
+    summary: 'Pulls a patient’s conditions and observations from Epic over FHIR, screens them against a trial’s ICD-10 eligibility criteria, and writes the screening result to Salesforce, with the deciding codes exposed rather than a black-box score.',
+    narrative: 'A research coordinator has to work out which patients on today\'s roster might be eligible for an open trial. Done by hand, that means reading charts one at a time. This pulls the patient\'s conditions and observations from Epic over FHIR, screens them against the trial\'s ICD-10 criteria, and writes the screening result to Salesforce where the study team works.\n\nA companion runsheet in the original project folder, DEMO-EpicSF-TrialScreening.md, carries a fuller five-act version of the walkthrough including the twist moment.',
+    impact: null,
+    impactModel: {inputs:[{name:'Patients screened per month', placeholder:'500', source:'Study coordinator'},
+                          {name:'Minutes of chart review each', placeholder:'12', source:'Watch one being done'},
+                          {name:'Loaded coordinator cost per hour', placeholder:'$55', source:'Research admin'},
+                          {name:'Trials open concurrently', placeholder:'8', source:'Study portfolio'}],
+                  example:'500 patients x 12 minutes is about 100 hours a month of chart review, roughly $5,500 a month. The number that moves a research director is a different one: a trial that under-enrols gets cancelled or extended, and an extension costs six figures. If pre-screening surfaces even a few extra eligible patients a month per trial, that is the argument — but you need their enrolment shortfall to make it, so ask for it rather than guessing.',
+                  unit:'coordinator hours of chart review'},
+    demoFlow: ['Select a patient from the Epic patient roster on the left.',
+               'Trigger the inbound FHIR event and run screening.',
+               'Watch the integration pipeline evaluate the patient\'s conditions and observations against the eligibility criteria.',
+               'See the screening result written to Salesforce.',
+               'Toggle Show code selection to expose the ICD-10 codes the decision turned on — this is what makes the outcome auditable rather than a black box.'],
+    partners: [],
+    partnersNote: 'No partner is named — needs your input. "Meridian Research" reads as a fictional CRO.',
+    systems: ['Epic', 'Salesforce'],
+    adjacentSystems: ['A CTMS such as Veeva or Medidata',
+                      'REDCap for study data capture',
+                      'The IRB system for protocol versions',
+                      'An EDC for downstream collection'],
+    products: ['Integration'],
+    conversations: ['Clinical research audience wanting an auditable eligibility decision, not a black box',
+                    'Whether Boomi can work FHIR-native against an existing Epic instance without a custom interface'],
+    misc: 'No measured figure — a model, not a claim, with placeholder inputs (500 patients screened/month, 12 minutes of chart review each, $55 loaded coordinator cost/hour, 8 concurrent trials) worked to about 100 hours/month (~$5,500/month) of chart review; the page itself says the number that actually moves a research director is enrolment, not labour — an under-enrolling trial gets cancelled or extended, and an extension costs six figures, so ask for the customer’s enrolment shortfall rather than guessing it. “Meridian Research” reads as a fictional CRO; all patient data is synthetic and that should be said out loud early in a healthcare room, before an integration question turns into a PHI question. Toggling “show code selection” to expose which ICD-10 codes drove the decision is the differentiator for a regulated research audience. Live mode targets a deployed Boomi listener and reads a .env file two directories above the page’s original location; that file is not present in this copy, so the prototype runs in its simulated mode here. Pairs well with the Epic ADT-to-Rauland asset in this library to show FHIR and HL7 v2 competence in the same meeting.',
+    tags: ['healthcare', 'Epic', 'FHIR', 'Salesforce', 'clinical trials', 'ICD-10'],
+    url: 'use-case-prototypes/epic-salesforce-trial-screening.html',
+    relatedPages: [],
+    originalPath: '~/Claude/bc_projects/Hello World/frontend/epic-screening/',
+    source: 'demo-library/epic-salesforce-trial-screening/index.html',
+    added: '2026-09-22'
+  },
+  {
+    id: 'jc-hifi-order-tracker',
+    title: 'JC Hi-Fi order tracker, customer self-service',
+    customer: 'JC Hi-Fi (demo brand)',
+    industry: 'Retail',
+    author: 'Richard Yang',
+    summary: 'A retail storefront skin lets a shopper track their own order and reschedule its delivery date without calling the contact centre, with Boomi doing the order lookup and the write-back behind it — closed off automatically once an order has already been delivered.',
+    narrative: 'A shopper tracks their own order and reschedules their own delivery, without calling the contact centre. The storefront is a full retail skin — navigation, categories, footer, ABN — with Boomi behind it doing the order lookup and the write-back when the date changes.\n\nTwo transactions: a read (order status) and a write (change delivery date), with a business rule that closes the write once the order is delivered.',
+    impact: null,
+    impactModel: {inputs:[{name:'Order status calls per month', placeholder:'3,000', source:'Contact centre call reason codes'},
+                          {name:'Reschedule requests per month', placeholder:'800', source:'Same, plus carrier exception reports'},
+                          {name:'Loaded cost per call', placeholder:'$8', source:'Contact centre ops'},
+                          {name:'Self-service adoption', placeholder:'50%', source:'Pilot it — retail self-service rarely exceeds 60% in the first year'}],
+                  example:'(3,000 + 800) x 50% is about 1,900 calls a month deflected, roughly $15k a month. The bigger retail number is usually failed first delivery: a missed delivery costs a redelivery plus a support contact plus refund risk, and letting the customer move the date before the truck is loaded avoids the whole chain. Ask for their failed-delivery rate — that is where the defensible money is.',
+                  unit:'contact centre calls deflected'},
+    demoFlow: ['Enter one of the demo order numbers (ORD-1001 through ORD-1005) and track it.',
+               'Order details come back: date, estimated delivery, tracking number, shipping address and customer.',
+               'Change delivery date, pick a new one, confirm. That is a write going through Boomi into the order system.',
+               'Now try a delivered order. The reschedule option is closed off with "delivery date changes are no longer available" — a business rule enforced in the integration, not in the page.'],
+    partners: [],
+    partnersNote: 'No partner is named — needs your input. "JC Hi-Fi" is a fictional retailer.',
+    systems: [],
+    adjacentSystems: ['Carrier APIs for real tracking',
+                      'A WMS or 3PL for the cut-off that decides whether a date change is still possible',
+                      'The payment system, if a change triggers a re-authorisation',
+                      'The CRM for the customer record'],
+    products: ['Integration'],
+    conversations: ['Call-deflection and failed-delivery conversation with a head of digital or customer experience',
+                    'Showing Boomi behind a real consumer experience rather than as an integration canvas'],
+    misc: 'No measured figure — a model, not a claim, with placeholder inputs (3,000 order-status calls/month, 800 reschedule requests/month, $8 loaded cost per call, 50% self-service adoption) worked to about 1,900 calls/month deflected (~$15k/month); the page argues the bigger retail number is usually the failed-first-delivery chain — a missed delivery costs a redelivery plus a support contact plus refund risk, and letting the customer move the date before the truck is loaded avoids the whole chain, so ask for the customer’s failed-delivery rate rather than leading with call deflection. “JC Hi-Fi” is a fictional retailer built as a full storefront skin (navigation, categories, footer, ABN) specifically so it does not look like an integration demo. The order management system behind Boomi is not named in this build (Magento is the sibling Zendesk-order-status asset’s backend, not this one’s). A business rule that closes the reschedule option once an order is delivered is enforced in the integration, not in the page. Live mode targets a deployed Boomi listener and reads a .env file two directories above the page’s original location; not present in this copy, so it runs simulated here. Pair with the Zendesk order-status bot in this library to show assisted and self-service support on the same kind of data.',
+    tags: ['retail', 'order tracking', 'self-service', 'call deflection', 'delivery reschedule'],
+    url: 'use-case-prototypes/jc-hifi-order-tracker.html',
+    relatedPages: [],
+    originalPath: '~/Claude/bc_projects/Hello World/frontend/',
+    source: 'demo-library/jc-hifi-order-tracker/index.html',
+    added: '2026-09-22'
+  },
+  {
+    id: 'pacific-bank-onboarding',
+    title: 'Pacific onboarding console, retail bank customer onboarding',
+    customer: 'Pacific Islands Community Bank (demo brand)',
+    industry: 'Financial services',
+    author: 'Richard Yang',
+    summary: 'Runs identity verification, AML/CTF screening, core banking account creation and customer notification in order for a new retail account, stopping at the first failed control and leaving a timestamped audit trail — localised to six Pacific Islands currencies and identity documents including a village or community letter.',
+    narrative: 'Opening a retail account means running identity verification, AML/CTF screening, core banking account creation and customer notification in the right order, stopping at the first control that fails, and leaving an audit trail a regulator can read. Done by hand across four systems it takes days, and the evidence lives in someone\'s email.\n\nThe console mirrors the decision logic and message payloads of a Boomi process called Pacific Bank Customer Onboarding.',
+    impact: null,
+    impactModel: {inputs:[{name:'New accounts per month', placeholder:'2,000', source:'Retail banking ops'},
+                          {name:'Days from application to usable account today', placeholder:'3', source:'Branch ops'},
+                          {name:'Applications abandoned mid-process', placeholder:'20%', source:'Funnel report — ask for it'},
+                          {name:'Staff minutes per application across systems', placeholder:'35', source:'Watch a branch officer'}],
+                  example:'2,000 accounts x 35 minutes is about 1,167 hours a month of branch and back-office effort. The number that matters more: a 20% abandonment rate on 2,000 applications is 400 lost customers a month, each with a lifetime value the bank can quote. Same-day account opening is the lever and abandonment is where the business case lives, so ask for the funnel before you talk about staff hours.',
+                  unit:'staff hours per application, with abandonment as the bigger number'},
+    demoFlow: ['Complete a new onboarding request as if the applicant were in front of you, or pick one of the prepared scenarios.',
+               'Choose the interesting inputs: currency (FJD, PGK, WST, TOP, VUV, SBD or USD), branch, product, and — the detail worth pausing on — identity document type, which includes passport, national ID, birth certificate and village or community letter.',
+               'Submit, then open each step in application progress to see the message sent to that system, what came back, and the data carried forward. Highlighted values show where a field came from earlier in the journey; hover to see the origin.',
+               'Look at what landed in each system. Systems the journey never reached hold nothing, which is the whole point of a control that stops the flow.',
+               'Read the audit record — every decision point timestamped and retained for regulatory traceability.',
+               'Run the expired or unreadable document scenario to show the unhappy path.'],
+    partners: [],
+    partnersNote: 'No partner is named — needs your input. "Pacific Islands Community Bank" is explicitly fictitious.',
+    systems: [],
+    adjacentSystems: ['The card issuer and digital banking enrolment that follow account creation',
+                      'A CRM for the customer record',
+                      'Document storage for the retained identity document',
+                      'The regulatory reporting pipeline the audit record feeds'],
+    products: ['Integration'],
+    conversations: ['Chief risk or compliance officer conversation led with the audit trail, not the integration',
+                    'Financial-inclusion or development-bank conversation where standard identity documents do not fit the customer base'],
+    misc: 'No measured figure — a model, not a claim, with placeholder inputs (2,000 new accounts/month, 3 days from application to usable account today, 20% mid-process abandonment, 35 staff minutes per application across systems) worked to about 1,167 hours/month of branch and back-office effort; the page argues the number that matters more is abandonment — 20% of 2,000 applications is 400 lost customers a month, each with a lifetime value the bank can quote, so ask for the funnel before talking about staff hours. “Pacific Islands Community Bank” is explicitly fictitious and every downstream system (identity verification, AML/CTF screening, core banking, notification) is mocked; the page carries its own disclaimer at the top and it is worth reading out loud in a regulated room. The six supported currencies (FJD, PGK, WST, TOP, VUV, SBD) plus USD, and village or community letter as an accepted identity document, are what make this asset distinctive — not something easily retrofitted into a generic banking demo. Mirrors the decision logic and message payloads of a Boomi process called Pacific Bank Customer Onboarding; the live integration exposes this at POST /ws/simple/createOnboarding, and the request payloads shown are the real ones.',
+    tags: ['banking', 'onboarding', 'AML', 'KYC', 'Pacific Islands', 'audit trail'],
+    url: 'use-case-prototypes/pacific-bank-onboarding.html',
+    relatedPages: [],
+    originalPath: '~/Claude/bc_projects/BankOnboard/onboarding-console.html',
+    source: 'demo-library/pacific-bank-onboarding/index.html',
+    added: '2026-09-22'
+  },
+  {
+    id: 'sea-data-product-assistant',
+    title: 'SEA regional performance, data products and an agent over two ERPs',
+    customer: 'Boomi internal build',
+    industry: 'Cross-industry',
+    author: 'Richard Yang',
+    summary: 'A South-East Asia region running four subsidiaries across SAP and Oracle EBS gets one governed answer instead of two conflicting ones: Boomi Data Hub settles the golden record field by field, currency is normalised, consumption runs through a governed API, and a Boomi Agentstudio agent can only see what that API exposes.',
+    narrative: 'Head office asks how South-East Asia did last month and gets two different answers from two competent analysts, because the two ERPs do not agree on what they are describing. Nobody is wrong and nothing errors — the report just runs, and the number is wrong by a quarter of the region.\n\nThe fix is not another report. It is a governed data product: Boomi Data Hub settles the golden record field by field (Finance owns currency and tax ID, Operations owns trading status and entity owner), currency is normalised to one comparable number, consumption is through a governed API, and an agent can only see what the product exposes.',
+    impact: null,
+    impactModel: {inputs:[{name:'Analyst days per monthly close reconciling entities', placeholder:'6', source:'Group finance'},
+                          {name:'Loaded analyst cost per day', placeholder:'$450', source:'Finance'},
+                          {name:'Months per year', placeholder:'12', source:'Fixed'},
+                          {name:'Capital allocated on these numbers per year', placeholder:'Ask for it', source:'Ask. This is the real number.'}],
+                  example:'6 days x $450 x 12 months is about $32k a year of reconciliation labour. That is the small number and you should say so. The argument that lands is different: the board pack decides where next quarter\'s capital and headcount go, a number wrong by a quarter of the region misallocates both, and the only way anyone currently finds out is if two people happen to compare notes. Ask what a quarter\'s misallocated capital is worth and let them answer.',
+                  unit:'analyst days per monthly close, with misallocated capital as the real number'},
+    demoFlow: ['Start with the narrative page, why.html. It is written, not a UI: the situation, the two conflicting answers, the three reasons they disagree, what was changed, and the result. Read it or walk it; it sets up everything else.',
+               'Open the flow explorer, flow.html. Pick a subsidiary and see that entity\'s data at each stage: the two arguing ERPs, the golden record that settles them (with which source won which field, and why), currency normalisation, the governed API, and the agent\'s restricted view. The standout line is that two different sources win different fields on the same record — there is no best system, only a best system per attribute.',
+               'Open the catalogue entry, catalog.html: owner, stewards, the contract, the guarantees.',
+               'Open the assistant itself. Three governed data products behind one conversation. Ask who the entity owner for Vietnam is, or whether we can invoice Thailand, and watch the status line name the tool it decided to call.',
+               'The runbook page, demo-flow.html, is the delivery script for all of the above.'],
+    partners: [],
+    partnersNote: 'No partner is named — needs your input. There is no partner branding anywhere in the artifact.',
+    systems: ['Oracle', 'SAP'],
+    adjacentSystems: ['The consolidation tool — OneStream, Tagetik or HFM',
+                      'The BI layer that currently produces the conflicting reports',
+                      'The data catalogue, if they already have one'],
+    products: ['Data Hub', 'Agentstudio', 'Integration'],
+    conversations: ['CFO or chief data officer conversation about why a report is wrong by a quarter of the region and nobody notices',
+                    'MDM/data-governance conversation stalled on “why do we need golden records at all”'],
+    misc: 'No measured figure — a model, not a claim. Reconciliation labour is the small, easy number: placeholder inputs (6 analyst-days per monthly close, $450 loaded analyst cost/day, 12 months/year) work out to about $32k/year, and the page says to call that the small number. The argument that actually lands is decision risk: the board pack decides where next quarter’s capital and headcount go, a number wrong by a quarter of the region misallocates both, and today the only way anyone finds out is if two people happen to compare notes — ask what a quarter’s misallocated capital is worth and let the customer answer. This is a five-page, order-matters asset: why.html (a written narrative of the failure and the fix, no UI, best for an executive and sceptical room) first, then flow.html (per-subsidiary explorer showing which source ERP wins which field on the golden record), catalog.html (the data product’s owner, stewards and contract), index.html (the three-data-product conversational assistant), and demo-flow.html (the delivery runbook) — copied here as sea-data-product-assistant-why.html, -flow.html, -catalog.html and -demo-flow.html alongside the assistant itself. The honest architectural point worth saying out loud: three data products, three shapes, and only two of them need Data Hub at all — attributes belong in the golden record, measures do not. The browser never sees an auth token; the companion server injects the Authorization header, which also sidesteps CORS. Live mode needs a DEMO_DEPLOYMENT_ID in a .env file the original server reads two directories up; not present in this copy, so it runs simulated here.',
+    tags: ['data governance', 'MDM', 'SAP', 'Oracle EBS', 'golden record', 'Agentstudio', 'multi-page'],
+    url: 'use-case-prototypes/sea-data-product-assistant.html',
+    relatedPages: [{label:'Start here — why this exists, the written narrative', file:'use-case-prototypes/sea-data-product-assistant-why.html'},
+                   {label:'Flow explorer — which source wins which field', file:'use-case-prototypes/sea-data-product-assistant-flow.html'},
+                   {label:'Catalogue entry — owner, stewards and contract', file:'use-case-prototypes/sea-data-product-assistant-catalog.html'},
+                   {label:'Delivery runbook for the full walkthrough', file:'use-case-prototypes/sea-data-product-assistant-demo-flow.html'}],
+    originalPath: '~/Claude/bc_projects/dataproduct/demo/',
+    source: 'demo-library/sea-data-product-assistant/index.html',
+    added: '2026-09-22'
+  },
+  {
+    id: 'servicenow-jira-incident-sync',
+    title: 'Incident sync prototype, ServiceNow to Jira',
+    customer: 'Boomi internal build',
+    industry: 'Cross-industry',
+    author: 'Richard Yang',
+    summary: 'An incident assigned to Engineering in ServiceNow becomes a Jira issue, and when that issue reaches Done the incident resolves itself — bidirectional, with a single query filter on an empty correlation ID doing both the assignment routing and the de-duplication.',
+    narrative: 'The service desk runs ServiceNow. Engineering runs Jira. An incident assigned to Engineering has to become a Jira issue, and when that issue reaches Done the incident has to resolve — without anyone copying ticket text between two browser tabs, and without creating a second Jira issue every time the sync runs.\n\nBi-directional, with de-duplication on both legs. The money moment is smaller than it looks: only Engineering incidents with an empty correlation_id are picked up, and that single query filter is the assignment rule and the de-duplication guard at the same time. Run the process five times and you still get one Jira issue.',
+    impact: null,
+    impactModel: {inputs:[{name:'Incidents per month routed to engineering', placeholder:'600', source:'ServiceNow assignment group report'},
+                          {name:'Minutes to hand-create a Jira issue', placeholder:'4', source:'Time a service desk agent'},
+                          {name:'Minutes chasing status per ticket', placeholder:'3', source:'Ask the desk how they answer "is it fixed yet?"'},
+                          {name:'Loaded hourly cost', placeholder:'$40', source:'HR'}],
+                  example:'600 incidents x 7 minutes is about 70 hours a month, roughly $2,800 a month. Add the tickets that get raised twice because two agents did not see each other\'s work — de-duplication is usually the line item a service desk manager reacts to. MSPs have a second angle: SLA credits avoided once resolution timestamps stop drifting between the two systems.',
+                  unit:'service desk hours per month'},
+    demoFlow: ['Raise an incident in the mock ServiceNow table, assigned to Engineering.',
+               'Run ServiceNow to Jira. Boomi creates the Jira issue and writes its key back into the incident\'s correlation_id.',
+               'Move the issue to Done by clicking through the Jira board columns.',
+               'Run Jira to ServiceNow. Boomi finds the incident by that key and resolves it.'],
+    partners: ['Datacom'],
+    partnersNote: 'Datacom — the page is branded for Datacom and there is a companion project carrying a full technical documentation page. Treat this as a Datacom-facing asset unless you have repurposed it.',
+    systems: ['ServiceNow', 'Jira'],
+    adjacentSystems: ['Slack or Teams for notification',
+                      'PagerDuty for on-call',
+                      'Azure DevOps as the Jira substitute — there is a separate artifact for that pairing',
+                      'The CMDB, if incidents carry configuration items'],
+    products: ['Integration'],
+    conversations: ['Service desk manager or ITSM practice lead conversation about ticket de-duplication on a re-fired sync',
+                    'Good first technical demo since both systems are already familiar to the room'],
+    misc: 'No measured figure — a model, not a claim, with placeholder inputs (600 incidents/month routed to engineering, 4 minutes to hand-create a Jira issue, 3 minutes chasing status per ticket, $40 loaded hourly cost) worked to about 70 hours/month (~$2,800/month); the page adds that tickets raised twice because two agents did not see each other’s work are usually the line a service desk manager reacts to more than the base keying time, and an MSP has a second angle in SLA credits avoided once resolution timestamps stop drifting between the two systems. Branded for Datacom, with a companion technical-documentation project referenced in the source tree; treat this as a Datacom-facing asset unless repurposed. Unusually for this set of prototypes, the Boomi side is two scheduled processes rather than listeners, so live mode goes through the ExecutionRequest API — firing it twice quickly returns DISCARDED, since allowSimultaneous is false. Live mode reads a .env file two directories above the page’s original location; not present in this copy, so it runs simulated here.',
+    tags: ['ITSM', 'ServiceNow', 'Jira', 'incident management', 'de-duplication'],
+    url: 'use-case-prototypes/servicenow-jira-incident-sync.html',
+    relatedPages: [],
+    originalPath: '~/Claude/bc_projects/Hello World/frontend/servicenow-jira-sync/',
+    source: 'demo-library/servicenow-jira-incident-sync/index.html',
+    added: '2026-09-22'
+  },
+  {
+    id: 'zendesk-magento-order-status',
+    title: 'Order status bot and flow inspector, Zendesk to Magento',
+    customer: 'Avery Products (demo brand)',
+    industry: 'Retail',
+    author: 'Richard Yang',
+    summary: 'A Zendesk web-widget bot answers “where is my order” by calling Boomi, which reads the order from Magento and shapes a chat-ready reply, while a Boomi Flow Inspector beside it shows the payload at every hop — including what a Magento outage looks like to the customer.',
+    narrative: '"Where is my order?" is the single highest-volume support ticket in retail, and almost all of it is a lookup a human should never have to do. A Zendesk web-widget bot answers it by calling Boomi, which reads the order from Magento and shapes a chat-ready reply.\n\nThe second half of the page is the interesting half: a Boomi flow inspector that shows the payload at each hop, so you can demo the bot to a business audience and the integration to a technical one on the same screen.',
+    impact: null,
+    impactModel: {inputs:[{name:'"Where is my order" tickets per month', placeholder:'4,000', source:'Zendesk tag or view volume'},
+                          {name:'Share answerable by lookup alone', placeholder:'70%', source:'Sample 50 tickets and count'},
+                          {name:'Fully loaded cost per ticket', placeholder:'$6', source:'Support ops — industry range is $4 to $12'},
+                          {name:'Deflection rate achieved', placeholder:'60% of the answerable share', source:'Pilot it; do not assume'}],
+                  example:'4,000 x 70% x 60% is about 1,680 tickets a month deflected, roughly $10k a month or $120k a year. Sensitivity matters more than the headline: at 30% deflection it is about $60k a year, which is still a real number and a more defensible one to quote first. A second-order benefit worth naming is that first-response time drops for the tickets that do need a human, because the queue is shorter.',
+                  unit:'support tickets deflected'},
+    demoFlow: ['Pick a scenario from the strip: known email, known order number, unknown order number, no details given, or Magento outage.',
+               'Send it into the widget. The bot replies as a customer would see it.',
+               'Watch the Boomi process trace beside it: which steps executed, which branches were not taken (they are labelled), and the payload as it changes at each hop.',
+               'Run the Magento outage scenario deliberately. This is the one to spend time on — it shows what the customer sees when the backend is down, which is the question a support director will actually ask.',
+               'Open the go-live runbook for the demo-to-production cutover story.'],
+    partners: [],
+    partnersNote: 'No partner is named — needs your input. The page is branded "Avery Products", which reads as a fictional retailer rather than a partner.',
+    systems: ['Zendesk', 'Magento'],
+    adjacentSystems: ['Shopify or BigCommerce in place of Magento',
+                      'Shipping carrier tracking APIs — the obvious next hop',
+                      'A WMS for fulfilment status',
+                      'Zendesk Sunshine or a CDP, if the bot needs to know who it is talking to'],
+    products: ['Integration'],
+    conversations: ['Head of customer support conversation on ticket deflection, backed by a live Boomi process trace',
+                    'Showing the business and technical audience the same demo on one screen'],
+    misc: 'No measured figure — a model, not a claim, with placeholder inputs (4,000 “where is my order” tickets/month, 70% answerable by lookup alone, $6 fully loaded cost per ticket, 60% deflection of the answerable share) worked to about 1,680 tickets/month deflected (~$120k/year); the page flags sensitivity as more useful than the headline — at 30% deflection it is still ~$60k/year and a more defensible number to quote first. Branded “Avery Products”, which reads as a fictional retailer rather than a partner. The Magento-outage scenario is deliberately the one to spend time on: it shows what the customer sees when the backend is down, which a support director will ask about before anything else. Ships its own go-live runbook (copied here as zendesk-magento-order-status-runbook.html) covering the demo-to-production cutover, which is unusual for a demo asset and changes the conversation from “prototype” to “something with a cutover plan”. Live mode targets a deployed Boomi WSS listener and reads a .env file two directories above the page’s original location; not present in this copy, so it runs simulated here. Pair with the JC Hi-Fi order tracker in this library to show assisted and self-service support on the same underlying pattern.',
+    tags: ['retail', 'Zendesk', 'Magento', 'ticket deflection', 'flow inspector', 'order status'],
+    url: 'use-case-prototypes/zendesk-magento-order-status.html',
+    relatedPages: [{label:'Go-live runbook — the demo-to-production cutover', file:'use-case-prototypes/zendesk-magento-order-status-runbook.html'}],
+    originalPath: '~/Claude/bc_projects/Hello World/frontend/zendesk-order-status/',
+    source: 'demo-library/zendesk-magento-order-status/index.html',
+    added: '2026-09-22'
+  },
+  {
+    id: 'zoho-netsuite-invoice-sync',
+    title: 'Invoice sync console, Zoho CRM to NetSuite',
+    customer: 'Boomi internal build',
+    industry: 'Cross-industry',
+    author: 'Richard Yang',
+    summary: 'An invoice approved in Zoho CRM syncs into NetSuite the moment it is approved, one invoice per event, reporting back one of four outcomes — synced, duplicate skipped, customer unmapped, or error — with a Boomi Agentstudio agent able to check mappings and trigger a sync under an approval gate.',
+    narrative: 'An invoice approved in Zoho CRM has to exist in NetSuite before finance can collect on it. Today that is re-keyed by hand or moved by a nightly batch, so nobody knows until month-end close that a batch of invoices never landed. This syncs each invoice the moment it is approved, one invoice per event, and answers back to Zoho with what happened.\n\nFour outcomes, and the console names all of them: synced, duplicate skipped, customer unmapped, and error.',
+    impact: null,
+    impactModel: {inputs:[{name:'Invoices per month from the CRM', placeholder:'400', source:'CRM invoice object count, last 3 months'},
+                          {name:'Minutes to re-key one', placeholder:'6', source:'Ask an AR clerk to do one while you watch'},
+                          {name:'Loaded hourly cost', placeholder:'$45', source:'Finance'},
+                          {name:'Duplicate or error rate', placeholder:'3%', source:'Count credit memos raised to reverse mis-keys'}],
+                  example:'400 invoices x 6 minutes is about 40 hours a month — roughly $1,800 a month, or $21.6k a year — of re-keying. The 3% error rate adds about 12 invoices a month of investigate-and-reverse work, which costs far more per unit than the original keying. The harder-to-price benefits are usually the ones that land: invoices become collectable days earlier, and month-end close stops including a reconciliation hunt.',
+                  unit:'hours spent re-keying invoices'},
+    demoFlow: ['Pick "mapped account — clean sync" and send. Six business-readable stages light up green: arrived, duplicate checked, customer identified, translated, created, confirmed.',
+               'Pick "unmapped account". Stage three turns amber: the cross-reference table missed, so the process fell back to searching NetSuite by company name. The invoice still lands.',
+               'Switch to Simulated and pick "duplicate webhook". The guard stops it — stages four and five grey out as nothing created. This is the retried-webhook story every integration audience has lived through.',
+               'In the right-hand panel, ask the Boomi Agentstudio agent whether Northwind Logistics is set up to invoice in NetSuite. It calls two lookup tools against the live cross-reference tables.',
+               'Ask it to sync an invoice. It pre-flights the mappings, then stops for approval — the write tool is gated. Say yes and it runs the real process.'],
+    partners: [],
+    partnersNote: 'No partner is named — needs your input. Nothing in the artifact names a partner or a customer.',
+    systems: ['Zoho', 'NetSuite'],
+    adjacentSystems: ['Zoho Books',
+                      'Avalara or similar for tax',
+                      'The payment gateway that collects against the invoice',
+                      'Whatever BI tool reports on AR ageing'],
+    products: ['Agentstudio', 'Integration'],
+    conversations: ['CFO or AR manager conversation about month-end close no longer including a reconciliation hunt',
+                    'Integration lead conversation about a duplicate-post guard that survives a retried webhook'],
+    misc: 'No measured figure — the page itself says put the customer’s own volume in before using any number out loud. Placeholder inputs (400 invoices/month from the CRM, 6 minutes to re-key one by hand, $45 loaded hourly cost, 3% duplicate/error rate) work out to about 40 hours/month (~$21.6k/year) of re-keying, plus roughly 12 invoices/month of investigate-and-reverse work from the error rate, which the page says costs far more per unit than the original keying. The middle column downloads the real Boomi process log and translates it into business language, so a finance manager can audit a sync without knowing what a Map shape is, while the raw shape-by-shape trace stays one click away for engineers in the room. NetSuite itself is mocked inside the Boomi process because the branded NetSuite connector needs GUI setup plus a metadata import; swapping in the real connector replaces three steps and nothing else changes. Known gap disclosed on the page: an unmapped product code produces an invoice line with no item id and the sync still reports SYNCED, which NetSuite would actually reject. The Agentstudio agent’s honest limitation is a feature of the demo — a Boomi Integration tool returns execution metadata, never document content, so the agent says it cannot read the outcome back and points at the console, and naming that boundary buys more credibility than pretending it saw everything. Two cross-reference tables carry the key mapping: Zoho account to NetSuite customer, and Zoho product code to NetSuite item. Live mode targets a deployed Boomi listener and reads a .env file two directories above the page’s original location; not present in this copy, so it runs simulated here.',
+    tags: ['accounts receivable',
+           'Zoho CRM',
+           'NetSuite',
+           'Agentstudio',
+           'duplicate detection',
+           'cross reference'],
+    url: 'use-case-prototypes/zoho-netsuite-invoice-sync.html',
+    relatedPages: [],
+    originalPath: '~/Claude/bc_projects/Hello World/frontend/zoho-netsuite-invoice/',
+    source: 'demo-library/zoho-netsuite-invoice-sync/index.html',
+    added: '2026-09-22'
+  }
+];
+
+var PAGE = 24;
+var STATE = {
+  query:'', sort:'recent', shown:PAGE,
+  filters:{industry:[],systems:[],partners:[],products:[],author:[],status:[]}
+};
+
+function esc(s){
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function visibleEntries(){
+  var out = USE_CASES.filter(function(uc){
+    return matchesQuery(uc, STATE.query) && matchesFilters(uc, STATE.filters);
+  });
+  return sortEntries(out, STATE.sort);
+}
+// A sourced figure keeps the large coral treatment. An estimated one is muted,
+// smaller and prefixed "Est." - never the same visual weight, so no reader can
+// mistake an estimate for something the source measured.
+// Dollars are "addressed", never "saved", for the same reason the hours label is:
+// an hours figure can be a current-effort baseline rather than a realised saving,
+// and the dollar figure derived from it inherits that caveat.
+function impactHtml(uc){
+  var im = uc.impact;
+  // No figure, but a costing model? Say so. "Impact TBD" on a tile that
+  // carries a full sizing model is the one thing that would bury it.
+  if(!im) return '<div class="impact-tbd">'
+    + (uc.impactModel ? 'Sizing model — no measured figure' : 'Impact TBD') + '</div>';
+  var out = '';
+  if(im.hours){
+    if(basisOf(im,'hours') === 'sourced'){
+      out += '<div class="impact"><span class="impact-n">' + formatNumber(im.hours)
+          +  '</span><span class="impact-u">hours addressed'
+          +  (im.note ? ' · ' + esc(im.note) : '') + '</span></div>';
+      if(im.dollars && basisOf(im,'dollars') === 'estimated')
+        out += '<div class="impact-est">Est. $' + formatNumber(im.dollars) + ' addressed</div>';
+      else if(im.dollars)
+        out += '<div class="impact-u">$' + formatNumber(im.dollars) + ' addressed</div>';
+    } else {
+      out += '<div class="impact-est">Est. ' + formatNumber(im.hours) + ' hrs/yr'
+          +  (im.dollars ? ' · $' + formatNumber(im.dollars) + ' addressed' : '') + '</div>';
+    }
+    return out;
+  }
+  if(im.dollars){
+    if(basisOf(im,'dollars') === 'sourced')
+      return '<div class="impact"><span class="impact-n">$' + formatNumber(im.dollars)
+        + '</span><span class="impact-u">dollars addressed'
+        + (im.note ? ' · ' + esc(im.note) : '') + '</span></div>';
+    return '<div class="impact-est">Est. $' + formatNumber(im.dollars) + ' addressed</div>';
+  }
+  return '<div class="impact-tbd">'
+    + (uc.impactModel ? 'Sizing model — no measured figure' : 'Impact TBD') + '</div>';
+}
+function cardHtml(uc){
+  var st = deriveStatus(uc);
+  var chips = (uc.systems||[]).concat(uc.products||[]).slice(0,4)
+    .map(function(v){
+      var facet = (uc.systems||[]).indexOf(v) !== -1 ? 'systems' : 'products';
+      return '<span class="chip" data-facet="' + facet + '" data-value="' + esc(v) + '">'
+        + esc(v) + '</span>';
+    }).join('');
+  return '<button class="card" type="button" data-id="' + esc(uc.id) + '">'
+    + '<div class="card-strip"><span class="card-init">' + esc(uc.industry || 'Industry TBD') + '</span></div>'
+    + '<div class="card-body">'
+    +   '<div class="card-title">' + esc(uc.title) + '</div>'
+    +   '<div class="card-cust">' + esc(uc.customer) + '</div>'
+    +   '<div class="card-auth"><i class="ph ph-user-circle" aria-hidden="true"></i>'
+    +     'Built by ' + esc(uc.author) + '</div>'
+    +   '<div class="card-sum">' + esc(uc.summary) + '</div>'
+    +   impactHtml(uc)
+    +   '<div class="chips">' + chips + '</div>'
+    +   '<div class="badge ' + st + '"><span class="dot"></span>'
+    +     STATUS_LABELS[st] + '</div>'
+    + '</div></button>';
+}
+function renderGrid(){
+  var list = visibleEntries();
+  var slice = list.slice(0, STATE.shown);
+  var host = document.querySelector('#grid .wrap');
+  if(!list.length){
+    host.innerHTML = '<div class="empty">No use cases match. Try clearing a filter.</div>';
+    return;
+  }
+  host.innerHTML = '<div class="grid">' + slice.map(cardHtml).join('') + '</div>'
+    + (list.length > slice.length
+        ? '<button class="more" id="show-more" type="button">Show '
+          + Math.min(PAGE, list.length - slice.length) + ' more</button>'
+        : '');
+  var more = document.getElementById('show-more');
+  if(more) more.addEventListener('click', function(){ STATE.shown += PAGE; renderGrid(); });
+}
+// Short labels, because six of these plus a search box, a sort control, a
+// count and Clear all have to share ONE line. The longer "All industries"
+// wording is swapped in only while the option list is open (see
+// wirePlaceholderSwap).
+var FACET_LABELS = {industry:'Industry', systems:'Systems',
+  partners:'Partners', products:'Products', author:'Author', status:'Status'};
+var FACET_ALL = {industry:'All industries', systems:'All systems',
+  partners:'All partners', products:'All Boomi products',
+  author:'All authors', status:'All statuses'};
+var STATUS_LABELS = {published:'Published', local:'Local preview', pending:'Coming soon'};
+// Stable display order for each dropdown. Values come from deriveFacets(),
+// never hardcoded, so the options always match the data — this just decides
+// the ORDER they appear in: canonical order first (from the CANON_ arrays
+// declared above USE_CASES), then anything else deriveFacets() found that
+// isn't in the canon list, so a value is never silently dropped.
+var CANON_ORDER = {industry:CANON_INDUSTRIES, systems:CANON_SYSTEMS,
+  partners:CANON_PARTNERS, products:CANON_PRODUCTS, author:CANON_AUTHORS,
+  status:['published','local','pending']};
+function orderedFacetValues(key, values){
+  var canon = CANON_ORDER[key] || [];
+  var present = {};
+  values.forEach(function(v){ present[v] = true; });
+  var out = canon.filter(function(v){ return present[v]; });
+  values.forEach(function(v){ if(out.indexOf(v) === -1) out.push(v); });
+  return out;
+}
+
+function renderControls(){
+  var f = deriveFacets(USE_CASES);
+  var selects = Object.keys(FACET_LABELS).map(function(key){
+    var label = FACET_LABELS[key];
+    var opts = '<option value="" data-short="' + esc(label)
+      + '" data-all="' + esc(FACET_ALL[key]) + '">' + esc(label) + '</option>'
+      + orderedFacetValues(key, f[key]).map(function(v){
+          var text = key === 'status' ? esc(STATUS_LABELS[v] || v) : esc(v);
+          return '<option value="' + esc(v) + '">' + text + '</option>';
+        }).join('');
+    return '<select class="fsel" data-facet="' + key
+      + '" aria-label="Filter by ' + esc(label) + '">' + opts + '</select>';
+  }).join('');
+
+  document.querySelector('#controls .wrap').innerHTML =
+    '<div class="ctl-row">'
+    + '<label class="search"><i class="ph ph-magnifying-glass" aria-hidden="true"></i>'
+    +   '<input id="q" type="search" placeholder="Search use cases, systems, partners, conversations…"'
+    +   ' aria-label="Search use cases"></label>'
+    + selects
+    + '<select id="sort" aria-label="Sort use cases">'
+    +   '<option value="recent">Recently added</option>'
+    +   '<option value="az">A–Z</option>'
+    +   '<option value="impact">Highest impact</option>'
+    +   '<option value="industry">Industry</option>'
+    + '</select>'
+    + '<span id="count"></span>'
+    + '<button id="clear" type="button">Clear all</button>'
+    + '</div>';
+
+  var qEl = document.getElementById('q');
+  var t;
+  qEl.addEventListener('input', function(){
+    clearTimeout(t);
+    t = setTimeout(function(){ STATE.query = qEl.value; STATE.shown = PAGE; applyAndRender(); }, 120);
+  });
+  document.getElementById('sort').addEventListener('change', function(e){
+    STATE.sort = e.target.value; STATE.shown = PAGE; applyAndRender();
+  });
+  document.getElementById('clear').addEventListener('click', clearAll);
+  document.querySelector('#controls .wrap').addEventListener('change', function(e){
+    var sel = e.target.closest('select.fsel');
+    if(sel) setFilter(sel.dataset.facet, sel.value);
+  });
+  var fsels = document.querySelectorAll('#controls select.fsel');
+  for(var i=0;i<fsels.length;i++) wirePlaceholderSwap(fsels[i]);
+}
+// Cosmetic only, and the option's VALUE never changes: the closed control
+// reads "Industry" so ten controls fit one line, and the open list reads
+// "All industries" so the reset choice is unambiguous. If these events never
+// fire the list simply reads "Industry", which is still correct.
+function wirePlaceholderSwap(sel){
+  var o = sel.options[0];
+  if(!o) return;
+  function full(){  o.textContent = o.getAttribute('data-all'); }
+  function brief(){ o.textContent = o.getAttribute('data-short'); }
+  sel.addEventListener('mousedown', full);
+  sel.addEventListener('focus', full);
+  sel.addEventListener('blur', brief);
+  sel.addEventListener('change', brief);
+}
+// Shared by both the dropdowns and a card chip click: a single-select facet
+// is either constrained to exactly one value or unconstrained ('' / no
+// value), matching what the pure matchesFilters() already expects — a
+// one-element array for "equals this" and an empty array for "no constraint".
+function setFilter(facet, value){
+  STATE.filters[facet] = value ? [value] : [];
+  STATE.shown = PAGE;
+  applyAndRender();
+}
+function clearAll(){
+  STATE.query = ''; STATE.sort = 'recent'; STATE.shown = PAGE;
+  Object.keys(STATE.filters).forEach(function(k){ STATE.filters[k] = []; });
+  document.getElementById('q').value = '';
+  document.getElementById('sort').value = 'recent';
+  applyAndRender();
+}
+function syncControls(){
+  var selects = document.querySelectorAll('#controls select.fsel');
+  for(var i=0;i<selects.length;i++){
+    var s = selects[i];
+    var arr = STATE.filters[s.dataset.facet] || [];
+    s.value = arr.length ? arr[0] : '';
+  }
+}
+function applyAndRender(){
+  syncControls();
+  document.getElementById('count').textContent =
+    'Showing ' + visibleEntries().length + ' of ' + USE_CASES.length;
+  renderGrid();
+}
+var lastFocused = null;
+
+function sectionHtml(label, body){
+  return body ? '<div class="sec"><h3>' + label + '</h3>' + body + '</div>' : '';
+}
+function listHtml(arr){
+  if(!arr || !arr.length) return '';
+  return '<ul>' + arr.map(function(v){ return '<li>' + esc(v) + '</li>'; }).join('') + '</ul>';
+}
+function chipsHtml(arr, extra){
+  if(!arr || !arr.length) return '';
+  var cls = extra ? 'chip ' + extra : 'chip';
+  return '<div class="chips">' + arr.map(function(v){
+    return '<span class="' + cls + '">' + esc(v) + '</span>'; }).join('') + '</div>';
+}
+// A numbered running order. demoFlow is ordered by contract, so the numbers
+// are the steps, not decoration.
+function stepsHtml(arr){
+  if(!arr || !arr.length) return '';
+  return '<ol>' + arr.map(function(v){ return '<li>' + esc(v) + '</li>'; }).join('') + '</ol>';
+}
+// narrative may carry blank-line paragraph breaks; every paragraph is escaped.
+function parasHtml(text, cls){
+  var t = String(text == null ? '' : text).trim();
+  if(!t) return '';
+  return t.split(/\n\s*\n/).map(function(p){
+    return '<p class="' + cls + '">' + esc(p.replace(/\s*\n\s*/g, ' ')) + '</p>';
+  }).join('');
+}
+// THE MODEL BLOCK. This is placeholder arithmetic an SE re-runs live with the
+// customer's own numbers - it is NOT a measured result and never becomes one.
+// The heading, the warning line and the "Placeholder" column header all say
+// so, because a table of numbers in a deal room is read as fact by default.
+function modelHtml(mo){
+  if(!mo) return '';
+  var rows = (mo.inputs||[]).map(function(i){
+    return '<tr><td>' + esc(i.name) + '</td><td class="ph">' + esc(i.placeholder)
+      + '</td><td>' + esc(i.source) + '</td></tr>';
+  }).join('');
+  return '<div class="sec model">'
+    + '<h3>Sizing model — not a measured figure</h3>'
+    + '<p class="model-warn">Nothing below is measured, and none of it is this account\'s'
+    + ' data. Replace every placeholder with the customer\'s own number before you say'
+    + ' any of it out loud.</p>'
+    + (mo.unit ? '<p class="model-unit">What it measures: <strong>' + esc(mo.unit)
+        + '</strong></p>' : '')
+    + (rows ? '<table class="model-t"><thead><tr><th>Input</th><th>Placeholder</th>'
+        + '<th>Where to get the real figure</th></tr></thead><tbody>' + rows
+        + '</tbody></table>' : '')
+    + (mo.example ? '<p class="model-ex"><span class="model-ex-l">Worked example,'
+        + ' using the placeholders above</span>' + esc(mo.example) + '</p>' : '')
+    + '</div>';
+}
+// Companion pages that exist on disk but are not catalogued as their own use
+// case. Same relative-path resolution the cards and the open button use.
+function relatedHtml(pages){
+  if(!pages || !pages.length) return '';
+  return '<div class="rel">' + pages.map(function(p){
+    return '<a href="' + esc(p.file) + '" target="_blank" rel="noopener">'
+      + '<i class="ph ph-arrow-up-right" aria-hidden="true"></i>' + esc(p.label) + '</a>';
+  }).join('') + '</div>';
+}
+// Every figure in the sheet is labelled with where it came from, one label per
+// figure - an entry can carry sourced hours and estimated dollars at once.
+function statBlock(value, label, basis){
+  var est = basis === 'estimated';
+  return '<div><div class="stat-n' + (est ? ' est' : '') + '">'
+    + (est ? 'Est. ' : '') + value + '</div>'
+    + '<div class="stat-l">' + label + '</div>'
+    + '<div class="stat-b">' + (est ? 'Estimated' : 'Sourced') + '</div></div>';
+}
+function openDetail(id){
+  var uc = USE_CASES.filter(function(u){ return u.id === id; })[0];
+  if(!uc) return;
+  lastFocused = document.activeElement;
+  var st = deriveStatus(uc);
+  var im = uc.impact;
+  var stats = '';
+  if(im && im.hours)   stats += statBlock(formatNumber(im.hours), 'Hours addressed', basisOf(im,'hours'));
+  if(im && im.dollars) stats += statBlock('$' + formatNumber(im.dollars), 'Dollars addressed', basisOf(im,'dollars'));
+
+  var el = document.getElementById('overlay');
+  el.innerHTML = '<div class="sheet" role="document"><div class="sheet-strip"></div>'
+    + '<div class="sheet-in">'
+    +   '<div class="sheet-head"><div>'
+    +     '<div class="eyebrow">' + esc(uc.industry || 'Industry TBD') + '</div>'
+    +     '<h2 id="sheet-title">' + esc(uc.title) + '</h2>'
+    +     '<div class="sheet-cust">' + esc(uc.customer) + '</div>'
+    +     '<div class="sheet-auth">Built by ' + esc(uc.author) + '</div>'
+    +   '</div><button class="xbtn" id="sheet-close" type="button" aria-label="Close">'
+    +     '<i class="ph ph-x" aria-hidden="true"></i></button></div>'
+    +   parasHtml(uc.narrative, 'lead')
+    +   (stats ? '<div class="sheet-stats">' + stats + '</div>'
+            : (uc.impactModel ? '' : '<div class="sec"><p class="impact-tbd">Impact TBD</p></div>'))
+    +   (im && im.note ? '<div class="sec"><p>' + esc(im.note) + '</p></div>' : '')
+    +   sectionHtml('How this number is derived',
+          im && im.workings ? '<p class="workings">' + esc(im.workings) + '</p>' : '')
+    +   modelHtml(uc.impactModel)
+    +   sectionHtml('Summary', uc.summary ? '<p>' + esc(uc.summary) + '</p>' : '')
+    +   sectionHtml('How to run the demo', stepsHtml(uc.demoFlow))
+    +   sectionHtml('Where this lands in a conversation', listHtml(uc.conversations))
+    +   sectionHtml('Systems this demo integrates', chipsHtml(uc.systems))
+    +   sectionHtml('Adjacent systems — commonly raised, not integrated here',
+          chipsHtml(uc.adjacentSystems, 'adj'))
+    +   sectionHtml('Boomi products', chipsHtml(uc.products))
+    +   sectionHtml('Partners', chipsHtml(uc.partners)
+          + (uc.partnersNote ? '<p class="workings">' + esc(uc.partnersNote) + '</p>' : ''))
+    +   sectionHtml('Companion pages', relatedHtml(uc.relatedPages))
+    +   sectionHtml('Tags', chipsHtml(uc.tags))
+    +   sectionHtml('Notes', uc.misc ? '<p>' + esc(uc.misc) + '</p>' : '')
+    +   (uc.originalPath ? '<div class="runfrom"><span class="lbl">Run live from</span>'
+          + '<code>' + esc(uc.originalPath) + '</code></div>' : '')
+    +   (st === 'published' || st === 'local'
+        ? '<a class="open-btn" href="' + esc(uc.url) + '" target="_blank" rel="noopener">'
+          + 'Open prototype <i class="ph ph-arrow-up-right" aria-hidden="true"></i></a>'
+        : '<div class="soon"><i class="ph ph-clock" aria-hidden="true"></i>'
+          + 'Coming soon — not yet published</div>')
+    + '</div></div>';
+
+  el.setAttribute('role','dialog');
+  el.setAttribute('aria-modal','true');
+  el.setAttribute('aria-labelledby','sheet-title');
+  el.hidden = false;
+  document.getElementById('sheet-close').focus();
+}
+function closeDetail(){
+  var el = document.getElementById('overlay');
+  el.hidden = true;
+  el.innerHTML = '';
+  if(lastFocused && lastFocused.focus) lastFocused.focus();
+}
+document.getElementById('overlay').addEventListener('click', function(e){
+  if(e.target.id === 'overlay' || e.target.closest('#sheet-close')) closeDetail();
+});
+document.addEventListener('keydown', function(e){
+  if(e.key === 'Escape' && !document.getElementById('overlay').hidden) closeDetail();
+});
+
+renderControls();
+applyAndRender();
+document.getElementById('grid').addEventListener('click', function(e){
+  var chip = e.target.closest('.chip[data-facet]');
+  if(chip){ setFilter(chip.dataset.facet, chip.dataset.value); return; }
+  var card = e.target.closest('.card');
+  if(card) openDetail(card.dataset.id);
+});
+
+(function(){
+  var root = document.documentElement;
+  var btn = document.getElementById('theme-toggle');
+  var lbl = document.getElementById('theme-label');
+  btn.addEventListener('click', function(){
+    var dark = root.getAttribute('data-theme') === 'dark';
+    root.setAttribute('data-theme', dark ? 'light' : 'dark');
+    lbl.textContent = dark ? 'Dark' : 'Light';
+    btn.setAttribute('aria-label', dark ? 'Switch to dark theme' : 'Switch to light theme');
+    btn.querySelector('i').className = dark ? 'ph ph-moon' : 'ph ph-sun';
+  });
+})();
+</script>
+</body>
+</html>
