@@ -1,0 +1,581 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Which Number Goes to the Board</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Serif:ital,wght@0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --ground:#f4f7f8; --surface:#fff; --surface-alt:#e9f0f2;
+    --ink:#101c24; --ink-soft:#3a4f5b; --muted:#5e7583;
+    --line:#d7e2e6; --line-strong:#b6c8cf;
+    --accent:#0f6e78; --accent-ink:#0a4c53; --accent-soft:#dcf0f2;
+    --bad:#a33418; --bad-soft:#fceee9; --bad-line:#eec4b5;
+    --good:#0c6b47; --good-soft:#ddf1e7; --good-line:#a4d7c0;
+    --serif:"IBM Plex Serif",Georgia,serif;
+    --sans:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+    --ground:#0c141a; --surface:#141e26; --surface-alt:#1a2730;
+    --ink:#e3ecf0; --ink-soft:#b0c3cd; --muted:#8098a6;
+    --line:#25333c; --line-strong:#3a4d58;
+    --accent:#4fc3ce; --accent-ink:#7fd6de; --accent-soft:#0f3239;
+    --bad:#ef8f6d; --bad-soft:#2c1710; --bad-line:#5c3324;
+    --good:#5ec898; --good-soft:#0f2b20; --good-line:#245c43;
+  }}
+  :root[data-theme="dark"]{
+    --ground:#0c141a; --surface:#141e26; --surface-alt:#1a2730;
+    --ink:#e3ecf0; --ink-soft:#b0c3cd; --muted:#8098a6;
+    --line:#25333c; --line-strong:#3a4d58;
+    --accent:#4fc3ce; --accent-ink:#7fd6de; --accent-soft:#0f3239;
+    --bad:#ef8f6d; --bad-soft:#2c1710; --bad-line:#5c3324;
+    --good:#5ec898; --good-soft:#0f2b20; --good-line:#245c43;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--sans);
+    font-size:16px;line-height:1.62;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:880px;margin:0 auto;padding:0 24px 110px}
+  h1,h2,h3{margin:0;text-wrap:balance}
+  h1{font-family:var(--serif);font-weight:600;font-size:clamp(30px,4.6vw,46px);
+     line-height:1.1;letter-spacing:-.018em}
+  h2{font-family:var(--serif);font-weight:600;font-size:clamp(21px,2.7vw,27px);line-height:1.22}
+  h3{font-size:16.5px;font-weight:600;line-height:1.35}
+  p{margin:0}
+  .eyebrow{font-family:var(--mono);font-size:11.5px;font-weight:500;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--accent)}
+  .lede{font-size:19px;line-height:1.55;color:var(--ink-soft);max-width:60ch}
+  .note{font-size:14.5px;color:var(--muted);line-height:1.5}
+  section{margin-top:64px;display:flex;flex-direction:column;gap:22px}
+  .col{max-width:64ch}
+  .stack-s{display:flex;flex-direction:column;gap:11px}
+  .col.stack-s p+p{margin-top:0}
+
+  header.hero{position:sticky;top:0;z-index:40;background:var(--ground);
+    border-bottom:1px solid var(--line);padding:36px 0 20px;display:flex;flex-direction:column;gap:17px}
+  .quote{
+    font-family:var(--serif);font-style:italic;font-size:clamp(19px,2.5vw,24px);
+    line-height:1.42;color:var(--ink);border-left:3px solid var(--accent);
+    padding:2px 0 2px 18px;max-width:52ch}
+
+  /* the two answers */
+  .versus{display:grid;grid-template-columns:1fr auto 1fr;gap:16px;align-items:stretch}
+  @media (max-width:700px){.versus{grid-template-columns:1fr;gap:12px}}
+  .ans{border-radius:12px;padding:22px 22px 20px;display:flex;flex-direction:column;gap:6px;border:1px solid}
+  .ans.bad{background:var(--bad-soft);border-color:var(--bad-line)}
+  .ans.good{background:var(--good-soft);border-color:var(--good-line)}
+  .ans .cap{font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.11em;
+    text-transform:uppercase}
+  .ans.bad .cap{color:var(--bad)} .ans.good .cap{color:var(--good)}
+  .ans .fig{font-family:var(--mono);font-weight:600;font-size:clamp(28px,4.4vw,40px);
+    letter-spacing:-.025em;font-variant-numeric:tabular-nums;line-height:1.05}
+  .ans.bad .fig{color:var(--bad)} .ans.good .fig{color:var(--good)}
+  .ans .sub{font-size:14.2px;line-height:1.45;color:var(--ink-soft)}
+  .vs{display:flex;align-items:center;justify-content:center;font-family:var(--mono);
+    font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+  .gapline{background:var(--surface);border:1px solid var(--line);border-radius:10px;
+    padding:15px 19px;display:flex;flex-wrap:wrap;align-items:baseline;gap:10px}
+  .gapline .big{font-family:var(--mono);font-weight:600;font-size:23px;color:var(--bad);
+    font-variant-numeric:tabular-nums}
+  .gapline .t{font-size:15.5px;color:var(--ink-soft)}
+
+  /* cause cards */
+  .causes{display:flex;flex-direction:column;gap:15px}
+  .cause{background:var(--surface);border:1px solid var(--line);border-radius:10px;
+    display:grid;grid-template-columns:auto 1fr;gap:0}
+  .cause .side{width:5px;background:var(--bad);border-radius:10px 0 0 10px}
+  .cause .in{padding:18px 20px;display:flex;flex-direction:column;gap:9px}
+  .cause h3{display:flex;flex-wrap:wrap;align-items:baseline;gap:9px}
+  .cause .cost{font-family:var(--mono);font-size:12.5px;font-weight:600;color:var(--bad);
+    background:var(--bad-soft);border:1px solid var(--bad-line);padding:2px 8px;border-radius:5px}
+  .cause p{font-size:15.2px;line-height:1.55;color:var(--ink-soft)}
+  .evid{font-family:var(--mono);font-size:12.5px;background:var(--surface-alt);
+    border:1px solid var(--line);border-radius:7px;padding:10px 13px;line-height:1.65;
+    overflow-x:auto;white-space:pre}
+
+  /* ownership */
+  .own{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  @media (max-width:720px){.own{grid-template-columns:1fr}}
+  .owncard{background:var(--surface);border:1px solid var(--line);border-top:3px solid var(--accent);
+    border-radius:9px;padding:17px 18px;display:flex;flex-direction:column;gap:7px}
+  .owncard .who{font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--accent)}
+  .owncard .what{font-weight:600;font-size:16px}
+  .owncard p{font-size:14.2px;color:var(--ink-soft);line-height:1.48}
+
+  .result{background:var(--surface);border:1px solid var(--line);border-radius:11px;overflow:hidden}
+  .result .rh{padding:15px 20px;background:var(--surface-alt);border-bottom:1px solid var(--line)}
+  .tw{overflow-x:auto}
+  table{border-collapse:collapse;width:100%;min-width:520px;font-size:14.6px}
+  th,td{text-align:left;padding:11px 20px;border-bottom:1px solid var(--line)}
+  tr:last-child td{border-bottom:0}
+  th{font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.09em;
+    text-transform:uppercase;color:var(--muted)}
+  td.m{font-family:var(--mono);font-variant-numeric:tabular-nums}
+  td.tot{font-weight:600;background:var(--surface-alt)}
+  .pill{font-family:var(--mono);font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:4px;
+    background:var(--good-soft);border:1px solid var(--good-line);color:var(--good)}
+  .pill.off{background:var(--surface-alt);border-color:var(--line);color:var(--muted)}
+
+  /* chat */
+  .btns{display:flex;flex-wrap:wrap;gap:9px}
+  button.act{background:var(--accent);border:1px solid var(--accent);color:#fff;padding:9px 16px;
+    border-radius:8px;font:inherit;font-size:14.2px;font-weight:500;cursor:pointer}
+  button.ghost{background:var(--surface);border:1px solid var(--line-strong);color:var(--ink);
+    padding:9px 16px;border-radius:8px;font:inherit;font-size:14.2px;cursor:pointer}
+  :root[data-theme="dark"] button.act{color:#08222a}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) button.act{color:#08222a}}
+  button:disabled{opacity:.45;cursor:default}
+  button.ghost:hover:not(:disabled){border-color:var(--accent)}
+  .chat{border:1px solid var(--line);border-radius:10px;background:var(--surface);min-height:150px;
+    max-height:400px;overflow-y:auto;padding:15px;display:flex;flex-direction:column;gap:11px}
+  .msg{max-width:88%;padding:10px 13px;border-radius:11px;white-space:pre-wrap;word-wrap:break-word;
+    font-size:14.6px;line-height:1.52}
+  .msg.user{align-self:flex-end;background:var(--accent);color:#fff;border-bottom-right-radius:3px}
+  :root[data-theme="dark"] .msg.user{color:#08222a}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .msg.user{color:#08222a}}
+  .msg.agent{align-self:flex-start;background:var(--surface-alt);border-bottom-left-radius:3px}
+  .msg.err{align-self:flex-start;background:var(--bad-soft);border:1px solid var(--bad-line);color:var(--bad);font-size:13.8px}
+  .stat{align-self:flex-start;color:var(--muted);font-size:13px;font-style:italic}
+  .stat .dot{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--accent);
+    margin-right:6px;vertical-align:middle;animation:p 1s ease-in-out infinite}
+  @keyframes p{0%,100%{opacity:.3}50%{opacity:1}}
+  .chat-empty{color:var(--muted);font-size:14px;margin:auto;text-align:center;padding:16px}
+  .foot{margin-top:60px;padding-top:22px;border-top:1px solid var(--line);display:flex;
+    flex-wrap:wrap;gap:16px;font-size:14px}
+  a{color:var(--accent-ink)}
+  :root[data-theme="dark"] a{color:var(--accent-ink)}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="offlineBanner" style="display:none;margin:18px 0 0;padding:11px 14px;
+       border:1px solid var(--bad-line);background:var(--bad-soft);color:var(--ink);
+       border-radius:8px;font-size:13.4px;line-height:1.5"></div>
+
+  <header class="hero">
+    <p class="eyebrow">South-East Asia · the monthly reporting cycle</p>
+    <h1>Which number goes to the board?</h1>
+    <p class="lede">Four subsidiaries &mdash; Singapore, Indonesia, Vietnam and Thailand. Two ERP
+      systems: SAP, from the original regional build, and Oracle EBS, inherited with acquisitions.
+      Neither is going away. Neither is wrong.</p>
+  </header>
+
+  <section>
+    <div class="col stack-s">
+      <h2>The situation</h2>
+      <p>Every month head office asks the region how it did. That answer goes into the board pack,
+        and it decides where next quarter&rsquo;s capital goes and which markets get headcount.</p>
+      <p>Producing it means pulling from both ERPs, because both hold real trading activity. There is
+        nothing unusual about that &mdash; almost every regional business that grew by acquisition runs
+        more than one ledger. The problem is not that the systems exist. It is that
+        <strong>nobody has decided which of them to believe</strong>, so the answer depends on who you ask.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="col stack-s">
+      <h2>So this month, we asked</h2>
+      <p class="quote">&ldquo;How did South-East Asia do last month?&rdquo;</p>
+      <p class="note">Two analysts. Both competent, both pulling from the systems of record, both
+        working the same month. Here is what came back.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="versus" id="versus"></div>
+    <div class="gapline" id="gapline"></div>
+    <p class="note col">Same month. Same four subsidiaries. Same two source systems.
+      The difference is not arithmetic &mdash; it is that the two systems do not agree on
+      <em>what they are describing</em>.</p>
+    <div class="card col" style="border-left:3px solid var(--accent)">
+      <span class="k">Why this one is dangerous</span>
+      <p>A gap you can see is an inconvenience. This one you cannot: no error, no warning, no blank
+        cell, nothing in a log. The report runs, the deck gets built, and the number is wrong by a
+        quarter of the region. The only way anyone finds out is if two people happen to compare
+        notes &mdash; which is exactly how this was found.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="col">
+      <h2>Three reasons the numbers disagree</h2>
+      <p class="note" style="margin-top:8px">None of these throw an error. That is what makes them expensive.</p>
+    </div>
+    <div class="causes" id="causes"></div>
+  </section>
+
+
+  <section>
+    <div class="col stack-s">
+      <h2>The same root cause, a different symptom</h2>
+      <p>Everything above surfaced as a <strong>wrong number</strong>. But the underlying problem is
+        not really about money &mdash; it is that two systems each hold a version of the truth and
+        nothing decides between them. So it shows up wherever you look.</p>
+      <p class="note">Ask a far simpler question &mdash; <em>who is accountable for this entity?</em>
+        &mdash; and the same two systems hand you two different people. For all four subsidiaries.</p>
+    </div>
+    <div class="tw" style="overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)">
+      <table id="ownTable" style="border-collapse:collapse;width:100%;min-width:560px;font-size:14.6px"></table>
+    </div>
+    <div class="cause" style="margin-top:2px"><div class="side"></div><div class="in">
+      <h3>Four entities, eight names &mdash; again <span class="cost">nobody is wrong</span></h3>
+      <p>The finance system holds the name that was correct when the entity was set up. Operations holds
+         the person running it today. Both look authoritative. Neither is labelled stale.</p>
+      <p>The cost here is not money, it is <strong>time and control</strong>: escalations go to whoever
+         the asker happened to look up, approvals stall behind someone who moved on, and nobody finds out
+         they used the wrong name until the deadline has passed.</p>
+    </div></div>
+    <div class="card" style="border-left:3px solid var(--accent)">
+      <span class="k">Why this is the clearest case for a golden record</span>
+      <p>This is an <strong>attribute</strong>, not a measure. There is one right answer and the business
+         can name who decides it &mdash; so it can be resolved once, centrally, and read by everyone.
+         Revenue cannot: if two ledgers disagree on revenue you have a reconciliation to do, not a winner
+         to pick. Master data is for the facts that <em>describe</em> an entity, never the facts that
+         <em>measure</em> it.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="col">
+      <h2>What we actually changed</h2>
+      <p style="margin-top:8px">Notice what neither problem needed: a new warehouse, a new dashboard,
+        or a migration off one of the ERPs. Both had the same missing thing &mdash;
+        <strong>nobody had decided which system is authoritative for which fact.</strong></p>
+      <p class="note" style="margin-top:10px">So that is what changed. Not a new report: a decision
+        about who owns which fact, recorded once in a place the systems enforce rather than in the head
+        of whoever built the spreadsheet. Every one of these is a business call, not a technical one.</p>
+    </div>
+    <div class="own">
+      <div class="owncard">
+        <span class="who">One company, one ID</span>
+        <span class="what">Identity</span>
+        <p>Every subsidiary is matched on its legal entity ID, not its name. Eight records collapse to four companies &mdash; automatically, every time, no manual tidy-up.</p>
+      </div>
+      <div class="owncard">
+        <span class="who">Finance decides</span>
+        <span class="what">Currency</span>
+        <p>SAP is authoritative for what currency an entity reports in. Oracle's value is kept but does not win. Indonesia is IDR because Finance says so.</p>
+      </div>
+      <div class="owncard">
+        <span class="who">Operations decides</span>
+        <span class="what">Trading status</span>
+        <p>Oracle is authoritative for whether an entity is trading. Thailand reads Dormant everywhere downstream, including in the answer an executive is given.</p>
+      </div>
+      <div class="owncard">
+        <span class="who">Operations decides</span>
+        <span class="what">Accountability</span>
+        <p>Oracle is authoritative for who runs the entity, because the finance system&rsquo;s copy goes stale when people move. Ask who owns Vietnam and you get one name.</p>
+      </div>
+      <div class="owncard">
+        <span class="who">Finance decides</span>
+        <span class="what">Tax &amp; contact</span>
+        <p>SAP is authoritative for the tax registration and the finance mailbox. The same record can have different systems winning different fields &mdash; that is the point.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="col"><h2>The result: one answer, and you can see who decided it</h2></div>
+    <div class="result">
+      <div class="rh"><strong id="resTitle">August 2026 &mdash; South-East Asia</strong>
+        <p class="note" id="resNote" style="margin-top:3px"></p></div>
+      <div class="tw"><table id="resTable"><tbody></tbody></table></div>
+    </div>
+    <p class="note col">Every figure is already in one reporting currency, so the column adds up.
+      Trading status travels with the number, so nobody has to remember that Thailand is winding down.</p>
+  </section>
+
+  <section>
+    <div class="col">
+      <h2>And now anyone can just ask</h2>
+      <p style="margin-top:8px">Once one agreed answer exists and is published, the consumer stops
+        mattering. A dashboard can read it, an application can read it, and so can an AI agent &mdash;
+        none of them rebuilding the logic or reaching into the ERPs themselves. No report request, no
+        BI licence, no waiting for the analyst to get back from leave.</p>
+      <p class="note" style="margin-top:10px">Try the questions below. Every figure comes from the same
+        governed definitions you just saw. The assistant holds no data of its own.</p>
+    </div>
+    <div class="btns" id="quick"></div>
+    <div class="chat" id="chat" aria-live="polite">
+      <div class="chat-empty" id="chatEmpty">Pick a question above, or type your own below.</div>
+    </div>
+    <form class="btns" id="askForm" autocomplete="off" style="gap:8px">
+      <input type="text" id="askInput" placeholder="Ask about subsidiary performance…" aria-label="Your question"
+        style="flex:1;min-width:200px;padding:10px 13px;border:1px solid var(--line);border-radius:8px;font:inherit;font-size:14.6px;background:var(--surface);color:var(--ink)">
+      <button type="submit" class="act" id="askSend">Ask</button>
+      <button type="button" class="ghost" id="askReset">Reset</button>
+    </form>
+  </section>
+
+  <section>
+    <div class="col stack-s">
+      <h2>What this actually is</h2>
+      <p>Modelled and governed once. Given an owner and a contract. Published so any consumer &mdash;
+        system, person or AI agent &mdash; can find it and trust it, instead of rebuilding it point to
+        point for every new question.</p>
+      <p class="note">That is a data product. The reason the answer above can be trusted is not that
+        the tooling is clever &mdash; it is that a handful of people agreed who decides what, and the
+        platform now enforces it every single time anyone asks.</p>
+    </div>
+  </section>
+
+  <div class="foot">
+    <span class="note">Want the mechanics?</span>
+    <a href="./sea-data-product-assistant-flow.html">See the data flow, stage by stage &rarr;</a>
+    <a href="./sea-data-product-assistant.html">Full-screen chat &rarr;</a>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+  const $ = s => document.querySelector(s);
+  const esc = t => String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  const money = n => (n === null || n === undefined || n === "") ? "\u2014"
+    : "$" + Number(n).toLocaleString("en-US",{maximumFractionDigits:0});
+  const MONTHNAME = m => {
+    const [y,mm] = m.split("-");
+    return ["January","February","March","April","May","June","July",
+            "August","September","October","November","December"][+mm-1] + " " + y;
+  };
+
+  function renderImpact(d) {
+    const label = MONTHNAME(d.month);
+
+    $("#versus").innerHTML = `
+      <div class="ans bad">
+        <span class="cap">What one analyst reports</span>
+        <span class="fig">${money(d.dropped)}</span>
+        <span class="sub">Pulled straight from the source systems, converted, totalled. Looks complete.</span>
+      </div>
+      <div class="vs">versus</div>
+      <div class="ans good">
+        <span class="cap">What the region actually did</span>
+        <span class="fig">${money(d.governed)}</span>
+        <span class="sub">All four subsidiaries, one agreed definition, one reporting currency.</span>
+      </div>`;
+
+    $("#gapline").innerHTML =
+      `<span class="big">${money(d.missing)}</span>
+       <span class="t">of revenue &mdash; <strong>${d.missingPct}% of the region</strong> &mdash;
+       missing from the first answer, with no error, no warning and no blank cell.</span>`;
+
+    $("#causes").innerHTML = `
+      <div class="cause"><div class="side"></div><div class="in">
+        <h3>Vietnam quietly fell out of the total <span class="cost">${money(d.missing)}</span></h3>
+        <p>One system records Vietnam's currency as <strong>VDN</strong>. There is no such currency &mdash;
+           it is a typo for VND. Any conversion looks up VDN, finds no exchange rate, and skips the row.
+           The report still runs. The total is just quietly ${d.missingPct}% short, and Vietnam is simply absent.</p>
+        <div class="evid">SAP   Vietnam  currency = VND   &rarr; converts
+Oracle Vietnam  currency = VDN   &rarr; no rate found, row dropped</div>
+      </div></div>
+
+      <div class="cause"><div class="side"></div><div class="in">
+        <h3>Indonesia is recorded in the wrong currency <span class="cost">${
+          (d.indonesiaLiteralUSD && d.indonesiaTrueUSD
+            ? Math.round(d.indonesiaLiteralUSD/d.indonesiaTrueUSD)
+            : d.indonesiaRatio).toLocaleString()}&times; out</span></h3>
+        <p>One system says Indonesia reports in <strong>US dollars</strong>. It reports in rupiah.
+           Take that field at face value and Indonesia's month reads
+           ${(d.indonesiaLiteralUSD && d.indonesiaTrueUSD)
+             ? `<strong>${money(d.indonesiaLiteralUSD)}</strong> instead of ${money(d.indonesiaTrueUSD)}`
+             : `<strong>${d.indonesiaRatio.toLocaleString()} times its real size</strong>`}.
+           Obvious once you see it &mdash; but only if someone looks.</p>
+        <div class="evid">${d.indonesiaEvidence || `SAP    Indonesia  currency = IDR   &rarr; ${money(d.indonesiaTrueUSD)}
+Oracle Indonesia  currency = USD   &rarr; ${money(d.indonesiaLiteralUSD)}`}</div>
+      </div></div>
+
+      <div class="cause"><div class="side"></div><div class="in">
+        <h3>You cannot count your own subsidiaries <span class="cost">${d.nameCount} names, ${d.entities} companies</span></h3>
+        <p>The same ${d.entities} companies appear under ${d.nameCount} different names across the two systems.
+           Consolidate a spreadsheet by company name &mdash; which is what most people do &mdash; and you
+           either double-count every entity or silently drop one.</p>
+        <div class="evid">${d.names.map(n => esc(n)).join("\n")}</div>
+      </div></div>`;
+
+    const LB = {SAP_ERP:"SAP", ORACLE_EBS:"Oracle"};
+    $("#ownTable").innerHTML =
+      `<tr><th style="text-align:left;padding:10px 16px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)">Subsidiary</th>
+           <th style="text-align:left;padding:10px 16px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)">SAP says</th>
+           <th style="text-align:left;padding:10px 16px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)">Oracle says</th>
+           <th style="text-align:left;padding:10px 16px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)">Governed answer</th></tr>` +
+      (d.ownership||[]).map(o => `
+        <tr><td style="padding:10px 16px;border-bottom:1px solid var(--line)">${esc(o.subsidiary)}</td>
+            <td style="padding:10px 16px;border-bottom:1px solid var(--line);color:var(--muted)">${esc(o.sap)||"&mdash;"}</td>
+            <td style="padding:10px 16px;border-bottom:1px solid var(--line);color:var(--muted)">${esc(o.ebs)||"&mdash;"}</td>
+            <td style="padding:10px 16px;border-bottom:1px solid var(--line);font-weight:600">${esc(o.golden)||"&mdash;"}</td></tr>`).join("");
+
+    $("#resTitle").textContent = label + " — South-East Asia";
+    $("#resNote").textContent = "Reported in USD. Trading status from the agreed system of record.";
+    $("#resTable tbody").innerHTML =
+      `<tr><th>Subsidiary</th><th>Reports in</th><th>Revenue (USD)</th><th>Status</th></tr>` +
+      d.perSubsidiary.map(r => `
+        <tr><td>${esc(r.subsidiary)}</td>
+            <td class="m">${esc(r.currency)}</td>
+            <td class="m">${money(r.revenueUSD)}</td>
+            <td><span class="pill ${r.status === "Operational" ? "" : "off"}">${esc(r.status)}</span></td></tr>`).join("") +
+      `<tr><td class="tot">Region</td><td class="tot m">USD</td>
+           <td class="tot m">${money(d.governed)}</td><td class="tot"></td></tr>`;
+  }
+
+  /* ============================================================
+     Standalone fallback.
+
+     /api/impact is computed by server.py from the consolidated dataset and the
+     two ERP batch loads, none of which travel with this copy. What is embedded
+     below is this demo's own published figures - the ones its runbook
+     (demo-flow.html) tells the presenter the room will see, and the Vietnam
+     record published in catalog.html. Nothing here is newly invented; the
+     per-entity splits the offline copy cannot source are left blank and said
+     to be blank.
+     ============================================================ */
+  const FALLBACK_IMPACT = {
+    offline: true,
+    month: "2026-08",
+    governed: 8593524,            // runbook, act 1
+    dropped:  6325649,            // runbook, act 1
+    missing:  2267875,            // = Vietnam 2026-08 revenueUSD, catalog.html
+    missingPct: 26.4,             // runbook, act 1
+    entities: 4,
+    nameCount: 8,                 // "four SEA entities, eight contributing source records"
+    names: ["The eight source names are read from the two ERP batch loads by the local",
+            "data server. They are not part of this standalone copy."],
+    // Rate published in server.py: 1 IDR = 0.0000610 USD, so reading an IDR
+    // figure as USD overstates it by 1 / 0.0000610.
+    indonesiaRatio: Math.round(1 / 0.0000610),
+    indonesiaLiteralUSD: null,
+    indonesiaTrueUSD: null,
+    indonesiaEvidence: "SAP    Indonesia  currency = IDR   &rarr; converted at 1 IDR = 0.0000610 USD\n"
+                     + "Oracle Indonesia  currency = USD   &rarr; taken at face value, unconverted",
+    ownership: [
+      {subsidiary:"Singapore", sap:"", ebs:"", golden:""},
+      {subsidiary:"Indonesia", sap:"", ebs:"", golden:""},
+      {subsidiary:"Vietnam",   sap:"", ebs:"Nguyen Thi Lan", golden:"Nguyen Thi Lan"},
+      {subsidiary:"Thailand",  sap:"", ebs:"", golden:""}
+    ],
+    perSubsidiary: [
+      {subsidiary:"Singapore", revenueUSD:null, currency:"SGD", status:"Operational"},
+      {subsidiary:"Indonesia", revenueUSD:null, currency:"IDR", status:"Operational"},
+      {subsidiary:"Vietnam",   revenueUSD:2267875, currency:"VND", status:"Operational"},
+      {subsidiary:"Thailand",  revenueUSD:null, currency:"THB", status:"Dormant"}
+    ]
+  };
+
+  const OFFLINE = (location.protocol !== "http:" && location.protocol !== "https:");
+
+  function showOfflineBanner(){
+    const b = $("#offlineBanner");
+    b.style.display = "";
+    b.innerHTML = "<strong>Standalone copy &mdash; recorded figures.</strong> " +
+      "The local data server (<code>server.py</code>) is not reachable, so the numbers on this page " +
+      "are the ones this demo publishes for itself: the regional totals from its presenter runbook " +
+      "and the Vietnam record from its catalogue entry. Per-subsidiary revenue for Singapore, " +
+      "Indonesia and Thailand, the eight ERP source names and the entity-owner comparison are only " +
+      "produced by the live dataset and are shown blank rather than guessed. " +
+      "<a href=\"demo-flow.html\">Runbook</a> &middot; <a href=\"catalog.html\">Catalogue</a>";
+  }
+
+  if (OFFLINE) {
+    renderImpact(FALLBACK_IMPACT);
+    showOfflineBanner();
+  } else {
+    fetch("/api/impact").then(r => r.json()).then(renderImpact).catch(() => {
+      renderImpact(FALLBACK_IMPACT);
+      showOfflineBanner();
+    });
+  }
+
+  /* ---- chat ---- */
+  let sessionId = null, busy = false;
+  const chat = $("#chat");
+  const QS = [
+    ["How is Vietnam performing this month?","How is Vietnam doing?"],
+    ["Which SEA market had the highest operating cost last quarter?","Where are costs highest?"],
+    ["Which subsidiaries are not currently Operational?","Anything winding down?"],
+    ["Who is the entity owner for Vietnam?","Who owns Vietnam?"],
+    ["Can we post a new invoice to Thailand?","Can we invoice Thailand?"],
+    ["What is outstanding in Indonesia?","What's outstanding?"],
+    ["Give me a full picture of Thailand.","Full picture of Thailand"]
+  ];
+  $("#quick").innerHTML = QS.map((q,i)=>
+    `<button class="${i===0?"act":"ghost"}" data-q="${esc(q[0])}">${esc(q[1])}</button>`).join("");
+
+  const render = md => esc(md)
+    .replace(/^#{1,6}\s*(.+)$/gm,"<strong>$1</strong>")
+    .replace(/\*\*([^*]+)\*\*/g,"<strong>$1</strong>")
+    .replace(/^\s*[-*]\s+/gm,"• ");
+  function bubble(cls,text){
+    const e=$("#chatEmpty"); if(e) e.remove();
+    const el=document.createElement("div"); el.className="msg "+cls;
+    if(cls==="agent") el.innerHTML=render(text); else el.textContent=text;
+    chat.appendChild(el); chat.scrollTop=chat.scrollHeight;
+  }
+  function stat(t){
+    let el=chat.querySelector(".stat");
+    if(!el){const e=$("#chatEmpty"); if(e) e.remove();
+      el=document.createElement("div"); el.className="stat"; chat.appendChild(el);}
+    el.innerHTML='<span class="dot"></span>'+esc(t); chat.scrollTop=chat.scrollHeight;
+  }
+  const clearStat=()=>{const el=chat.querySelector(".stat"); if(el) el.remove();};
+  function setBusy(v){busy=v;$("#askSend").disabled=v;$("#askInput").disabled=v;
+    document.querySelectorAll("#quick button").forEach(b=>b.disabled=v);}
+
+  async function ask(q){
+    if(busy||!q.trim()) return;
+    bubble("user",q); $("#askInput").value="";
+    if(OFFLINE){
+      // The agent is a deployed Agent Garden deployment reached through
+      // server.py with credentials it holds server-side. There is nothing to
+      // call from a standalone file, and inventing an answer here would put
+      // words in the agent's mouth.
+      bubble("err","The assistant is a deployed Agent Garden agent, reached through server.py "
+        + "with credentials held server-side. It cannot be called from this standalone copy. "
+        + "The runbook records what it answers to each of these questions \u2014 see demo-flow.html, act 5.");
+      return;
+    }
+    setBusy(true); stat("Thinking…");
+    const ctl=new AbortController(); const timer=setTimeout(()=>ctl.abort(),300000);
+    try{
+      const res=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({message:q,session_id:sessionId}),signal:ctl.signal});
+      if(!res.ok){let m="HTTP "+res.status;
+        try{const j=await res.json(); m=j.error+(j.detail?" — "+j.detail:"");}catch(_){}
+        clearStat(); bubble("err",m); return;}
+      const rd=res.body.getReader(), dec=new TextDecoder(); let buf="",answered=false,i;
+      while(true){
+        const {value,done}=await rd.read(); if(done) break;
+        buf+=dec.decode(value,{stream:true});
+        while((i=buf.indexOf("\n\n"))!==-1){
+          const block=buf.slice(0,i); buf=buf.slice(i+2);
+          let ev="",data="";
+          for(const line of block.split("\n")){
+            if(line.startsWith("event:")) ev=line.slice(6).trim();
+            else if(line.startsWith("data:")) data+=line.slice(5).trim();}
+          if(!ev||!data||data==="null") continue;
+          let o; try{o=JSON.parse(data);}catch(_){continue;}
+          if(ev==="start"&&o.session_id) sessionId=o.session_id;
+          else if(ev==="progress_notification") stat(o.content||o.type||"Working…");
+          else if(ev==="message"&&o.content){clearStat(); bubble("agent",o.content); answered=true;}
+          else if(ev==="error"){clearStat(); bubble("err",o.content||"Agent error"); answered=true;}
+        }
+      }
+      clearStat(); if(!answered) bubble("err","The agent returned no message.");
+    }catch(err){clearStat();
+      bubble("err",err.name==="AbortError"?"Timed out after 5 minutes. Press Reset and try again.":"Request failed: "+err.message);
+    }finally{clearTimeout(timer); setBusy(false); $("#askInput").focus();}
+  }
+  $("#quick").addEventListener("click",e=>{const b=e.target.closest("button[data-q]"); if(b&&!busy) ask(b.dataset.q);});
+  $("#askForm").addEventListener("submit",e=>{e.preventDefault(); ask($("#askInput").value);});
+  $("#askReset").addEventListener("click",()=>{sessionId=null;
+    chat.innerHTML='<div class="chat-empty" id="chatEmpty">New conversation. Pick a question above, or type your own.</div>';});
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Boomi x Accenture Trivia</title>
+<style>
+  :root {
+    --coral: #FF7C66;
+    --purple: #A03291;
+    --navy: #072B55;
+    --gray: #EDEDED;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Poppins', 'Segoe UI', Arial, sans-serif;
+    background: linear-gradient(135deg, var(--coral), var(--purple));
+    margin: 0;
+    padding: 30px 16px;
+    min-height: 100vh;
+    color: var(--navy);
+  }
+  .wrap {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    text-align: center;
+    color: white;
+    margin: 0 0 24px;
+    background: var(--navy);
+    padding: 18px 24px;
+    border-radius: 0 0 16px 16px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+  }
+  header h1 {
+    font-size: 32px;
+    margin: 0 0 6px;
+  }
+  header p {
+    margin: 0;
+    opacity: 0.9;
+    font-size: 15px;
+  }
+  .card {
+    background: var(--gray);
+    border-radius: 16px;
+    padding: 28px 26px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+  }
+  #progress {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--purple);
+    margin-bottom: 8px;
+  }
+  #question {
+    font-size: 19px;
+    font-weight: 700;
+    margin: 4px 0 20px;
+    line-height: 1.4;
+  }
+  .option {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: white;
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 10px;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    color: var(--navy);
+  }
+  .option:hover:not(:disabled) {
+    border-color: var(--purple);
+  }
+  .option.correct {
+    background: #e3f9ef;
+    border-color: #0EC38B;
+    font-weight: 600;
+  }
+  .option.incorrect {
+    background: #fdeaea;
+    border-color: #e05353;
+  }
+  .option:disabled { cursor: default; }
+  #feedback {
+    min-height: 24px;
+    font-size: 14px;
+    font-weight: 600;
+    margin-top: 6px;
+  }
+  #feedback.correct-text { color: #0a9d67; }
+  #feedback.incorrect-text { color: #c8402f; }
+  #nextBtn {
+    display: none;
+    margin-top: 18px;
+    background: var(--purple);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 22px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  #nextBtn:hover { background: var(--navy); }
+  .score-screen { text-align: center; }
+  .score-screen h2 { font-size: 26px; }
+  .score-num { font-size: 56px; font-weight: 800; color: var(--coral); margin: 10px 0; }
+  #restartBtn {
+    margin-top: 18px;
+    background: var(--coral);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 22px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  #restartBtn:hover { background: var(--purple); }
+</style>
+</head>
+<body>
+<!-- SEDC-NAV:START -->
+<style>
+  .sedc-nav * { box-sizing: border-box; }
+  .sedc-nav {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    margin: 0;
+    background: #072B55;
+    color: #ffffff;
+    font-family: 'Poppins',Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    font-size: 14px;
+    line-height: 1.4;
+  }
+  .sedc-nav-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 10px 20px;
+  }
+  .sedc-nav-brand {
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+  }
+  .sedc-nav-brand:hover,
+  .sedc-nav-brand:focus {
+    text-decoration: underline;
+  }
+  .sedc-nav-jump {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .sedc-nav-label {
+    white-space: nowrap;
+    color: #ffffff;
+  }
+  .sedc-nav-select {
+    font-family: inherit;
+    font-size: 13px;
+    color: #072B55;
+    background: #ffffff;
+    border: 1px solid #ffffff;
+    border-radius: 4px;
+    padding: 5px 8px;
+    max-width: 60vw;
+  }
+  .sedc-nav-rule {
+    height: 3px;
+    width: 100%;
+    background: linear-gradient(90deg,#FF7C66 0%,#A03291 100%);
+  }
+</style>
+<div class="sedc-nav" role="navigation" aria-label="SE Demo Companion navigation">
+  <div class="sedc-nav-bar">
+    <a class="sedc-nav-brand" href="../index.html" target="_top">SE Demo Companion</a>
+    <div class="sedc-nav-jump">
+      <label class="sedc-nav-label" for="sedc-nav-select">Jump to use case</label>
+      <select class="sedc-nav-select" id="sedc-nav-select" onchange="(function(sel){try{var opt=sel.options[sel.selectedIndex];var url=opt&&opt.getAttribute('data-href');if(!url)return;try{window.top.location.href=url;}catch(e){window.location.href=url;}}catch(e){}})(this)">
+        <option value="amc-fee-change-agent" data-href="./amc-fee-change-agent.html">AMC fee-change agent — Finnomena</option>
+        <option value="bvtpa-claims-integration-demo" data-href="./bvtpa-claims-integration-demo.html">Blue Venture TPA claims integration demo — Blue Venture TPA</option>
+        <option value="bvtpa-claims-adjudication-cio-brief" data-href="./bvtpa-claims-adjudication-cio-brief.html">Claims adjudication CIO brief — Blue Venture TPA</option>
+        <option value="delivery-status-sync-demo" data-href="./delivery-status-sync-demo.html">Delivery status sync demo — TOTO</option>
+        <option value="boomi-tenant-ceo-dashboard" data-href="./boomi-tenant-ceo-dashboard.html">Boomi tenant CEO dashboard — Boomi internal tenant</option>
+        <option value="boomi-tenant-30-day-report" data-href="./boomi-tenant-30-day-report.html">Boomi tenant operations report, 30-day view — Boomi internal tenant</option>
+        <option value="json-to-xml-order-integration" data-href="./json-to-xml-order-integration.html">JSON to XML order integration, executive documentation — NTT</option>
+        <option value="edi-850-flight-deck" data-href="./edi-850-flight-deck.html">EDI 850 flight deck — Infosys</option>
+        <option value="whatsapp-to-sap-master-agent" data-href="./whatsapp-to-sap-master-agent.html">WhatsApp to SAP master agent — Boomi internal build</option>
+        <option value="student-xml-to-crm-json" data-href="./student-xml-to-crm-json.html">Student XML to CRM JSON — Attura</option>
+        <option value="sap-accounting-document-poc-outcome" data-href="./sap-accounting-document-poc-outcome.html">SAP accounting document automation, POC outcome — Abans PLC</option>
+        <option value="abans-sap-posting-poc-dashboard" data-href="./abans-sap-posting-poc-dashboard.html">Abans SAP posting, live POC dashboard — Abans PLC</option>
+        <option value="order-intake-api-fan-out" data-href="./order-intake-api-fan-out.html">Order intake API with multi-target fan-out — LTIMindtree</option>
+        <option value="electromart-track-and-reschedule" data-href="./electromart-track-and-reschedule.html">ElectroMart track order and reschedule delivery — ElectroMart (demo brand)</option>
+        <option value="enterprise-portal-ai-agent" data-href="./enterprise-portal-ai-agent.html">Enterprise portal with an embedded AI agent — ITG</option>
+        <option value="o2c-qad-build-journey" data-href="./o2c-qad-build-journey.html">O2C-QAD build journey — Boomi internal build</option>
+        <option value="boomi-accenture-trivia" data-href="./boomi-accenture-trivia.html" selected>Boomi x Accenture trivia — Boomi internal build</option>
+        <option value="cloud-runtime-sizing-calculator" data-href="./cloud-runtime-sizing-calculator.html">Boomi public cloud runtime sizing estimator — Boomi internal build</option>
+        <option value="coupa-netsuite-vendor-bill" data-href="./coupa-netsuite-vendor-bill.html">Vendor bill pipeline, Coupa to NetSuite — Boomi internal build</option>
+        <option value="coupa-oracle-s2p-console" data-href="./coupa-oracle-s2p-console.html">Source-to-pay flow console, Coupa to Oracle Fusion — Boomi internal build</option>
+        <option value="epic-rauland-adt-nurse-call" data-href="./epic-rauland-adt-nurse-call.html">Epic ADT to Rauland Responder 5, nurse call integration — Boomi internal build</option>
+        <option value="epic-salesforce-trial-screening" data-href="./epic-salesforce-trial-screening.html">Clinical trial screening console, Epic to Salesforce — Meridian Research (demo brand)</option>
+        <option value="jc-hifi-order-tracker" data-href="./jc-hifi-order-tracker.html">JC Hi-Fi order tracker, customer self-service — JC Hi-Fi (demo brand)</option>
+        <option value="pacific-bank-onboarding" data-href="./pacific-bank-onboarding.html">Pacific onboarding console, retail bank customer onboarding — Pacific Islands Community Bank (demo brand)</option>
+        <option value="sea-data-product-assistant" data-href="./sea-data-product-assistant.html">SEA regional performance, data products and an agent over two ERPs — Boomi internal build</option>
+        <option value="servicenow-jira-incident-sync" data-href="./servicenow-jira-incident-sync.html">Incident sync prototype, ServiceNow to Jira — Boomi internal build</option>
+        <option value="zendesk-magento-order-status" data-href="./zendesk-magento-order-status.html">Order status bot and flow inspector, Zendesk to Magento — Avery Products (demo brand)</option>
+        <option value="zoho-netsuite-invoice-sync" data-href="./zoho-netsuite-invoice-sync.html">Invoice sync console, Zoho CRM to NetSuite — Boomi internal build</option>
+      </select>
+    </div>
+  </div>
+  <div class="sedc-nav-rule"></div>
+</div>
+<!-- SEDC-NAV:END -->
+
+<div class="wrap">
+  <header>
+    <h1>Boomi x Accenture Trivia</h1>
+    <p>20 questions from the Lunch &amp; Learn deck and Q&amp;A sheet</p>
+  </header>
+  <div class="card" id="card"></div>
+</div>
+
+<script>
+const QUESTIONS = [
+  {
+    q: "What is the key advantage of Boomi Integration over Azure Logic Apps regarding deployment?",
+    options: [
+      "Boomi only runs inside Azure cloud",
+      "Boomi runs anywhere (cloud, on-prem, hybrid), while Logic Apps is Azure-native and creates lock-in",
+      "Boomi requires a VPN to operate",
+      "Boomi only supports on-premise deployment"
+    ],
+    correct: 1
+  },
+  {
+    q: "What's the main difference between Boomi API Management and Azure API Management, per the Q&A sheet?",
+    options: [
+      "Azure APIM includes built-in ETL tools",
+      "Boomi API Management is gateway-only",
+      "Azure APIM is gateway-only and needs a separate service (Logic Apps/Functions) to build the actual logic",
+      "Boomi cannot expose any APIs"
+    ],
+    correct: 2
+  },
+  {
+    q: "How does Boomi API Management relate to existing gateways like Azure APIM, MuleSoft, and Apigee?",
+    options: [
+      "It replaces them entirely and cannot coexist",
+      "It operates as both an overlay/governance layer and a native gateway simultaneously",
+      "It only works with AWS API Gateway",
+      "It has no visibility into other vendors' gateways"
+    ],
+    correct: 1
+  },
+  {
+    q: "When selling Boomi to a client already using APIM and Logic Apps, what should the first engagement focus on?",
+    options: [
+      "A full platform migration on day one",
+      "Decommissioning all Microsoft licenses immediately",
+      "One high-visibility governance or consolidation win",
+      "Replacing their entire IT team"
+    ],
+    correct: 2
+  },
+  {
+    q: "What differentiates Boomi from Workato on deployment, per the Q&A sheet?",
+    options: [
+      "Workato supports true hybrid/on-prem/multi-cloud runtimes; Boomi does not",
+      "Boomi supports true hybrid/on-prem/multi-cloud runtimes; Workato runs solely on its own AWS-hosted cloud",
+      "Both platforms only run on Google Cloud",
+      "Neither platform supports cloud deployment"
+    ],
+    correct: 1
+  },
+  {
+    q: "What does \"reduced maintenance\" mean when Boomi is positioned alongside an existing platform?",
+    options: [
+      "Zero overhead from day one",
+      "Boomi becomes the single control plane over time as legacy integrations are retired",
+      "The incumbent platform is kept permanently",
+      "Maintenance costs double immediately"
+    ],
+    correct: 1
+  },
+  {
+    q: "What discount does Accenture receive as a contracted Boomi Platinum Partner reseller?",
+    options: [
+      "10% off list price everywhere",
+      "45% off list price in APJ, 35% off in AMER and EMEA",
+      "100% off for the first year",
+      "No discount, only referral fees"
+    ],
+    correct: 1
+  },
+  {
+    q: "What security certification does Boomi hold that's relevant to government agencies?",
+    options: [
+      "A PROTECTED-level IRAP assessment",
+      "No security certifications at all",
+      "Only a SOC 1 audit",
+      "FedRAMP High only"
+    ],
+    correct: 0
+  },
+  {
+    q: "How does Boomi's approach to reusability and governance compare to MuleSoft's API-Led Connectivity model?",
+    options: [
+      "It requires the same 3-layer design MuleSoft uses, planned entirely upfront",
+      "Componentised and incremental ? reusability builds up over time rather than being pre-architected",
+      "Boomi does not support reusability at all",
+      "Governance can only be added by purchasing a separate product"
+    ],
+    correct: 1
+  },
+  {
+    q: "What do Integration, API Management, and Data Management all share in Boomi, enabling their synergy?",
+    options: [
+      "Separate runtimes that don't communicate",
+      "The same AtomSphere platform and runtime (Atoms/Molecules)",
+      "Three unrelated licensing models",
+      "Completely separate connector libraries"
+    ],
+    correct: 1
+  },
+  {
+    q: "How many consecutive years has Boomi been a Leader in the Gartner iPaaS Magic Quadrant?",
+    options: ["5 years", "8 years", "12 years", "20 years"],
+    correct: 2
+  },
+  {
+    q: "How many Gartner Magic Quadrants does Boomi appear in, including the new emerging one?",
+    options: [
+      "Two",
+      "Three",
+      "Four, including the new No-Code Agent Build emerging quadrant",
+      "Six"
+    ],
+    correct: 2
+  },
+  {
+    q: "Which ANZ customer is highlighted for enterprise-scale retail integration on Azure AKS and a 2022 \"Best of Boomi\" APJ Innovation Award?",
+    options: ["AGL", "Coles", "Kinetic", "QUT"],
+    correct: 1
+  },
+  {
+    q: "Which ANZ customer is described as rationalizing 500 apps across 16 workstreams?",
+    options: ["Coles", "AGL", "Kinetic", "QUT"],
+    correct: 2
+  },
+  {
+    q: "What is Boomi Companion, according to the Lunch & Learn deck?",
+    options: [
+      "A hardware appliance for on-prem integration",
+      "A portable suite of open source skills and plugins giving compatible AI agents deep Boomi Platform expertise",
+      "A dedicated Boomi-branded laptop",
+      "A replacement for the Boomi Enterprise Platform"
+    ],
+    correct: 1
+  },
+  {
+    q: "Which of these is NOT one of Boomi's named AI Agents in the deck?",
+    options: ["Boomi Scribe", "Boomi Pathfinder", "Boomi DataDetective", "Boomi Navigator"],
+    correct: 3
+  },
+  {
+    q: "What does Boomi Agentstudio's \"Agent Control Tower\" do?",
+    options: [
+      "Builds new integrations from scratch automatically",
+      "Centrally registers, monitors, and keeps AI agents audit-ready and compliant",
+      "Only manages Boomi's own AI agents, no others",
+      "Replaces the need for API Management"
+    ],
+    correct: 1
+  },
+  {
+    q: "Which three companies are named as Boomi Technology Partnerships in the deck?",
+    options: [
+      "Salesforce, SAP, Oracle",
+      "ServiceNow, UKG, and Snowflake",
+      "AWS, Google Cloud, Azure",
+      "Workday, HubSpot, Zendesk"
+    ],
+    correct: 1
+  },
+  {
+    q: "Per the deck, cross-referencing data between 4 systems traditionally requires how many point-to-point integration processes?",
+    options: ["4", "8", "12", "20"],
+    correct: 2
+  },
+  {
+    q: "According to the \"winning stack\" slide, how much faster is delivery on standard engagement patterns when partner IP is combined with Boomi Companion?",
+    options: ["1-2x faster", "3-5x faster", "10x faster", "No speed difference, only cost savings"],
+    correct: 1
+  }
+];
+
+let current = 0;
+let score = 0;
+const card = document.getElementById('card');
+
+function render() {
+  if (current >= QUESTIONS.length) {
+    renderScore();
+    return;
+  }
+  const item = QUESTIONS[current];
+  card.innerHTML = `
+    <div id="progress">Question ${current + 1} of ${QUESTIONS.length} &nbsp;�&nbsp; Score: ${score}</div>
+    <div id="question">${item.q}</div>
+    <div id="options"></div>
+    <div id="feedback"></div>
+    <button id="nextBtn">Next question ?</button>
+  `;
+  const optionsDiv = document.getElementById('options');
+  item.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option';
+    btn.textContent = String.fromCharCode(65 + i) + ')  ' + opt;
+    btn.onclick = () => selectAnswer(i);
+    optionsDiv.appendChild(btn);
+  });
+}
+
+function selectAnswer(i) {
+  const item = QUESTIONS[current];
+  const buttons = document.querySelectorAll('.option');
+  buttons.forEach(b => b.disabled = true);
+  const feedback = document.getElementById('feedback');
+  if (i === item.correct) {
+    buttons[i].classList.add('correct');
+    feedback.textContent = 'Correct!';
+    feedback.className = 'correct-text';
+    score++;
+  } else {
+    buttons[i].classList.add('incorrect');
+    buttons[item.correct].classList.add('correct');
+    feedback.textContent = 'Not quite ? correct answer highlighted above.';
+    feedback.className = 'incorrect-text';
+  }
+  document.getElementById('nextBtn').style.display = 'inline-block';
+  document.getElementById('nextBtn').onclick = () => {
+    current++;
+    render();
+  };
+}
+
+function renderScore() {
+  const pct = Math.round((score / QUESTIONS.length) * 100);
+  let msg = "Nice effort ? brush up and try again!";
+  if (pct >= 90) msg = "Boomi expert! Outstanding.";
+  else if (pct >= 70) msg = "Great work ? you know your Boomi facts.";
+  else if (pct >= 50) msg = "Solid start ? a few more reps and you'll ace it.";
+  card.innerHTML = `
+    <div class="score-screen">
+      <h2>Quiz complete!</h2>
+      <div class="score-num">${score}/${QUESTIONS.length}</div>
+      <p>${pct}% correct ? ${msg}</p>
+      <button id="restartBtn">Play again</button>
+    </div>
+  `;
+  document.getElementById('restartBtn').onclick = () => {
+    current = 0;
+    score = 0;
+    render();
+  };
+}
+
+render();
+</script>
+</body>
+</html>

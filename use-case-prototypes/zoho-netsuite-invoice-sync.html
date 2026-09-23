@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Invoice Sync Console — Zoho CRM to NetSuite</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --brand:        #1F5FD8;
+    --brand-dark:   #1748AC;
+    --brand-tint:   #E9F0FD;
+    --charcoal:     #0B1420;
+    --zoho:         #C7382E;
+    --zoho-tint:    #FBECEA;
+    --ns:           #17607D;
+    --ns-tint:      #E7F2F6;
+    --ink:          #0B1420;
+    --muted:        #58636E;
+    --faint:        #8A939E;
+    --bg:           #F5F7FA;
+    --surface:      #FFFFFF;
+    --border:       #DCE1E8;
+    --border-soft:  #EDF0F4;
+    --success:      #1B873F;
+    --success-tint: #EBF7EF;
+    --warn:         #B7791F;
+    --warn-tint:    #FDF6E7;
+    --error:        #C42B2B;
+    --error-tint:   #FCEDED;
+    --radius:       10px;
+    --shadow:       0 1px 2px rgba(11,20,32,.06), 0 4px 12px rgba(11,20,32,.05);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--ink);
+    font-family: 'Inter', system-ui, sans-serif; font-size: 14px; line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  code, pre, .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+
+  header {
+    background: var(--charcoal); padding: 0 24px; min-height: 64px;
+    display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+    position: sticky; top: 0; z-index: 30; box-shadow: inset 0 -3px 0 var(--brand);
+  }
+  .wordmark { font-size: 20px; font-weight: 700; letter-spacing: -.03em; color: #fff; line-height: 1; }
+  .logo-sub { color: #93A0AD; font-weight: 500; font-size: 13px; border-left: 1px solid #26303B; padding-left: 18px; }
+  .logo-sub b { color: #E8EDF2; font-weight: 600; }
+  .spacer { flex: 1; }
+  .mode-toggle { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #93A0AD; }
+  .switch { display: inline-flex; background: #101A25; border: 1px solid #26303B; border-radius: 7px; padding: 2px; }
+  .switch button {
+    border: 0; background: transparent; font: inherit; font-size: 12px; font-weight: 500;
+    color: #93A0AD; padding: 5px 11px; border-radius: 5px; cursor: pointer;
+  }
+  .switch button.on { background: var(--brand); color: #fff; }
+  .switch button:disabled { opacity: .4; cursor: not-allowed; }
+
+  .wrap { max-width: 1560px; margin: 0 auto; padding: 20px 24px 60px; }
+  .cols { display: grid; grid-template-columns: 330px minmax(0,1fr) 380px; gap: 18px; align-items: start; }
+  @media (max-width: 1280px) { .cols { grid-template-columns: 300px minmax(0,1fr); } .agent-col { grid-column: 1 / -1; } }
+  @media (max-width: 920px)  { .cols { grid-template-columns: minmax(0,1fr); } }
+
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 18px; }
+  .panel-head {
+    padding: 12px 15px; border-bottom: 1px solid var(--border-soft);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .panel-head h2 { font-size: 13px; font-weight: 600; letter-spacing: .01em; }
+  .panel-head .hint { font-size: 12px; color: var(--faint); font-weight: 400; }
+  .panel-body { padding: 15px; }
+
+  .sys-chip {
+    display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600;
+    padding: 3px 8px; border-radius: 20px; letter-spacing: .02em;
+  }
+  .sys-chip.zoho { background: var(--zoho-tint); color: var(--zoho); }
+  .sys-chip.ns   { background: var(--ns-tint);   color: var(--ns); }
+
+  label.fld { display: block; margin-bottom: 11px; }
+  label.fld span { display: block; font-size: 11px; font-weight: 600; color: var(--muted); margin-bottom: 4px; letter-spacing: .02em; }
+  label.fld input, label.fld select {
+    width: 100%; font: inherit; font-size: 13px; padding: 7px 9px;
+    border: 1px solid var(--border); border-radius: 7px; background: #fff; color: var(--ink);
+  }
+  label.fld input:focus, label.fld select:focus { outline: 2px solid var(--brand-tint); border-color: var(--brand); }
+  .fld-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  button.primary {
+    width: 100%; font: inherit; font-size: 14px; font-weight: 600; color: #fff;
+    background: var(--brand); border: 0; border-radius: 8px; padding: 11px; cursor: pointer;
+  }
+  button.primary:hover:not(:disabled) { background: var(--brand-dark); }
+  button.primary:disabled { opacity: .5; cursor: not-allowed; }
+
+  .scenario-note {
+    font-size: 12px; color: var(--muted); background: var(--brand-tint);
+    border-radius: 7px; padding: 9px 11px; margin-bottom: 13px;
+  }
+
+  /* ---------- flow ---------- */
+  .flow { list-style: none; }
+  .flow li { display: grid; grid-template-columns: 30px minmax(0,1fr); gap: 13px; position: relative; padding-bottom: 20px; }
+  .flow li:last-child { padding-bottom: 0; }
+  .flow li::before {
+    content: ''; position: absolute; left: 14px; top: 28px; bottom: 0; width: 2px; background: var(--border);
+  }
+  .flow li:last-child::before { display: none; }
+  .pip {
+    width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center;
+    font-size: 13px; font-weight: 700; background: var(--border-soft); color: var(--faint);
+    border: 2px solid var(--border); z-index: 1;
+  }
+  .pip.done   { background: var(--success-tint); border-color: var(--success); color: var(--success); }
+  .pip.warn   { background: var(--warn-tint);    border-color: var(--warn);    color: var(--warn); }
+  .pip.failed { background: var(--error-tint);   border-color: var(--error);   color: var(--error); }
+  .pip.pending{ background: #fff; border-style: dashed; }
+  .stage-title { font-size: 14px; font-weight: 600; padding-top: 4px; }
+  .stage-detail { font-size: 13px; color: var(--muted); margin-top: 2px; word-break: break-word; }
+  .stage-note {
+    font-size: 11.5px; color: var(--warn); background: var(--warn-tint);
+    display: inline-block; padding: 2px 7px; border-radius: 5px; margin-top: 6px;
+  }
+  .stage-skipped .stage-title { color: var(--faint); font-weight: 500; }
+
+  .empty { color: var(--faint); font-size: 13px; text-align: center; padding: 36px 10px; }
+  .spinner {
+    width: 15px; height: 15px; border: 2px solid var(--brand-tint); border-top-color: var(--brand);
+    border-radius: 50%; display: inline-block; animation: spin .7s linear infinite; vertical-align: -2px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ---------- outcome ---------- */
+  .outcome { border-radius: 9px; padding: 14px; border: 1px solid; }
+  .outcome.good { background: var(--success-tint); border-color: #B6E0C4; }
+  .outcome.warn { background: var(--warn-tint);    border-color: #EBD8A8; }
+  .outcome.bad  { background: var(--error-tint);   border-color: #F0C2C2; }
+  .outcome h3 { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+  .outcome.good h3 { color: var(--success); }
+  .outcome.warn h3 { color: var(--warn); }
+  .outcome.bad  h3 { color: var(--error); }
+  .outcome p { font-size: 13px; color: var(--ink); }
+
+  .kv { width: 100%; border-collapse: collapse; margin-top: 12px; }
+  .kv td { padding: 5px 0; font-size: 12.5px; vertical-align: top; border-bottom: 1px solid var(--border-soft); }
+  .kv td:first-child { color: var(--muted); width: 45%; }
+  .kv td:last-child { font-family: 'JetBrains Mono', monospace; font-size: 12px; word-break: break-all; }
+  .kv tr:last-child td { border-bottom: 0; }
+
+  /* ---------- agent ---------- */
+  .chat { display: flex; flex-direction: column; gap: 11px; max-height: 460px; overflow-y: auto; padding: 15px; }
+  .msg { font-size: 13px; border-radius: 9px; padding: 9px 11px; max-width: 92%; white-space: pre-wrap; word-break: break-word; }
+  .msg.user  { background: var(--brand); color: #fff; align-self: flex-end; }
+  .msg.agent { background: #F1F4F8; color: var(--ink); align-self: flex-start; }
+  .msg.err   { background: var(--error-tint); color: var(--error); align-self: flex-start; }
+  .msg strong { font-weight: 600; }
+  .steps { align-self: flex-start; font-size: 11.5px; color: var(--faint); padding-left: 3px; }
+  .steps div { padding: 1px 0; }
+  .steps .tool { color: var(--brand); font-weight: 500; }
+  .chat-in { display: flex; gap: 8px; padding: 12px 15px; border-top: 1px solid var(--border-soft); }
+  .chat-in input {
+    flex: 1; font: inherit; font-size: 13px; padding: 8px 10px;
+    border: 1px solid var(--border); border-radius: 7px;
+  }
+  .chat-in input:focus { outline: 2px solid var(--brand-tint); border-color: var(--brand); }
+  .chat-in button {
+    font: inherit; font-size: 13px; font-weight: 600; color: #fff; background: var(--brand);
+    border: 0; border-radius: 7px; padding: 8px 15px; cursor: pointer;
+  }
+  .chat-in button:disabled { opacity: .5; cursor: not-allowed; }
+  .starters { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 15px 13px; }
+  .starters button {
+    font: inherit; font-size: 11.5px; color: var(--brand); background: var(--brand-tint);
+    border: 0; border-radius: 20px; padding: 5px 10px; cursor: pointer; text-align: left;
+  }
+
+  /* ---------- trace ---------- */
+  details.trace { margin-top: 0; }
+  details.trace summary {
+    cursor: pointer; font-size: 13px; font-weight: 600; padding: 12px 15px;
+    list-style: none; display: flex; align-items: center; gap: 8px;
+  }
+  details.trace summary::-webkit-details-marker { display: none; }
+  details.trace summary::before { content: '▸'; color: var(--faint); }
+  details.trace[open] summary::before { content: '▾'; }
+  .trace-scroll { max-height: 400px; overflow: auto; border-top: 1px solid var(--border-soft); }
+  table.log { width: 100%; border-collapse: collapse; font-size: 11.5px; }
+  table.log th {
+    text-align: left; font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em;
+    color: var(--faint); padding: 7px 10px; background: #FAFBFD; position: sticky; top: 0;
+    border-bottom: 1px solid var(--border-soft);
+  }
+  table.log td { padding: 6px 10px; border-bottom: 1px solid var(--border-soft); vertical-align: top; }
+  table.log td.shape { font-weight: 500; white-space: nowrap; }
+  table.log td.msg-cell { font-family: 'JetBrains Mono', monospace; font-size: 11px; word-break: break-word; }
+  table.log tr.lvl-ERROR td { background: var(--error-tint); }
+  table.log tr.lvl-WARNING td { background: var(--warn-tint); }
+
+  .banner {
+    background: var(--warn-tint); border: 1px solid #EBD8A8; color: #7A5510;
+    border-radius: 8px; padding: 10px 13px; font-size: 12.5px; margin-bottom: 18px;
+  }
+</style>
+</head>
+<body>
+<!-- SEDC-NAV:START -->
+<style>
+  .sedc-nav * { box-sizing: border-box; }
+  .sedc-nav {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    margin: 0;
+    background: #072B55;
+    color: #ffffff;
+    font-family: 'Poppins',Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    font-size: 14px;
+    line-height: 1.4;
+  }
+  .sedc-nav-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 10px 20px;
+  }
+  .sedc-nav-brand {
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+  }
+  .sedc-nav-brand:hover,
+  .sedc-nav-brand:focus {
+    text-decoration: underline;
+  }
+  .sedc-nav-jump {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .sedc-nav-label {
+    white-space: nowrap;
+    color: #ffffff;
+  }
+  .sedc-nav-select {
+    font-family: inherit;
+    font-size: 13px;
+    color: #072B55;
+    background: #ffffff;
+    border: 1px solid #ffffff;
+    border-radius: 4px;
+    padding: 5px 8px;
+    max-width: 60vw;
+  }
+  .sedc-nav-rule {
+    height: 3px;
+    width: 100%;
+    background: linear-gradient(90deg,#FF7C66 0%,#A03291 100%);
+  }
+</style>
+<div class="sedc-nav" role="navigation" aria-label="SE Demo Companion navigation">
+  <div class="sedc-nav-bar">
+    <a class="sedc-nav-brand" href="../index.html" target="_top">SE Demo Companion</a>
+    <div class="sedc-nav-jump">
+      <label class="sedc-nav-label" for="sedc-nav-select">Jump to use case</label>
+      <select class="sedc-nav-select" id="sedc-nav-select" onchange="(function(sel){try{var opt=sel.options[sel.selectedIndex];var url=opt&&opt.getAttribute('data-href');if(!url)return;try{window.top.location.href=url;}catch(e){window.location.href=url;}}catch(e){}})(this)">
+        <option value="amc-fee-change-agent" data-href="./amc-fee-change-agent.html">AMC fee-change agent — Finnomena</option>
+        <option value="bvtpa-claims-integration-demo" data-href="./bvtpa-claims-integration-demo.html">Blue Venture TPA claims integration demo — Blue Venture TPA</option>
+        <option value="bvtpa-claims-adjudication-cio-brief" data-href="./bvtpa-claims-adjudication-cio-brief.html">Claims adjudication CIO brief — Blue Venture TPA</option>
+        <option value="delivery-status-sync-demo" data-href="./delivery-status-sync-demo.html">Delivery status sync demo — TOTO</option>
+        <option value="boomi-tenant-ceo-dashboard" data-href="./boomi-tenant-ceo-dashboard.html">Boomi tenant CEO dashboard — Boomi internal tenant</option>
+        <option value="boomi-tenant-30-day-report" data-href="./boomi-tenant-30-day-report.html">Boomi tenant operations report, 30-day view — Boomi internal tenant</option>
+        <option value="json-to-xml-order-integration" data-href="./json-to-xml-order-integration.html">JSON to XML order integration, executive documentation — NTT</option>
+        <option value="edi-850-flight-deck" data-href="./edi-850-flight-deck.html">EDI 850 flight deck — Infosys</option>
+        <option value="whatsapp-to-sap-master-agent" data-href="./whatsapp-to-sap-master-agent.html">WhatsApp to SAP master agent — Boomi internal build</option>
+        <option value="student-xml-to-crm-json" data-href="./student-xml-to-crm-json.html">Student XML to CRM JSON — Attura</option>
+        <option value="sap-accounting-document-poc-outcome" data-href="./sap-accounting-document-poc-outcome.html">SAP accounting document automation, POC outcome — Abans PLC</option>
+        <option value="abans-sap-posting-poc-dashboard" data-href="./abans-sap-posting-poc-dashboard.html">Abans SAP posting, live POC dashboard — Abans PLC</option>
+        <option value="order-intake-api-fan-out" data-href="./order-intake-api-fan-out.html">Order intake API with multi-target fan-out — LTIMindtree</option>
+        <option value="electromart-track-and-reschedule" data-href="./electromart-track-and-reschedule.html">ElectroMart track order and reschedule delivery — ElectroMart (demo brand)</option>
+        <option value="enterprise-portal-ai-agent" data-href="./enterprise-portal-ai-agent.html">Enterprise portal with an embedded AI agent — ITG</option>
+        <option value="o2c-qad-build-journey" data-href="./o2c-qad-build-journey.html">O2C-QAD build journey — Boomi internal build</option>
+        <option value="boomi-accenture-trivia" data-href="./boomi-accenture-trivia.html">Boomi x Accenture trivia — Boomi internal build</option>
+        <option value="cloud-runtime-sizing-calculator" data-href="./cloud-runtime-sizing-calculator.html">Boomi public cloud runtime sizing estimator — Boomi internal build</option>
+        <option value="coupa-netsuite-vendor-bill" data-href="./coupa-netsuite-vendor-bill.html">Vendor bill pipeline, Coupa to NetSuite — Boomi internal build</option>
+        <option value="coupa-oracle-s2p-console" data-href="./coupa-oracle-s2p-console.html">Source-to-pay flow console, Coupa to Oracle Fusion — Boomi internal build</option>
+        <option value="epic-rauland-adt-nurse-call" data-href="./epic-rauland-adt-nurse-call.html">Epic ADT to Rauland Responder 5, nurse call integration — Boomi internal build</option>
+        <option value="epic-salesforce-trial-screening" data-href="./epic-salesforce-trial-screening.html">Clinical trial screening console, Epic to Salesforce — Meridian Research (demo brand)</option>
+        <option value="jc-hifi-order-tracker" data-href="./jc-hifi-order-tracker.html">JC Hi-Fi order tracker, customer self-service — JC Hi-Fi (demo brand)</option>
+        <option value="pacific-bank-onboarding" data-href="./pacific-bank-onboarding.html">Pacific onboarding console, retail bank customer onboarding — Pacific Islands Community Bank (demo brand)</option>
+        <option value="sea-data-product-assistant" data-href="./sea-data-product-assistant.html">SEA regional performance, data products and an agent over two ERPs — Boomi internal build</option>
+        <option value="servicenow-jira-incident-sync" data-href="./servicenow-jira-incident-sync.html">Incident sync prototype, ServiceNow to Jira — Boomi internal build</option>
+        <option value="zendesk-magento-order-status" data-href="./zendesk-magento-order-status.html">Order status bot and flow inspector, Zendesk to Magento — Avery Products (demo brand)</option>
+        <option value="zoho-netsuite-invoice-sync" data-href="./zoho-netsuite-invoice-sync.html" selected>Invoice sync console, Zoho CRM to NetSuite — Boomi internal build</option>
+      </select>
+    </div>
+  </div>
+  <div class="sedc-nav-rule"></div>
+</div>
+<!-- SEDC-NAV:END -->
+
+
+<header>
+  <div class="wordmark">Invoice Sync Console</div>
+  <div class="logo-sub"><b>Zoho CRM</b> → Boomi → <b>NetSuite</b></div>
+  <div class="spacer"></div>
+  <div class="mode-toggle">
+    <span>Mode</span>
+    <div class="switch">
+      <button id="mLive" class="on">Live</button>
+      <button id="mSim">Simulated</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div id="banner"></div>
+
+  <div class="cols">
+
+    <!-- ---------------- left: the invoice ---------------- -->
+    <div>
+      <div class="panel">
+        <div class="panel-head">
+          <span class="sys-chip zoho">Zoho CRM</span>
+          <h2>Approved invoice</h2>
+        </div>
+        <div class="panel-body">
+          <label class="fld">
+            <span>Scenario</span>
+            <select id="scenario"></select>
+          </label>
+          <div class="scenario-note" id="scenarioNote"></div>
+
+          <label class="fld"><span>Invoice number</span><input id="f_num"/></label>
+          <label class="fld"><span>Zoho invoice id</span><input id="f_id"/></label>
+          <label class="fld"><span>Account</span><input id="f_acct_name"/></label>
+          <label class="fld"><span>Zoho account id</span><input id="f_acct_id"/></label>
+          <div class="fld-row">
+            <label class="fld"><span>Invoice date</span><input id="f_date"/></label>
+            <label class="fld"><span>Due date</span><input id="f_due"/></label>
+          </div>
+          <div class="fld-row">
+            <label class="fld"><span>Product code</span><input id="f_sku"/></label>
+            <label class="fld"><span>Quantity</span><input id="f_qty"/></label>
+          </div>
+          <div class="fld-row">
+            <label class="fld"><span>Unit price</span><input id="f_price"/></label>
+            <label class="fld"><span>Total</span><input id="f_total"/></label>
+          </div>
+          <button class="primary" id="btnSync">Send to NetSuite</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ---------------- centre: the flow ---------------- -->
+    <div>
+      <div class="panel">
+        <div class="panel-head">
+          <h2>What happened to this invoice</h2>
+          <span class="hint" id="flowHint">six stages, in order</span>
+        </div>
+        <div class="panel-body" id="flowBody">
+          <div class="empty">Pick a scenario and send an invoice to see its journey.</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <details class="trace">
+          <summary>Technical trace <span class="hint" id="traceHint"></span></summary>
+          <div class="trace-scroll" id="traceBody"></div>
+        </details>
+      </div>
+    </div>
+
+    <!-- ---------------- right: outcome + agent ---------------- -->
+    <div class="agent-col">
+      <div class="panel">
+        <div class="panel-head">
+          <span class="sys-chip ns">NetSuite</span>
+          <h2>Result</h2>
+        </div>
+        <div class="panel-body" id="outcomeBody">
+          <div class="empty">No invoice sent yet.</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Invoice Sync Concierge</h2>
+          <span class="hint">Boomi Agentstudio</span>
+        </div>
+        <div class="chat" id="chat">
+          <div class="msg agent">Ask me whether an account is set up to invoice in NetSuite, or what a sync result means.</div>
+        </div>
+        <div class="starters" id="starters"></div>
+        <div class="chat-in">
+          <input id="chatIn" placeholder="Ask the agent…"/>
+          <button id="chatSend">Send</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var STAGE_ICONS = { done: "✓", warn: "!", failed: "✕", skipped: "–", pending: "·" };
+
+  // ---------------------------------------------------------- scenarios
+  var SCENARIOS = [
+    {
+      key: "mapped", label: "Mapped account — clean sync",
+      note: "Northwind Logistics is in the account mapping table and the product code is mapped, so this should go straight through.",
+      inv: { num: "INV-2026-000481", id: "554023000000123456",
+             acctName: "Northwind Logistics", acctId: "554023000000088001",
+             date: "2026-09-18", due: "2026-10-18",
+             sku: "ZP-SUB-STD", qty: "10", price: "2000.00", total: "20000.00" }
+    },
+    {
+      key: "fallback", label: "Unmapped account — falls back to search",
+      note: "This Zoho account has no row in the mapping table. The sync falls back to searching NetSuite by company name.",
+      inv: { num: "INV-2026-000482", id: "554023000000123999",
+             acctName: "Harborline Freight", acctId: "554023000000088777",
+             date: "2026-09-19", due: "2026-10-19",
+             sku: "ZP-SUB-ENT", qty: "4", price: "3000.00", total: "12000.00" }
+    },
+    {
+      key: "unmapped-item", label: "Unmapped product code",
+      note: "The product code is not in the item mapping table. The invoice still syncs, but the line reaches NetSuite with no item — a known gap.",
+      inv: { num: "INV-2026-000483", id: "554023000000124111",
+             acctName: "Northwind Logistics", acctId: "554023000000088001",
+             date: "2026-09-20", due: "2026-10-20",
+             sku: "ZP-UNKNOWN-99", qty: "1", price: "999.00", total: "999.00" }
+    },
+    {
+      key: "duplicate", label: "Duplicate webhook — guard fires",
+      note: "Zoho retried a webhook for an invoice already in NetSuite. Simulated mode shows the guard stopping it. To see this live, flip the Mock NetSuite Invoice Search Response step in Boomi (see the demo doc).",
+      inv: { num: "INV-2026-000481", id: "554023000000123456",
+             acctName: "Northwind Logistics", acctId: "554023000000088001",
+             date: "2026-09-18", due: "2026-10-18",
+             sku: "ZP-SUB-STD", qty: "10", price: "2000.00", total: "20000.00" }
+    },
+    {
+      key: "unmapped", label: "No NetSuite customer — invoice held",
+      note: "Neither the mapping table nor a NetSuite search can find this customer, so nothing is created. Simulated mode shows the held invoice. To see this live, flip the Mock NetSuite Customer Search Response step in Boomi.",
+      inv: { num: "INV-2026-000484", id: "554023000000124500",
+             acctName: "Pinehurst Wholesale", acctId: "554023000000088901",
+             date: "2026-09-21", due: "2026-10-21",
+             sku: "ZP-SUB-STD", qty: "2", price: "2000.00", total: "4000.00" }
+    },
+    {
+      key: "custom", label: "Custom — edit the fields yourself",
+      note: "Edit any field below. Reuse a Zoho invoice id you have already sent to watch the duplicate guard fire.",
+      inv: { num: "INV-2026-000900", id: "554023000000129000",
+             acctName: "Cascade Manufacturing", acctId: "554023000000088002",
+             date: "2026-09-22", due: "2026-10-22",
+             sku: "ZP-IMPL-SVC", qty: "20", price: "125.00", total: "2500.00" }
+    }
+  ];
+
+  // Canned results so the page demos with no backend at all.
+  var SIM = {
+    mapped: {
+      ack: { success: true, outcome: "SYNCED", zohoInvoiceId: "554023000000123456",
+             zohoInvoiceNumber: "INV-2026-000481", netsuiteInvoiceId: "784120",
+             netsuiteTranId: "INV784120", netsuiteCustomerId: "1042",
+             customerResolvedBy: "cross-reference", zohoAccountId: "554023000000088001",
+             grandTotal: "20000.00", currency: "USD",
+             message: "Invoice created in NetSuite.", syncedAt: "2026-09-22T00:00:00Z" },
+      outcome: { label: "Synced to NetSuite", tone: "good",
+                 meaning: "The invoice now exists in NetSuite. Nothing further to do." },
+      stages: [
+        { title: "Invoice arrived from Zoho", status: "done", detail: "Invoice INV-2026-000481 for 20000.00 USD" },
+        { title: "Checked NetSuite for a duplicate", status: "done", detail: "No existing NetSuite invoice for this Zoho id", note: "NetSuite call is mocked pending the branded connector" },
+        { title: "Identified the NetSuite customer", status: "done", detail: "Matched to NetSuite customer 1042 using the account mapping table" },
+        { title: "Translated the invoice for NetSuite", status: "done", detail: "Invoice header and lines converted to NetSuite fields" },
+        { title: "Created the invoice in NetSuite", status: "done", detail: "NetSuite invoice 784120 (INV784120)", note: "NetSuite call is mocked pending the branded connector" },
+        { title: "Confirmed back to Zoho", status: "done", detail: "Invoice created in NetSuite." }
+      ],
+      execution: { id: "execution-simulated", status: "COMPLETE", time: "2026-09-22T00:00:00Z" },
+      trace: []
+    },
+    fallback: {
+      ack: { success: true, outcome: "SYNCED", zohoInvoiceId: "554023000000123999",
+             zohoInvoiceNumber: "INV-2026-000482", netsuiteInvoiceId: "784120",
+             netsuiteTranId: "INV784120", netsuiteCustomerId: "1099",
+             customerResolvedBy: "netsuite-search", zohoAccountId: "554023000000088777",
+             grandTotal: "12000.00", currency: "USD",
+             message: "Invoice created in NetSuite.", syncedAt: "2026-09-22T00:00:00Z" },
+      outcome: { label: "Synced to NetSuite", tone: "good",
+                 meaning: "The invoice now exists in NetSuite. Nothing further to do." },
+      stages: [
+        { title: "Invoice arrived from Zoho", status: "done", detail: "Invoice INV-2026-000482 for 12000.00 USD" },
+        { title: "Checked NetSuite for a duplicate", status: "done", detail: "No existing NetSuite invoice for this Zoho id" },
+        { title: "Identified the NetSuite customer", status: "warn", detail: "Not in the mapping table - found NetSuite customer 1099 by searching on company name", note: "Fallback search ran because the mapping table had no row" },
+        { title: "Translated the invoice for NetSuite", status: "done", detail: "Invoice header and lines converted to NetSuite fields" },
+        { title: "Created the invoice in NetSuite", status: "done", detail: "NetSuite invoice 784120 (INV784120)" },
+        { title: "Confirmed back to Zoho", status: "done", detail: "Invoice created in NetSuite." }
+      ],
+      execution: { id: "execution-simulated", status: "COMPLETE", time: "2026-09-22T00:00:00Z" },
+      trace: []
+    }
+  };
+  SIM.duplicate = {
+    ack: { success: true, outcome: "DUPLICATE_SKIPPED", zohoInvoiceId: "554023000000123456",
+           zohoInvoiceNumber: "INV-2026-000481", netsuiteInvoiceId: "784120",
+           netsuiteTranId: "", netsuiteCustomerId: "1042",
+           customerResolvedBy: "cross-reference", zohoAccountId: "554023000000088001",
+           grandTotal: "20000.00", currency: "USD",
+           message: "Invoice already exists in NetSuite. No action taken.",
+           syncedAt: "2026-09-22T00:00:00Z" },
+    outcome: { label: "Already synced", tone: "warn",
+               meaning: "This invoice was sent before, so nothing was created. A retried webhook is the usual cause." },
+    stages: [
+      { title: "Invoice arrived from Zoho", status: "done", detail: "Invoice INV-2026-000481 for 20000.00 USD" },
+      { title: "Checked NetSuite for a duplicate", status: "warn", detail: "Already in NetSuite as invoice 784120 - nothing was created", note: "This is the duplicate guard doing its job" },
+      { title: "Identified the NetSuite customer", status: "done", detail: "Matched to NetSuite customer 1042 using the account mapping table" },
+      { title: "Translated the invoice for NetSuite", status: "skipped", detail: "Not needed - the sync stopped before this point" },
+      { title: "Created the invoice in NetSuite", status: "skipped", detail: "Nothing created" },
+      { title: "Confirmed back to Zoho", status: "done", detail: "Invoice already exists in NetSuite. No action taken." }
+    ],
+    execution: { id: "execution-simulated", status: "COMPLETE", time: "2026-09-22T00:00:00Z" },
+    trace: []
+  };
+
+  SIM.unmapped = {
+    ack: { success: false, outcome: "CUSTOMER_UNMAPPED", zohoInvoiceId: "554023000000124500",
+           zohoInvoiceNumber: "INV-2026-000484", netsuiteInvoiceId: "",
+           netsuiteTranId: "", netsuiteCustomerId: "",
+           customerResolvedBy: "none", zohoAccountId: "554023000000088901",
+           grandTotal: "4000.00", currency: "USD",
+           message: "Zoho account is not mapped to a NetSuite customer. Add a cross reference row or create the customer in NetSuite, then retry.",
+           syncedAt: "2026-09-22T00:00:00Z" },
+    outcome: { label: "Customer not found", tone: "bad",
+               meaning: "No NetSuite customer matches this Zoho account, so no invoice was created. Add a mapping row or create the customer, then retry." },
+    stages: [
+      { title: "Invoice arrived from Zoho", status: "done", detail: "Invoice INV-2026-000484 for 4000.00 USD" },
+      { title: "Checked NetSuite for a duplicate", status: "done", detail: "No existing NetSuite invoice for this Zoho id" },
+      { title: "Identified the NetSuite customer", status: "failed", detail: "No NetSuite customer for Zoho account 554023000000088901", note: "The mapping table had no row and the NetSuite search found nothing" },
+      { title: "Translated the invoice for NetSuite", status: "skipped", detail: "Not needed - the sync stopped before this point" },
+      { title: "Created the invoice in NetSuite", status: "skipped", detail: "Nothing created" },
+      { title: "Confirmed back to Zoho", status: "done", detail: "Zoho account is not mapped to a NetSuite customer. Add a cross reference row or create the customer in NetSuite, then retry." }
+    ],
+    execution: { id: "execution-simulated", status: "COMPLETE", time: "2026-09-22T00:00:00Z" },
+    trace: []
+  };
+
+  SIM["unmapped-item"] = SIM.mapped;
+  SIM.custom = SIM.mapped;
+
+  // ---------------------------------------------------------- helpers
+  function $(id) { return document.getElementById(id); }
+
+  function esc(s) {
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  var live = true;
+  var agentSession = null;
+
+  // ---------------------------------------------------------- invoice form
+  function fillForm(sc) {
+    var v = sc.inv;
+    $("f_num").value = v.num;  $("f_id").value = v.id;
+    $("f_acct_name").value = v.acctName; $("f_acct_id").value = v.acctId;
+    $("f_date").value = v.date; $("f_due").value = v.due;
+    $("f_sku").value = v.sku;   $("f_qty").value = v.qty;
+    $("f_price").value = v.price; $("f_total").value = v.total;
+    $("scenarioNote").textContent = sc.note;
+  }
+
+  function readInvoice() {
+    var total = $("f_total").value.trim();
+    return {
+      id: $("f_id").value.trim(),
+      Invoice_Number: $("f_num").value.trim(),
+      Subject: "Invoice from Zoho CRM",
+      Invoice_Date: $("f_date").value.trim(),
+      Due_Date: $("f_due").value.trim(),
+      Status: "Approved",
+      Purchase_Order: "",
+      Currency: "USD",
+      Exchange_Rate: "1.0",
+      Sub_Total: total, Discount: "0.00", Tax: "0.00", Adjustment: "0.00",
+      Grand_Total: total,
+      Terms_and_Conditions: "Net 30",
+      Description: "Sent from the Invoice Sync Console",
+      Account_Name: { id: $("f_acct_id").value.trim(), name: $("f_acct_name").value.trim() },
+      Contact_Name: { id: "", name: "" },
+      Owner: { id: "", name: "", email: "" },
+      Billing_Street: "", Billing_City: "", Billing_State: "",
+      Billing_Code: "", Billing_Country: "",
+      Invoiced_Items: [{
+        id: $("f_id").value.trim() + "-1",
+        Product_Name: { id: "", name: $("f_sku").value.trim() },
+        Product_Code: $("f_sku").value.trim(),
+        Description: "Invoice line",
+        Quantity: $("f_qty").value.trim(),
+        List_Price: $("f_price").value.trim(),
+        Discount: "0.00", Tax: "0.00",
+        Total: total,
+        Unit_of_Measure: "EA"
+      }],
+      Modified_Time: $("f_date").value.trim() + "T00:00:00Z"
+    };
+  }
+
+  // ---------------------------------------------------------- render
+  function renderFlow(stages) {
+    if (!stages || !stages.length) {
+      $("flowBody").innerHTML = '<div class="empty">No stage detail available for this run.</div>';
+      return;
+    }
+    var html = '<ul class="flow">';
+    stages.forEach(function (s) {
+      var st = s.status || "skipped";
+      html += '<li class="' + (st === "skipped" ? "stage-skipped" : "") + '">' +
+              '<div class="pip ' + esc(st) + '">' + (STAGE_ICONS[st] || "·") + "</div>" +
+              "<div><div class=\"stage-title\">" + esc(s.title) + "</div>" +
+              (s.detail ? '<div class="stage-detail">' + esc(s.detail) + "</div>" : "") +
+              (s.note ? '<div class="stage-note">' + esc(s.note) + "</div>" : "") +
+              "</div></li>";
+    });
+    $("flowBody").innerHTML = html + "</ul>";
+  }
+
+  function renderOutcome(res) {
+    var o = res.outcome || {}, a = res.ack || {}, e = res.execution || {};
+    var rows = [
+      ["Outcome code", a.outcome],
+      ["Zoho invoice", a.zohoInvoiceNumber],
+      ["NetSuite invoice", a.netsuiteInvoiceId || "—"],
+      ["NetSuite reference", a.netsuiteTranId || "—"],
+      ["NetSuite customer", a.netsuiteCustomerId || "—"],
+      ["Customer found via", a.customerResolvedBy || "—"],
+      ["Amount", (a.grandTotal || "") + " " + (a.currency || "")],
+      ["Boomi run", e.status || "—"]
+    ];
+    var html = '<div class="outcome ' + esc(o.tone || "warn") + '">' +
+               "<h3>" + esc(o.label || "Unknown") + "</h3>" +
+               "<p>" + esc(o.meaning || "") + "</p></div><table class=\"kv\">";
+    rows.forEach(function (r) {
+      html += "<tr><td>" + esc(r[0]) + "</td><td>" + esc(r[1] || "—") + "</td></tr>";
+    });
+    $("outcomeBody").innerHTML = html + "</table>";
+  }
+
+  function renderTrace(rows) {
+    $("traceHint").textContent = rows && rows.length ? "(" + rows.length + " log lines)" : "(no log)";
+    if (!rows || !rows.length) {
+      $("traceBody").innerHTML = '<div class="empty">No process log for this run.</div>';
+      return;
+    }
+    var html = '<table class="log"><thead><tr><th>Time</th><th>Level</th><th>Step</th><th>Message</th></tr></thead><tbody>';
+    rows.forEach(function (r) {
+      html += '<tr class="lvl-' + esc(r.level || "INFO") + '">' +
+              "<td>" + esc((r.time || "").replace("T", " ").replace("Z", "")) + "</td>" +
+              "<td>" + esc(r.level || "") + "</td>" +
+              '<td class="shape">' + esc(r.shape || "") + "</td>" +
+              '<td class="msg-cell">' + esc(r.message || "") + "</td></tr>";
+    });
+    $("traceBody").innerHTML = html + "</tbody></table>";
+  }
+
+  // ---------------------------------------------------------- sync
+  function sync() {
+    var btn = $("btnSync");
+    btn.disabled = true;
+    $("flowBody").innerHTML = '<div class="empty"><span class="spinner"></span> ' +
+      (live ? "Sending to Boomi and waiting for the process log…" : "Replaying a recorded run…") + "</div>";
+    $("outcomeBody").innerHTML = '<div class="empty"><span class="spinner"></span></div>';
+    $("traceBody").innerHTML = "";
+
+    if (!live) {
+      var key = $("scenario").value;
+      setTimeout(function () {
+        var res = SIM[key] || SIM.mapped;
+        renderFlow(res.stages); renderOutcome(res); renderTrace(res.trace);
+        btn.disabled = false;
+      }, 650);
+      return;
+    }
+
+    fetch("/api/sync", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ invoice: readInvoice() })
+    }).then(function (r) { return r.json(); }).then(function (res) {
+      if (res.error) {
+        $("flowBody").innerHTML = '<div class="empty">' + esc(res.message) + "</div>";
+        $("outcomeBody").innerHTML = '<div class="empty">' + esc(res.message) + "</div>";
+        return;
+      }
+      renderFlow(res.stages); renderOutcome(res); renderTrace(res.trace);
+    }).catch(function (e) {
+      $("flowBody").innerHTML = '<div class="empty">Could not reach the console server: ' + esc(e.message) + "</div>";
+    }).then(function () { btn.disabled = false; });
+  }
+
+  // ---------------------------------------------------------- agent
+  var STARTERS = [
+    "Is Northwind Logistics set up to invoice in NetSuite?",
+    "What does DUPLICATE_SKIPPED mean?",
+    "Have any invoice syncs failed today?",
+    "Which product codes are mapped to NetSuite items?"
+  ];
+
+  function addMsg(cls, text) {
+    var d = document.createElement("div");
+    d.className = "msg " + cls;
+    d.textContent = text;
+    $("chat").appendChild(d);
+    $("chat").scrollTop = $("chat").scrollHeight;
+    return d;
+  }
+
+  function addSteps(steps) {
+    if (!steps || !steps.length) return null;
+    var seen = {}, lines = [];
+    steps.forEach(function (s) {
+      var t = (s.kind === "tool" ? s.text : s.text);
+      if (!t || seen[t]) return;
+      seen[t] = 1; lines.push(s);
+    });
+    var d = document.createElement("div");
+    d.className = "steps";
+    d.innerHTML = lines.map(function (s) {
+      return '<div class="' + (s.kind === "tool" ? "tool" : "") + '">' +
+             (s.kind === "tool" ? "→ " : "· ") + esc(s.text) + "</div>";
+    }).join("");
+    $("chat").appendChild(d);
+    $("chat").scrollTop = $("chat").scrollHeight;
+    return d;
+  }
+
+  function ask(text) {
+    if (!text) return;
+    addMsg("user", text);
+    $("chatIn").value = "";
+    $("chatSend").disabled = true;
+    var thinking = addMsg("agent", "Thinking…");
+
+    if (!live) {
+      setTimeout(function () {
+        thinking.textContent = "Simulated mode does not call the agent. Switch to Live to ask the " +
+          "Invoice Sync Concierge — it reads the real mapping tables and Boomi run history.";
+        $("chatSend").disabled = false;
+      }, 500);
+      return;
+    }
+
+    fetch("/api/agent", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: text, sessionId: agentSession })
+    }).then(function (r) { return r.json(); }).then(function (res) {
+      $("chat").removeChild(thinking);
+      if (res.error) { addMsg("err", res.message); return; }
+      agentSession = res.sessionId || agentSession;
+      addSteps(res.steps);
+      addMsg("agent", res.reply);
+    }).catch(function (e) {
+      $("chat").removeChild(thinking);
+      addMsg("err", "Could not reach the agent: " + e.message);
+    }).then(function () { $("chatSend").disabled = false; });
+  }
+
+  // ---------------------------------------------------------- wire up
+  SCENARIOS.forEach(function (s) {
+    var o = document.createElement("option");
+    o.value = s.key; o.textContent = s.label;
+    $("scenario").appendChild(o);
+  });
+  fillForm(SCENARIOS[0]);
+
+  $("scenario").addEventListener("change", function () {
+    var sc = SCENARIOS.filter(function (s) { return s.key === this.value; }, this)[0];
+    if (sc) fillForm(sc);
+  });
+
+  STARTERS.forEach(function (t) {
+    var b = document.createElement("button");
+    b.textContent = t;
+    b.addEventListener("click", function () { ask(t); });
+    $("starters").appendChild(b);
+  });
+
+  $("btnSync").addEventListener("click", sync);
+  $("chatSend").addEventListener("click", function () { ask($("chatIn").value.trim()); });
+  $("chatIn").addEventListener("keydown", function (e) {
+    if (e.key === "Enter") ask($("chatIn").value.trim());
+  });
+
+  function setMode(isLive) {
+    live = isLive;
+    $("mLive").classList.toggle("on", isLive);
+    $("mSim").classList.toggle("on", !isLive);
+  }
+  $("mLive").addEventListener("click", function () { setMode(true); });
+  $("mSim").addEventListener("click", function () { setMode(false); });
+
+  var OFFLINE = (location.protocol !== "http:" && location.protocol !== "https:");
+
+  function noConsoleServer() {
+    $("mLive").disabled = true; setMode(false);
+    $("banner").innerHTML = '<div class="banner">Console server not reachable \u2014 running in ' +
+      'Simulated mode. Every value on this page is the console\u2019s own sample data, replayed in ' +
+      'the browser; nothing is read from Zoho, NetSuite or Boomi. Start <code>server.py</code> from ' +
+      'the original project path for a live run.</div>';
+  }
+
+  if (OFFLINE) { noConsoleServer(); return; }
+
+  fetch("/api/config").then(function (r) { return r.json(); }).then(function (c) {
+    var notes = [];
+    if (!c.liveReady) {
+      $("mLive").disabled = true; setMode(false);
+      notes.push("Live mode is unavailable — Boomi credentials are missing from .env.");
+    }
+    if (!c.agentReady) {
+      notes.push("The agent panel is unavailable — Agentstudio is not configured in .env.");
+    }
+    notes.push("NetSuite reads and writes are mocked in the Boomi process pending the branded NetSuite connector. Everything else is real.");
+    $("banner").innerHTML = '<div class="banner">' + notes.map(esc).join(" ") + "</div>";
+  }).catch(noConsoleServer);
+})();
+</script>
+</body>
+</html>

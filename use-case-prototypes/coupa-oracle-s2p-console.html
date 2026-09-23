@@ -1,0 +1,1473 @@
+<!-- SEDC-NAV:START -->
+<style>
+  .sedc-nav * { box-sizing: border-box; }
+  .sedc-nav {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    margin: 0;
+    background: #072B55;
+    color: #ffffff;
+    font-family: 'Poppins',Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    font-size: 14px;
+    line-height: 1.4;
+  }
+  .sedc-nav-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 10px 20px;
+  }
+  .sedc-nav-brand {
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+  }
+  .sedc-nav-brand:hover,
+  .sedc-nav-brand:focus {
+    text-decoration: underline;
+  }
+  .sedc-nav-jump {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .sedc-nav-label {
+    white-space: nowrap;
+    color: #ffffff;
+  }
+  .sedc-nav-select {
+    font-family: inherit;
+    font-size: 13px;
+    color: #072B55;
+    background: #ffffff;
+    border: 1px solid #ffffff;
+    border-radius: 4px;
+    padding: 5px 8px;
+    max-width: 60vw;
+  }
+  .sedc-nav-rule {
+    height: 3px;
+    width: 100%;
+    background: linear-gradient(90deg,#FF7C66 0%,#A03291 100%);
+  }
+</style>
+<div class="sedc-nav" role="navigation" aria-label="SE Demo Companion navigation">
+  <div class="sedc-nav-bar">
+    <a class="sedc-nav-brand" href="../index.html" target="_top">SE Demo Companion</a>
+    <div class="sedc-nav-jump">
+      <label class="sedc-nav-label" for="sedc-nav-select">Jump to use case</label>
+      <select class="sedc-nav-select" id="sedc-nav-select" onchange="(function(sel){try{var opt=sel.options[sel.selectedIndex];var url=opt&&opt.getAttribute('data-href');if(!url)return;try{window.top.location.href=url;}catch(e){window.location.href=url;}}catch(e){}})(this)">
+        <option value="amc-fee-change-agent" data-href="./amc-fee-change-agent.html">AMC fee-change agent — Finnomena</option>
+        <option value="bvtpa-claims-integration-demo" data-href="./bvtpa-claims-integration-demo.html">Blue Venture TPA claims integration demo — Blue Venture TPA</option>
+        <option value="bvtpa-claims-adjudication-cio-brief" data-href="./bvtpa-claims-adjudication-cio-brief.html">Claims adjudication CIO brief — Blue Venture TPA</option>
+        <option value="delivery-status-sync-demo" data-href="./delivery-status-sync-demo.html">Delivery status sync demo — TOTO</option>
+        <option value="boomi-tenant-ceo-dashboard" data-href="./boomi-tenant-ceo-dashboard.html">Boomi tenant CEO dashboard — Boomi internal tenant</option>
+        <option value="boomi-tenant-30-day-report" data-href="./boomi-tenant-30-day-report.html">Boomi tenant operations report, 30-day view — Boomi internal tenant</option>
+        <option value="json-to-xml-order-integration" data-href="./json-to-xml-order-integration.html">JSON to XML order integration, executive documentation — NTT</option>
+        <option value="edi-850-flight-deck" data-href="./edi-850-flight-deck.html">EDI 850 flight deck — Infosys</option>
+        <option value="whatsapp-to-sap-master-agent" data-href="./whatsapp-to-sap-master-agent.html">WhatsApp to SAP master agent — Boomi internal build</option>
+        <option value="student-xml-to-crm-json" data-href="./student-xml-to-crm-json.html">Student XML to CRM JSON — Attura</option>
+        <option value="sap-accounting-document-poc-outcome" data-href="./sap-accounting-document-poc-outcome.html">SAP accounting document automation, POC outcome — Abans PLC</option>
+        <option value="abans-sap-posting-poc-dashboard" data-href="./abans-sap-posting-poc-dashboard.html">Abans SAP posting, live POC dashboard — Abans PLC</option>
+        <option value="order-intake-api-fan-out" data-href="./order-intake-api-fan-out.html">Order intake API with multi-target fan-out — LTIMindtree</option>
+        <option value="electromart-track-and-reschedule" data-href="./electromart-track-and-reschedule.html">ElectroMart track order and reschedule delivery — ElectroMart (demo brand)</option>
+        <option value="enterprise-portal-ai-agent" data-href="./enterprise-portal-ai-agent.html">Enterprise portal with an embedded AI agent — ITG</option>
+        <option value="o2c-qad-build-journey" data-href="./o2c-qad-build-journey.html">O2C-QAD build journey — Boomi internal build</option>
+        <option value="boomi-accenture-trivia" data-href="./boomi-accenture-trivia.html">Boomi x Accenture trivia — Boomi internal build</option>
+        <option value="cloud-runtime-sizing-calculator" data-href="./cloud-runtime-sizing-calculator.html">Boomi public cloud runtime sizing estimator — Boomi internal build</option>
+        <option value="coupa-netsuite-vendor-bill" data-href="./coupa-netsuite-vendor-bill.html">Vendor bill pipeline, Coupa to NetSuite — Boomi internal build</option>
+        <option value="coupa-oracle-s2p-console" data-href="./coupa-oracle-s2p-console.html" selected>Source-to-pay flow console, Coupa to Oracle Fusion — Boomi internal build</option>
+        <option value="epic-rauland-adt-nurse-call" data-href="./epic-rauland-adt-nurse-call.html">Epic ADT to Rauland Responder 5, nurse call integration — Boomi internal build</option>
+        <option value="epic-salesforce-trial-screening" data-href="./epic-salesforce-trial-screening.html">Clinical trial screening console, Epic to Salesforce — Meridian Research (demo brand)</option>
+        <option value="jc-hifi-order-tracker" data-href="./jc-hifi-order-tracker.html">JC Hi-Fi order tracker, customer self-service — JC Hi-Fi (demo brand)</option>
+        <option value="pacific-bank-onboarding" data-href="./pacific-bank-onboarding.html">Pacific onboarding console, retail bank customer onboarding — Pacific Islands Community Bank (demo brand)</option>
+        <option value="sea-data-product-assistant" data-href="./sea-data-product-assistant.html">SEA regional performance, data products and an agent over two ERPs — Boomi internal build</option>
+        <option value="servicenow-jira-incident-sync" data-href="./servicenow-jira-incident-sync.html">Incident sync prototype, ServiceNow to Jira — Boomi internal build</option>
+        <option value="zendesk-magento-order-status" data-href="./zendesk-magento-order-status.html">Order status bot and flow inspector, Zendesk to Magento — Avery Products (demo brand)</option>
+        <option value="zoho-netsuite-invoice-sync" data-href="./zoho-netsuite-invoice-sync.html">Invoice sync console, Zoho CRM to NetSuite — Boomi internal build</option>
+      </select>
+    </div>
+  </div>
+  <div class="sedc-nav-rule"></div>
+</div>
+<!-- SEDC-NAV:END -->
+<title>S2P Flow Console</title>
+
+<style>
+  :root {
+    --ground:#E8EBEF; --sunk:#DDE2E8; --surface:#FBFCFD; --surface-2:#F3F6F8;
+    --ink:#141C25; --ink-2:#3D4B5A; --muted:#66788A; --rule:#C6D0D9; --rule-soft:#D8E0E7;
+    --accent:#12508C; --accent-soft:#DEEAF5; --accent-ink:#0D3D6B; --on-accent:#FBFCFD;
+    --source:#A8761C; --source-soft:#F6EEDD;
+    --target:#0B6E5B; --target-soft:#DCEDE8;
+    --ok:#18704A; --ok-soft:#DFEFE6;
+    --warn:#9A6410; --crit:#A8332A;
+    --shadow:0 1px 2px rgba(20,28,37,.06), 0 8px 24px -12px rgba(20,28,37,.18);
+    --font-sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    --font-mono:ui-monospace,"SF Mono",SFMono-Regular,"Cascadia Mono","Segoe UI Mono","Roboto Mono",Menlo,Consolas,monospace;
+    --r:3px;
+  }
+  @media (prefers-color-scheme:dark) {
+    :root:not([data-theme="light"]) {
+      --ground:#101720; --sunk:#0B1118; --surface:#18212C; --surface-2:#1E2833;
+      --ink:#E6EBF0; --ink-2:#B6C2CE; --muted:#8695A4; --rule:#2A3644; --rule-soft:#222C38;
+      --accent:#6FB3E8; --accent-soft:#12293D; --accent-ink:#9CCBF0; --on-accent:#08131D;
+      --source:#D9A83F; --source-soft:#302713;
+      --target:#45B79B; --target-soft:#0F2F28;
+      --ok:#4FBF8B; --ok-soft:#13291F;
+      --warn:#D9A83F; --crit:#F08278;
+      --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 28px -14px rgba(0,0,0,.7);
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground:#101720; --sunk:#0B1118; --surface:#18212C; --surface-2:#1E2833;
+    --ink:#E6EBF0; --ink-2:#B6C2CE; --muted:#8695A4; --rule:#2A3644; --rule-soft:#222C38;
+    --accent:#8494FF; --accent-soft:#232C4E; --accent-ink:#A8B4FF; --on-accent:#0B1118;
+    --source:#D9A83F; --source-soft:#302713;
+    --target:#3FB3A5; --target-soft:#12312E;
+    --ok:#4FBF8B; --ok-soft:#13291F;
+    --warn:#D9A83F; --crit:#F08278;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 28px -14px rgba(0,0,0,.7);
+  }
+
+  * { box-sizing:border-box; }
+  body {
+    margin:0; background:var(--ground); color:var(--ink);
+    font-family:var(--font-sans); font-size:15px; line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  .lbl {
+    font-family:var(--font-mono); font-size:10px; font-weight:600;
+    letter-spacing:.13em; text-transform:uppercase; color:var(--muted);
+  }
+  .num { font-family:var(--font-mono); font-variant-numeric:tabular-nums; }
+
+  .app { max-width:1560px; margin:0 auto; padding:20px 20px 40px; }
+
+  /* ---------- header ---------- */
+  .bar {
+    display:flex; flex-wrap:wrap; gap:16px 24px; align-items:flex-end;
+    justify-content:space-between; padding:14px 0;
+    border-bottom:2px solid var(--ink); margin-bottom:0;
+    position:sticky; top:0; z-index:40;
+    background:var(--ground); box-shadow:var(--shadow);
+  }
+  .brand h1 {
+    margin:2px 0 0; font-size:25px; line-height:1.1; font-weight:650;
+    letter-spacing:-.022em; text-wrap:balance;
+  }
+  .brand .sub { margin:5px 0 0; color:var(--muted); font-size:13px; max-width:62ch; }
+  .flag {
+    display:inline-flex; align-items:center; gap:6px; padding:2px 7px;
+    border:1px solid var(--rule); border-radius:2px; background:var(--surface-2);
+    font-family:var(--font-mono); font-size:9.5px; font-weight:700;
+    letter-spacing:.14em; text-transform:uppercase; color:var(--muted);
+  }
+  .headmeta { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+
+  /* ---------- tabs ---------- */
+  .tabs { display:flex; gap:0; border-bottom:2px solid var(--ink); margin-bottom:18px; }
+  .tab {
+    appearance:none; border:0; background:none; cursor:pointer;
+    padding:11px 18px 10px; font-family:var(--font-mono); font-size:11px;
+    font-weight:600; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--muted); border-bottom:3px solid transparent; margin-bottom:-2px;
+  }
+  .tab:hover { color:var(--ink); }
+  .tab[aria-selected="true"] { color:var(--ink); border-bottom-color:var(--accent); }
+  .tab .dir { display:block; margin-top:3px; font-size:9px; letter-spacing:.06em;
+    text-transform:none; font-weight:500; color:var(--muted); }
+  .tab[aria-selected="true"] .dir { color:var(--ink-2); }
+
+  /* ---------- console strip ---------- */
+  .console {
+    display:flex; flex-wrap:wrap; gap:14px; align-items:center;
+    padding:12px 14px; background:var(--surface); border:1px solid var(--rule);
+    border-radius:var(--r); box-shadow:var(--shadow); margin-bottom:12px;
+  }
+  .btns { display:flex; gap:7px; }
+  button.act {
+    appearance:none; cursor:pointer; font-family:var(--font-mono);
+    font-size:11px; font-weight:650; letter-spacing:.08em; text-transform:uppercase;
+    padding:8px 15px; border-radius:2px; border:1px solid var(--rule);
+    background:var(--surface-2); color:var(--ink);
+  }
+  button.act:hover:not(:disabled) { border-color:var(--ink-2); }
+  button.act.primary {
+    background:var(--accent); border-color:var(--accent); color:var(--on-accent);
+  }
+  button.act.primary:hover:not(:disabled) { filter:brightness(1.08); }
+  button.act:disabled { opacity:.4; cursor:not-allowed; }
+  button.act:focus-visible, .tab:focus-visible, .seg button:focus-visible,
+  .step:focus-visible, .itab:focus-visible {
+    outline:2px solid var(--accent); outline-offset:2px;
+  }
+
+  .seg { display:flex; border:1px solid var(--rule); border-radius:2px; overflow:hidden; }
+  .seg button {
+    appearance:none; border:0; cursor:pointer; background:var(--surface-2);
+    color:var(--muted); font-family:var(--font-mono); font-size:10.5px; font-weight:650;
+    padding:7px 11px; letter-spacing:.05em;
+  }
+  .seg button + button { border-left:1px solid var(--rule); }
+  .seg button[aria-pressed="true"] { background:var(--accent); color:var(--on-accent); }
+
+  .gauge { display:flex; gap:18px; margin-left:auto; align-items:center; }
+  .gauge .g { text-align:right; }
+  .gauge .gv { font-family:var(--font-mono); font-variant-numeric:tabular-nums;
+    font-size:16px; font-weight:650; letter-spacing:-.01em; }
+
+  /* ---------- narration ---------- */
+  .narr {
+    display:flex; gap:12px; align-items:flex-start;
+    padding:12px 14px; margin-bottom:16px; border-radius:var(--r);
+    background:var(--accent-soft); border:1px solid var(--accent);
+    border-left-width:4px;
+  }
+  .narr .n-step {
+    flex:0 0 auto; font-family:var(--font-mono); font-size:10px; font-weight:700;
+    letter-spacing:.1em; color:var(--accent-ink); padding-top:3px;
+  }
+  .narr .n-txt { font-size:14px; color:var(--ink); }
+  .narr .n-txt b { font-weight:650; }
+  .narr code {
+    font-family:var(--font-mono); font-size:12.5px; background:var(--surface);
+    border:1px solid var(--rule-soft); border-radius:2px; padding:1px 4px;
+  }
+
+  /* ---------- stage ---------- */
+  .stage {
+    display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.35fr) minmax(0,1fr);
+    gap:14px; align-items:start; margin-bottom:16px;
+  }
+  @media (max-width:1100px) { .stage { grid-template-columns:1fr; } }
+
+  .pane {
+    background:var(--surface); border:1px solid var(--rule);
+    border-radius:var(--r); box-shadow:var(--shadow); overflow:hidden;
+  }
+  .pane > header {
+    padding:11px 14px; border-bottom:1px solid var(--rule); background:var(--surface-2);
+    display:flex; align-items:center; gap:9px;
+  }
+  .pane > header .sysname { font-size:13.5px; font-weight:650; letter-spacing:-.01em; }
+  .pane > header .role { margin-left:auto; }
+  .dot9 { width:9px; height:9px; border-radius:50%; flex:0 0 auto; }
+  .pane--src .dot9 { background:var(--source); }
+  .pane--tgt .dot9 { background:var(--target); }
+  .pane--flow .dot9 { background:var(--accent); }
+  .pane .endpoint {
+    padding:7px 14px; border-bottom:1px solid var(--rule-soft);
+    font-family:var(--font-mono); font-size:10.5px; color:var(--muted);
+    overflow-x:auto; white-space:nowrap;
+  }
+  .pane .body { padding:12px; display:flex; flex-direction:column; gap:9px; }
+  .empty {
+    padding:26px 12px; text-align:center; color:var(--muted); font-size:12.5px;
+    border:1px dashed var(--rule); border-radius:var(--r);
+  }
+
+  /* ---------- record cards ---------- */
+  .rec {
+    border:1px solid var(--rule); border-radius:var(--r); background:var(--surface);
+    padding:10px 11px; transition:border-color .2s, box-shadow .2s, transform .2s;
+  }
+  .rec.is-live { border-color:var(--accent); box-shadow:0 0 0 2px var(--accent-soft); }
+  .rec.is-new { animation:land .45s cubic-bezier(.2,.8,.3,1) both; }
+  @keyframes land { from { opacity:0; transform:translateY(-8px) scale(.98); } }
+  .rec .r-top { display:flex; align-items:baseline; gap:8px; }
+  .rec .r-id {
+    font-family:var(--font-mono); font-size:12.5px; font-weight:650; letter-spacing:-.01em;
+  }
+  .rec .r-amt { margin-left:auto; font-family:var(--font-mono);
+    font-variant-numeric:tabular-nums; font-size:13px; font-weight:650; }
+  .rec .r-sup { font-size:12.5px; color:var(--ink-2); margin-top:3px; }
+  .rec .r-meta {
+    display:flex; flex-wrap:wrap; gap:5px; margin-top:8px; align-items:center;
+  }
+  .pill {
+    display:inline-flex; align-items:center; gap:4px; padding:2px 7px; border-radius:2px;
+    font-family:var(--font-mono); font-size:9.5px; font-weight:700;
+    letter-spacing:.08em; text-transform:uppercase; border:1px solid transparent;
+  }
+  .pill--wait { background:var(--source-soft); color:var(--source); border-color:var(--source); }
+  .pill--ok   { background:var(--ok-soft); color:var(--ok); border-color:var(--ok); }
+  .pill--flow { background:var(--accent-soft); color:var(--accent-ink); border-color:var(--accent); }
+  .pill--po   { background:var(--target-soft); color:var(--target); border-color:var(--target); }
+  .pill--nopo { background:var(--surface-2); color:var(--muted); border-color:var(--rule); }
+  .rec .r-lines {
+    margin-top:9px; padding-top:8px; border-top:1px dashed var(--rule-soft);
+    display:flex; flex-direction:column; gap:5px;
+  }
+  .rec .ln { display:flex; gap:8px; font-size:12px; align-items:baseline; }
+  .rec .ln .ln-n {
+    font-family:var(--font-mono); font-size:10px; color:var(--muted); flex:0 0 auto;
+  }
+  .rec .ln .ln-d { color:var(--ink-2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .rec .ln .ln-a {
+    margin-left:auto; font-family:var(--font-mono); font-variant-numeric:tabular-nums;
+    font-size:11.5px; flex:0 0 auto;
+  }
+  .rec .ln .ln-acct { font-family:var(--font-mono); font-size:10px; color:var(--muted); flex:0 0 auto; }
+  .erp {
+    margin-top:8px; padding-top:8px; border-top:1px dashed var(--rule-soft);
+    display:flex; gap:6px; align-items:baseline; font-size:11.5px; color:var(--muted);
+  }
+  .erp .v { font-family:var(--font-mono); color:var(--ok); font-weight:650; }
+
+  /* ---------- pipeline ---------- */
+  .pipe { position:relative; padding:12px 12px 12px 0; }
+  .pipe .rail {
+    position:absolute; left:31px; top:18px; bottom:18px; width:2px;
+    background:var(--rule); border-radius:2px;
+  }
+  .pipe .token {
+    position:absolute; left:24px; width:16px; height:16px; border-radius:50%;
+    background:var(--accent); border:3px solid var(--surface);
+    box-shadow:0 0 0 2px var(--accent); opacity:0; z-index:3;
+    transition:transform .34s cubic-bezier(.4,.1,.2,1), opacity .2s;
+  }
+  .pipe.tok-on .token { opacity:1; }
+  .stepgrp { position:relative; }
+  .grplabel { display:flex; align-items:center; gap:8px; margin:0 0 6px 46px; }
+  .stepgrp + .stepgrp { margin-top:16px; }
+  .grplabel .gl-rule { flex:1; height:1px; background:var(--rule-soft); }
+
+  .step {
+    position:relative; display:flex; gap:10px; align-items:baseline;
+    width:100%; text-align:left; appearance:none; cursor:pointer;
+    background:none; border:1px solid transparent; border-radius:var(--r);
+    padding:6px 9px 6px 46px; color:inherit; font:inherit;
+  }
+  .step:hover { background:var(--surface-2); }
+  .step::before {
+    content:""; position:absolute; left:26px; top:11px; width:12px; height:12px;
+    border-radius:50%; background:var(--surface); border:2px solid var(--rule);
+    z-index:2; transition:background .2s, border-color .2s;
+  }
+  .step.done::before { background:var(--accent); border-color:var(--accent); }
+  .step.active { background:var(--accent-soft); border-color:var(--accent); }
+  .step.active::before { background:var(--accent); border-color:var(--accent); }
+  .step.muted { opacity:.42; }
+  .step .s-name { font-size:13px; font-weight:550; letter-spacing:-.005em; }
+  .step .s-kind {
+    font-family:var(--font-mono); font-size:9px; font-weight:700; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted); flex:0 0 auto;
+  }
+  .step .s-right { margin-left:auto; display:flex; gap:8px; align-items:baseline; flex:0 0 auto; }
+  .step .s-ms {
+    font-family:var(--font-mono); font-variant-numeric:tabular-nums;
+    font-size:11px; color:var(--muted);
+  }
+  .step .s-docs {
+    font-family:var(--font-mono); font-size:9.5px; font-weight:700;
+    padding:1px 5px; border-radius:2px; background:var(--surface-2);
+    border:1px solid var(--rule); color:var(--ink-2);
+  }
+  .lane { border-left:2px dashed var(--rule); margin-left:31px; padding-left:0; }
+  .lane .step { padding-left:15px; }
+  .lane .step::before { left:-7px; }
+  .lane-hd {
+    display:flex; align-items:center; gap:7px; padding:5px 0 3px 15px;
+  }
+  .lane.on { border-left-color:var(--accent); }
+  .lane.off { opacity:.4; }
+
+  /* ---------- inspector ---------- */
+  .insp {
+    background:var(--surface); border:1px solid var(--rule); border-radius:var(--r);
+    box-shadow:var(--shadow); overflow:hidden;
+  }
+  .itabs { display:flex; gap:0; border-bottom:1px solid var(--rule); background:var(--surface-2);
+    overflow-x:auto; }
+  .itab {
+    appearance:none; border:0; background:none; cursor:pointer; white-space:nowrap;
+    padding:10px 15px; font-family:var(--font-mono); font-size:10.5px; font-weight:650;
+    letter-spacing:.09em; text-transform:uppercase; color:var(--muted);
+    border-bottom:2px solid transparent;
+  }
+  .itab:hover { color:var(--ink); }
+  .itab[aria-selected="true"] { color:var(--ink); border-bottom-color:var(--accent);
+    background:var(--surface); }
+  .ipanel { padding:14px; }
+  .ipanel[hidden] { display:none; }
+  .ihint { color:var(--muted); font-size:12.5px; margin:0 0 12px; }
+
+  /* mapping table */
+  .mapwrap { overflow-x:auto; }
+  table.map { border-collapse:collapse; width:100%; min-width:640px; font-size:12.5px; }
+  table.map th {
+    text-align:left; padding:7px 10px; border-bottom:1.5px solid var(--ink);
+    font-family:var(--font-mono); font-size:9.5px; font-weight:700;
+    letter-spacing:.11em; text-transform:uppercase; color:var(--muted); white-space:nowrap;
+  }
+  table.map td { padding:6px 10px; border-bottom:1px solid var(--rule-soft); vertical-align:top; }
+  table.map tr:last-child td { border-bottom:0; }
+  table.map .f { font-family:var(--font-mono); font-size:11.5px; }
+  table.map .f.src { color:var(--source); }
+  table.map .f.tgt { color:var(--target); }
+  table.map .arrow { color:var(--muted); font-family:var(--font-mono); text-align:center; }
+  table.map .val {
+    font-family:var(--font-mono); font-variant-numeric:tabular-nums;
+    font-size:11.5px; color:var(--ink);
+  }
+  table.map tr.deflt .f.src { color:var(--muted); font-style:italic; }
+  table.map .fnote {
+    display:block; margin-top:3px; font-family:var(--font-sans); font-size:11px;
+    line-height:1.4; color:var(--muted); max-width:44ch; white-space:normal;
+  }
+  table.map tr.lvl td:first-child { padding-left:24px; position:relative; }
+  table.map tr.lvl td:first-child::before {
+    content:"└"; position:absolute; left:9px; color:var(--rule); font-family:var(--font-mono);
+  }
+  .mapkey { display:flex; gap:16px; flex-wrap:wrap; margin-top:12px; }
+  .mapkey span { display:flex; align-items:center; gap:6px; font-size:11.5px; color:var(--muted); }
+  .mapkey i { width:10px; height:2px; display:block; }
+
+  /* payload */
+  .pays { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  @media (max-width:900px) { .pays { grid-template-columns:1fr; } }
+  .pay > .lbl { display:block; margin-bottom:6px; }
+  pre.code {
+    margin:0; padding:11px 12px; background:var(--sunk); border:1px solid var(--rule);
+    border-radius:var(--r); overflow-x:auto; font-family:var(--font-mono);
+    font-size:11.5px; line-height:1.55; color:var(--ink-2); max-height:340px; overflow-y:auto;
+  }
+
+  /* log tape */
+  .tape { display:flex; flex-direction:column; gap:0; max-height:320px; overflow-y:auto;
+    border:1px solid var(--rule); border-radius:var(--r); }
+  .tape .row {
+    display:flex; gap:10px; padding:6px 11px; font-family:var(--font-mono); font-size:11.5px;
+    border-bottom:1px solid var(--rule-soft); align-items:baseline;
+  }
+  .tape .row:last-child { border-bottom:0; }
+  .tape .row .lv {
+    flex:0 0 auto; font-size:9px; font-weight:700; letter-spacing:.08em;
+    padding:1px 5px; border-radius:2px; background:var(--surface-2);
+    border:1px solid var(--rule); color:var(--muted);
+  }
+  .tape .row .sh { flex:0 0 clamp(120px,18%,210px); color:var(--accent-ink);
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .tape .row .tx { color:var(--ink-2); word-break:break-word; }
+  .tape .empty { border:0; }
+
+  .brief { margin-top:16px; }
+  .brief > h2 {
+    margin:0 0 3px; font-size:17px; font-weight:650; letter-spacing:-.015em;
+  }
+  .brief > p.lede { margin:0 0 12px; color:var(--muted); font-size:13px; max-width:70ch; }
+  .cards { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; }
+  @media (max-width:1000px) { .cards { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+  @media (max-width:620px)  { .cards { grid-template-columns:1fr; } }
+  .card {
+    background:var(--surface); border:1px solid var(--rule); border-radius:var(--r);
+    padding:13px 14px; box-shadow:var(--shadow);
+  }
+  .card h3 {
+    margin:0 0 8px; padding-bottom:6px; border-bottom:1.5px solid var(--ink);
+    font-family:var(--font-mono); font-size:10.5px; font-weight:700;
+    letter-spacing:.1em; text-transform:uppercase; color:var(--ink);
+  }
+  .card p { margin:0; font-size:13px; color:var(--ink-2); line-height:1.5; }
+  .card p + p { margin-top:7px; }
+  .card .num { color:var(--ink); font-weight:650; }
+
+  footer.note {
+    margin-top:18px; padding-top:12px; border-top:1px solid var(--rule);
+    color:var(--muted); font-size:12px; max-width:88ch;
+  }
+  footer.note p { margin:0 0 6px; }
+  footer.note strong { color:var(--ink-2); font-weight:650; }
+
+  @media (prefers-reduced-motion:reduce) {
+    *, *::before, *::after { transition:none !important; animation:none !important; }
+  }
+</style>
+
+<div class="app">
+
+  <header class="bar">
+    <div class="brand">
+      <span class="lbl">Boomi &mdash; Working Prototype &middot; Prepared for Valtatech</span>
+      <h1>Source-to-Pay Flow Console</h1>
+      <p class="sub">Watch an invoice leave Coupa, get routed and reshaped inside Boomi, land in
+        Oracle Fusion Payables, and send its ERP reference back. Every shape, timing and payload
+        below is captured from a real execution on the Test Runtime &mdash; localised to AUD and
+        Australian suppliers.</p>
+    </div>
+    <div class="headmeta">
+      <span class="flag">Prototype</span>
+      <span class="flag">Real payloads</span>
+      <span class="flag">AUD &middot; APAC</span>
+      <span class="flag" id="runstamp">Exec verified</span>
+    </div>
+  </header>
+
+  <div class="tabs" role="tablist" aria-label="Integration flow">
+    <button class="tab" role="tab" id="tab-invoice" aria-selected="true" data-sc="invoice">
+      Invoice to Pay <span class="dir">Coupa &rarr; Oracle Fusion &rarr; Coupa</span>
+    </button>
+    <button class="tab" role="tab" id="tab-supplier" aria-selected="false" data-sc="supplier">
+      Supplier Sync <span class="dir">Oracle Fusion &rarr; Coupa</span>
+    </button>
+  </div>
+
+  <div class="console">
+    <div class="btns">
+      <button class="act primary" id="btn-run">Run flow</button>
+      <button class="act" id="btn-step">Step</button>
+      <button class="act" id="btn-reset">Reset</button>
+    </div>
+    <div class="seg" role="group" aria-label="Playback speed">
+      <button data-sp="0.5" aria-pressed="false">0.5&times;</button>
+      <button data-sp="1" aria-pressed="true">1&times;</button>
+      <button data-sp="2" aria-pressed="false">2&times;</button>
+    </div>
+    <div class="gauge">
+      <div class="g"><div class="lbl">Step</div><div class="gv num" id="g-step">0 / 0</div></div>
+      <div class="g"><div class="lbl">Docs</div><div class="gv num" id="g-docs">0</div></div>
+      <div class="g"><div class="lbl">Runtime</div><div class="gv num" id="g-ms">0 ms</div></div>
+    </div>
+  </div>
+
+  <div class="narr">
+    <div class="n-step" id="n-step">READY</div>
+    <div class="n-txt" id="n-txt">Press <b>Run flow</b> to play the integration end to end,
+      or <b>Step</b> to advance one Boomi shape at a time while you talk over it.</div>
+  </div>
+
+  <main class="stage">
+    <section class="pane pane--src" id="pane-src">
+      <header>
+        <span class="dot9"></span>
+        <span class="sysname" id="src-name">Coupa</span>
+        <span class="lbl role" id="src-role">Procurement</span>
+      </header>
+      <div class="endpoint" id="src-endpoint"></div>
+      <div class="body" id="src-body"></div>
+    </section>
+
+    <section class="pane pane--flow">
+      <header>
+        <span class="dot9"></span>
+        <span class="sysname">Boomi Integration</span>
+        <span class="lbl role" id="flow-role">Process</span>
+      </header>
+      <div class="endpoint" id="flow-endpoint"></div>
+      <div class="pipe" id="pipe">
+        <div class="rail"></div>
+        <div class="token" id="token"></div>
+        <div id="steps"></div>
+      </div>
+    </section>
+
+    <section class="pane pane--tgt" id="pane-tgt">
+      <header>
+        <span class="dot9"></span>
+        <span class="sysname" id="tgt-name">Oracle Fusion</span>
+        <span class="lbl role" id="tgt-role">ERP Payables</span>
+      </header>
+      <div class="endpoint" id="tgt-endpoint"></div>
+      <div class="body" id="tgt-body"></div>
+    </section>
+  </main>
+
+  <section class="insp">
+    <div class="itabs" role="tablist" aria-label="Inspector">
+      <button class="itab" role="tab" aria-selected="true" data-ip="map">Field mapping</button>
+      <button class="itab" role="tab" aria-selected="false" data-ip="pay">Payloads</button>
+      <button class="itab" role="tab" aria-selected="false" data-ip="log">Execution log</button>
+    </div>
+    <div class="ipanel" id="ip-map"></div>
+    <div class="ipanel" id="ip-pay" hidden></div>
+    <div class="ipanel" id="ip-log" hidden></div>
+  </section>
+
+  <section class="brief">
+    <h2>Reading this as a Source-to-Pay practice</h2>
+    <p class="lede">The flow above is the demo. These are the four things that tend to matter once
+      it stops being a demo.</p>
+    <div class="cards">
+      <div class="card">
+        <h3>Reuse across clients</h3>
+        <p>Both flows are <span class="num">15 components</span> in total. Swapping Coupa for Ariba,
+          or Fusion for SAP, changes the connection and the map &mdash; the routing, error handling
+          and writeback survive intact.</p>
+      </div>
+      <div class="card">
+        <h3>One build, many tenants</h3>
+        <p>The endpoints here are sandbox URLs. Moving to a live tenant is a base-URL and credential
+          change through environment extensions, not a rebuild, so one deployment serves dev, test
+          and each client tenant.</p>
+      </div>
+      <div class="card">
+        <h3>Where Peppol slots in</h3>
+        <p>The supplier flow already carries the <span class="num">ABN</span> across as
+          <span class="num">tax-id</span> &mdash; the identifier a participant ID is built from.
+          An Access Point send or receive sits beside the Fusion connector on the same canvas.</p>
+      </div>
+      <div class="card">
+        <h3>Where the cost per invoice sits</h3>
+        <p>The branch is the interesting shape. PO-backed invoices three-way match and clear
+          themselves; the non-PO path is where the manual handling lives, and where matching and
+          approval automation earns its keep.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer class="note">
+    <p><strong>What is real here.</strong> The shape names, their order, the per-shape millisecond
+      timings, the source payloads, the transformed output and the log lines are all taken from
+      verified executions of two deployed Boomi processes
+      (<span class="num">S2P - Coupa Invoice to Oracle Fusion AP</span> and
+      <span class="num">S2P - Oracle Fusion Supplier to Coupa</span>). The transformation you see
+      applied in the browser is the same field mapping the deployed maps perform.</p>
+    <p><strong>What is a prototype.</strong> The left and right panes are illustrative stand-ins for
+      the Coupa and Oracle Fusion user interfaces, built for this walkthrough &mdash; they are not
+      those products. Suppliers, invoices, ABNs and account codes are fabricated demo data,
+      localised to AUD and Australian addresses for this session. The deployed processes call a
+      sandbox echo endpoint in place of live tenants; pointing them at real tenants is a base-URL
+      change on the two connections.</p>
+    <p><strong>Authorship.</strong> This page was prepared <em>for</em> Valtatech as a Boomi
+      walkthrough. It is not a Valtatech product and carries no Valtatech branding.</p>
+  </footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* =========================================================
+     DATA - captured from verified Boomi executions
+     ========================================================= */
+
+  var INV_A = {
+    id: "INV-COUPA-10041", coupaId: 88291, date: "2026-08-04", currency: "AUD",
+    total: 18450.00, supplierNum: "SUP-10023", supplierName: "Yarra Valley Industrial Pty Ltd",
+    po: "PO-88213", terms: "NET30",
+    lines: [
+      { n:1, desc:"Hydraulic pump assembly", qty:12, price:1200.00, total:14400.00, poLine:1, acct:"6100-200-4400" },
+      { n:2, desc:"Installation service",    qty:1,  price:4050.00, total:4050.00,  poLine:2, acct:"6100-200-4410" }
+    ]
+  };
+  var INV_B = {
+    id: "INV-COUPA-10042", coupaId: 88292, date: "2026-08-05", currency: "AUD",
+    total: 2750.00, supplierNum: "SUP-10077", supplierName: "Southbank Facilities Group Pty Ltd",
+    po: null, terms: "NET45",
+    lines: [
+      { n:1, desc:"Quarterly HVAC maintenance", qty:1, price:2750.00, total:2750.00, poLine:null, acct:"6300-100-5200" }
+    ]
+  };
+
+  var SUP_A = {
+    id:"SUP-10023", fusionId:300000012345678, name:"Yarra Valley Industrial Pty Ltd",
+    type:"Supplier", status:"ACTIVE", tax:"51 824 753 556", orgType:"Corporation",
+    created:"2026-07-21T09:14:22Z", peppol:"0151:51824753556",
+    addr:{ line1:"42 Kororoit Creek Road", city:"Altona North", state:"VIC", zip:"3025", country:"AU" },
+    contact:{ first:"Priya", last:"Raman", email:"ap@yarravalleyind.example.com" }
+  };
+  var SUP_B = {
+    id:"SUP-10077", fusionId:300000012345901, name:"Southbank Facilities Group Pty Ltd",
+    type:"Supplier", status:"ACTIVE", tax:"81 554 019 267", orgType:"Corporation",
+    created:"2026-08-02T15:41:07Z", peppol:"0151:81554019267",
+    addr:{ line1:"15 Southgate Avenue", city:"Southbank", state:"VIC", zip:"3006", country:"AU" },
+    contact:{ first:"Nadia", last:"Cheng", email:"billing@southbankfg.example.com" }
+  };
+
+  /* ---- transformation: the same mapping the deployed maps perform ---- */
+  function toFusionAP(inv) {
+    var out = {
+      InvoiceNumber: inv.id,
+      InvoiceCurrency: inv.currency,
+      InvoiceAmount: inv.total,
+      InvoiceDate: inv.date,
+      BusinessUnit: "AU1 Business Unit",
+      Supplier: inv.supplierName,
+      SupplierNumber: inv.supplierNum,
+      InvoiceType: "Standard",
+      InvoiceSource: "Coupa",
+      PaymentTerms: inv.terms,
+      Description: "Imported from Coupa via Boomi",
+      InvoiceReceivedDate: inv.date,
+      invoiceLines: inv.lines.map(function (l) {
+        var o = { LineNumber:l.n, LineAmount:l.total, Description:l.desc };
+        if (inv.po)   { o.PurchaseOrderNumber = inv.po; }
+        if (l.poLine) { o.PurchaseOrderLineNumber = l.poLine; }
+        o.DistributionCombination = l.acct;
+        o.Quantity = l.qty;
+        o.UnitPrice = l.price;
+        return o;
+      })
+    };
+    return out;
+  }
+  function toCoupaSupplier(s) {
+    return {
+      name: s.name, number: s.id, status: s.status, "tax-id": s.tax,
+      "supplier-type": s.type, "payment-method": "Invoice",
+      "external-src-name": "Oracle Fusion",
+      "primary-address": {
+        street1: s.addr.line1, city: s.addr.city, state: s.addr.state,
+        "postal-code": s.addr.zip, country: { code: s.addr.country }
+      },
+      "primary-contact": {
+        "name-given": s.contact.first, "name-family": s.contact.last, email: s.contact.email
+      }
+    };
+  }
+  function coupaInvoiceJSON(inv) {
+    var o = {
+      id: inv.coupaId, "invoice-number": inv.id, "invoice-date": inv.date,
+      status: "approved", total: inv.total, currency: { code: inv.currency },
+      supplier: { number: inv.supplierNum, name: inv.supplierName }
+    };
+    if (inv.po) { o["po-number"] = inv.po; }
+    o["payment-term"] = { code: inv.terms };
+    o["invoice-lines"] = inv.lines.map(function (l) {
+      var x = { "line-num":l.n, description:l.desc, quantity:l.qty, price:l.price, total:l.total };
+      if (l.poLine) { x["po-line-num"] = l.poLine; }
+      x.account = { code: l.acct };
+      return x;
+    });
+    return { invoices: [o] };
+  }
+  function fusionSupplierJSON(s) {
+    return { items: [{
+      SupplierId: s.fusionId, SupplierNumber: s.id, Supplier: s.name,
+      SupplierType: s.type, Status: s.status, TaxpayerId: s.tax,
+      TaxOrganizationType: s.orgType, CreationDate: s.created,
+      primaryAddress: {
+        AddressLine1: s.addr.line1, City: s.addr.city, State: s.addr.state,
+        PostalCode: s.addr.zip, Country: s.addr.country
+      },
+      primaryContact: {
+        FirstName: s.contact.first, LastName: s.contact.last, Email: s.contact.email
+      }
+    }]};
+  }
+
+  /* ---- mapping tables (source field, target field, nesting) ---- */
+  var MAP_INV = {
+    srcLabel:"Coupa invoice", tgtLabel:"Oracle Fusion AP invoice",
+    rows:[
+      ["invoice-number","InvoiceNumber",0,"id"],
+      ["currency.code","InvoiceCurrency",0,"currency"],
+      ["total","InvoiceAmount",0,"total"],
+      ["invoice-date","InvoiceDate",0,"date"],
+      ["supplier.name","Supplier",0,"supplierName"],
+      ["supplier.number","SupplierNumber",0,"supplierNum","The join key between the two systems. The supplier sync flow is what keeps it valid."],
+      ["payment-term.code","PaymentTerms",0,"terms"],
+      ["invoice-date","InvoiceReceivedDate",0,"date"],
+      [null,"BusinessUnit",0,"@AU1 Business Unit"],
+      [null,"InvoiceType",0,"@Standard"],
+      [null,"InvoiceSource",0,"@Coupa"],
+      [null,"Description",0,"@Imported from Coupa via Boomi"],
+      ["invoice-lines[].line-num","invoiceLines[].LineNumber",1,"L:n"],
+      ["invoice-lines[].total","invoiceLines[].LineAmount",1,"L:total"],
+      ["invoice-lines[].description","invoiceLines[].Description",1,"L:desc"],
+      ["po-number","invoiceLines[].PurchaseOrderNumber",1,"po"],
+      ["invoice-lines[].po-line-num","invoiceLines[].PurchaseOrderLineNumber",1,"L:poLine"],
+      ["invoice-lines[].account.code","invoiceLines[].DistributionCombination",1,"L:acct","Coupa account code becomes the Fusion distribution combination — the GL hit."],
+      ["invoice-lines[].quantity","invoiceLines[].Quantity",1,"L:qty"],
+      ["invoice-lines[].price","invoiceLines[].UnitPrice",1,"L:price"]
+    ]
+  };
+  var MAP_SUP = {
+    srcLabel:"Oracle Fusion supplier", tgtLabel:"Coupa supplier",
+    rows:[
+      ["Supplier","name",0,"name"],
+      ["SupplierNumber","number",0,"id"],
+      ["Status","status",0,"status"],
+      ["TaxpayerId","tax-id",0,"tax","ABN. This is the identifier a Peppol participant ID is built from — 0151:51824753556 for this supplier."],
+      ["SupplierType","supplier-type",0,"type"],
+      [null,"payment-method",0,"@Invoice"],
+      [null,"external-src-name",0,"@Oracle Fusion"],
+      ["primaryAddress.AddressLine1","primary-address.street1",1,"A:line1"],
+      ["primaryAddress.City","primary-address.city",1,"A:city"],
+      ["primaryAddress.State","primary-address.state",1,"A:state"],
+      ["primaryAddress.PostalCode","primary-address.postal-code",1,"A:zip"],
+      ["primaryAddress.Country","primary-address.country.code",1,"A:country"],
+      ["primaryContact.FirstName","primary-contact.name-given",1,"C:first"],
+      ["primaryContact.LastName","primary-contact.name-family",1,"C:last"],
+      ["primaryContact.Email","primary-contact.email",1,"C:email"]
+    ]
+  };
+
+  /* ---- pipelines. ms values are the real per-shape timings ---- */
+  function invoiceScenario() {
+    return {
+      key:"invoice", perDoc:true,
+      process:"S2P - Coupa Invoice to Oracle Fusion AP",
+      src:{ name:"Coupa", role:"Procurement", endpoint:"GET /api/invoices?status=approved" },
+      tgt:{ name:"Oracle Fusion", role:"ERP Payables",
+            endpoint:"POST /fscmRestApi/resources/11.13.18.05/invoices" },
+      map:MAP_INV,
+      docs:[INV_A, INV_B],
+      /* real execution order: the non-PO document completes first, then the PO-backed one */
+      order:[INV_B, INV_A],
+      groups:[
+        { label:"Trunk — runs once for the batch", lane:null, steps:[
+          { name:"Scheduled - Poll Coupa", kind:"start", ms:39, docs:1,
+            narr:"The process starts on its schedule. Nothing is in the pipeline yet.",
+            log:["INFO","Scheduled - Poll Coupa","Executing Start Shape"] },
+          { name:"Handle Integration Errors", kind:"try/catch", ms:33, docs:1,
+            narr:"Everything downstream is wrapped in a try/catch, so one bad invoice cannot take the run down.",
+            log:["INFO","Handle Integration Errors","Executing Try/Catch Shape with 1 document(s)."] },
+          { name:"DEMO DATA - Coupa GET /api/invoices", kind:"message", ms:6, docs:1,
+            narr:"Coupa returns the approved-invoice batch. In production this is the Coupa REST call; here it is demo data of the same shape.",
+            log:["INFO","DEMO DATA - Coupa GET /api/invoices?status=approved","Executing Message Shape with 1 document(s)."],
+            effect:"loadBatch" },
+          { name:"Log Coupa Batch", kind:"notify", ms:3, docs:1,
+            narr:"The raw batch is logged so you can see exactly what arrived.",
+            log:["INFO","Log Coupa Batch","COUPA - approved invoice batch received: {…}"] },
+          { name:"Split Batch into Invoices", kind:"data process", ms:19, docs:1, docsOut:2,
+            narr:"The batch is split on the invoices array. One document in, <b>two documents out</b> — each invoice now travels on its own.",
+            log:["INFO","Split Batch into Invoices","Executing with 1 documents in"],
+            effect:"split" },
+          { name:"Log Split Invoice", kind:"notify", ms:2, docs:2,
+            narr:"Each split document still carries its <code>{\"invoices\":[…]}</code> wrapper — that is how Boomi splits JSON, and the mapping is built against it.",
+            log:["INFO","Log Split Invoice","COUPA - single invoice document after split: {…}"] },
+          { name:"Extract Invoice Keys", kind:"set properties", ms:18, docs:2,
+            narr:"Invoice number, supplier number and PO number are lifted into document properties so later steps can route and reference them.",
+            log:["INFO","Extract Invoice Keys","Executing Set Properties Shape with 2 document(s)."] },
+          { name:"Non-PO Invoice?", kind:"decision", ms:4, docs:2,
+            narr:"The routing decision: does this invoice carry a PO number? Each document takes its own path.",
+            log:["INFO","Non-PO Invoice?","Executing Decision with 2 document(s)."],
+            effect:"decide" }
+        ]},
+        { label:"Branch — one path per document", lane:"fork", steps:[
+          { name:"PO Backed - 3 Way Match", kind:"notify", ms:2, docs:1, lane:"po",
+            narr:"<b>PO-backed.</b> This invoice references a purchase order, so Fusion can three-way match it against the PO and the receipt.",
+            log:["INFO","PO Backed - 3 Way Match","ROUTING - Invoice INV-COUPA-10041 is backed by PO PO-88213. Eligible for three way match in Fusion."] },
+          { name:"Non-PO - GL Coded", kind:"notify", ms:2, docs:1, lane:"nopo",
+            narr:"<b>No PO.</b> This invoice has no purchase order, so it is routed as a non-PO invoice for GL coding review instead.",
+            log:["INFO","Non-PO - GL Coded","ROUTING - Invoice INV-COUPA-10042 has no PO. Routing as non-PO invoice for GL coding review."] }
+        ]},
+        { label:"Tail — runs for each document", lane:null, steps:[
+          { name:"Coupa Invoice to Fusion AP Invoice", kind:"map", ms:13, ms2:5, docs:1,
+            narr:"The transformation. Coupa's invoice becomes an Oracle Fusion Payables AP invoice — open <b>Field mapping</b> below to see every field.",
+            log:["INFO","Coupa Invoice to Fusion AP Invoice","Executing Map with 1 document(s)."],
+            effect:"transform" },
+          { name:"Log Fusion Payload", kind:"notify", ms:1, ms2:2, docs:1,
+            narr:"The mapped Fusion payload is logged before it leaves — this is what the ERP will receive.",
+            log:["INFO","Log Fusion Payload","ORACLE FUSION - AP Invoice payload: {…}"] },
+          { name:"Oracle Fusion - Create AP Invoice", kind:"connector", ms:527, ms2:287, docs:1,
+            narr:"The REST call into Oracle Fusion Payables. This is the slowest step in the run, as network calls always are.",
+            log:["INFO","Oracle Fusion - Create AP Invoice","Executing Connector Shape with 1 document(s)."],
+            effect:"emit" },
+          { name:"Log Fusion Response", kind:"notify", ms:3, ms2:2, docs:1,
+            narr:"Fusion's response is logged in full.",
+            log:["INFO","Log Fusion Response","ORACLE FUSION - response: {…}"] },
+          { name:"Capture ERP Reference", kind:"set properties", ms:8, ms2:3, docs:1,
+            narr:"The ERP document reference is pulled out of the response, ready to send back to Coupa.",
+            log:["INFO","Capture ERP Reference","Executing Set Properties Shape with 1 document(s)."] },
+          { name:"Build Coupa Status Writeback", kind:"message", ms:2, ms2:1, docs:1,
+            narr:"A small writeback payload is built: mark the invoice exported and stamp it with the ERP reference.",
+            log:["INFO","Build Coupa Status Writeback","Executing Message Shape with 1 document(s)."] },
+          { name:"Coupa - Update Invoice Status", kind:"connector", ms:292, ms2:286, docs:1,
+            narr:"The writeback call. Coupa now knows this invoice reached the ERP, so nobody exports it twice.",
+            log:["INFO","Coupa - Update Invoice Status","Executing Connector Shape with 1 document(s)."],
+            effect:"writeback" },
+          { name:"Log Writeback", kind:"notify", ms:2, ms2:3, docs:1,
+            narr:"Confirmation logged. This document is done.",
+            log:["INFO","Log Writeback","COUPA - invoice marked exported with ERP reference."] },
+          { name:"Stop", kind:"stop", ms:0, ms2:0, docs:1,
+            narr:"End of the path for this document.",
+            log:["INFO","Stop","Executing Stop Shape with 1 document(s)."],
+            effect:"finishDoc" }
+        ]}
+      ]
+    };
+  }
+
+  function supplierScenario() {
+    return {
+      key:"supplier", perDoc:false,
+      process:"S2P - Oracle Fusion Supplier to Coupa",
+      src:{ name:"Oracle Fusion", role:"Supplier master",
+            endpoint:"GET /fscmRestApi/…/suppliers?q=Status=ACTIVE" },
+      tgt:{ name:"Coupa", role:"Procurement", endpoint:"POST /api/suppliers" },
+      map:MAP_SUP,
+      docs:[SUP_A, SUP_B],
+      order:[SUP_A, SUP_B],
+      groups:[
+        { label:"Trunk — runs once for the batch", lane:null, steps:[
+          { name:"Scheduled - Poll Fusion Suppliers", kind:"start", ms:35, docs:1,
+            narr:"The supplier sync starts on its schedule. This is the upstream leg — it makes sure buyers can only transact against ERP-approved suppliers.",
+            log:["INFO","Scheduled - Poll Fusion Suppliers","Executing Start Shape"] },
+          { name:"Handle Sync Errors", kind:"try/catch", ms:29, docs:1,
+            narr:"Same protection as the invoice flow: one bad supplier record cannot fail the batch.",
+            log:["INFO","Handle Sync Errors","Executing Try/Catch Shape with 1 document(s)."] },
+          { name:"DEMO DATA - Fusion GET /suppliers", kind:"message", ms:7, docs:1,
+            narr:"Oracle Fusion returns its active suppliers — the same two the invoices reference, which is what makes the supplier number a safe join key.",
+            log:["INFO","DEMO DATA - Fusion GET /suppliers?q=Status=ACTIVE","Executing Message Shape with 1 document(s)."],
+            effect:"loadBatch" },
+          { name:"Log Fusion Supplier Batch", kind:"notify", ms:5, docs:1,
+            narr:"The raw supplier batch is logged.",
+            log:["INFO","Log Fusion Supplier Batch","ORACLE FUSION - active supplier batch received: {…}"] },
+          { name:"Split Batch into Suppliers", kind:"data process", ms:21, docs:1, docsOut:2,
+            narr:"Split on the items array — <b>two documents out</b>, one per supplier.",
+            log:["INFO","Split Batch into Suppliers","Executing with 1 documents in"],
+            effect:"split" },
+          { name:"Extract Supplier Keys", kind:"set properties", ms:16, docs:2,
+            narr:"Supplier number and name are lifted into document properties.",
+            log:["INFO","Extract Supplier Keys","Executing Set Properties Shape with 2 document(s)."] }
+        ]},
+        { label:"Tail — both suppliers travel together", lane:null, steps:[
+          { name:"Log Supplier Being Synced", kind:"notify", ms:3, docs:2,
+            narr:"Both suppliers are announced. Note the document count: there is no Decision in this flow, so both records move through every shape <b>together as a batch of two</b> — unlike the invoice flow, where the branch splits them into separate passes.",
+            log:["INFO","Log Supplier Being Synced","SYNC - onboarding supplier from Oracle Fusion into Coupa."] },
+          { name:"Fusion Supplier to Coupa Supplier", kind:"map", ms:17, docs:2,
+            narr:"The transformation, including the nested address and contact objects. Note <code>TaxpayerId</code> → <code>tax-id</code>: with Australian suppliers that is the ABN, the identifier a Peppol participant ID is built from — see <b>Field mapping</b> below.",
+            log:["INFO","Fusion Supplier to Coupa Supplier","Executing Map with 1 document(s)."],
+            effect:"transform" },
+          { name:"Log Coupa Payload", kind:"notify", ms:6, docs:2,
+            narr:"The Coupa-shaped supplier payload is logged before it is sent.",
+            log:["INFO","Log Coupa Payload","COUPA - supplier payload: {…}"] },
+          { name:"Coupa - Create Supplier", kind:"connector", ms:600, docs:2,
+            narr:"The REST call into Coupa. The supplier is now available to buyers.",
+            log:["INFO","Coupa - Create Supplier","Executing Connector Shape with 1 document(s)."],
+            effect:"emit" },
+          { name:"Log Coupa Confirmation", kind:"notify", ms:4, docs:2,
+            narr:"Confirmation logged.",
+            log:["INFO","Log Coupa Confirmation","COUPA - supplier synced."] },
+          { name:"Stop", kind:"stop", ms:1, docs:2,
+            narr:"End of the path. Both suppliers are now live in Coupa.",
+            log:["INFO","Stop","Executing Stop Shape with 1 document(s)."],
+            effect:"finishDoc" }
+        ]}
+      ]
+    };
+  }
+
+  /* =========================================================
+     TIMELINE - flatten groups into the real execution order
+     ========================================================= */
+  function buildTimeline(sc) {
+    var tl = [], gi, si, g, s, d, di;
+    var trunk = sc.groups[0];
+    for (si = 0; si < trunk.steps.length; si++) {
+      tl.push({ g:0, s:si, step:trunk.steps[si], docs:[], pass:0, passes:0 });
+    }
+    if (sc.perDoc) {
+      /* a Decision routes each document separately, so the tail runs once per document */
+      for (di = 0; di < sc.order.length; di++) {
+        d = sc.order[di];
+        for (gi = 1; gi < sc.groups.length; gi++) {
+          g = sc.groups[gi];
+          for (si = 0; si < g.steps.length; si++) {
+            s = g.steps[si];
+            if (g.lane === "fork" && s.lane !== (d.po ? "po" : "nopo")) { continue; }
+            tl.push({ g:gi, s:si, step:s, docs:[d], pass:di + 1, passes:sc.order.length });
+          }
+        }
+      }
+    } else {
+      /* no branch, so every shape executes once carrying the whole batch */
+      for (gi = 1; gi < sc.groups.length; gi++) {
+        g = sc.groups[gi];
+        for (si = 0; si < g.steps.length; si++) {
+          tl.push({ g:gi, s:si, step:g.steps[si], docs:sc.order.slice(), pass:1, passes:1 });
+        }
+      }
+    }
+    return tl;
+  }
+
+  /* =========================================================
+     STATE
+     ========================================================= */
+  var SCENARIOS = { invoice:invoiceScenario(), supplier:supplierScenario() };
+  var sc, tl, cursor, speed = 1, playing = false, timer = null;
+  var st;   /* runtime state */
+
+  function freshState() {
+    return {
+      batchLoaded:false, split:false, decided:false,
+      srcDocs:[],           /* {doc, status, erp} */
+      tgtDocs:[],           /* {doc, payload} */
+      logs:[], elapsed:0,
+      activeDocs:[], activeLane:null,
+      lastTransform:null, lastSource:null
+    };
+  }
+
+  var $ = function (id) { return document.getElementById(id); };
+  function esc(s) {
+    return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  }
+  function money(n) {
+    return n.toLocaleString("en-AU",{ minimumFractionDigits:2, maximumFractionDigits:2 });
+  }
+  function isInv(d) { return d && Object.prototype.hasOwnProperty.call(d,"coupaId"); }
+  /* the second document through a branch is measurably faster - warm connections */
+  function msFor(s, pass) { return (pass === 2 && s.ms2 != null) ? s.ms2 : s.ms; }
+
+  /* =========================================================
+     RENDER - pipeline
+     ========================================================= */
+  function renderPipeline() {
+    var host = $("steps"), html = "", gi, si, g, s;
+    for (gi = 0; gi < sc.groups.length; gi++) {
+      g = sc.groups[gi];
+      html += '<div class="stepgrp">';
+      html += '<div class="grplabel"><span class="lbl">' + esc(g.label) +
+              '</span><span class="gl-rule"></span></div>';
+      if (g.lane === "fork") {
+        html += renderLane(g, gi, "po",   "PO backed — three-way match");
+        html += renderLane(g, gi, "nopo", "No PO — GL coding review");
+      } else {
+        for (si = 0; si < g.steps.length; si++) {
+          html += stepBtn(g.steps[si], gi, si);
+        }
+      }
+      html += '</div>';
+    }
+    host.innerHTML = html;
+    host.querySelectorAll(".step").forEach(function (b) {
+      b.addEventListener("click", function () { jumpTo(+b.dataset.g, +b.dataset.s); });
+    });
+  }
+  function renderLane(g, gi, lane, title) {
+    var out = '<div class="lane" data-lane="' + lane + '">' +
+      '<div class="lane-hd"><span class="lbl">' + esc(title) + '</span></div>';
+    for (var si = 0; si < g.steps.length; si++) {
+      if (g.steps[si].lane === lane) { out += stepBtn(g.steps[si], gi, si); }
+    }
+    return out + '</div>';
+  }
+  function stepBtn(s, gi, si) {
+    var docs = s.docsOut ? (s.docs + "\u2192" + s.docsOut + " docs")
+                        : (s.docs + (s.docs === 1 ? " doc" : " docs"));
+    return '<button class="step" data-g="' + gi + '" data-s="' + si + '" type="button">' +
+      '<span class="s-kind">' + esc(s.kind) + '</span>' +
+      '<span class="s-name">' + esc(s.name) + '</span>' +
+      '<span class="s-right"><span class="s-docs">' + docs + '</span>' +
+      '<span class="s-ms" data-ms1="' + s.ms + '" data-ms2="' +
+      (s.ms2 == null ? s.ms : s.ms2) + '">' + s.ms + ' ms</span></span></button>';
+  }
+
+  function paintPipeline() {
+    var visited = {}, i, t;
+    for (i = 0; i < cursor; i++) { t = tl[i]; visited[t.g + ":" + t.s] = true; }
+    var cur = cursor > 0 ? tl[cursor - 1] : null;
+    var curKey = cur ? cur.g + ":" + cur.s : "";
+
+    $("steps").querySelectorAll(".step").forEach(function (b) {
+      var k = b.dataset.g + ":" + b.dataset.s;
+      b.classList.toggle("done", !!visited[k] && k !== curKey);
+      b.classList.toggle("active", k === curKey);
+      var msEl = b.querySelector(".s-ms");
+      if (msEl) {
+        var use = (cur && k === curKey && cur.pass === 2) ? msEl.dataset.ms2 : msEl.dataset.ms1;
+        msEl.textContent = use + " ms";
+      }
+    });
+
+    $("steps").querySelectorAll(".lane").forEach(function (l) {
+      if (!st.decided) { l.classList.remove("on","off"); return; }
+      var on = st.activeLane === l.dataset.lane;
+      l.classList.toggle("on", on);
+      l.classList.toggle("off", !on);
+    });
+
+    var pipe = $("pipe"), tok = $("token");
+    if (cur) {
+      var el = $("steps").querySelector('.step[data-g="' + cur.g + '"][data-s="' + cur.s + '"]');
+      if (el) {
+        var pr = pipe.getBoundingClientRect(), er = el.getBoundingClientRect();
+        var top = (er.top - pr.top) + (er.height / 2) - 8;
+        tok.style.transform = "translateY(" + top + "px)";
+        pipe.classList.add("tok-on");
+      }
+    } else {
+      pipe.classList.remove("tok-on");
+    }
+  }
+
+  /* =========================================================
+     RENDER - side panes
+     ========================================================= */
+  function paintPanes() {
+    $("src-name").textContent = sc.src.name;
+    $("src-role").textContent = sc.src.role;
+    $("src-endpoint").textContent = sc.src.endpoint;
+    $("tgt-name").textContent = sc.tgt.name;
+    $("tgt-role").textContent = sc.tgt.role;
+    $("tgt-endpoint").textContent = sc.tgt.endpoint;
+    $("flow-endpoint").textContent = sc.process;
+    $("flow-role").textContent = "Deployed process";
+
+    var sb = $("src-body"), tb = $("tgt-body");
+
+    if (!st.srcDocs.length) {
+      sb.innerHTML = '<div class="empty">Queue is empty until the process polls ' +
+        esc(sc.src.name) + '.</div>';
+    } else {
+      sb.innerHTML = st.srcDocs.map(function (r) { return srcCard(r); }).join("");
+    }
+    if (!st.tgtDocs.length) {
+      tb.innerHTML = '<div class="empty">No records posted to ' + esc(sc.tgt.name) + ' yet.</div>';
+    } else {
+      tb.innerHTML = st.tgtDocs.map(function (r) { return tgtCard(r); }).join("");
+    }
+  }
+
+  function srcCard(r) {
+    var d = r.doc, live = st.activeDocs.indexOf(d) >= 0;
+    var cls = "rec" + (live ? " is-live" : "");
+    if (isInv(d)) {
+      var pill = r.status === "exported"
+        ? '<span class="pill pill--ok">Exported</span>'
+        : (live ? '<span class="pill pill--flow">In flight</span>'
+                : '<span class="pill pill--wait">Approved</span>');
+      return '<div class="' + cls + '">' +
+        '<div class="r-top"><span class="r-id">' + esc(d.id) + '</span>' +
+        '<span class="r-amt">' + money(d.total) + ' ' + esc(d.currency) + '</span></div>' +
+        '<div class="r-sup">' + esc(d.supplierName) + '</div>' +
+        '<div class="r-meta">' + pill +
+          (d.po ? '<span class="pill pill--po">' + esc(d.po) + '</span>'
+                : '<span class="pill pill--nopo">No PO</span>') +
+          '<span class="pill pill--nopo">' + esc(d.terms) + '</span>' +
+        '</div>' +
+        (r.status === "exported"
+          ? '<div class="erp">ERP reference <span class="v">' + esc(r.erp) + '</span></div>'
+          : "") +
+        '</div>';
+    }
+    return '<div class="' + cls + '">' +
+      '<div class="r-top"><span class="r-id">' + esc(d.id) + '</span></div>' +
+      '<div class="r-sup">' + esc(d.name) + '</div>' +
+      '<div class="r-meta">' +
+        (live ? '<span class="pill pill--flow">In flight</span>'
+              : '<span class="pill pill--ok">' + esc(d.status) + '</span>') +
+        '<span class="pill pill--nopo">' + esc(d.orgType) + '</span>' +
+        '<span class="pill pill--nopo">Tax ' + esc(d.tax) + '</span>' +
+      '</div>' +
+      '<div class="r-lines"><div class="ln"><span class="ln-d">' +
+        esc(d.addr.line1) + ', ' + esc(d.addr.city) + ' ' + esc(d.addr.state) +
+        ' ' + esc(d.addr.zip) + '</span></div>' +
+      '<div class="ln"><span class="ln-d">' + esc(d.contact.first) + ' ' +
+        esc(d.contact.last) + ' &middot; ' + esc(d.contact.email) + '</span></div></div>' +
+      '</div>';
+  }
+
+  function tgtCard(r) {
+    var p = r.payload;
+    if (r.kind === "ap") {
+      return '<div class="rec is-new">' +
+        '<div class="r-top"><span class="r-id">' + esc(p.InvoiceNumber) + '</span>' +
+        '<span class="r-amt">' + money(p.InvoiceAmount) + ' ' + esc(p.InvoiceCurrency) +
+        '</span></div>' +
+        '<div class="r-sup">' + esc(p.Supplier) + ' &middot; ' + esc(p.SupplierNumber) + '</div>' +
+        '<div class="r-meta">' +
+          '<span class="pill pill--ok">' + esc(p.InvoiceType) + '</span>' +
+          (p.invoiceLines[0].PurchaseOrderNumber
+            ? '<span class="pill pill--po">3-way match ' +
+              esc(p.invoiceLines[0].PurchaseOrderNumber) + '</span>'
+            : '<span class="pill pill--nopo">GL coded</span>') +
+          '<span class="pill pill--nopo">' + esc(p.BusinessUnit) + '</span>' +
+          '<span class="pill pill--nopo">' + esc(p.PaymentTerms) + '</span>' +
+        '</div>' +
+        '<div class="r-lines">' + p.invoiceLines.map(function (l) {
+          return '<div class="ln"><span class="ln-n">' + l.LineNumber + '</span>' +
+            '<span class="ln-d">' + esc(l.Description) + '</span>' +
+            '<span class="ln-acct">' + esc(l.DistributionCombination) + '</span>' +
+            '<span class="ln-a">' + money(l.LineAmount) + '</span></div>';
+        }).join("") + '</div></div>';
+    }
+    return '<div class="rec is-new">' +
+      '<div class="r-top"><span class="r-id">' + esc(p.number) + '</span></div>' +
+      '<div class="r-sup">' + esc(p.name) + '</div>' +
+      '<div class="r-meta">' +
+        '<span class="pill pill--ok">' + esc(p.status) + '</span>' +
+        '<span class="pill pill--po">' + esc(p["payment-method"]) + '</span>' +
+        '<span class="pill pill--nopo">from ' + esc(p["external-src-name"]) + '</span>' +
+      '</div>' +
+      '<div class="r-lines"><div class="ln"><span class="ln-d">' +
+        esc(p["primary-address"].street1) + ', ' + esc(p["primary-address"].city) + ' ' +
+        esc(p["primary-address"].state) + ' ' + esc(p["primary-address"]["postal-code"]) +
+        '</span></div>' +
+      '<div class="ln"><span class="ln-d">' + esc(p["primary-contact"]["name-given"]) + ' ' +
+        esc(p["primary-contact"]["name-family"]) + ' &middot; ' +
+        esc(p["primary-contact"].email) + '</span></div></div></div>';
+  }
+
+  /* =========================================================
+     RENDER - inspector
+     ========================================================= */
+  function valueFor(token, doc) {
+    if (token == null) { return null; }
+    if (token.charAt(0) === "@") { return token.slice(1); }
+    if (token.indexOf("L:") === 0) {
+      if (!isInv(doc)) { return null; }
+      var f = token.slice(2);
+      return doc.lines.map(function (l) {
+        var v = l[f];
+        return v == null ? "—" : (f === "total" || f === "price" ? money(v) : String(v));
+      }).join("  /  ");
+    }
+    if (token.indexOf("A:") === 0) { return doc.addr[token.slice(2)]; }
+    if (token.indexOf("C:") === 0) { return doc.contact[token.slice(2)]; }
+    var v = doc[token];
+    if (v == null) { return null; }
+    if (token === "total") { return money(v); }
+    return String(v);
+  }
+
+  function paintMap() {
+    var m = sc.map, doc = st.activeDocs[0];
+    var head = '<p class="ihint">Every field the deployed map moves, in order. ' +
+      (doc ? 'Values shown are from <span class="num">' + esc(doc.id) +
+             '</span>, the document currently in the pipeline.'
+           : 'Run the flow to see live values from the document in the pipeline.') + '</p>';
+    var rows = m.rows.map(function (r) {
+      var src = r[0], tgt = r[1], lvl = r[2], tok = r[3], note = r[4];
+      var isDefault = src === null;
+      var v = doc ? valueFor(tok, doc) : null;
+      var shown = v == null ? '<span style="color:var(--muted)">— not present</span>' : esc(v);
+      return '<tr class="' + (isDefault ? "deflt " : "") + (lvl ? "lvl" : "") + '">' +
+        '<td class="f src">' + (isDefault ? "static default" : esc(src)) + '</td>' +
+        '<td class="arrow">&rarr;</td>' +
+        '<td class="f tgt">' + esc(tgt) +
+          (note ? '<span class="fnote">' + esc(note) + '</span>' : "") + '</td>' +
+        '<td class="val">' + shown + '</td></tr>';
+    }).join("");
+    $("ip-map").innerHTML = head +
+      '<div class="mapwrap"><table class="map"><thead><tr>' +
+      '<th>' + esc(m.srcLabel) + '</th><th></th><th>' + esc(m.tgtLabel) + '</th>' +
+      '<th>Value this run</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
+      '<div class="mapkey">' +
+      '<span><i style="background:var(--source)"></i>Source field</span>' +
+      '<span><i style="background:var(--target)"></i>Target field</span>' +
+      '<span><i style="background:var(--muted)"></i>Static default set in the map</span>' +
+      '<span>Indented rows sit inside a nested object or repeating array.</span></div>';
+  }
+
+  function paintPay() {
+    var sJSON = st.lastSource, tJSON = st.lastTransform;
+    var hint = tJSON
+      ? '<p class="ihint">Left: the document as it entered the map. Right: what the map produced ' +
+        'and the connector posted.</p>'
+      : '<p class="ihint">Run the flow to the map step to see the payload on both sides of the ' +
+        'transformation.</p>';
+    $("ip-pay").innerHTML = hint + '<div class="pays">' +
+      '<div class="pay"><span class="lbl">In &mdash; ' + esc(sc.src.name) + '</span>' +
+      '<pre class="code">' + (sJSON ? esc(JSON.stringify(sJSON, null, 2))
+        : "// nothing in the pipeline yet") + '</pre></div>' +
+      '<div class="pay"><span class="lbl">Out &mdash; ' + esc(sc.tgt.name) + '</span>' +
+      '<pre class="code">' + (tJSON ? esc(JSON.stringify(tJSON, null, 2))
+        : "// the map has not run yet") + '</pre></div></div>';
+  }
+
+  function paintLog() {
+    if (!st.logs.length) {
+      $("ip-log").innerHTML = '<p class="ihint">The log tape fills as the process runs. ' +
+        'These are the shape names and messages the Boomi runtime actually emits.</p>';
+      return;
+    }
+    $("ip-log").innerHTML = '<p class="ihint">Shape-by-shape tape for this run, newest last.</p>' +
+      '<div class="tape">' + st.logs.map(function (l) {
+        return '<div class="row"><span class="lv">' + esc(l[0]) + '</span>' +
+          '<span class="sh">' + esc(l[1]) + '</span>' +
+          '<span class="tx">' + esc(l[2]) + '</span></div>';
+      }).join("") + '</div>';
+    var t = $("ip-log").querySelector(".tape");
+    if (t) { t.scrollTop = t.scrollHeight; }
+  }
+
+  function paintGauges() {
+    $("g-step").textContent = cursor + " / " + tl.length;
+    $("g-docs").textContent = st.split ? sc.docs.length : (st.batchLoaded ? 1 : 0);
+    $("g-ms").textContent = st.elapsed + " ms";
+  }
+
+  function paintNarr() {
+    var cur = cursor > 0 ? tl[cursor - 1] : null;
+    if (!cur) {
+      $("n-step").textContent = "READY";
+      $("n-txt").innerHTML = "Press <b>Run flow</b> to play the integration end to end, " +
+        "or <b>Step</b> to advance one Boomi shape at a time while you talk over it.";
+      return;
+    }
+    var tag = "STEP " + cursor;
+    if (cur.passes > 1) { tag += " · PASS " + cur.pass + "/" + cur.passes; }
+    else if (cur.docs.length > 1) { tag += " · " + cur.docs.length + " DOCS"; }
+    $("n-step").textContent = tag;
+    var txt = cur.step.narr;
+    if (cur.docs.length === 1) {
+      txt = '<b>' + esc(cur.docs[0].id) + '</b> — ' + txt;
+    } else if (cur.docs.length > 1) {
+      txt = '<b>' + cur.docs.map(function (d) { return d.id; }).join(" + ") + '</b> — ' + txt;
+    }
+    if (cursor === tl.length) {
+      txt += ' <b>Run complete:</b> ' + sc.order.length +
+        ' documents through in ' + st.elapsed + ' ms of real runtime.';
+    }
+    $("n-txt").innerHTML = txt;
+  }
+
+  function paintAll() {
+    paintPipeline(); paintPanes(); paintGauges(); paintNarr();
+    paintMap(); paintPay(); paintLog();
+  }
+
+  /* =========================================================
+     ADVANCE
+     ========================================================= */
+  function applyStep(t) {
+    var s = t.step, e = s.effect;
+    st.elapsed += msFor(s, t.pass);
+    if (s.log) { st.logs.push(s.log); }
+    if (t.docs.length) {
+      st.activeDocs = t.docs.slice();
+      st.activeLane = t.docs[0].po ? "po" : "nopo";
+    }
+
+    if (e === "loadBatch") {
+      st.batchLoaded = true;
+      st.srcDocs = sc.docs.map(function (d) { return { doc:d, status:"pending", erp:null }; });
+    } else if (e === "split") {
+      st.split = true;
+    } else if (e === "decide") {
+      st.decided = true;
+    } else if (e === "transform") {
+      var d0 = t.docs[0];
+      if (isInv(d0)) {
+        st.lastSource = coupaInvoiceJSON(d0);
+        st.lastTransform = toFusionAP(d0);
+      } else {
+        st.lastSource = fusionSupplierJSON(d0);
+        st.lastTransform = toCoupaSupplier(d0);
+      }
+    } else if (e === "emit") {
+      t.docs.forEach(function (d) {
+        var already = st.tgtDocs.some(function (r) { return r.doc === d; });
+        if (!already) {
+          st.tgtDocs.push({
+            doc:d, kind:isInv(d) ? "ap" : "sup",
+            payload:isInv(d) ? toFusionAP(d) : toCoupaSupplier(d)
+          });
+        }
+      });
+    } else if (e === "writeback") {
+      t.docs.forEach(function (d) {
+        st.srcDocs.forEach(function (r) {
+          if (r.doc === d) { r.status = "exported"; r.erp = d.id; }
+        });
+      });
+    } else if (e === "finishDoc") {
+      st.activeDocs = [];
+    }
+  }
+
+  function advance() {
+    if (cursor >= tl.length) { stop(); return false; }
+    applyStep(tl[cursor]);
+    cursor++;
+    paintAll();
+    return true;
+  }
+
+  function delayFor(t) {
+    var base = 260;
+    if (t.step.kind === "connector") { base = 700; }
+    if (t.step.effect === "split" || t.step.effect === "decide") { base = 620; }
+    if (t.step.kind === "notify") { base = 190; }
+    return Math.round(base / speed);
+  }
+
+  function play() {
+    if (playing) { stop(); return; }
+    if (cursor >= tl.length) { reset(); }
+    playing = true;
+    $("btn-run").textContent = "Pause";
+    $("btn-step").disabled = true;
+    tick();
+  }
+  function tick() {
+    if (!playing) { return; }
+    var t = tl[cursor];
+    if (!advance()) { return; }
+    if (cursor >= tl.length) { stop(); return; }
+    timer = setTimeout(tick, delayFor(t));
+  }
+  function stop() {
+    playing = false;
+    if (timer) { clearTimeout(timer); timer = null; }
+    $("btn-run").textContent = cursor >= tl.length ? "Run again" : "Run flow";
+    $("btn-step").disabled = false;
+  }
+  function reset() {
+    stop();
+    st = freshState(); cursor = 0;
+    $("btn-run").textContent = "Run flow";
+    paintAll();
+  }
+  function jumpTo(g, s) {
+    stop();
+    var target = -1;
+    for (var i = 0; i < tl.length; i++) {
+      if (tl[i].g === g && tl[i].s === s) { target = i; break; }
+    }
+    if (target < 0) { return; }
+    st = freshState(); cursor = 0;
+    while (cursor <= target) { applyStep(tl[cursor]); cursor++; }
+    paintAll();
+  }
+
+  function loadScenario(key) {
+    sc = SCENARIOS[key];
+    tl = buildTimeline(sc);
+    renderPipeline();
+    reset();
+  }
+
+  /* =========================================================
+     WIRING
+     ========================================================= */
+  $("btn-run").addEventListener("click", play);
+  $("btn-step").addEventListener("click", function () { stop(); advance(); });
+  $("btn-reset").addEventListener("click", reset);
+
+  document.querySelectorAll(".seg button").forEach(function (b) {
+    b.addEventListener("click", function () {
+      speed = parseFloat(b.dataset.sp);
+      document.querySelectorAll(".seg button").forEach(function (o) {
+        o.setAttribute("aria-pressed", String(o === b));
+      });
+    });
+  });
+
+  document.querySelectorAll(".tab").forEach(function (b) {
+    b.addEventListener("click", function () {
+      document.querySelectorAll(".tab").forEach(function (o) {
+        o.setAttribute("aria-selected", String(o === b));
+      });
+      loadScenario(b.dataset.sc);
+    });
+  });
+
+  document.querySelectorAll(".itab").forEach(function (b) {
+    b.addEventListener("click", function () {
+      document.querySelectorAll(".itab").forEach(function (o) {
+        o.setAttribute("aria-selected", String(o === b));
+        $("ip-" + o.dataset.ip).hidden = (o !== b);
+      });
+    });
+  });
+
+  window.addEventListener("resize", function () { paintPipeline(); });
+
+  $("runstamp").textContent = "2 processes verified";
+  loadScenario("invoice");
+})();
+</script>

@@ -1,0 +1,1282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Datacom — Incident Sync Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    /* Datacom brand palette - datacom.com published brand assets */
+    --brand:        #002BFE;   /* Datacom electric blue */
+    --brand-dark:   #0020C2;
+    --brand-tint:   #E8ECFF;
+    --charcoal:     #000A14;   /* Datacom blue charcoal */
+    /* System accents stay distinct from brand blue so the three panels read apart */
+    --snow:         #1F4E46;
+    --snow-accent:  #62A88E;
+    --snow-tint:    #E8F3EF;
+    --jira:         #2684FF;
+    --jira-dark:    #1B62C4;
+    --jira-tint:    #E9F2FF;
+    --ink:          #000A14;
+    --muted:        #58636E;
+    --faint:        #8A939E;
+    --bg:           #F5F7FA;
+    --surface:      #FFFFFF;
+    --border:       #DCE1E8;
+    --border-soft:  #EDF0F4;
+    --success:      #1B873F;
+    --success-tint: #EBF7EF;
+    --warn:         #B7791F;
+    --warn-tint:    #FDF6E7;
+    --error:        #C42B2B;
+    --error-tint:   #FCEDED;
+    --radius:       10px;
+    --shadow:       0 1px 2px rgba(0,10,20,.06), 0 4px 12px rgba(0,10,20,.05);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  code, pre, .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+
+  /* ---------- chrome ---------- */
+  header {
+    background: var(--charcoal);
+    padding: 0 24px; height: 64px;
+    display: flex; align-items: center; gap: 18px;
+    position: sticky; top: 0; z-index: 30;
+    box-shadow: inset 0 -3px 0 var(--brand);
+  }
+  /* Typographic stand-in for the Datacom wordmark. Swap in the official
+     SVG from datacom.com brand assets to make this exact. */
+  .wordmark {
+    font-size: 21px; font-weight: 700; letter-spacing: -.035em;
+    color: #fff; line-height: 1; user-select: none;
+  }
+  .wordmark span { color: var(--brand); }
+  .logo-sub {
+    color: #93A0AD; font-weight: 500; font-size: 13px;
+    border-left: 1px solid #26303B; padding-left: 18px;
+  }
+  .logo-sub b { color: #E8EDF2; font-weight: 600; }
+  .spacer { flex: 1; }
+
+  .mode-toggle { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #93A0AD; }
+  .switch { display: inline-flex; background: #101A25; border: 1px solid #26303B; border-radius: 7px; padding: 2px; }
+  .switch button {
+    border: 0; background: transparent; font: inherit; font-size: 12px; font-weight: 500;
+    color: #93A0AD; padding: 5px 11px; border-radius: 5px; cursor: pointer;
+  }
+  .switch button.on { background: var(--brand); color: #fff; }
+  .switch button:disabled { opacity: .4; cursor: not-allowed; }
+
+  /* ---------- layout ---------- */
+  .wrap { max-width: 1560px; margin: 0 auto; padding: 20px 24px 60px; }
+
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); }
+  .panel-head {
+    padding: 12px 15px; border-bottom: 1px solid var(--border-soft);
+    display: flex; align-items: center; gap: 9px;
+  }
+  .panel-title { font-weight: 600; font-size: 13px; letter-spacing: -.005em; }
+  .panel-body { padding: 15px; }
+  .eyebrow { font-size: 10.5px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--faint); }
+
+  .sys-dot { width: 9px; height: 9px; border-radius: 50%; flex: 0 0 auto; }
+  .dot-snow  { background: var(--snow-accent); }
+  .dot-jira  { background: var(--jira); }
+  .dot-boomi { background: var(--brand); }
+
+  /* ---------- storyline rail ---------- */
+  .rail {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    box-shadow: var(--shadow); padding: 14px 18px; margin-bottom: 18px;
+  }
+  .rail-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .rstep {
+    display: flex; gap: 10px; align-items: flex-start;
+    padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-soft);
+    background: var(--bg); transition: all .18s;
+  }
+  .rstep.active { background: var(--brand-tint); border-color: #BBD0F5; }
+  .rstep.done   { background: var(--success-tint); border-color: #C6E7D2; }
+  .rstep-n {
+    width: 20px; height: 20px; border-radius: 50%; flex: 0 0 auto;
+    display: grid; place-items: center; font-size: 11px; font-weight: 700;
+    background: var(--surface); color: var(--muted); border: 1px solid var(--border);
+  }
+  .rstep.active .rstep-n { background: var(--brand); color: #fff; border-color: var(--brand); }
+  .rstep.done   .rstep-n { background: var(--success); color: #fff; border-color: var(--success); }
+  .rstep-t { font-size: 12.5px; font-weight: 600; line-height: 1.35; }
+  .rstep-d { font-size: 11.5px; color: var(--muted); margin-top: 1px; line-height: 1.35; }
+
+  /* ---------- three-column stage ---------- */
+  .stage { display: grid; grid-template-columns: 1fr 1.15fr 1fr; gap: 18px; align-items: start; }
+  @media (max-width: 1400px) { .stage { grid-template-columns: 1fr; } }
+
+  /* ---------- forms ---------- */
+  label.fld { display: block; margin-bottom: 10px; }
+  label.fld > span { display: block; font-size: 11.5px; font-weight: 600; color: var(--muted); margin-bottom: 4px; }
+  input[type=text], textarea, select {
+    width: 100%; font: inherit; font-size: 13px; color: var(--ink);
+    border: 1px solid var(--border); border-radius: 7px; padding: 8px 10px;
+    background: var(--surface); outline: none;
+  }
+  input[type=text]:focus, textarea:focus, select:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(0,43,254,.13); }
+  textarea { resize: vertical; min-height: 58px; }
+
+  .btn {
+    border: 0; border-radius: 8px; font: inherit; font-weight: 600; font-size: 13px;
+    padding: 9px 15px; cursor: pointer; transition: background .12s, opacity .12s;
+    display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  }
+  .btn-primary { background: var(--brand); color: #fff; width: 100%; }
+  .btn-primary:hover:not(:disabled) { background: var(--brand-dark); }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .btn-ghost {
+    background: transparent; border: 1px solid #26303B; color: #93A0AD;
+    font-size: 11.5px; font-weight: 500; padding: 5px 10px; border-radius: 6px; cursor: pointer;
+  }
+  .btn-ghost:hover:not(:disabled) { background: #101A25; color: #E8EDF2; border-color: #38424E; }
+
+  /* ---------- badges ---------- */
+  .badge {
+    display: inline-flex; align-items: center; gap: 4px; font-size: 10.5px; font-weight: 600;
+    padding: 2px 7px; border-radius: 20px; letter-spacing: .01em; white-space: nowrap;
+  }
+  .b-new     { background: var(--brand-tint);  color: var(--brand-dark); }
+  .b-prog    { background: var(--warn-tint);   color: var(--warn); }
+  .b-resolved{ background: var(--success-tint);color: var(--success); }
+  .b-eligible{ background: var(--snow-tint);   color: #1F4E46; }
+  .b-linked  { background: var(--jira-tint);   color: var(--jira); }
+  .b-muted   { background: var(--bg);          color: var(--faint); }
+
+  .p1 { background: #FCE9E9; color: #B42318; }
+  .p2 { background: #FDEFE0; color: #B54708; }
+  .p3 { background: #FDF6E7; color: #B7791F; }
+  .p4 { background: var(--brand-tint); color: var(--brand-dark); }
+  .p5 { background: #F1F4F6; color: #5C7080; }
+
+  /* ---------- incident cards ---------- */
+  .rows { display: flex; flex-direction: column; }
+  .row {
+    padding: 12px 15px; border-bottom: 1px solid var(--border-soft);
+    transition: background .12s;
+  }
+  .row:last-child { border-bottom: 0; }
+  .row.hot { background: var(--snow-tint); box-shadow: inset 3px 0 0 var(--snow-accent); }
+  .row.flash { animation: flash 1.1s ease-out; }
+  @keyframes flash {
+    0%   { background: #FFF4C2; }
+    100% { background: transparent; }
+  }
+  .row-top { display: flex; align-items: center; gap: 7px; margin-bottom: 3px; flex-wrap: wrap; }
+  .row-num { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; font-weight: 500; color: var(--muted); }
+  .row-title { font-size: 13.5px; font-weight: 600; line-height: 1.35; }
+  .row-meta { font-size: 11.5px; color: var(--muted); margin-top: 4px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .corr {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    background: var(--jira-tint); color: var(--jira); padding: 1px 6px; border-radius: 4px; font-weight: 500;
+  }
+  .corr-empty { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--faint); }
+
+  .empty { padding: 26px 16px; text-align: center; color: var(--faint); font-size: 12.5px; }
+
+  /* ---------- jira board ---------- */
+  .board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 15px; }
+  .col-head {
+    font-size: 10.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--faint); padding: 0 2px 8px; display: flex; justify-content: space-between;
+  }
+  .col-body { display: flex; flex-direction: column; gap: 8px; min-height: 60px; }
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 7px;
+    padding: 9px 10px; cursor: pointer; transition: all .12s; box-shadow: 0 1px 2px rgba(0,10,20,.05);
+  }
+  .card:hover { border-color: var(--jira); box-shadow: 0 2px 8px rgba(38,132,255,.18); }
+  .card.flash { animation: flash 1.1s ease-out; }
+  .card-key { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--jira); font-weight: 600; }
+  .card-sum { font-size: 12.5px; font-weight: 500; line-height: 1.35; margin: 3px 0 6px; }
+  .card-foot { display: flex; align-items: center; gap: 6px; justify-content: space-between; }
+  .card-hint { font-size: 10px; color: var(--faint); }
+  .col-empty { border: 1px dashed var(--border); border-radius: 7px; padding: 14px 8px; text-align: center; color: var(--faint); font-size: 11px; }
+
+  /* ---------- boomi flow ---------- */
+  .proc-tabs { display: flex; gap: 6px; padding: 12px 15px 0; }
+  .ptab {
+    flex: 1; border: 1px solid var(--border); background: var(--bg); border-radius: 7px 7px 0 0;
+    border-bottom-color: transparent; font: inherit; font-size: 11.5px; font-weight: 600;
+    color: var(--muted); padding: 8px 9px; cursor: pointer; text-align: left; line-height: 1.3;
+  }
+  .ptab.on { background: var(--surface); color: var(--ink); border-color: var(--border); }
+  .ptab:not(.on):hover { background: #E9EEF3; color: var(--ink); }
+
+  .runrow { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .runrow .btn { width: 100%; padding: 10px 12px; font-size: 12.5px; line-height: 1.25; }
+  .pill {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 500;
+    background: rgba(255,255,255,.22); padding: 1px 6px; border-radius: 10px; white-space: nowrap;
+  }
+  .btn:disabled .pill { background: rgba(255,255,255,.15); }
+  .ptab-dir { font-size: 10px; font-weight: 600; color: var(--faint); letter-spacing: .04em; }
+
+  .shapes { padding: 4px 0; max-height: 560px; overflow-y: auto; }
+  .shape {
+    display: grid; grid-template-columns: 26px 1fr auto; gap: 10px; align-items: start;
+    padding: 8px 15px; position: relative; transition: background .15s;
+  }
+  .shape::before {
+    content: ''; position: absolute; left: 27px; top: 30px; bottom: -8px; width: 1px; background: var(--border);
+  }
+  .shape:last-child::before { display: none; }
+  .shape.on   { background: var(--brand-tint); }
+  .shape.done { }
+  .shape.err  { background: var(--error-tint); }
+  .shape-ico {
+    width: 26px; height: 26px; border-radius: 6px; display: grid; place-items: center;
+    font-size: 11px; font-weight: 700; background: var(--bg); color: var(--faint);
+    border: 1px solid var(--border); z-index: 1; position: relative;
+  }
+  .shape.on   .shape-ico { background: var(--brand); color: #fff; border-color: var(--brand); }
+  .shape.done .shape-ico { background: var(--success-tint); color: var(--success); border-color: #C6E7D2; }
+  .shape.err  .shape-ico { background: var(--error); color: #fff; border-color: var(--error); }
+  .shape-name { font-size: 12.5px; font-weight: 600; line-height: 1.35; }
+  .shape-kind { font-size: 10.5px; color: var(--faint); margin-top: 1px; }
+  .shape-docs {
+    font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--muted);
+    background: var(--bg); border-radius: 4px; padding: 1px 6px; white-space: nowrap; align-self: center;
+  }
+  .shape-note {
+    grid-column: 2 / -1; margin-top: 6px; font-size: 11.5px; color: var(--muted);
+    background: var(--surface); border: 1px solid var(--border-soft); border-radius: 6px; padding: 8px 10px;
+  }
+  .shape-note pre {
+    font-size: 11px; line-height: 1.5; white-space: pre-wrap; word-break: break-word;
+    color: var(--ink); margin-top: 5px;
+  }
+
+  /* field mapping viz */
+  .maps { display: flex; flex-direction: column; gap: 5px; margin-top: 6px; }
+  .maprow { display: grid; grid-template-columns: 1fr 18px 1fr; gap: 6px; align-items: center; font-size: 11px; }
+  .mapsrc, .mapdst {
+    font-family: 'JetBrains Mono', monospace; padding: 3px 7px; border-radius: 5px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .mapsrc { background: var(--snow-tint); color: #1F4E46; }
+  .mapdst { background: var(--jira-tint); color: var(--jira); }
+  .maparr { text-align: center; color: var(--faint); font-size: 12px; }
+  .mapnote { font-size: 10.5px; color: var(--faint); margin-top: 5px; font-style: italic; }
+
+  /* ---------- log ---------- */
+  .logbox {
+    background: #0F1720; border-radius: 8px; padding: 11px 12px; max-height: 260px; overflow-y: auto;
+    font-family: 'JetBrains Mono', monospace; font-size: 11px; line-height: 1.6;
+  }
+  .logline { display: flex; gap: 8px; color: #93A4B3; }
+  .logline .lv { flex: 0 0 auto; font-weight: 500; }
+  .lv-INFO { color: #6EA8FE; }
+  .lv-WARNING { color: #E9B949; }
+  .lv-ERROR { color: #F27272; }
+  .logline .tx { color: #C9D6E2; word-break: break-word; }
+
+  .callout {
+    display: flex; gap: 9px; padding: 10px 12px; border-radius: 8px; font-size: 12px;
+    background: var(--brand-tint); color: var(--brand-dark); line-height: 1.45;
+  }
+  .callout.warn { background: var(--warn-tint); color: var(--warn); }
+  .callout.err  { background: var(--error-tint); color: var(--error); }
+  .callout.ok   { background: var(--success-tint); color: var(--success); }
+  .callout b { font-weight: 700; }
+
+  .actions { display: flex; flex-direction: column; gap: 8px; padding: 13px 15px; border-top: 1px solid var(--border-soft); }
+  .hint { font-size: 11.5px; color: var(--muted); line-height: 1.45; }
+  .divider { height: 1px; background: var(--border-soft); margin: 13px 0; }
+  .footer { margin-top: 24px; text-align: center; font-size: 11.5px; color: var(--faint); line-height: 1.6; }
+</style>
+</head>
+<body>
+<!-- SEDC-NAV:START -->
+<style>
+  .sedc-nav * { box-sizing: border-box; }
+  .sedc-nav {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    margin: 0;
+    background: #072B55;
+    color: #ffffff;
+    font-family: 'Poppins',Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    font-size: 14px;
+    line-height: 1.4;
+  }
+  .sedc-nav-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 10px 20px;
+  }
+  .sedc-nav-brand {
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+  }
+  .sedc-nav-brand:hover,
+  .sedc-nav-brand:focus {
+    text-decoration: underline;
+  }
+  .sedc-nav-jump {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .sedc-nav-label {
+    white-space: nowrap;
+    color: #ffffff;
+  }
+  .sedc-nav-select {
+    font-family: inherit;
+    font-size: 13px;
+    color: #072B55;
+    background: #ffffff;
+    border: 1px solid #ffffff;
+    border-radius: 4px;
+    padding: 5px 8px;
+    max-width: 60vw;
+  }
+  .sedc-nav-rule {
+    height: 3px;
+    width: 100%;
+    background: linear-gradient(90deg,#FF7C66 0%,#A03291 100%);
+  }
+</style>
+<div class="sedc-nav" role="navigation" aria-label="SE Demo Companion navigation">
+  <div class="sedc-nav-bar">
+    <a class="sedc-nav-brand" href="../index.html" target="_top">SE Demo Companion</a>
+    <div class="sedc-nav-jump">
+      <label class="sedc-nav-label" for="sedc-nav-select">Jump to use case</label>
+      <select class="sedc-nav-select" id="sedc-nav-select" onchange="(function(sel){try{var opt=sel.options[sel.selectedIndex];var url=opt&&opt.getAttribute('data-href');if(!url)return;try{window.top.location.href=url;}catch(e){window.location.href=url;}}catch(e){}})(this)">
+        <option value="amc-fee-change-agent" data-href="./amc-fee-change-agent.html">AMC fee-change agent — Finnomena</option>
+        <option value="bvtpa-claims-integration-demo" data-href="./bvtpa-claims-integration-demo.html">Blue Venture TPA claims integration demo — Blue Venture TPA</option>
+        <option value="bvtpa-claims-adjudication-cio-brief" data-href="./bvtpa-claims-adjudication-cio-brief.html">Claims adjudication CIO brief — Blue Venture TPA</option>
+        <option value="delivery-status-sync-demo" data-href="./delivery-status-sync-demo.html">Delivery status sync demo — TOTO</option>
+        <option value="boomi-tenant-ceo-dashboard" data-href="./boomi-tenant-ceo-dashboard.html">Boomi tenant CEO dashboard — Boomi internal tenant</option>
+        <option value="boomi-tenant-30-day-report" data-href="./boomi-tenant-30-day-report.html">Boomi tenant operations report, 30-day view — Boomi internal tenant</option>
+        <option value="json-to-xml-order-integration" data-href="./json-to-xml-order-integration.html">JSON to XML order integration, executive documentation — NTT</option>
+        <option value="edi-850-flight-deck" data-href="./edi-850-flight-deck.html">EDI 850 flight deck — Infosys</option>
+        <option value="whatsapp-to-sap-master-agent" data-href="./whatsapp-to-sap-master-agent.html">WhatsApp to SAP master agent — Boomi internal build</option>
+        <option value="student-xml-to-crm-json" data-href="./student-xml-to-crm-json.html">Student XML to CRM JSON — Attura</option>
+        <option value="sap-accounting-document-poc-outcome" data-href="./sap-accounting-document-poc-outcome.html">SAP accounting document automation, POC outcome — Abans PLC</option>
+        <option value="abans-sap-posting-poc-dashboard" data-href="./abans-sap-posting-poc-dashboard.html">Abans SAP posting, live POC dashboard — Abans PLC</option>
+        <option value="order-intake-api-fan-out" data-href="./order-intake-api-fan-out.html">Order intake API with multi-target fan-out — LTIMindtree</option>
+        <option value="electromart-track-and-reschedule" data-href="./electromart-track-and-reschedule.html">ElectroMart track order and reschedule delivery — ElectroMart (demo brand)</option>
+        <option value="enterprise-portal-ai-agent" data-href="./enterprise-portal-ai-agent.html">Enterprise portal with an embedded AI agent — ITG</option>
+        <option value="o2c-qad-build-journey" data-href="./o2c-qad-build-journey.html">O2C-QAD build journey — Boomi internal build</option>
+        <option value="boomi-accenture-trivia" data-href="./boomi-accenture-trivia.html">Boomi x Accenture trivia — Boomi internal build</option>
+        <option value="cloud-runtime-sizing-calculator" data-href="./cloud-runtime-sizing-calculator.html">Boomi public cloud runtime sizing estimator — Boomi internal build</option>
+        <option value="coupa-netsuite-vendor-bill" data-href="./coupa-netsuite-vendor-bill.html">Vendor bill pipeline, Coupa to NetSuite — Boomi internal build</option>
+        <option value="coupa-oracle-s2p-console" data-href="./coupa-oracle-s2p-console.html">Source-to-pay flow console, Coupa to Oracle Fusion — Boomi internal build</option>
+        <option value="epic-rauland-adt-nurse-call" data-href="./epic-rauland-adt-nurse-call.html">Epic ADT to Rauland Responder 5, nurse call integration — Boomi internal build</option>
+        <option value="epic-salesforce-trial-screening" data-href="./epic-salesforce-trial-screening.html">Clinical trial screening console, Epic to Salesforce — Meridian Research (demo brand)</option>
+        <option value="jc-hifi-order-tracker" data-href="./jc-hifi-order-tracker.html">JC Hi-Fi order tracker, customer self-service — JC Hi-Fi (demo brand)</option>
+        <option value="pacific-bank-onboarding" data-href="./pacific-bank-onboarding.html">Pacific onboarding console, retail bank customer onboarding — Pacific Islands Community Bank (demo brand)</option>
+        <option value="sea-data-product-assistant" data-href="./sea-data-product-assistant.html">SEA regional performance, data products and an agent over two ERPs — Boomi internal build</option>
+        <option value="servicenow-jira-incident-sync" data-href="./servicenow-jira-incident-sync.html" selected>Incident sync prototype, ServiceNow to Jira — Boomi internal build</option>
+        <option value="zendesk-magento-order-status" data-href="./zendesk-magento-order-status.html">Order status bot and flow inspector, Zendesk to Magento — Avery Products (demo brand)</option>
+        <option value="zoho-netsuite-invoice-sync" data-href="./zoho-netsuite-invoice-sync.html">Invoice sync console, Zoho CRM to NetSuite — Boomi internal build</option>
+      </select>
+    </div>
+  </div>
+  <div class="sedc-nav-rule"></div>
+</div>
+<!-- SEDC-NAV:END -->
+
+
+<header>
+  <!-- Typographic stand-in for the Datacom wordmark - replace with the official SVG when available -->
+  <div class="wordmark">datacom<span>.</span></div>
+  <div class="logo-sub"><b>Incident Sync</b> &nbsp;·&nbsp; ServiceNow &rarr; Boomi &rarr; Jira &nbsp;·&nbsp; prototype</div>
+  <div class="spacer"></div>
+  <div class="mode-toggle">
+    <span>Mode</span>
+    <div class="switch">
+      <button id="mSim" class="on" onclick="setMode('sim')">Simulated</button>
+      <button id="mLive" onclick="setMode('live')">Live Boomi</button>
+    </div>
+  </div>
+  <button class="btn-ghost" onclick="resetAll()">Reset demo</button>
+</header>
+
+<div class="wrap">
+
+  <!-- ---------- storyline ---------- -->
+  <div class="rail">
+    <div class="rail-steps">
+      <div class="rstep" id="rs1">
+        <div class="rstep-n">1</div>
+        <div>
+          <div class="rstep-t">Raise an Incident</div>
+          <div class="rstep-d">Assign it to <b>Engineering</b> in ServiceNow.</div>
+        </div>
+      </div>
+      <div class="rstep" id="rs2">
+        <div class="rstep-n">2</div>
+        <div>
+          <div class="rstep-t">Run ServiceNow &rarr; Jira</div>
+          <div class="rstep-d">Boomi creates the Jira issue and writes its key back.</div>
+        </div>
+      </div>
+      <div class="rstep" id="rs3">
+        <div class="rstep-n">3</div>
+        <div>
+          <div class="rstep-t">Move the issue to Done</div>
+          <div class="rstep-d">Click through the Jira board columns.</div>
+        </div>
+      </div>
+      <div class="rstep" id="rs4">
+        <div class="rstep-n">4</div>
+        <div>
+          <div class="rstep-t">Run Jira &rarr; ServiceNow</div>
+          <div class="rstep-d">Boomi finds the Incident by key and resolves it.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ---------- three systems ---------- -->
+  <div class="stage">
+
+    <!-- ============ ServiceNow ============ -->
+    <div>
+      <div class="panel">
+        <div class="panel-head">
+          <div class="sys-dot dot-snow"></div>
+          <div class="panel-title">ServiceNow</div>
+          <div class="spacer"></div>
+          <span class="eyebrow">incident table</span>
+        </div>
+        <div class="panel-body">
+          <label class="fld">
+            <span>Short description &rarr; Jira summary</span>
+            <input type="text" id="fSummary" placeholder="VPN gateway dropping connections"/>
+          </label>
+          <label class="fld">
+            <span>Description &rarr; Jira description</span>
+            <textarea id="fDesc" placeholder="Users in the Austin office report the VPN tunnel drops every few minutes."></textarea>
+          </label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <label class="fld">
+              <span>Priority &rarr; Jira priority</span>
+              <select id="fPriority">
+                <option value="1">1 &mdash; Critical</option>
+                <option value="2">2 &mdash; High</option>
+                <option value="3" selected>3 &mdash; Moderate</option>
+                <option value="4">4 &mdash; Low</option>
+                <option value="5">5 &mdash; Planning</option>
+              </select>
+            </label>
+            <label class="fld">
+              <span>Assignment group</span>
+              <select id="fGroup">
+                <option selected>Engineering</option>
+                <option>Network Operations</option>
+                <option>Database Admin</option>
+              </select>
+            </label>
+          </div>
+          <button class="btn btn-primary" onclick="createIncident()">Create Incident</button>
+          <div class="hint" style="margin-top:9px">
+            Only <b>Engineering</b> incidents with an empty <span class="mono">correlation_id</span> are picked up
+            &mdash; that is the query filter and the de-duplication guard in one.
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-top:16px">
+        <div class="panel-head">
+          <div class="panel-title">Incidents</div>
+          <div class="spacer"></div>
+          <span class="eyebrow" id="snCount">0 records</span>
+        </div>
+        <div class="rows" id="snRows"></div>
+      </div>
+    </div>
+
+    <!-- ============ Boomi ============ -->
+    <div class="panel">
+      <div class="panel-head">
+        <div class="sys-dot dot-boomi"></div>
+        <div class="panel-title">Boomi Integration</div>
+        <div class="spacer"></div>
+        <span class="eyebrow" id="boomiState">idle</span>
+      </div>
+
+      <div class="proc-tabs">
+        <button class="ptab on" id="tab1" onclick="showProc(1)">
+          <div class="ptab-dir">PROCESS 1 &nbsp;·&nbsp; SN &rarr; JIRA</div>
+          INT ServiceNow Incident to Jira Issue
+        </button>
+        <button class="ptab" id="tab2" onclick="showProc(2)">
+          <div class="ptab-dir">PROCESS 2 &nbsp;·&nbsp; JIRA &rarr; SN</div>
+          INT Jira Done to ServiceNow Resolved
+        </button>
+      </div>
+
+      <div class="shapes" id="shapes"></div>
+
+      <div class="actions">
+        <div class="runrow">
+          <button class="btn btn-primary" id="runBtn1" onclick="runProc(1)">
+            <span>Run ServiceNow &rarr; Jira</span><span class="pill" id="pill1"></span>
+          </button>
+          <button class="btn btn-primary" id="runBtn2" onclick="runProc(2)">
+            <span>Run Jira &rarr; ServiceNow</span><span class="pill" id="pill2"></span>
+          </button>
+        </div>
+        <div id="runMsg"></div>
+      </div>
+
+      <div class="panel-body" style="border-top:1px solid var(--border-soft)">
+        <div class="eyebrow" style="margin-bottom:7px">Execution log</div>
+        <div class="logbox" id="logbox">
+          <div class="logline"><span class="tx" style="color:#5C7080">No run yet. Create an Engineering incident, then run process 1.</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ Jira ============ -->
+    <div class="panel">
+      <div class="panel-head">
+        <div class="sys-dot dot-jira"></div>
+        <div class="panel-title">Jira</div>
+        <div class="spacer"></div>
+        <span class="eyebrow">project ENG</span>
+      </div>
+      <div class="board">
+        <div>
+          <div class="col-head"><span>To Do</span><span id="cTodo">0</span></div>
+          <div class="col-body" id="colTodo"></div>
+        </div>
+        <div>
+          <div class="col-head"><span>In Progress</span><span id="cProg">0</span></div>
+          <div class="col-body" id="colProg"></div>
+        </div>
+        <div>
+          <div class="col-head"><span>Done</span><span id="cDone">0</span></div>
+          <div class="col-body" id="colDone"></div>
+        </div>
+      </div>
+      <div class="panel-body" style="border-top:1px solid var(--border-soft)">
+        <div class="hint">
+          Click a card to advance it. Once an issue reaches <b>Done</b> it matches process 2's JQL
+          <span class="mono">status = Done</span> and is ready to sync back.
+        </div>
+        <div class="divider"></div>
+        <div class="eyebrow" style="margin-bottom:7px">The link between the two systems</div>
+        <div id="linkBox"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    Datacom &nbsp;·&nbsp; Boomi integration prototype &nbsp;·&nbsp;
+    ServiceNow and Jira are trademarks of their respective owners
+  </div>
+</div>
+<script>
+/* ============================================================
+   State
+   ============================================================ */
+const SN_STATE = { NEW: '1', IN_PROGRESS: '2', RESOLVED: '6' };
+const PRIORITY_LABEL = { '1':'Critical', '2':'High', '3':'Moderate', '4':'Low', '5':'Planning' };
+const JIRA_PRIORITY  = { '1':'Highest', '2':'High', '3':'Medium', '4':'Low', '5':'Lowest' };
+
+let mode = 'sim';
+let liveReady = false;
+let activeProc = 1;
+let running = false;
+let incidents = [];
+let issues = [];
+let incSeq = 10001;
+let jiraSeq = 101;
+
+const SEED = [
+  { summary:'VPN gateway dropping connections',
+    desc:'Users in the Austin office report the VPN tunnel drops every few minutes.',
+    priority:'2', group:'Engineering' },
+  { summary:'Nightly billing export failing',
+    desc:'The 02:00 export job exits with a socket timeout against the payments API.',
+    priority:'1', group:'Engineering' },
+  { summary:'Printer offline on 3rd floor',
+    desc:'Shared printer PRN-303 shows offline in the print queue.',
+    priority:'4', group:'Network Operations' },
+];
+
+function sysId() {
+  let s = '';
+  for (let i = 0; i < 32; i++) s += '0123456789abcdef'[Math.floor(Math.random()*16)];
+  return s;
+}
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const esc = s => String(s == null ? '' : s)
+  .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+/* ============================================================
+   Shape definitions - these mirror the real Boomi canvases
+   ============================================================ */
+const PROC = {
+  1: {
+    name: 'INT ServiceNow Incident to Jira Issue',
+    dir: 'ServiceNow → Jira',
+    shapes: [
+      { n:'Start',                                        k:'No Data start',                          i:'▶' },
+      { n:'Try/Catch',                                    k:'Error handling, catch all',              i:'⑂' },
+      { n:'Clear doc for ServiceNow GET',                 k:'Message · empties the document',         i:'M' },
+      { n:'GET ServiceNow Engineering Incidents',         k:'REST · ServiceNow Connection - DEV',     i:'↓' },
+      { n:'Log ServiceNow response',                      k:'Notify',                                 i:'i' },
+      { n:'Split result array into one doc per Incident', k:'Map · j.ServiceNow.IncidentQuery.RESP → FLAT', i:'⇄' },
+      { n:'Capture ServiceNow sys_id and number',         k:'Set Properties · DDP',                   i:'P' },
+      { n:'Map Incident to Jira Issue',                   k:'Map · FLAT → j.Jira.CreateIssue.REQ',    i:'⇄' },
+      { n:'POST Jira Create Issue',                       k:'REST · Jira Connection - DEV',           i:'↑' },
+      { n:'Log Jira create response',                     k:'Notify',                                 i:'i' },
+      { n:'Capture Jira key and build PATCH path',        k:'Set Properties · DDP',                   i:'P' },
+      { n:'Build ServiceNow write-back payload',          k:'Message · JSON template',                i:'M' },
+      { n:'PATCH ServiceNow Incident with Jira key',      k:'REST · ServiceNow Connection - DEV',     i:'↑' },
+      { n:'Log linked pair',                              k:'Notify',                                 i:'i' },
+      { n:'Stop',                                         k:'Terminal',                               i:'■' },
+    ]
+  },
+  2: {
+    name: 'INT Jira Done to ServiceNow Resolved',
+    dir: 'Jira → ServiceNow',
+    shapes: [
+      { n:'Start',                                     k:'No Data start',                        i:'▶' },
+      { n:'Try/Catch',                                 k:'Error handling, catch all',            i:'⑂' },
+      { n:'Clear doc for Jira GET',                    k:'Message · empties the document',       i:'M' },
+      { n:'GET Jira Done Issues',                      k:'REST · Jira Connection - DEV',         i:'↓' },
+      { n:'Log Jira search response',                  k:'Notify',                               i:'i' },
+      { n:'Split issues array into one doc per Issue', k:'Map · j.Jira.IssueSearch.RESP → FLAT', i:'⇄' },
+      { n:'Capture Jira key and build ServiceNow query', k:'Set Properties · DDP',               i:'P' },
+      { n:'Clear doc for ServiceNow GET',              k:'Message · empties the document',       i:'M' },
+      { n:'GET ServiceNow Incident by Jira Key',       k:'REST · ServiceNow Connection - DEV',   i:'↓' },
+      { n:'Log matched Incident',                      k:'Notify',                               i:'i' },
+      { n:'Build PATCH path from matched sys_id',      k:'Set Properties · DDP',                 i:'P' },
+      { n:'Build ServiceNow resolve payload',          k:'Message · JSON template',              i:'M' },
+      { n:'PATCH ServiceNow Incident to Resolved',     k:'REST · ServiceNow Connection - DEV',   i:'↑' },
+      { n:'Log resolution',                            k:'Notify',                               i:'i' },
+      { n:'Stop',                                      k:'Terminal',                             i:'■' },
+    ]
+  }
+};
+
+let shapeState = {};   // idx -> {cls, docs, note}
+
+/* ============================================================
+   Rendering
+   ============================================================ */
+function eligibleIncidents() {
+  // ORDERBYsys_created_on in the real query means oldest first
+  return incidents
+    .filter(x => x.assignment_group === 'Engineering' && !x.correlation_id && x.state !== SN_STATE.RESOLVED)
+    .slice().sort((a, b) => a.number.localeCompare(b.number));
+}
+function doneIssues() {
+  return issues.filter(x => x.status === 'Done');
+}
+
+function stateBadge(s) {
+  if (s === SN_STATE.RESOLVED)    return '<span class="badge b-resolved">Resolved</span>';
+  if (s === SN_STATE.IN_PROGRESS) return '<span class="badge b-prog">In Progress</span>';
+  return '<span class="badge b-new">New</span>';
+}
+
+function renderSN() {
+  const el = document.getElementById('snRows');
+  document.getElementById('snCount').textContent =
+    incidents.length + (incidents.length === 1 ? ' record' : ' records');
+  if (!incidents.length) {
+    el.innerHTML = '<div class="empty">No incidents yet. Create one above to start the flow.</div>';
+    return;
+  }
+  el.innerHTML = incidents.map(x => {
+    const hot = (x.assignment_group === 'Engineering' && !x.correlation_id && x.state !== SN_STATE.RESOLVED);
+    return `<div class="row ${hot ? 'hot' : ''} ${x._flash ? 'flash' : ''}">
+      <div class="row-top">
+        <span class="row-num">${esc(x.number)}</span>
+        <span class="badge p${x.priority}">P${x.priority} ${esc(PRIORITY_LABEL[x.priority])}</span>
+        ${stateBadge(x.state)}
+        ${hot ? '<span class="badge b-eligible">eligible</span>' : ''}
+      </div>
+      <div class="row-title">${esc(x.short_description)}</div>
+      <div class="row-meta">
+        <span>${esc(x.assignment_group)}</span>
+        <span>correlation_id:
+          ${x.correlation_id
+            ? `<span class="corr">${esc(x.correlation_id)}</span>`
+            : '<span class="corr-empty">— empty —</span>'}
+        </span>
+      </div>
+    </div>`;
+  }).join('');
+  incidents.forEach(x => delete x._flash);
+}
+
+function renderJira() {
+  const cols = { 'To Do':[], 'In Progress':[], 'Done':[] };
+  issues.forEach(x => cols[x.status].push(x));
+  const ids = { 'To Do':'colTodo', 'In Progress':'colProg', 'Done':'colDone' };
+  const cnt = { 'To Do':'cTodo',   'In Progress':'cProg',   'Done':'cDone' };
+  const nextLabel = { 'To Do':'move to In Progress', 'In Progress':'move to Done', 'Done':'ready to sync back' };
+
+  for (const st of Object.keys(cols)) {
+    document.getElementById(cnt[st]).textContent = cols[st].length;
+    const box = document.getElementById(ids[st]);
+    box.innerHTML = cols[st].length
+      ? cols[st].map(x => `<div class="card ${x._flash ? 'flash' : ''}" onclick="advanceIssue('${x.key}')">
+          <div class="card-key">${esc(x.key)}</div>
+          <div class="card-sum">${esc(x.summary)}</div>
+          <div class="card-foot">
+            <span class="badge p${x.snPriority}">${esc(JIRA_PRIORITY[x.snPriority])}</span>
+            <span class="card-hint">${nextLabel[st]}</span>
+          </div>
+        </div>`).join('')
+      : '<div class="col-empty">empty</div>';
+  }
+  issues.forEach(x => delete x._flash);
+}
+
+function renderLink() {
+  const box = document.getElementById('linkBox');
+  const linked = incidents.filter(x => x.correlation_id);
+  if (!linked.length) {
+    box.innerHTML = `<div class="hint">Nothing linked yet. Process 1 writes the Jira key into the
+      Incident's <span class="mono">correlation_id</span> — that single field is the only thing
+      tying the two systems together.</div>`;
+    return;
+  }
+  box.innerHTML = linked.map(x => {
+    const iss = issues.find(i => i.key === x.correlation_id);
+    return `<div class="maprow" style="margin-bottom:6px">
+      <span class="mapsrc">${esc(x.number)}</span>
+      <span class="maparr">↔</span>
+      <span class="mapdst">${esc(x.correlation_id)}${iss ? ' · ' + esc(iss.status) : ''}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderRail() {
+  const hasEng   = incidents.some(x => x.assignment_group === 'Engineering');
+  const hasLink  = incidents.some(x => x.correlation_id);
+  const hasDone  = doneIssues().length > 0;
+  const hasResolved = incidents.some(x => x.state === SN_STATE.RESOLVED);
+  const set = (id, cls) => {
+    const e = document.getElementById(id);
+    e.className = 'rstep' + (cls ? ' ' + cls : '');
+  };
+  set('rs1', hasEng ? 'done' : 'active');
+  set('rs2', !hasEng ? '' : (hasLink ? 'done' : 'active'));
+  set('rs3', !hasLink ? '' : (hasDone ? 'done' : 'active'));
+  set('rs4', !hasDone ? '' : (hasResolved ? 'done' : 'active'));
+}
+
+function renderShapes() {
+  const p = PROC[activeProc];
+  document.getElementById('shapes').innerHTML = p.shapes.map((s, idx) => {
+    const st = shapeState[idx] || {};
+    return `<div class="shape ${st.cls || ''}">
+      <div class="shape-ico">${s.i}</div>
+      <div>
+        <div class="shape-name">${esc(s.n)}</div>
+        <div class="shape-kind">${esc(s.k)}</div>
+      </div>
+      ${st.docs != null ? `<div class="shape-docs">${esc(st.docs)}</div>` : '<div></div>'}
+      ${st.note ? `<div class="shape-note">${st.note}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function renderAll() { renderSN(); renderJira(); renderLink(); renderRail(); renderShapes(); updateRunBtn(); }
+
+function updateRunBtn() {
+  const msg = document.getElementById('runMsg');
+  const b1 = document.getElementById('runBtn1'), b2 = document.getElementById('runBtn2');
+  const nEng = eligibleIncidents().length, nDone = doneIssues().length;
+  b1.disabled = running; b2.disabled = running;
+  if (mode === 'live') {
+    document.getElementById('pill1').textContent = '';
+    document.getElementById('pill2').textContent = '';
+  } else {
+    document.getElementById('pill1').textContent = nEng ? `${nEng} doc${nEng > 1 ? 's' : ''}` : '0 docs';
+    document.getElementById('pill2').textContent = nDone ? `${nDone} doc${nDone > 1 ? 's' : ''}` : '0 docs';
+  }
+  if (running) {
+    msg.innerHTML = `<div class="callout"><span>⏳</span><span>Running
+      <b>${activeProc === 1 ? 'ServiceNow → Jira' : 'Jira → ServiceNow'}</b>…</span></div>`;
+    return;
+  }
+  if (mode === 'live') {
+    msg.innerHTML = `<div class="callout warn"><span>⚡</span><span>Live mode executes the deployed
+      process on your Boomi atom. The connections point at placeholder hosts, so expect the real
+      run to fail at the first connector — the log below is the genuine platform trace.</span></div>`;
+    return;
+  }
+  const n = activeProc === 1 ? eligibleIncidents().length : doneIssues().length;
+  if (n === 0) {
+    msg.innerHTML = activeProc === 1
+      ? `<div class="callout"><span>ℹ</span><span>No eligible incidents. Create one assigned to
+          <b>Engineering</b> — the query skips anything already carrying a Jira key.</span></div>`
+      : `<div class="callout"><span>ℹ</span><span>No Jira issues are <b>Done</b> yet. Advance a card
+          on the board to make one match the JQL.</span></div>`;
+  } else {
+    msg.innerHTML = `<div class="callout ok"><span>✓</span><span>${n} document${n>1?'s':''} will flow
+      through this run.</span></div>`;
+  }
+}
+
+/* ============================================================
+   Log
+   ============================================================ */
+let logRows = [];
+function logClear() { logRows = []; paintLog(); }
+function logAdd(level, text) { logRows.push({ level, text }); paintLog(); }
+function paintLog() {
+  const box = document.getElementById('logbox');
+  box.innerHTML = logRows.length
+    ? logRows.map(r => `<div class="logline"><span class="lv lv-${esc(r.level)}">${esc(r.level)}</span><span class="tx">${esc(r.text)}</span></div>`).join('')
+    : '<div class="logline"><span class="tx" style="color:#5C7080">No run yet.</span></div>';
+  box.scrollTop = box.scrollHeight;
+}
+
+/* ============================================================
+   User actions
+   ============================================================ */
+function createIncident(seed) {
+  const s = seed || {
+    summary:  document.getElementById('fSummary').value.trim(),
+    desc:     document.getElementById('fDesc').value.trim(),
+    priority: document.getElementById('fPriority').value,
+    group:    document.getElementById('fGroup').value,
+  };
+  if (!s.summary) { document.getElementById('fSummary').focus(); return; }
+  incidents.unshift({
+    sys_id: sysId(),
+    number: 'INC' + String(incSeq++).padStart(7, '0'),
+    short_description: s.summary,
+    description: s.desc || '(no description)',
+    priority: s.priority,
+    state: SN_STATE.NEW,
+    assignment_group: s.group,
+    correlation_id: '',
+    _flash: true,
+  });
+  if (!seed) {
+    document.getElementById('fSummary').value = '';
+    document.getElementById('fDesc').value = '';
+  }
+  renderAll();
+}
+
+function advanceIssue(key) {
+  const x = issues.find(i => i.key === key);
+  if (!x) return;
+  if (x.status === 'To Do') x.status = 'In Progress';
+  else if (x.status === 'In Progress') x.status = 'Done';
+  else return;
+  x._flash = true;
+  renderAll();
+}
+
+function showProc(n) {
+  if (running) return;
+  activeProc = n;
+  shapeState = {};
+  document.getElementById('tab1').className = 'ptab' + (n === 1 ? ' on' : '');
+  document.getElementById('tab2').className = 'ptab' + (n === 2 ? ' on' : '');
+  renderAll();
+}
+
+function setMode(m) {
+  if (running) return;
+  if (m === 'live' && !liveReady) return;
+  mode = m;
+  document.getElementById('mSim').className  = m === 'sim'  ? 'on' : '';
+  document.getElementById('mLive').className = m === 'live' ? 'on' : '';
+  updateRunBtn();
+}
+
+function resetAll() {
+  if (running) return;
+  incidents = []; issues = []; incSeq = 10001; jiraSeq = 101;
+  shapeState = {}; logClear();
+  SEED.forEach(s => createIncident(s));
+  renderAll();
+}
+
+/* ============================================================
+   Run dispatch
+   ============================================================ */
+function runProc(n) {
+  if (running) return;
+  // Selecting the tab and running are one action - the button says what it will do.
+  activeProc = n;
+  shapeState = {};
+  document.getElementById('tab1').className = 'ptab' + (n === 1 ? ' on' : '');
+  document.getElementById('tab2').className = 'ptab' + (n === 2 ? ' on' : '');
+  renderAll();
+  if (mode === 'live') return runLive();
+  return n === 1 ? simProc1() : simProc2();
+}
+
+function mark(idx, cls, docs, note) {
+  shapeState[idx] = { cls, docs, note };
+  renderShapes();
+  const el = document.querySelectorAll('.shape')[idx];
+  if (el) el.scrollIntoView({ block:'nearest', behavior:'smooth' });
+}
+function settle(idx) {
+  if (shapeState[idx] && shapeState[idx].cls === 'on') shapeState[idx].cls = 'done';
+}
+
+const STEP_MS = 620;
+async function step(idx, docs, note) {
+  mark(idx, 'on', docs, note);
+  await sleep(STEP_MS);
+  settle(idx);
+  renderShapes();
+}
+
+function setBusy(on, label) {
+  running = on;
+  document.getElementById('boomiState').textContent = on ? (label || 'running') : 'idle';
+  updateRunBtn();
+}
+/* ============================================================
+   Presentation helpers for shape notes
+   ============================================================ */
+function jsonPre(obj, label) {
+  return (label ? `<div>${esc(label)}</div>` : '') +
+         `<pre>${esc(JSON.stringify(obj, null, 2))}</pre>`;
+}
+function ddpList(pairs) {
+  return '<div class="maps">' + pairs.map(([k, v]) =>
+    `<div class="maprow"><span class="mapsrc">${esc(k)}</span><span class="maparr">=</span><span class="mapdst">${esc(v)}</span></div>`
+  ).join('') + '</div>';
+}
+function ofN(i, n) { return n > 1 ? `<div class="mapnote">Showing document ${i} of ${n} — Boomi runs every document through this step before moving on.</div>` : ''; }
+
+/* ============================================================
+   Simulation - Process 1: ServiceNow → Jira
+   ============================================================ */
+async function simProc1() {
+  shapeState = {}; logClear(); setBusy(true, 'process 1 running');
+  const batch = eligibleIncidents();
+
+  await step(0, '1 doc', 'A No Data start emits a single empty document to kick the schedule off.');
+  await step(1, '1 doc', 'Everything downstream runs inside the Try path. Any failure jumps to Catch.');
+  await step(2, '1 doc', 'An empty Message step clears the document so the GET goes out with no body.');
+
+  const query = 'assignment_group.name=Engineering^correlation_id=ISEMPTY^active=true';
+  const respBody = { result: batch.map(x => ({
+    sys_id: x.sys_id, number: x.number, short_description: x.short_description,
+    description: x.description, priority: x.priority, state: x.state, correlation_id: ''
+  })) };
+
+  logAdd('INFO', `GET /api/now/table/incident?sysparm_query=${query}`);
+  await step(3, `1 → 1 doc`,
+    `<div>Query sent to ServiceNow:</div><pre>sysparm_query=${esc(query)}
+sysparm_fields=sys_id,number,short_description,description,priority,state,correlation_id
+sysparm_limit=50</pre>
+     <div class="mapnote">${batch.length} incident${batch.length===1?'':'s'} matched.</div>`);
+
+  if (!batch.length) {
+    logAdd('WARNING', 'No incidents matched the filter — nothing to sync.');
+    await step(4, '1 doc', 'Response logged. The result array is empty.');
+    mark(5, 'done', '1 → 0 docs', 'No array entries, so the map produces no output documents. Every later step runs with zero documents and does nothing.');
+    for (let i = 6; i <= 13; i++) shapeState[i] = { cls:'done', docs:'0 docs' };
+    await step(14, '0 docs', 'Process ends cleanly having done no work — the correct outcome when nothing is waiting.');
+    setBusy(false); renderAll(); return;
+  }
+
+  logAdd('INFO', `ServiceNow returned ${batch.length} incident(s).`);
+  await step(4, '1 doc', jsonPre(respBody, 'Raw response logged by the Notify step:'));
+
+  await step(5, `1 → ${batch.length} doc${batch.length>1?'s':''}`,
+    `The source profile's <span class="mono">result</span> array is repeating and the target is not,
+     so the map engine emits <b>one document per incident</b>. This split is the whole reason the step exists.`);
+
+  const first = batch[0];
+  await step(6, `${batch.length} doc${batch.length>1?'s':''}`,
+    ddpList([['DDP_SN_SYS_ID', first.sys_id], ['DDP_SN_NUMBER', first.number]]) + ofN(1, batch.length) +
+    `<div class="mapnote">Captured now because the document is about to be replaced by the Jira payload.</div>`);
+
+  const jiraReq = {
+    fields: {
+      project:   { key: 'ENG' },
+      issuetype: { name: 'Task' },
+      summary:     first.short_description,
+      description: first.description,
+      priority:  { id: first.priority }
+    }
+  };
+  await step(7, `${batch.length} doc${batch.length>1?'s':''}`,
+    `<div class="maps">
+       <div class="maprow"><span class="mapsrc">short_description</span><span class="maparr">→</span><span class="mapdst">fields.summary</span></div>
+       <div class="maprow"><span class="mapsrc">description</span><span class="maparr">→</span><span class="mapdst">fields.description</span></div>
+       <div class="maprow"><span class="mapsrc">priority</span><span class="maparr">→</span><span class="mapdst">fields.priority.id</span></div>
+       <div class="maprow"><span class="mapsrc">— default —</span><span class="maparr">→</span><span class="mapdst">fields.project.key = ENG</span></div>
+       <div class="maprow"><span class="mapsrc">— default —</span><span class="maparr">→</span><span class="mapdst">fields.issuetype.name = Task</span></div>
+     </div>
+     <div class="mapnote">ServiceNow priority 1–5 and Jira's default priority ids 1–5 both run most-urgent-first, so priority is a straight copy.</div>`
+    + jsonPre(jiraReq, 'Resulting request body:') + ofN(1, batch.length));
+
+  // create the Jira issues
+  const created = batch.map(x => {
+    const key = 'ENG-' + jiraSeq++;
+    issues.unshift({ key, summary:x.short_description, description:x.description,
+                     snPriority:x.priority, status:'To Do', snSysId:x.sys_id, _flash:true });
+    return { inc:x, key };
+  });
+  const firstKey = created[0].key;
+  logAdd('INFO', `Jira created ${created.map(c => c.key).join(', ')}`);
+  renderJira();
+
+  await step(8, `${batch.length} doc${batch.length>1?'s':''}`,
+    jsonPre({ id: String(10000 + jiraSeq), key: firstKey,
+              self: `https://your-org.atlassian.net/rest/api/2/issue/${firstKey}` },
+            'POST /rest/api/2/issue — response:') + ofN(1, batch.length));
+
+  await step(9, `${batch.length} doc${batch.length>1?'s':''}`, 'Create response logged.');
+
+  await step(10, `${batch.length} doc${batch.length>1?'s':''}`,
+    ddpList([['DDP_JIRA_KEY', firstKey],
+             ['DDP_SN_PATH', `/api/now/table/incident/${first.sys_id}`]]) +
+    `<div class="mapnote">The PATCH path is built here because the operation's own path is deliberately blank — sys_id differs per document.</div>` + ofN(1, batch.length));
+
+  const writeBack = { correlation_id: firstKey, correlation_display: 'Jira',
+                      work_notes: `Linked to Jira issue ${firstKey}` };
+  await step(11, `${batch.length} doc${batch.length>1?'s':''}`,
+    jsonPre(writeBack, 'Message step output:') +
+    `<div class="mapnote">In the real template the single quotes around each {n} toggle variable substitution on and off — without them Boomi emits the literal text {1}.</div>`);
+
+  // apply the write-back
+  created.forEach(c => {
+    // The write-back payload carries correlation_id / correlation_display / work_notes
+    // only - it deliberately does not change state. Process 2 is what resolves it.
+    c.inc.correlation_id = c.key;
+    c.inc._flash = true;
+  });
+  renderSN(); renderLink();
+
+  await step(12, `${batch.length} doc${batch.length>1?'s':''}`,
+    `<div>PATCH <span class="mono">/api/now/table/incident/${esc(first.sys_id)}</span></div>
+     <div class="mapnote">correlation_id is now set — this incident no longer matches process 1's query, which is what stops duplicate Jira issues on the next run.</div>`);
+
+  created.forEach(c => logAdd('INFO', `Linked ServiceNow ${c.inc.number} to Jira ${c.key}`));
+  await step(13, `${batch.length} doc${batch.length>1?'s':''}`,
+    created.map(c => `${esc(c.inc.number)} ↔ ${esc(c.key)}`).join('<br/>'));
+
+  await step(14, `${batch.length} doc${batch.length>1?'s':''}`, 'Process complete.');
+  setBusy(false); renderAll();
+}
+
+/* ============================================================
+   Simulation - Process 2: Jira → ServiceNow
+   ============================================================ */
+async function simProc2() {
+  shapeState = {}; logClear(); setBusy(true, 'process 2 running');
+  const batch = doneIssues();
+
+  await step(0, '1 doc', 'A No Data start emits a single empty document.');
+  await step(1, '1 doc', 'Try path begins.');
+  await step(2, '1 doc', 'Document cleared before the Jira GET.');
+
+  const jql = 'project = ENG AND status = Done AND updated >= -1h ORDER BY updated DESC';
+  const searchResp = { issues: batch.map(x => ({
+    id: String(10000 + parseInt(x.key.split('-')[1], 10)), key: x.key,
+    fields: { summary: x.summary, status: { name: 'Done' } }
+  })), isLast: true };
+
+  logAdd('INFO', `GET /rest/api/2/search/jql?jql=${jql}`);
+  await step(3, '1 → 1 doc',
+    `<div>JQL sent to Jira:</div><pre>${esc(jql)}</pre>
+     <div class="mapnote">${batch.length} issue${batch.length===1?'':'s'} matched. The one-hour window is slightly wider than the schedule so nothing slips between runs.</div>`);
+
+  if (!batch.length) {
+    logAdd('WARNING', 'No Done issues in the window — nothing to resolve.');
+    await step(4, '1 doc', 'Response logged. The issues array is empty.');
+    mark(5, 'done', '1 → 0 docs', 'No array entries, so no output documents. Everything downstream is a no-op.');
+    for (let i = 6; i <= 13; i++) shapeState[i] = { cls:'done', docs:'0 docs' };
+    await step(14, '0 docs', 'Process ends cleanly having done no work.');
+    setBusy(false); renderAll(); return;
+  }
+
+  logAdd('INFO', `Jira returned ${batch.length} Done issue(s).`);
+  await step(4, '1 doc', jsonPre(searchResp, 'Raw response logged:'));
+
+  await step(5, `1 → ${batch.length} doc${batch.length>1?'s':''}`,
+    'Same split as the other direction — the issues array becomes one document per issue.');
+
+  const firstIss = batch[0];
+  await step(6, `${batch.length} doc${batch.length>1?'s':''}`,
+    ddpList([['DDP_JIRA_KEY', firstIss.key],
+             ['DDP_SN_QUERY', `correlation_id=${firstIss.key}`]]) +
+    `<div class="mapnote">Both read straight from the profile rather than from each other, so there is no ordering dependency inside the step.</div>` + ofN(1, batch.length));
+
+  await step(7, `${batch.length} doc${batch.length>1?'s':''}`, 'Document cleared before the ServiceNow GET.');
+
+  const matches = batch.map(x => incidents.find(i => i.correlation_id === x.key)).filter(Boolean);
+  const firstInc = matches[0];
+  const snResp = firstInc ? { result: [{ sys_id:firstInc.sys_id, number:firstInc.number,
+      short_description:firstInc.short_description, description:firstInc.description,
+      priority:firstInc.priority, state:firstInc.state, correlation_id:firstInc.correlation_id }] }
+    : { result: [] };
+
+  await step(8, `${batch.length} doc${batch.length>1?'s':''}`,
+    `<div>GET <span class="mono">/api/now/table/incident?sysparm_query=correlation_id=${esc(firstIss.key)}</span></div>
+     <div class="mapnote">This is the reverse lookup. The Jira key stored by process 1 is the only handle we have — there is no shared id between the systems.</div>`
+    + jsonPre(snResp, 'Matched:') + ofN(1, batch.length));
+
+  await step(9, `${batch.length} doc${batch.length>1?'s':''}`, 'Lookup result logged.');
+
+  if (!firstInc) {
+    logAdd('WARNING', 'No incident carries that Jira key — nothing to resolve.');
+    await step(14, '0 docs', 'Nothing matched, so the run ends without a PATCH.');
+    setBusy(false); renderAll(); return;
+  }
+
+  await step(10, `${batch.length} doc${batch.length>1?'s':''}`,
+    ddpList([['DDP_SN_PATH', `/api/now/table/incident/${firstInc.sys_id}`]]) +
+    `<div class="mapnote">sysparm_limit=1 on the operation means the result array holds at most one entry, so reading the array element directly here is safe.</div>`);
+
+  const resolveBody = { state: '6', close_code: 'Solved (Permanently)',
+                        close_notes: `Resolved in Jira issue ${firstIss.key}` };
+  await step(11, `${batch.length} doc${batch.length>1?'s':''}`,
+    jsonPre(resolveBody, 'Message step output:') +
+    `<div class="mapnote">state 6 is Resolved on a stock Incident table; close_code and close_notes are required alongside it on most instances.</div>`);
+
+  const already = matches.filter(m => m.state === SN_STATE.RESOLVED).length;
+  matches.forEach(m => { m.state = SN_STATE.RESOLVED; m._flash = true; });
+  renderSN();
+
+  await step(12, `${batch.length} doc${batch.length>1?'s':''}`,
+    `<div>PATCH <span class="mono">/api/now/table/incident/${esc(firstInc.sys_id)}</span></div>` +
+    (already ? `<div class="mapnote">${already} of these ${already===1?'was':'were'} already Resolved — the PATCH is idempotent, which is why the wide polling window is safe.</div>` : ''));
+
+  matches.forEach(m => logAdd('INFO', `Jira ${m.correlation_id} is Done — ${m.number} set to Resolved.`));
+  await step(13, `${batch.length} doc${batch.length>1?'s':''}`,
+    matches.map(m => `${esc(m.correlation_id)} → ${esc(m.number)} Resolved`).join('<br/>'));
+
+  await step(14, `${batch.length} doc${batch.length>1?'s':''}`, 'Process complete.');
+  setBusy(false); renderAll();
+}
+
+/* ============================================================
+   Live mode - executes the real deployed Boomi process
+   ============================================================ */
+async function runLive() {
+  shapeState = {}; logClear(); setBusy(true, 'calling Boomi platform');
+  const key = activeProc === 1 ? 'sn-to-jira' : 'jira-to-sn';
+  logAdd('INFO', `Submitting ExecutionRequest for ${PROC[activeProc].name}…`);
+  renderShapes();
+
+  let data;
+  try {
+    const r = await fetch(`/api/run/${key}`, { method: 'POST' });
+    data = await r.json();
+  } catch (e) {
+    logAdd('ERROR', 'Could not reach the local dev server: ' + e.message);
+    setBusy(false); return;
+  }
+
+  if (data.error) {
+    logAdd('ERROR', data.message || 'Execution failed.');
+    setBusy(false); return;
+  }
+
+  logAdd('INFO', `Execution ${data.executionId} finished with status ${data.status}.`);
+
+  if (data.discarded) {
+    (data.log || []).forEach(r => logAdd('WARNING', r.message));
+    document.getElementById('runMsg').innerHTML =
+      `<div class="callout warn"><span>⏳</span><span><b>DISCARDED</b> — a previous run of this
+        process was still active. Both processes use <span class="mono">allowSimultaneous=false</span>,
+        so the platform drops overlapping runs rather than queueing them. Give it a few seconds and
+        run again.</span></div>`;
+    setBusy(false);
+    document.getElementById('boomiState').textContent = 'idle';
+    return;
+  }
+
+  // Replay the real platform log against our shape list
+  const names = PROC[activeProc].shapes.map(s => s.n.toLowerCase());
+  (data.log || []).forEach(row => {
+    const lvl = (row.level || 'INFO').toUpperCase();
+    const text = [row.shape, row.detail, row.message].filter(Boolean).join(' · ');
+    if (text) logAdd(['INFO','WARNING','ERROR'].includes(lvl) ? lvl : 'INFO', text);
+
+    const shapeName = (row.shape || '').toLowerCase();
+    const idx = names.findIndex(n => shapeName && (n === shapeName || shapeName.startsWith(n)));
+    if (idx >= 0) {
+      const failed = lvl === 'ERROR' || /with errors/i.test(row.message || '');
+      const prev = shapeState[idx] || {};
+      shapeState[idx] = {
+        cls: failed ? 'err' : (prev.cls === 'err' ? 'err' : 'done'),
+        docs: (row.message || '').match(/with (\d+) document/) ? RegExp.$1 + ' docs' : prev.docs,
+        note: failed ? esc(row.message || 'Shape reported an error.') : prev.note,
+      };
+    }
+  });
+  renderShapes();
+
+  const err = (data.log || []).find(r => (r.level || '').toUpperCase() === 'WARNING' && /failed/i.test(r.message || ''));
+  document.getElementById('runMsg').innerHTML = err
+    ? `<div class="callout err"><span>✕</span><span>${esc(err.message)}</span></div>`
+    : `<div class="callout ok"><span>✓</span><span>Execution ${esc(data.status)}.</span></div>`;
+
+  setBusy(false);
+  document.getElementById('boomiState').textContent = 'idle';
+}
+
+/* ============================================================
+   Init
+   ============================================================ */
+(async function init() {
+  // Opened as a file there is no dev server, so skip the probe entirely and
+  // stay in Simulated - the mode this page already defaults to.
+  if (location.protocol !== 'http:' && location.protocol !== 'https:') {
+    liveReady = false;
+  } else {
+    try {
+      const cfg = await (await fetch('/api/config')).json();
+      liveReady = !!cfg.liveReady;
+    } catch (e) { liveReady = false; }
+  }
+  if (!liveReady) {
+    const b = document.getElementById('mLive');
+    b.disabled = true;
+    b.title = 'Boomi credentials not found in .env';
+  }
+  SEED.forEach(s => createIncident(s));
+  renderAll();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CEO Dashboard · Boomi Integrations</title>
+<style>
+  :root {
+    --bg: #f5f7fb;
+    --card: #ffffff;
+    --text: #0f172a;
+    --text-muted: #64748b;
+    --text-light: #94a3b8;
+    --primary: #1e40af;
+    --primary-light: #3b82f6;
+    --primary-soft: #dbeafe;
+    --success: #16a34a;
+    --success-soft: #dcfce7;
+    --warning: #f59e0b;
+    --warning-soft: #fef3c7;
+    --danger: #dc2626;
+    --danger-soft: #fee2e2;
+    --info: #0891b2;
+    --info-soft: #cffafe;
+    --neutral: #94a3b8;
+    --neutral-soft: #f1f5f9;
+    --border: #e2e8f0;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+    --shadow: 0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 8px rgba(0,0,0,0.06), 0 2px 4px rgba(0,0,0,0.04);
+    --shadow-hover: 0 10px 20px rgba(30,64,175,0.12), 0 4px 8px rgba(0,0,0,0.06);
+    --nav-h: 56px;
+    --sub-h: 44px;
+    --gap: 14px;
+    --pad: 16px;
+    --injected-nav-h: 0px;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.5;
+    color: var(--text);
+    background: var(--bg);
+    margin: 0;
+    font-size: 14px;
+  }
+
+  /* Top Navigation */
+  nav.topnav {
+    position: sticky;
+    top: var(--injected-nav-h);
+    height: var(--nav-h);
+    background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #3b82f6 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    z-index: 100;
+    gap: 18px;
+  }
+  nav.topnav .logo {
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: -0.4px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-right: 14px;
+  }
+  nav.topnav .logo .badge-live {
+    background: rgba(255,255,255,0.15);
+    font-size: 9px;
+    padding: 3px 7px;
+    border-radius: 4px;
+    letter-spacing: 0.6px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+  nav.topnav .nav-links {
+    display: flex;
+    gap: 4px;
+    flex: 1;
+    flex-wrap: wrap;
+  }
+  nav.topnav .nav-link {
+    color: rgba(255,255,255,0.78);
+    text-decoration: none;
+    padding: 7px 13px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.15s;
+    cursor: pointer;
+  }
+  nav.topnav .nav-link:hover { background: rgba(255,255,255,0.12); color: white; }
+  nav.topnav .nav-link.active { background: rgba(255,255,255,0.18); color: white; }
+  nav.topnav .meta {
+    font-size: 11px;
+    color: rgba(255,255,255,0.7);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  nav.topnav .meta .pulse {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #4ade80;
+    animation: pulse 2s infinite;
+    box-shadow: 0 0 0 0 rgba(74,222,128,0.6);
+  }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(74,222,128,0.6); }
+    70% { box-shadow: 0 0 0 8px rgba(74,222,128,0); }
+    100% { box-shadow: 0 0 0 0 rgba(74,222,128,0); }
+  }
+
+  /* Sub-bar (breadcrumb / context) */
+  .sub-bar {
+    position: sticky;
+    top: calc(var(--injected-nav-h) + var(--nav-h));
+    height: var(--sub-h);
+    background: white;
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    z-index: 99;
+  }
+  .sub-bar .breadcrumb {
+    font-size: 13px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .sub-bar .breadcrumb a { color: var(--primary); text-decoration: none; font-weight: 500; cursor: pointer; }
+  .sub-bar .breadcrumb a:hover { text-decoration: underline; }
+  .sub-bar .breadcrumb .arrow { color: var(--text-light); }
+  .sub-bar .breadcrumb .current { color: var(--text); font-weight: 600; }
+  .sub-bar .actions { display: flex; gap: 8px; }
+  .sub-bar .btn {
+    padding: 5px 12px;
+    border-radius: 5px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: white;
+    color: var(--text-muted);
+    transition: all 0.15s;
+  }
+  .sub-bar .btn:hover { background: var(--primary-soft); color: var(--primary); border-color: var(--primary); }
+  .sub-bar .btn.primary { background: var(--primary); color: white; border-color: var(--primary); }
+
+  /* App container */
+  #app {
+    height: calc(100vh - var(--nav-h) - var(--sub-h) - var(--injected-nav-h));
+    overflow: hidden;
+  }
+
+  /* Dashboard - fits exactly in viewport */
+  .dashboard {
+    height: 100%;
+    padding: var(--pad);
+    display: grid;
+    grid-template-rows: auto 1fr 1fr;
+    gap: var(--gap);
+  }
+
+  /* KPI row */
+  .kpi-row {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: var(--gap);
+  }
+  .kpi {
+    background: var(--card);
+    border-radius: 10px;
+    padding: 12px 16px;
+    box-shadow: var(--shadow);
+    border-left: 4px solid var(--primary);
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .kpi:hover { box-shadow: var(--shadow-hover); transform: translateY(-2px); }
+  .kpi::after {
+    content: '↗';
+    position: absolute;
+    top: 10px; right: 12px;
+    color: var(--text-light);
+    font-size: 14px;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .kpi:hover::after { opacity: 1; }
+  .kpi .label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--text-muted);
+    font-weight: 700;
+    margin-bottom: 3px;
+  }
+  .kpi .value { font-size: 24px; font-weight: 800; color: var(--text); line-height: 1.1; }
+  .kpi .delta { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .kpi.success { border-left-color: var(--success); }
+  .kpi.success .value { color: var(--success); }
+  .kpi.warning { border-left-color: var(--warning); }
+  .kpi.warning .value { color: var(--warning); }
+  .kpi.danger { border-left-color: var(--danger); }
+  .kpi.danger .value { color: var(--danger); }
+  .kpi.info { border-left-color: var(--info); }
+  .kpi.info .value { color: var(--info); }
+
+  /* Widget rows */
+  .widget-row {
+    display: grid;
+    gap: var(--gap);
+    min-height: 0;
+  }
+  .row-2 { grid-template-columns: 1.5fr 1fr 1fr; }
+  .row-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+  .widget {
+    background: var(--card);
+    border-radius: 10px;
+    padding: 14px 18px;
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .widget:hover { box-shadow: var(--shadow-hover); transform: translateY(-2px); }
+  .widget-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    flex-shrink: 0;
+  }
+  .widget-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .widget-link {
+    font-size: 11px;
+    color: var(--primary);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+  .widget-body { flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
+
+  /* Bar chart */
+  .mini-bars { display: flex; flex-direction: column; gap: 6px; }
+  .mini-bar-row {
+    display: grid;
+    grid-template-columns: 1fr 90px;
+    gap: 8px;
+    align-items: center;
+    font-size: 12px;
+  }
+  .mini-bar-label {
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+    transition: color 0.15s;
+  }
+  .mini-bar-row:hover .mini-bar-label { color: var(--primary); font-weight: 600; }
+  .mini-bar-track-wrap { position: relative; }
+  .mini-bar-track {
+    background: #eef2f7;
+    height: 18px;
+    border-radius: 3px;
+    position: relative;
+    overflow: hidden;
+  }
+  .mini-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary-light), var(--primary));
+    border-radius: 3px;
+    transition: width 0.6s ease-out;
+  }
+  .mini-bar-fill.warn { background: linear-gradient(90deg, #fbbf24, var(--warning)); }
+  .mini-bar-fill.danger { background: linear-gradient(90deg, #f87171, var(--danger)); }
+  .mini-bar-fill.success { background: linear-gradient(90deg, #4ade80, var(--success)); }
+  .mini-bar-value {
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text);
+    z-index: 1;
+  }
+
+  /* Donut */
+  .donut-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    min-height: 0;
+  }
+  .donut-wrap svg { flex-shrink: 0; width: 110px; height: 110px; }
+  .donut-legend { flex: 1; font-size: 12px; }
+  .donut-legend .item { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+  .donut-legend .swatch { width: 10px; height: 10px; border-radius: 2px; }
+  .donut-legend .label { color: var(--text); font-weight: 500; }
+  .donut-legend .val { color: var(--text-muted); margin-left: auto; }
+
+  /* Health grid */
+  .health-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    flex: 1;
+    min-height: 0;
+  }
+  .health-tile {
+    padding: 10px 12px;
+    border-radius: 8px;
+    border-left: 4px solid;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+  .health-tile:hover { transform: scale(1.03); }
+  .health-tile.h { background: var(--success-soft); border-left-color: var(--success); }
+  .health-tile.a { background: var(--warning-soft); border-left-color: var(--warning); }
+  .health-tile.c { background: var(--danger-soft); border-left-color: var(--danger); }
+  .health-tile.d { background: var(--neutral-soft); border-left-color: var(--neutral); }
+  .health-tile .count { font-size: 22px; font-weight: 800; line-height: 1; }
+  .health-tile.h .count { color: var(--success); }
+  .health-tile.a .count { color: var(--warning); }
+  .health-tile.c .count { color: var(--danger); }
+  .health-tile.d .count { color: var(--neutral); }
+  .health-tile .lbl { font-size: 11px; color: var(--text); font-weight: 600; margin-top: 3px; }
+  .health-tile .sub { font-size: 10px; color: var(--text-muted); }
+
+  /* Process list widget */
+  .proc-list { display: flex; flex-direction: column; gap: 4px; flex: 1; min-height: 0; overflow: auto; }
+  .proc-row {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 8px;
+    padding: 7px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background 0.15s;
+    align-items: center;
+  }
+  .proc-row:hover { background: var(--primary-soft); }
+  .proc-row .pname { font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .proc-row .pruns { font-weight: 600; color: var(--text-muted); font-size: 11px; }
+  .proc-row .pdot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .pdot.healthy { background: var(--success); }
+  .pdot.attention { background: var(--warning); }
+  .pdot.critical { background: var(--danger); animation: pulse-red 1.5s infinite; }
+  .pdot.dormant { background: var(--neutral); }
+  @keyframes pulse-red {
+    0% { box-shadow: 0 0 0 0 rgba(220,38,38,0.5); }
+    70% { box-shadow: 0 0 0 6px rgba(220,38,38,0); }
+    100% { box-shadow: 0 0 0 0 rgba(220,38,38,0); }
+  }
+
+  /* Critical alert widget */
+  .alert-widget {
+    background: linear-gradient(135deg, #fef2f2 0%, #fff 100%);
+    border: 1px solid var(--danger-soft);
+    border-left: 5px solid var(--danger);
+  }
+  .alert-widget .widget-title { color: var(--danger); }
+  .alert-content { flex: 1; min-height: 0; overflow: auto; }
+  .alert-item { padding: 8px 10px; background: white; border-radius: 6px; margin-bottom: 6px; border: 1px solid var(--danger-soft); cursor: pointer; }
+  .alert-item:hover { background: var(--danger-soft); }
+  .alert-item .at { font-size: 12px; font-weight: 700; color: var(--danger); }
+  .alert-item .am { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+  /* Detail page layouts (scrollable) */
+  .detail-page {
+    height: 100%;
+    overflow-y: auto;
+    padding: 22px 28px;
+  }
+  .detail-page h2 {
+    margin: 0 0 4px;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .detail-page .lead { color: var(--text-muted); margin: 0 0 20px; font-size: 14px; }
+
+  .card {
+    background: white;
+    border-radius: 10px;
+    padding: 20px 24px;
+    box-shadow: var(--shadow);
+    margin-bottom: 16px;
+  }
+  .card h3 { margin: 0 0 14px; font-size: 16px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 10px; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { padding: 9px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+  th { background: #f8fafc; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.4px; color: var(--text-muted); }
+  tr.clickable { cursor: pointer; }
+  tr.clickable:hover td { background: var(--primary-soft); }
+  td code { background: var(--neutral-soft); padding: 2px 6px; border-radius: 3px; font-size: 12px; font-family: "SF Mono", Monaco, Consolas, monospace; }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 9px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    white-space: nowrap;
+  }
+  .badge.healthy { background: var(--success-soft); color: #14532d; }
+  .badge.attention { background: var(--warning-soft); color: #78350f; }
+  .badge.critical { background: var(--danger-soft); color: #7f1d1d; }
+  .badge.dormant { background: var(--neutral-soft); color: var(--text-muted); }
+  .badge.info { background: var(--info-soft); color: #155e75; }
+  .badge.p0 { background: var(--danger); color: white; }
+  .badge.p1 { background: var(--warning); color: white; }
+  .badge.p2 { background: var(--success); color: white; }
+  .badge.p3 { background: var(--neutral); color: white; }
+
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .stat {
+    background: white;
+    padding: 14px 16px;
+    border-radius: 8px;
+    box-shadow: var(--shadow-sm);
+    border-left: 3px solid var(--primary);
+  }
+  .stat .l { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); font-weight: 700; }
+  .stat .v { font-size: 22px; font-weight: 800; margin-top: 2px; }
+  .stat.ok { border-left-color: var(--success); }
+  .stat.ok .v { color: var(--success); }
+  .stat.err { border-left-color: var(--danger); }
+  .stat.err .v { color: var(--danger); }
+  .stat.warn { border-left-color: var(--warning); }
+  .stat.warn .v { color: var(--warning); }
+
+  pre {
+    background: #1e293b;
+    color: #e2e8f0;
+    padding: 12px 16px;
+    border-radius: 6px;
+    font-family: "SF Mono", Monaco, Consolas, monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    overflow-x: auto;
+  }
+
+  .callout {
+    padding: 12px 16px;
+    border-radius: 8px;
+    border-left: 4px solid;
+    margin: 12px 0;
+    font-size: 13px;
+  }
+  .callout.info { background: var(--primary-soft); border-left-color: var(--primary); }
+  .callout.warn { background: var(--warning-soft); border-left-color: var(--warning); }
+  .callout.danger { background: var(--danger-soft); border-left-color: var(--danger); }
+  .callout.success { background: var(--success-soft); border-left-color: var(--success); }
+
+  /* Fade-in animation */
+  .fade-in {
+    animation: fadeIn 0.3s ease-out;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Scrollbar styling for detail pages */
+  .detail-page::-webkit-scrollbar, .proc-list::-webkit-scrollbar, .alert-content::-webkit-scrollbar { width: 8px; height: 8px; }
+  .detail-page::-webkit-scrollbar-thumb, .proc-list::-webkit-scrollbar-thumb, .alert-content::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+
+  /* Filter input */
+  .filter-input {
+    padding: 7px 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 13px;
+    width: 240px;
+    background: white;
+  }
+  .filter-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft); }
+
+  /* Responsive */
+  @media (max-width: 1100px) {
+    .kpi-row { grid-template-columns: repeat(3, 1fr); }
+    .row-2, .row-3 { grid-template-columns: 1fr 1fr; }
+    html, body { overflow: auto; }
+    .dashboard { height: auto; min-height: calc(100vh - var(--nav-h) - var(--sub-h)); }
+    #app { height: auto; }
+  }
+  @media (max-width: 700px) {
+    .kpi-row { grid-template-columns: repeat(2, 1fr); }
+    .row-2, .row-3 { grid-template-columns: 1fr; }
+    nav.topnav .meta { display: none; }
+  }
+</style>
+</head>
+<body>
+<!-- SEDC-NAV:START -->
+<style>
+  .sedc-nav * { box-sizing: border-box; }
+  .sedc-nav {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    margin: 0;
+    background: #072B55;
+    color: #ffffff;
+    font-family: 'Poppins',Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    font-size: 14px;
+    line-height: 1.4;
+  }
+  .sedc-nav-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 10px 20px;
+  }
+  .sedc-nav-brand {
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+  }
+  .sedc-nav-brand:hover,
+  .sedc-nav-brand:focus {
+    text-decoration: underline;
+  }
+  .sedc-nav-jump {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .sedc-nav-label {
+    white-space: nowrap;
+    color: #ffffff;
+  }
+  .sedc-nav-select {
+    font-family: inherit;
+    font-size: 13px;
+    color: #072B55;
+    background: #ffffff;
+    border: 1px solid #ffffff;
+    border-radius: 4px;
+    padding: 5px 8px;
+    max-width: 60vw;
+  }
+  .sedc-nav-rule {
+    height: 3px;
+    width: 100%;
+    background: linear-gradient(90deg,#FF7C66 0%,#A03291 100%);
+  }
+</style>
+<div class="sedc-nav" role="navigation" aria-label="SE Demo Companion navigation">
+  <div class="sedc-nav-bar">
+    <a class="sedc-nav-brand" href="../index.html" target="_top">SE Demo Companion</a>
+    <div class="sedc-nav-jump">
+      <label class="sedc-nav-label" for="sedc-nav-select">Jump to use case</label>
+      <select class="sedc-nav-select" id="sedc-nav-select" onchange="(function(sel){try{var opt=sel.options[sel.selectedIndex];var url=opt&&opt.getAttribute('data-href');if(!url)return;try{window.top.location.href=url;}catch(e){window.location.href=url;}}catch(e){}})(this)">
+        <option value="amc-fee-change-agent" data-href="./amc-fee-change-agent.html">AMC fee-change agent — Finnomena</option>
+        <option value="bvtpa-claims-integration-demo" data-href="./bvtpa-claims-integration-demo.html">Blue Venture TPA claims integration demo — Blue Venture TPA</option>
+        <option value="bvtpa-claims-adjudication-cio-brief" data-href="./bvtpa-claims-adjudication-cio-brief.html">Claims adjudication CIO brief — Blue Venture TPA</option>
+        <option value="delivery-status-sync-demo" data-href="./delivery-status-sync-demo.html">Delivery status sync demo — TOTO</option>
+        <option value="boomi-tenant-ceo-dashboard" data-href="./boomi-tenant-ceo-dashboard.html" selected>Boomi tenant CEO dashboard — Boomi internal tenant</option>
+        <option value="boomi-tenant-30-day-report" data-href="./boomi-tenant-30-day-report.html">Boomi tenant operations report, 30-day view — Boomi internal tenant</option>
+        <option value="json-to-xml-order-integration" data-href="./json-to-xml-order-integration.html">JSON to XML order integration, executive documentation — NTT</option>
+        <option value="edi-850-flight-deck" data-href="./edi-850-flight-deck.html">EDI 850 flight deck — Infosys</option>
+        <option value="whatsapp-to-sap-master-agent" data-href="./whatsapp-to-sap-master-agent.html">WhatsApp to SAP master agent — Boomi internal build</option>
+        <option value="student-xml-to-crm-json" data-href="./student-xml-to-crm-json.html">Student XML to CRM JSON — Attura</option>
+        <option value="sap-accounting-document-poc-outcome" data-href="./sap-accounting-document-poc-outcome.html">SAP accounting document automation, POC outcome — Abans PLC</option>
+        <option value="abans-sap-posting-poc-dashboard" data-href="./abans-sap-posting-poc-dashboard.html">Abans SAP posting, live POC dashboard — Abans PLC</option>
+        <option value="order-intake-api-fan-out" data-href="./order-intake-api-fan-out.html">Order intake API with multi-target fan-out — LTIMindtree</option>
+        <option value="electromart-track-and-reschedule" data-href="./electromart-track-and-reschedule.html">ElectroMart track order and reschedule delivery — ElectroMart (demo brand)</option>
+        <option value="enterprise-portal-ai-agent" data-href="./enterprise-portal-ai-agent.html">Enterprise portal with an embedded AI agent — ITG</option>
+        <option value="o2c-qad-build-journey" data-href="./o2c-qad-build-journey.html">O2C-QAD build journey — Boomi internal build</option>
+        <option value="boomi-accenture-trivia" data-href="./boomi-accenture-trivia.html">Boomi x Accenture trivia — Boomi internal build</option>
+        <option value="cloud-runtime-sizing-calculator" data-href="./cloud-runtime-sizing-calculator.html">Boomi public cloud runtime sizing estimator — Boomi internal build</option>
+        <option value="coupa-netsuite-vendor-bill" data-href="./coupa-netsuite-vendor-bill.html">Vendor bill pipeline, Coupa to NetSuite — Boomi internal build</option>
+        <option value="coupa-oracle-s2p-console" data-href="./coupa-oracle-s2p-console.html">Source-to-pay flow console, Coupa to Oracle Fusion — Boomi internal build</option>
+        <option value="epic-rauland-adt-nurse-call" data-href="./epic-rauland-adt-nurse-call.html">Epic ADT to Rauland Responder 5, nurse call integration — Boomi internal build</option>
+        <option value="epic-salesforce-trial-screening" data-href="./epic-salesforce-trial-screening.html">Clinical trial screening console, Epic to Salesforce — Meridian Research (demo brand)</option>
+        <option value="jc-hifi-order-tracker" data-href="./jc-hifi-order-tracker.html">JC Hi-Fi order tracker, customer self-service — JC Hi-Fi (demo brand)</option>
+        <option value="pacific-bank-onboarding" data-href="./pacific-bank-onboarding.html">Pacific onboarding console, retail bank customer onboarding — Pacific Islands Community Bank (demo brand)</option>
+        <option value="sea-data-product-assistant" data-href="./sea-data-product-assistant.html">SEA regional performance, data products and an agent over two ERPs — Boomi internal build</option>
+        <option value="servicenow-jira-incident-sync" data-href="./servicenow-jira-incident-sync.html">Incident sync prototype, ServiceNow to Jira — Boomi internal build</option>
+        <option value="zendesk-magento-order-status" data-href="./zendesk-magento-order-status.html">Order status bot and flow inspector, Zendesk to Magento — Avery Products (demo brand)</option>
+        <option value="zoho-netsuite-invoice-sync" data-href="./zoho-netsuite-invoice-sync.html">Invoice sync console, Zoho CRM to NetSuite — Boomi internal build</option>
+      </select>
+    </div>
+  </div>
+  <div class="sedc-nav-rule"></div>
+</div>
+<!-- SEDC-NAV:END -->
+
+
+<script>
+  (function () {
+    function setInjectedNavHeight() {
+      var sedcNav = document.querySelector('.sedc-nav');
+      var h = sedcNav ? sedcNav.getBoundingClientRect().height : 0;
+      document.documentElement.style.setProperty('--injected-nav-h', h + 'px');
+    }
+    setInjectedNavHeight();
+    window.addEventListener('resize', setInjectedNavHeight);
+  })();
+</script>
+
+<nav class="topnav">
+  <div class="logo">🚀 Boomi CEO Dashboard <span class="badge-live">Dashboard</span></div>
+  <div class="nav-links" id="nav-links">
+    <a class="nav-link" data-route="#/">📊 Overview</a>
+    <a class="nav-link" data-route="#/deployments">📦 Deployments</a>
+    <a class="nav-link" data-route="#/processes">⚙️ Processes</a>
+    <a class="nav-link" data-route="#/errors">⚠️ Errors</a>
+    <a class="nav-link" data-route="#/discards">⏸ Discards</a>
+    <a class="nav-link" data-route="#/dormant">💤 Dormant</a>
+    <a class="nav-link" data-route="#/recommendations">✅ Actions</a>
+    <a class="nav-link" data-route="#/about">ℹ️ About</a>
+    <a class="nav-link" data-route="#/docs">📖 Docs</a>
+  </div>
+  <div class="meta">
+    <span class="pulse" id="live-pulse"></span>
+    <span id="live-status">Data as of —</span>
+  </div>
+</nav>
+
+<div class="sub-bar">
+  <div class="breadcrumb" id="breadcrumb">
+    <a data-route="#/">Home</a>
+  </div>
+  <div class="actions">
+    <button class="btn" onclick="window.print()">🖨️ Print</button>
+    <button class="btn primary" onclick="location.reload()">🔄 Refresh</button>
+  </div>
+</div>
+
+<div id="app"></div>
+
+<!-- Auto-refreshed data file (regenerated by scripts/generate-dashboard-data.sh) -->
+<script src="dashboard-data.js" onerror="window.__DATA_FILE_MISSING=true"></script>
+
+<script>
+// ============================================================================
+// DATA — loads from dashboard-data.js (auto-generated by launchd job)
+// Falls back to inline snapshot if the external file is missing.
+// ============================================================================
+const INLINE_FALLBACK = {
+  tenant: "boomi_saurabhsingh-FI5Q23",
+  environment: "Production",
+  envId: "2666f02a-2585-431d-b720-ab5e099f7586",
+  atomName: "Production Training Cloud",
+  windowStart: "2026-04-18T08:30:04Z",
+  windowEnd: "2026-05-18T08:30:04Z",
+
+  metrics: {
+    deployments: 15,
+    deploymentsActive: 6,
+    deploymentsDormant: 9,
+    executionsTotal: 12644,
+    executionsComplete: 12584,
+    executionsError: 15,
+    executionsDiscarded: 45,
+    successRate: 99.53,
+    avgDurationMs: 8780,
+    dailyAvg: 421,
+    health: { healthy: 3, attention: 2, critical: 1, dormant: 9 }
+  },
+
+  // 15 deployed processes
+  deployments: [
+    { id: "a2bc729b-35c1-47a9-befd-0634a60dccff", name: "NTTDemo-Order-JSON-to-XML-Process", folder: "NTTDemo-OrderJsonToXml", type: "process", version: 1, deployedAt: "2026-05-18T08:06:51Z", deployedBy: "saurabh.singh@boomi.com", runs: 1, status: "healthy" },
+    { id: "8106e56b-b013-414f-810f-8a0546b49b2f", name: "P_O2C_Twilio_Inbound", folder: "O2C-QAD", type: "process", version: 22, deployedAt: "2026-05-13T17:28:00Z", deployedBy: "saurabh.singh@boomi.com", runs: 121, status: "healthy" },
+    { id: "fe20ef15-b107-4f23-b26b-291f4ab277e1", name: "P_O2C_WhatsApp_to_QAD_Main", folder: "O2C-QAD", type: "process", version: 3, deployedAt: "2026-05-13T11:18:07Z", deployedBy: "saurabh.singh@boomi.com", runs: 12, status: "critical" },
+    { id: "319b49d7-e291-471a-9c8a-370530166be5", name: "Twilio Inbound API for QAD SO", folder: "O2C-QAD", type: "webservice", version: 1, deployedAt: "2026-05-13T09:06:41Z", deployedBy: "saurabh.singh@boomi.com", runs: 0, status: "info" },
+    { id: "3f79652d-f723-417a-a4f3-b44736ab19a5", name: "test", folder: "Boomi_SaurabhSingh", type: "process", version: 2, deployedAt: "2026-05-13T08:23:24Z", deployedBy: "saurabh.singh@boomi.com", runs: 0, status: "dormant" },
+    { id: "49a8630e-652b-4fea-899c-bae4d99b77f5", name: "ElectroMart_OrderUpdate_API", folder: "ElectroMart-OrderToCash", type: "process", version: 3, deployedAt: "2026-05-07T08:26:55Z", deployedBy: "saurabh.singh@boomi.com", runs: 5, status: "healthy" },
+    { id: "99a71e43-f00e-4403-80af-918e110e1cba", name: "ElectroMart_OrderLookup_API", folder: "ElectroMart-OrderToCash", type: "process", version: 3, deployedAt: "2026-05-07T08:08:52Z", deployedBy: "saurabh.singh@boomi.com", runs: 27, status: "attention" },
+    { id: "14ec7217-cab7-4ce1-a68b-81b202962c3b", name: "acceptEditstest", folder: "LuckFrozen-Demo", type: "process", version: 1, deployedAt: "2026-05-05T15:42:32Z", deployedBy: "saurabh.singh@boomi.com", runs: 0, status: "dormant" },
+    { id: "bebdde37-f927-47cc-97b8-6c6e8127c3c5", name: "bash-hello", folder: "LuckFrozen-Demo", type: "process", version: 4, deployedAt: "2026-05-05T15:38:05Z", deployedBy: "saurabh.singh@boomi.com", runs: 0, status: "dormant" },
+    { id: "2191dd75-f5e3-4c9f-a7e4-203ed8058887", name: "LuckFrozen-Demo - Live NYC Weather via HTTP", folder: "LuckFrozen-Demo", type: "process", version: 1, deployedAt: "2026-05-05T07:43:35Z", deployedBy: "saurabh.singh@boomi.com", runs: 0, status: "dormant" },
+    { id: "a0831293-fbd9-442b-9fe0-7443a6636152", name: "Product Web Service", folder: "Boomi_SaurabhSingh", type: "process", version: 1, deployedAt: "2026-03-17T11:47:54Z", deployedBy: "saurabh.singh@boomi.com", runs: 0, status: "dormant" },
+    { id: "1e854d95-61ce-40d4-bfd3-f5ce7dcc91d7", name: "[Event Streams] Handle Slack App Messages - RKOM", folder: "Bundle-RKOM", type: "process", version: 1, deployedAt: "2026-02-23T15:59:46Z", deployedBy: "saurabh.singh@boomi.com", runs: 0, status: "dormant" },
+    { id: "d217f418-8369-4248-afb8-da3f29ef723b", name: "SN Incident Create Proxy", folder: "Boomi_SaurabhSingh", type: "webservice.external", version: 1, deployedAt: "2025-11-26T07:09:33Z", deployedBy: "saurabh.singh@boomi.com", runs: 0, status: "dormant" },
+    { id: "37214c83-2dfc-4c4c-8203-a0f40327e699", name: "Ticket v5 Gmail", folder: "Created_by_BoomiAI", type: "process", version: 4, deployedAt: "2025-11-10T08:35:27Z", deployedBy: "saurabh.singh@boomi.com", runs: 12478, status: "attention" },
+    { id: "874463b2-6ba5-48a6-a055-ccab7fb0ff43", name: "Ticket v4", folder: "Created_by_BoomiAI", type: "process", version: 10, deployedAt: "2025-11-06T08:35:38Z", deployedBy: "saurabh.singh@boomi.com", runs: 0, status: "dormant" }
+  ],
+
+  // Per-process detailed stats for the 6 active processes
+  processStats: {
+    "37214c83-2dfc-4c4c-8203-a0f40327e699": { name: "Ticket v5 Gmail", total: 12478, complete: 12432, error: 1, discarded: 45, avgMs: 8781, maxMs: 482136, inDocs: 1, outDocs: 2, type: "exec_sched", first: "2026-04-18T08:32:00Z", last: "2026-05-07T11:51:00Z", note: "Chattiest process in tenant. 45 'process already running' discards indicate the 1-minute schedule is racing with itself. Single error was a transient Gmail socket timeout." },
+    "8106e56b-b013-414f-810f-8a0546b49b2f": { name: "P_O2C_Twilio_Inbound", total: 121, complete: 121, error: 0, discarded: 0, avgMs: 10495, maxMs: 140116, inDocs: 121, outDocs: 43, type: "exec_listener", first: "2026-05-13T09:14:32Z", last: "2026-05-18T08:14:28Z", note: "Production-healthy. 100% success rate. 121 inbound → 43 outbound suggests upstream filtering (not all Twilio events produce QAD orders)." },
+    "99a71e43-f00e-4403-80af-918e110e1cba": { name: "ElectroMart_OrderLookup_API", total: 27, complete: 25, error: 2, discarded: 0, avgMs: 5053, maxMs: 26186, inDocs: 27, outDocs: 0, type: "exec_listener", first: "2026-05-07T11:29:08Z", last: "2026-05-13T09:14:00Z", note: "2 caller-side input errors (malformed JSON). Not a process defect — consider adding Try/Catch with explicit 400 response." },
+    "fe20ef15-b107-4f23-b26b-291f4ab277e1": { name: "P_O2C_WhatsApp_to_QAD_Main", total: 12, complete: 0, error: 12, discarded: 0, avgMs: 32987, maxMs: 135640, inDocs: 0, outDocs: 0, type: "sub_process", first: "2026-05-13T09:14:36Z", last: "2026-05-13T09:37:57Z", note: "BROKEN. Start shape misconfigured — expects WebServicesServerListenAction but receiving GenericConnectionConfig. Replace with Data Passthrough start and redeploy.", errorMsg: "Unexpected error occurred while initializing a shape.\nCaused by: Unable to load settings from XML.\nCaused by: unexpected element (uri:\"\", local:\"GenericConnectionConfig\").\nExpected elements are <{}WebServicesServerListenAction>" },
+    "49a8630e-652b-4fea-899c-bae4d99b77f5": { name: "ElectroMart_OrderUpdate_API", total: 5, complete: 5, error: 0, discarded: 0, avgMs: 3347, maxMs: 3778, inDocs: 5, outDocs: 0, type: "exec_listener", first: "2026-05-07T11:39:48Z", last: "2026-05-07T12:58:38Z", note: "Brief test window 2026-05-07 only. Healthy when invoked. Confirm whether dormancy is intentional." },
+    "a2bc729b-35c1-47a9-befd-0634a60dccff": { name: "NTTDemo-Order-JSON-to-XML-Process", total: 1, complete: 1, error: 0, discarded: 0, avgMs: 3306, maxMs: 3306, inDocs: 1, outDocs: 0, type: "exec_manual", first: "2026-05-18T08:07:14Z", last: "2026-05-18T08:07:14Z", note: "Today's NTT demo build. Single verification run successful. Awaiting real source integration." }
+  },
+
+  errors: [
+    { at: "2026-04-30T08:14:00Z", process: "Ticket v5 Gmail", type: "exec_sched", msg: "Fatal error in Start Shape; Caused by: BYE JavaMail Exception: java.net.SocketTimeoutException: Read timed out" },
+    { at: "2026-05-07T11:29:08Z", process: "ElectroMart_OrderLookup_API", type: "exec_listener", msg: "[Input ProfileLocation: Root; DocumentLocation: /Root]: Unable to create JSON files from data, the document may not be well-formed json" },
+    { at: "2026-05-07T11:30:11Z", process: "ElectroMart_OrderLookup_API", type: "exec_listener", msg: "[Input ProfileLocation: Root; DocumentLocation: /Root]: Unable to create JSON files from data, the document may not be well-formed json" },
+    { at: "2026-05-13T09:14:36Z", process: "P_O2C_WhatsApp_to_QAD_Main", type: "sub_process", msg: "Unexpected error occurred while initializing a shape; expected WebServicesServerListenAction" },
+    { at: "2026-05-13T09:14:41Z", process: "P_O2C_WhatsApp_to_QAD_Main", type: "sub_process", msg: "Unexpected error occurred while initializing a shape; expected WebServicesServerListenAction" },
+    { at: "2026-05-13T09:27:52Z", process: "P_O2C_WhatsApp_to_QAD_Main", type: "sub_process", msg: "Unexpected error occurred while initializing a shape; expected WebServicesServerListenAction" },
+    { at: "2026-05-13T09:28:07Z", process: "P_O2C_WhatsApp_to_QAD_Main", type: "sub_process", msg: "Unexpected error occurred while initializing a shape; expected WebServicesServerListenAction" },
+    { at: "2026-05-13T09:28:20Z", process: "P_O2C_WhatsApp_to_QAD_Main", type: "sub_process", msg: "Unexpected error occurred while initializing a shape; expected WebServicesServerListenAction" },
+    { at: "2026-05-13T09:28:33Z", process: "P_O2C_WhatsApp_to_QAD_Main", type: "sub_process", msg: "Unexpected error occurred while initializing a shape; expected WebServicesServerListenAction" },
+    { at: "2026-05-13T09:28:46Z", process: "P_O2C_WhatsApp_to_QAD_Main", type: "sub_process", msg: "Unexpected error occurred while initializing a shape; expected WebServicesServerListenAction" },
+    { at: "2026-05-13T09:29:00Z", process: "P_O2C_WhatsApp_to_QAD_Main", type: "sub_process", msg: "Unexpected error occurred while initializing a shape; expected WebServicesServerListenAction" },
+    { at: "2026-05-13T09:30:58Z", process: "P_O2C_WhatsApp_to_QAD_Main", type: "sub_process", msg: "Unexpected error occurred while initializing a shape; expected WebServicesServerListenAction" },
+    { at: "2026-05-13T09:33:06Z", process: "P_O2C_WhatsApp_to_QAD_Main", type: "sub_process", msg: "Severe errors during start shape execution; Missing or unexpected listen action start data" },
+    { at: "2026-05-13T09:35:31Z", process: "P_O2C_WhatsApp_to_QAD_Main", type: "sub_process", msg: "Severe errors during start shape execution; Missing or unexpected listen action start data" },
+    { at: "2026-05-13T09:37:57Z", process: "P_O2C_WhatsApp_to_QAD_Main", type: "sub_process", msg: "Severe errors during start shape execution; Missing or unexpected listen action start data" }
+  ],
+
+  discards: {
+    total: 45,
+    process: "Ticket v5 Gmail",
+    cause: "Process is already running",
+    pattern: "Scheduled poll fires every 1 minute, but execution sometimes runs longer. Concurrent invocations are blocked.",
+    dates: ["2026-04-21", "2026-04-30", "2026-05-04", "2026-05-05"]
+  },
+
+  recommendations: [
+    { priority: "P0", title: "Fix P_O2C_WhatsApp_to_QAD_Main", why: "100% failure rate — customer WhatsApp orders likely dropping", how: "Replace start shape with Data Passthrough; redeploy and verify", processId: "fe20ef15-b107-4f23-b26b-291f4ab277e1" },
+    { priority: "P1", title: "Tune Ticket v5 Gmail schedule", why: "45 concurrency discards indicate the 1-min schedule is racing with itself", how: "Bump poll interval to 5 minutes, or enable allowSimultaneous", processId: "37214c83-2dfc-4c4c-8203-a0f40327e699" },
+    { priority: "P1", title: "Add input validation to ElectroMart_OrderLookup_API", why: "2 caller-side malformed-JSON errors silently consumed", how: "Wrap in Try/Catch with explicit 400-style response", processId: "99a71e43-f00e-4403-80af-918e110e1cba" },
+    { priority: "P2", title: "Undeploy 4 long-idle processes", why: "Reduce tenant clutter, simplify audits", how: "Use boomi-undeploy.sh on Product Web Service, Event Streams Slack, SN Incident Proxy, Ticket v4" },
+    { priority: "P2", title: "Add Process Reporting alerts", why: "No alert fired when WhatsApp process hit 100% failure", how: "Platform → Notifications → ERROR threshold" },
+    { priority: "P3", title: "Audit environment classification", why: "Local Env and Agent Web Services are tagged PROD but look like dev", how: "Update classification in Platform → Environments" }
+  ],
+
+  environments: [
+    { name: "Production", id: "2666f02a-2585-431d-b720-ab5e099f7586", classification: "PROD", isDefault: true },
+    { name: "Test", id: "ee03f301-4b29-45f8-bd4b-b93154b35546", classification: "TEST", isDefault: false },
+    { name: "Local Env", id: "61932bac-4fc6-407c-8021-8f908c5fdd75", classification: "PROD", isDefault: false },
+    { name: "Agent Web Services", id: "ac1a8bf5-dd05-4009-928d-79567a17e11c", classification: "PROD", isDefault: false }
+  ]
+};
+
+// Use the external auto-refreshed data if available, otherwise fall back to inline
+const DATA = (window.DASHBOARD_DATA) || INLINE_FALLBACK;
+const DATA_SOURCE = window.DASHBOARD_DATA ? 'live' : (window.__DATA_FILE_MISSING ? 'fallback-missing' : 'fallback-inline');
+
+// Update live-status indicator with generation time + freshness
+(function updateLiveStatus() {
+  const statusEl = document.getElementById('live-status');
+  const pulseEl = document.getElementById('live-pulse');
+  if (!statusEl) return;
+  if (DATA_SOURCE === 'live' && DATA.generatedAt) {
+    const ageMs = Date.now() - new Date(DATA.generatedAt).getTime();
+    const ageHours = ageMs / 3600000;
+    const fmtAge = ageHours < 1 ? `${Math.floor(ageMs / 60000)} min ago` :
+                   ageHours < 24 ? `${ageHours.toFixed(1)} hr ago` :
+                   `${Math.floor(ageHours / 24)} days ago`;
+    const isStale = ageHours > 26;  // 26h grace for daily refresh
+    statusEl.textContent = `Live · refreshed ${fmtAge}`;
+    statusEl.title = `Generated at ${DATA.generatedAt}`;
+    if (isStale) {
+      statusEl.textContent = `⚠️ Stale · last refresh ${fmtAge}`;
+      if (pulseEl) pulseEl.style.background = '#f59e0b';
+    }
+  } else if (DATA_SOURCE === 'fallback-missing') {
+    statusEl.textContent = '⚠️ dashboard-data.js not found · using fallback';
+    if (pulseEl) pulseEl.style.background = '#dc2626';
+  } else {
+    statusEl.textContent = 'Demo data (inline)';
+    if (pulseEl) pulseEl.style.background = '#94a3b8';
+  }
+})();
+
+// Helpers
+const fmt = (n) => n.toLocaleString('en-US');
+const fmtDate = (iso) => iso.substring(0, 10);
+const fmtDateTime = (iso) => iso.replace('T', ' ').replace('Z', ' UTC');
+const fmtDur = (ms) => ms < 1000 ? ms + 'ms' : (ms/1000).toFixed(1) + 's';
+const daysAgo = (iso) => Math.floor((Date.now() - new Date(iso)) / 86400000);
+
+function nav(path) {
+  location.hash = path;
+}
+
+function updateNav(active) {
+  document.querySelectorAll('.nav-link').forEach(el => {
+    el.classList.toggle('active', el.dataset.route === active);
+  });
+}
+
+function setBreadcrumb(parts) {
+  const c = document.getElementById('breadcrumb');
+  c.innerHTML = parts.map((p, i) => {
+    if (i === parts.length - 1) return `<span class="current">${p.label}</span>`;
+    return `<a data-route="${p.route}">${p.label}</a><span class="arrow">▸</span>`;
+  }).join(' ');
+  c.querySelectorAll('a').forEach(a => a.onclick = () => nav(a.dataset.route));
+}
+
+// ============================================================================
+// VIEWS
+// ============================================================================
+const Views = {};
+
+// --- DASHBOARD (single-screen, no scroll) ---
+Views.dashboard = function() {
+  const m = DATA.metrics;
+  const proc = Object.values(DATA.processStats).sort((a,b) => b.total - a.total);
+  return `<div class="dashboard fade-in">
+    <!-- KPI Row -->
+    <div class="kpi-row">
+      <div class="kpi" onclick="nav('#/deployments')">
+        <div class="label">Deployments</div>
+        <div class="value">${m.deployments}</div>
+        <div class="delta">${m.deploymentsActive} active · ${m.deploymentsDormant} dormant</div>
+      </div>
+      <div class="kpi success" onclick="nav('#/executions')">
+        <div class="label">Successful Runs</div>
+        <div class="value">${fmt(m.executionsComplete)}</div>
+        <div class="delta">${m.successRate}% success rate</div>
+      </div>
+      <div class="kpi danger" onclick="nav('#/errors')">
+        <div class="label">Errors</div>
+        <div class="value">${m.executionsError}</div>
+        <div class="delta">0.12% of total</div>
+      </div>
+      <div class="kpi warning" onclick="nav('#/discards')">
+        <div class="label">Discarded</div>
+        <div class="value">${m.executionsDiscarded}</div>
+        <div class="delta">Concurrency-related</div>
+      </div>
+      <div class="kpi info" onclick="nav('#/executions')">
+        <div class="label">Total Runs</div>
+        <div class="value">${fmt(m.executionsTotal)}</div>
+        <div class="delta">~${m.dailyAvg}/day avg</div>
+      </div>
+      <div class="kpi" onclick="nav('#/processes')">
+        <div class="label">Avg Duration</div>
+        <div class="value">${(m.avgDurationMs/1000).toFixed(1)}s</div>
+        <div class="delta">Across all processes</div>
+      </div>
+    </div>
+
+    <!-- Row 2: Charts -->
+    <div class="widget-row row-2">
+      <!-- Volume bar chart -->
+      <div class="widget" onclick="nav('#/processes')">
+        <div class="widget-header">
+          <div class="widget-title">📊 Execution Volume by Process</div>
+          <div class="widget-link">View All →</div>
+        </div>
+        <div class="widget-body">
+          <div class="mini-bars">
+            ${proc.map(p => {
+              const cls = p.error === p.total ? 'danger' : p.discarded > 0 ? 'warn' : 'success';
+              const max = proc[0].total;
+              const w = (p.total / max * 100).toFixed(2);
+              return `<div class="mini-bar-row" onclick="event.stopPropagation();nav('#/process/${Object.entries(DATA.processStats).find(([_,v]) => v===p)[0]}')">
+                <div class="mini-bar-label">${p.name}</div>
+                <div class="mini-bar-track-wrap">
+                  <div class="mini-bar-track"><div class="mini-bar-fill ${cls}" style="width:${w}%"></div></div>
+                  <div class="mini-bar-value">${fmt(p.total)}</div>
+                </div>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>
+      </div>
+
+      <!-- Status donut -->
+      <div class="widget" onclick="nav('#/executions')">
+        <div class="widget-header">
+          <div class="widget-title">🎯 Status Mix</div>
+          <div class="widget-link">Details →</div>
+        </div>
+        <div class="widget-body">
+          <div class="donut-wrap">
+            <svg viewBox="0 0 42 42">
+              <circle cx="21" cy="21" r="15.91549430918954" fill="white"/>
+              <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#16a34a" stroke-width="6"
+                      stroke-dasharray="99.53 0.47" stroke-dashoffset="25"/>
+              <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#dc2626" stroke-width="6"
+                      stroke-dasharray="0.12 99.88" stroke-dashoffset="-74.53"/>
+              <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#f59e0b" stroke-width="6"
+                      stroke-dasharray="0.36 99.64" stroke-dashoffset="-74.41"/>
+              <text x="21" y="20" text-anchor="middle" style="font:bold 4.5px sans-serif;fill:#1a202c;">99.53%</text>
+              <text x="21" y="25" text-anchor="middle" style="font:2.2px sans-serif;fill:#64748b;">success</text>
+            </svg>
+            <div class="donut-legend">
+              <div class="item"><span class="swatch" style="background:#16a34a"></span><span class="label">Complete</span><span class="val">${fmt(m.executionsComplete)}</span></div>
+              <div class="item"><span class="swatch" style="background:#f59e0b"></span><span class="label">Discarded</span><span class="val">${m.executionsDiscarded}</span></div>
+              <div class="item"><span class="swatch" style="background:#dc2626"></span><span class="label">Error</span><span class="val">${m.executionsError}</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Health grid -->
+      <div class="widget">
+        <div class="widget-header">
+          <div class="widget-title">🏥 Deployment Health</div>
+          <div class="widget-link" onclick="nav('#/deployments')">Manage →</div>
+        </div>
+        <div class="widget-body">
+          <div class="health-grid">
+            <div class="health-tile h" onclick="nav('#/deployments?filter=healthy')">
+              <div class="count">${m.health.healthy}</div>
+              <div class="lbl">🟢 Healthy</div>
+              <div class="sub">100% success</div>
+            </div>
+            <div class="health-tile a" onclick="nav('#/deployments?filter=attention')">
+              <div class="count">${m.health.attention}</div>
+              <div class="lbl">🟡 Attention</div>
+              <div class="sub">Some errors</div>
+            </div>
+            <div class="health-tile c" onclick="nav('#/deployments?filter=critical')">
+              <div class="count">${m.health.critical}</div>
+              <div class="lbl">🔴 Critical</div>
+              <div class="sub">100% failure</div>
+            </div>
+            <div class="health-tile d" onclick="nav('#/dormant')">
+              <div class="count">${m.health.dormant}</div>
+              <div class="lbl">⚪ Dormant</div>
+              <div class="sub">No 30d runs</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 3: Top Processes | Critical Alerts | Quick Actions -->
+    <div class="widget-row row-3">
+      <!-- Top processes -->
+      <div class="widget" onclick="nav('#/processes')">
+        <div class="widget-header">
+          <div class="widget-title">🏆 Active Processes</div>
+          <div class="widget-link">All Processes →</div>
+        </div>
+        <div class="widget-body">
+          <div class="proc-list">
+            ${proc.map(p => {
+              const id = Object.entries(DATA.processStats).find(([_,v]) => v===p)[0];
+              const dot = p.error === p.total ? 'critical' : p.discarded > 0 || p.error > 0 ? 'attention' : 'healthy';
+              return `<div class="proc-row" onclick="event.stopPropagation();nav('#/process/${id}')">
+                <span class="pname">${p.name}</span>
+                <span class="pruns">${fmt(p.total)}</span>
+                <span class="pdot ${dot}"></span>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>
+      </div>
+
+      <!-- Critical Alerts -->
+      <div class="widget alert-widget" onclick="nav('#/errors')">
+        <div class="widget-header">
+          <div class="widget-title">🚨 Critical Alerts</div>
+          <div class="widget-link">All Errors →</div>
+        </div>
+        <div class="widget-body">
+          <div class="alert-content">
+            <div class="alert-item" onclick="event.stopPropagation();nav('#/process/fe20ef15-b107-4f23-b26b-291f4ab277e1')">
+              <div class="at">🔴 P_O2C_WhatsApp_to_QAD_Main · 100% failure (12/12)</div>
+              <div class="am">Start shape misconfigured — customer messages may be dropping</div>
+            </div>
+            <div class="alert-item" onclick="event.stopPropagation();nav('#/process/37214c83-2dfc-4c4c-8203-a0f40327e699')">
+              <div class="at">🟡 Ticket v5 Gmail · 45 concurrency discards</div>
+              <div class="am">1-min schedule racing itself — bump to 5m</div>
+            </div>
+            <div class="alert-item" onclick="event.stopPropagation();nav('#/process/99a71e43-f00e-4403-80af-918e110e1cba')">
+              <div class="at">🟡 ElectroMart_OrderLookup_API · 2 caller errors</div>
+              <div class="am">Malformed JSON from upstream — add input validation</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="widget" onclick="nav('#/recommendations')">
+        <div class="widget-header">
+          <div class="widget-title">✅ Top Actions</div>
+          <div class="widget-link">All Actions →</div>
+        </div>
+        <div class="widget-body">
+          <div class="proc-list">
+            ${DATA.recommendations.slice(0, 5).map((r, i) => `
+              <div class="proc-row" onclick="event.stopPropagation();nav('#/recommendations')">
+                <span class="pname">${r.title}</span>
+                <span class="badge ${r.priority.toLowerCase()}">${r.priority}</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+};
+
+// --- DEPLOYMENTS LIST ---
+Views.deployments = function(params) {
+  const filter = params.filter || 'all';
+  let rows = DATA.deployments;
+  if (filter !== 'all') rows = rows.filter(d => d.status === filter);
+  return `<div class="detail-page fade-in">
+    <h2>📦 All Deployments (${rows.length})</h2>
+    <p class="lead">Click any row to drill into per-process metrics. Filter: <strong>${filter}</strong></p>
+    <div style="margin-bottom:14px;display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn ${filter==='all'?'primary':''}" onclick="nav('#/deployments')">All (${DATA.deployments.length})</button>
+      <button class="btn ${filter==='healthy'?'primary':''}" onclick="nav('#/deployments?filter=healthy')">🟢 Healthy</button>
+      <button class="btn ${filter==='attention'?'primary':''}" onclick="nav('#/deployments?filter=attention')">🟡 Attention</button>
+      <button class="btn ${filter==='critical'?'primary':''}" onclick="nav('#/deployments?filter=critical')">🔴 Critical</button>
+      <button class="btn ${filter==='dormant'?'primary':''}" onclick="nav('#/deployments?filter=dormant')">⚪ Dormant</button>
+    </div>
+    <div class="card">
+      <table>
+        <thead><tr><th>Process Name</th><th>Folder</th><th>Type</th><th>Version</th><th>Deployed</th><th>30d Runs</th><th>Status</th></tr></thead>
+        <tbody>
+          ${rows.map(d => `<tr class="clickable" onclick="nav('#/process/${d.id}')">
+            <td><strong>${d.name}</strong></td>
+            <td>${d.folder}</td>
+            <td><code>${d.type}</code></td>
+            <td>v${d.version}</td>
+            <td>${fmtDate(d.deployedAt)} <span style="color:var(--text-muted);font-size:11px;">(${daysAgo(d.deployedAt)}d ago)</span></td>
+            <td>${fmt(d.runs)}</td>
+            <td><span class="badge ${d.status}">${d.status}</span></td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+};
+
+// --- PROCESS DETAIL ---
+Views.process = function(id) {
+  const p = DATA.processStats[id];
+  const d = DATA.deployments.find(x => x.id === id);
+  if (!p) return `<div class="detail-page fade-in"><h2>Process Not Found</h2><p class="lead">No execution data for <code>${id}</code>. <a onclick="nav('#/deployments')" style="cursor:pointer;color:var(--primary);">← Back to deployments</a></p></div>`;
+  const errs = DATA.errors.filter(e => e.process === p.name);
+  const status = p.error === p.total ? 'critical' : (p.discarded > 0 || p.error > 0) ? 'attention' : 'healthy';
+  const statusEmoji = status === 'critical' ? '🔴' : status === 'attention' ? '🟡' : '🟢';
+  return `<div class="detail-page fade-in">
+    <h2>${statusEmoji} ${p.name} <span class="badge ${status}" style="font-size:11px;vertical-align:middle;">${status.toUpperCase()}</span></h2>
+    <p class="lead"><code>${id}</code> · ${d ? d.folder : ''} · ${p.type}</p>
+
+    <div class="stat-grid">
+      <div class="stat"><div class="l">Total Runs</div><div class="v">${fmt(p.total)}</div></div>
+      <div class="stat ok"><div class="l">Successful</div><div class="v">${fmt(p.complete)}</div></div>
+      <div class="stat err"><div class="l">Errors</div><div class="v">${p.error}</div></div>
+      <div class="stat warn"><div class="l">Discarded</div><div class="v">${p.discarded}</div></div>
+      <div class="stat"><div class="l">Avg Duration</div><div class="v">${fmtDur(p.avgMs)}</div></div>
+      <div class="stat"><div class="l">Max Duration</div><div class="v">${fmtDur(p.maxMs)}</div></div>
+      <div class="stat"><div class="l">In Docs</div><div class="v">${fmt(p.inDocs)}</div></div>
+      <div class="stat"><div class="l">Out Docs</div><div class="v">${fmt(p.outDocs)}</div></div>
+    </div>
+
+    <div class="card">
+      <h3>📅 Activity Window</h3>
+      <p style="margin:0;color:var(--text-muted);font-size:13px;">First run: <strong style="color:var(--text);">${fmtDateTime(p.first)}</strong></p>
+      <p style="margin:0;color:var(--text-muted);font-size:13px;">Last run: <strong style="color:var(--text);">${fmtDateTime(p.last)}</strong></p>
+      <p style="margin:8px 0 0;color:var(--text-muted);font-size:13px;">Execution type: <code>${p.type}</code></p>
+    </div>
+
+    <div class="callout ${status === 'critical' ? 'danger' : status === 'attention' ? 'warn' : 'success'}">
+      <strong>Observation:</strong> ${p.note}
+    </div>
+
+    ${p.errorMsg ? `<div class="card">
+      <h3>🐛 Error Pattern</h3>
+      <pre>${p.errorMsg}</pre>
+    </div>` : ''}
+
+    ${errs.length > 0 ? `<div class="card">
+      <h3>⚠️ Error Events (${errs.length})</h3>
+      <table>
+        <thead><tr><th>Timestamp (UTC)</th><th>Type</th><th>Message</th></tr></thead>
+        <tbody>${errs.map(e => `<tr><td>${e.at.replace('T',' ').replace('Z','')}</td><td><code>${e.type}</code></td><td style="font-size:12px;">${e.msg}</td></tr>`).join('')}</tbody>
+      </table>
+    </div>` : ''}
+
+    <div style="margin-top:18px;">
+      <button class="btn" onclick="nav('#/deployments')">← All Deployments</button>
+      <button class="btn" onclick="nav('#/errors')">View All Errors</button>
+      ${d ? `<button class="btn primary" onclick="copyToClipboard('${id}')">📋 Copy Process ID</button>` : ''}
+    </div>
+  </div>`;
+};
+
+// --- PROCESSES (overview of all 6 active) ---
+Views.processes = function() {
+  const procs = Object.entries(DATA.processStats).map(([id, p]) => ({id, ...p})).sort((a,b) => b.total - a.total);
+  return `<div class="detail-page fade-in">
+    <h2>⚙️ All Active Processes (${procs.length})</h2>
+    <p class="lead">Processes that executed at least once in the last 30 days. Click for detail.</p>
+    <div class="card">
+      <table>
+        <thead><tr><th>Process</th><th>Type</th><th>Runs</th><th>Success</th><th>Errors</th><th>Avg Duration</th><th>Last Run</th><th>Status</th></tr></thead>
+        <tbody>
+          ${procs.map(p => {
+            const status = p.error === p.total ? 'critical' : (p.discarded > 0 || p.error > 0) ? 'attention' : 'healthy';
+            return `<tr class="clickable" onclick="nav('#/process/${p.id}')">
+              <td><strong>${p.name}</strong></td>
+              <td><code>${p.type}</code></td>
+              <td>${fmt(p.total)}</td>
+              <td style="color:var(--success);font-weight:600;">${fmt(p.complete)}</td>
+              <td style="color:${p.error>0?'var(--danger)':'var(--text-muted)'};font-weight:600;">${p.error}</td>
+              <td>${fmtDur(p.avgMs)}</td>
+              <td>${fmtDate(p.last)}</td>
+              <td><span class="badge ${status}">${status}</span></td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+};
+
+// --- ERRORS ---
+Views.errors = function() {
+  const byProcess = {};
+  DATA.errors.forEach(e => { byProcess[e.process] = (byProcess[e.process] || 0) + 1; });
+  return `<div class="detail-page fade-in">
+    <h2>⚠️ Error Events (${DATA.errors.length})</h2>
+    <p class="lead">All ERROR-status executions in the last 30 days. Click row for process detail.</p>
+
+    <div class="stat-grid">
+      <div class="stat err"><div class="l">Total Errors</div><div class="v">${DATA.errors.length}</div></div>
+      <div class="stat warn"><div class="l">Affected Processes</div><div class="v">${Object.keys(byProcess).length}</div></div>
+      <div class="stat"><div class="l">% of Total Runs</div><div class="v">0.12%</div></div>
+    </div>
+
+    <div class="card">
+      <h3>🔥 Errors by Process</h3>
+      <div class="mini-bars">
+        ${Object.entries(byProcess).sort((a,b) => b[1]-a[1]).map(([proc, count]) => {
+          const max = Math.max(...Object.values(byProcess));
+          const w = (count / max * 100).toFixed(1);
+          const d = DATA.deployments.find(x => x.name === proc);
+          return `<div class="mini-bar-row" ${d?`onclick="nav('#/process/${d.id}')"`:''} style="cursor:pointer;">
+            <div class="mini-bar-label">${proc}</div>
+            <div class="mini-bar-track-wrap">
+              <div class="mini-bar-track"><div class="mini-bar-fill danger" style="width:${w}%"></div></div>
+              <div class="mini-bar-value">${count}</div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>📋 Error Log (chronological)</h3>
+      <table>
+        <thead><tr><th>Timestamp (UTC)</th><th>Process</th><th>Type</th><th>Message</th></tr></thead>
+        <tbody>${DATA.errors.map(e => {
+          const d = DATA.deployments.find(x => x.name === e.process);
+          return `<tr ${d?`class="clickable" onclick="nav('#/process/${d.id}')"`:''}>
+            <td style="white-space:nowrap;">${e.at.replace('T',' ').replace('Z','')}</td>
+            <td>${e.process}</td>
+            <td><code>${e.type}</code></td>
+            <td style="font-size:12px;color:var(--text-muted);">${e.msg.substring(0,140)}${e.msg.length>140?'…':''}</td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table>
+    </div>
+  </div>`;
+};
+
+// --- DISCARDS ---
+Views.discards = function() {
+  const d = DATA.discards;
+  return `<div class="detail-page fade-in">
+    <h2>⏸ Discarded Executions (${d.total})</h2>
+    <p class="lead">All DISCARDED-status executions in the last 30 days.</p>
+
+    <div class="stat-grid">
+      <div class="stat warn"><div class="l">Total Discards</div><div class="v">${d.total}</div></div>
+      <div class="stat"><div class="l">Affected Processes</div><div class="v">1</div></div>
+      <div class="stat"><div class="l">% of Total Runs</div><div class="v">0.36%</div></div>
+    </div>
+
+    <div class="card">
+      <h3>📋 Pattern Analysis</h3>
+      <p><strong>All ${d.total} discards came from one process:</strong> <a onclick="nav('#/process/37214c83-2dfc-4c4c-8203-a0f40327e699')" style="cursor:pointer;color:var(--primary);font-weight:600;">${d.process}</a></p>
+      <p><strong>Cause:</strong> ${d.cause}</p>
+      <p><strong>Pattern:</strong> ${d.pattern}</p>
+      <p><strong>Cluster dates:</strong> ${d.dates.map(x => `<code>${x}</code>`).join(', ')}</p>
+    </div>
+
+    <div class="callout warn">
+      <strong>Recommendation:</strong> The 1-minute Gmail poll schedule is racing with itself. Either bump the poll interval to 5 minutes, or enable <code>allowSimultaneous="true"</code> if concurrent execution is safe for Gmail polling.
+    </div>
+  </div>`;
+};
+
+// --- DORMANT ---
+Views.dormant = function() {
+  const dormant = DATA.deployments.filter(d => d.runs === 0 && d.type === "process").map(d => ({...d, daysIdle: daysAgo(d.deployedAt)})).sort((a,b) => b.daysIdle - a.daysIdle);
+  return `<div class="detail-page fade-in">
+    <h2>💤 Dormant Deployments (${dormant.length})</h2>
+    <p class="lead">Deployments with zero executions in the 30-day window — cleanup candidates.</p>
+    <div class="card">
+      <table>
+        <thead><tr><th>Process Name</th><th>Folder</th><th>Last Deployed</th><th>Days Idle</th><th>Recommendation</th></tr></thead>
+        <tbody>
+          ${dormant.map(d => {
+            const rec = d.daysIdle > 60 ? '<span class="badge dormant">Safe to undeploy</span>' : '<span class="badge attention">Verify with owner</span>';
+            return `<tr class="clickable" onclick="nav('#/process/${d.id}')">
+              <td>${d.name}</td>
+              <td>${d.folder}</td>
+              <td>${fmtDate(d.deployedAt)}</td>
+              <td><strong style="color:${d.daysIdle>60?'var(--text)':'var(--text-muted)'}">${d.daysIdle}d</strong></td>
+              <td>${rec}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+    <div class="callout info">
+      <strong>Undeploy command:</strong> <code>bash scripts/boomi-undeploy.sh &lt;deploymentId&gt;</code>
+    </div>
+  </div>`;
+};
+
+// --- RECOMMENDATIONS ---
+Views.recommendations = function() {
+  return `<div class="detail-page fade-in">
+    <h2>✅ Recommended Actions</h2>
+    <p class="lead">Prioritized improvements based on 30-day observation.</p>
+    ${DATA.recommendations.map(r => `<div class="card" style="border-left:5px solid ${r.priority==='P0'?'var(--danger)':r.priority==='P1'?'var(--warning)':r.priority==='P2'?'var(--success)':'var(--neutral)'};">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:10px;">
+        <span class="badge ${r.priority.toLowerCase()}">${r.priority}</span>
+        <h3 style="margin:0;">${r.title}</h3>
+      </div>
+      <p style="margin:6px 0;"><strong>Why:</strong> ${r.why}</p>
+      <p style="margin:6px 0;"><strong>How:</strong> ${r.how}</p>
+      ${r.processId ? `<button class="btn" onclick="nav('#/process/${r.processId}')" style="margin-top:8px;">View Affected Process →</button>` : ''}
+    </div>`).join('')}
+  </div>`;
+};
+
+// --- EXECUTIONS (placeholder summary) ---
+Views.executions = function() {
+  const procs = Object.entries(DATA.processStats).map(([id, p]) => ({id, ...p})).sort((a,b) => b.total - a.total);
+  return `<div class="detail-page fade-in">
+    <h2>📊 Execution Activity Summary</h2>
+    <p class="lead">Aggregated view across all ${fmt(DATA.metrics.executionsTotal)} executions in the 30-day window.</p>
+    <div class="stat-grid">
+      <div class="stat"><div class="l">Total</div><div class="v">${fmt(DATA.metrics.executionsTotal)}</div></div>
+      <div class="stat ok"><div class="l">Complete</div><div class="v">${fmt(DATA.metrics.executionsComplete)}</div></div>
+      <div class="stat warn"><div class="l">Discarded</div><div class="v">${DATA.metrics.executionsDiscarded}</div></div>
+      <div class="stat err"><div class="l">Error</div><div class="v">${DATA.metrics.executionsError}</div></div>
+      <div class="stat"><div class="l">Daily Avg</div><div class="v">${DATA.metrics.dailyAvg}</div></div>
+      <div class="stat"><div class="l">Success Rate</div><div class="v">${DATA.metrics.successRate}%</div></div>
+    </div>
+
+    <div class="card">
+      <h3>By Execution Type</h3>
+      <div class="mini-bars">
+        <div class="mini-bar-row"><div class="mini-bar-label">Scheduled (exec_sched)</div><div class="mini-bar-track-wrap"><div class="mini-bar-track"><div class="mini-bar-fill" style="width:98.7%"></div></div><div class="mini-bar-value">12,478</div></div></div>
+        <div class="mini-bar-row"><div class="mini-bar-label">Listener (exec_listener)</div><div class="mini-bar-track-wrap"><div class="mini-bar-track"><div class="mini-bar-fill success" style="width:1.21%"></div></div><div class="mini-bar-value">153</div></div></div>
+        <div class="mini-bar-row"><div class="mini-bar-label">Subprocess (sub_process)</div><div class="mini-bar-track-wrap"><div class="mini-bar-track"><div class="mini-bar-fill danger" style="width:0.09%"></div></div><div class="mini-bar-value">12</div></div></div>
+        <div class="mini-bar-row"><div class="mini-bar-label">Manual (exec_manual)</div><div class="mini-bar-track-wrap"><div class="mini-bar-track"><div class="mini-bar-fill" style="width:0.01%"></div></div><div class="mini-bar-value">1</div></div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>By Process (top 10)</h3>
+      <table>
+        <thead><tr><th>Process</th><th>Runs</th><th>Share</th><th>Avg Duration</th></tr></thead>
+        <tbody>${procs.map(p => `<tr class="clickable" onclick="nav('#/process/${p.id}')">
+          <td>${p.name}</td>
+          <td>${fmt(p.total)}</td>
+          <td>${(p.total/DATA.metrics.executionsTotal*100).toFixed(2)}%</td>
+          <td>${fmtDur(p.avgMs)}</td>
+        </tr>`).join('')}</tbody>
+      </table>
+    </div>
+  </div>`;
+};
+
+// --- ABOUT ---
+Views.about = function() {
+  return `<div class="detail-page fade-in">
+    <h2>ℹ️ About This Dashboard</h2>
+    <p class="lead">CEO-grade visibility into Boomi tenant operations — built from live Platform API data.</p>
+
+    <div class="card">
+      <h3>📊 Data Snapshot</h3>
+      <table>
+        <tr><td>Tenant / Account</td><td><code>${DATA.tenant}</code></td></tr>
+        <tr><td>Environment</td><td><strong>${DATA.environment}</strong> (<code>${DATA.envId}</code>)</td></tr>
+        <tr><td>Atom Runtime</td><td>${DATA.atomName}</td></tr>
+        <tr><td>Window</td><td>${fmtDate(DATA.windowStart)} → ${fmtDate(DATA.windowEnd)} (30 days)</td></tr>
+        <tr><td>Generated</td><td>2026-05-18</td></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3>🌐 All Environments in Tenant</h3>
+      <table>
+        <thead><tr><th>Name</th><th>Environment ID</th><th>Classification</th><th>Default</th></tr></thead>
+        <tbody>${DATA.environments.map(e => `<tr>
+          <td><strong>${e.name}</strong></td>
+          <td><code>${e.id}</code></td>
+          <td><span class="badge ${e.classification==='PROD'?'healthy':'info'}">${e.classification}</span></td>
+          <td>${e.isDefault?'⭐ Yes':'—'}</td>
+        </tr>`).join('')}</tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3>🔌 Data Sources</h3>
+      <p>This dashboard reads from a snapshot generated by:</p>
+      <pre>bash active-development/scripts/tenant-report.sh
+bash active-development/scripts/resolve-components.sh</pre>
+      <p style="margin-top:10px;">Boomi Platform API endpoints queried:</p>
+      <ul style="font-size:13px;color:var(--text-muted);">
+        <li><code>POST /api/rest/v1/{account}/DeployedPackage/query</code></li>
+        <li><code>POST /api/rest/v1/{account}/Environment/query</code></li>
+        <li><code>POST /api/rest/v1/{account}/ExecutionRecord/query</code> + queryMore (paginated)</li>
+        <li><code>GET /api/rest/v1/{account}/Component/{id}</code></li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>🎨 Navigation Tips</h3>
+      <ul style="font-size:13px;">
+        <li>Click <strong>any KPI tile</strong> to drill into the underlying data</li>
+        <li>Click <strong>any process name</strong> anywhere in the dashboard to see its full detail</li>
+        <li>Click <strong>any chart bar or table row</strong> to navigate to its source</li>
+        <li>Use the <strong>top navigation</strong> to jump between major views</li>
+        <li>Use <strong>browser back / forward</strong> — all views are URL-routed via hash fragments</li>
+        <li><strong>Print</strong> button in the sub-bar produces a clean PDF</li>
+      </ul>
+    </div>
+  </div>`;
+};
+
+// --- DOCS ---
+Views.docs = function() {
+  return `<div class="detail-page fade-in">
+    <h2>📖 Dashboard Documentation</h2>
+    <p class="lead">Everything you need to operate, interpret, and extend the Tenant Dashboard — in one place.</p>
+
+    <div class="card">
+      <h3>1. Overview</h3>
+      <p>The <strong>Tenant Dashboard</strong> is a single-page web application that gives executives and operations leaders a <strong>30-day operational view</strong> of a Boomi tenant. It is purpose-built for <strong>CEO and CIO audiences</strong> who need an at-a-glance picture of platform health without logging into the Boomi AtomSphere UI.</p>
+      <p>The dashboard answers three questions on one screen: <em>Is the platform healthy? Where is the risk? What needs my attention?</em> Every KPI, chart, and badge is clickable — drilling from the executive summary down into deployment-, process-, and execution-level detail in two or three clicks.</p>
+      <p>The data is refreshed automatically from the Boomi Platform API on a daily cadence, so opening the dashboard in the morning shows yesterday's close-of-business state of the tenant.</p>
+      <div class="callout info">
+        <strong>Audience:</strong> CEO, CIO, Integration Lead, Platform Operations. <strong>Format:</strong> Browser-based, file-served, printable to PDF.
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>2. Architecture</h3>
+      <p>The dashboard is a static SPA that reads pre-generated data — no server, no database, no build step. A shell script pulls from the Boomi Platform API, writes a JavaScript data file, and the HTML loads it locally.</p>
+      <pre>┌──────────────────────┐
+│  Boomi Platform API  │   (DeployedPackage, ExecutionRecord,
+│  api.boomi.com       │    Environment, Component endpoints)
+└──────────┬───────────┘
+           │ HTTPS · Basic Auth
+           ▼
+┌──────────────────────────────────────────┐
+│  generate-dashboard-data.sh              │
+│  (orchestrates tenant-report.sh +        │
+│   resolve-components.sh + transforms)    │
+└──────────┬───────────────────────────────┘
+           │ writes
+           ▼
+┌──────────────────────┐      ┌──────────────────────────┐
+│  dashboard-data.js   │◄─────│  launchd scheduler       │
+│  (window.DATA = {…}) │      │  daily @ 11:00 AM IST    │
+└──────────┬───────────┘      └──────────────────────────┘
+           │ &lt;script src&gt;
+           ▼
+┌──────────────────────┐
+│ Tenant-Dashboard.html│   (SPA · hash routes · vanilla JS)
+└──────────┬───────────┘
+           │ rendered locally (file://)
+           ▼
+┌──────────────────────┐
+│   User (browser)     │
+└──────────────────────┘</pre>
+      <p style="margin-top:10px;">The <strong>launchd scheduler</strong> on macOS triggers <code>generate-dashboard-data.sh</code> daily at <strong>11:00 AM IST</strong>, so the dashboard is fresh before the working day starts.</p>
+    </div>
+
+    <div class="card">
+      <h3>3. Pages &amp; Navigation</h3>
+      <p>The dashboard is a hash-routed SPA. Every view has a stable URL and supports browser back/forward, deep links, and bookmarking.</p>
+      <table>
+        <thead><tr><th>Route</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td><code>#/</code></td><td>Executive dashboard — KPIs, health grid, alerts, top actions.</td></tr>
+          <tr><td><code>#/deployments</code></td><td>Every deployed package in the environment with status, run counts, and last execution.</td></tr>
+          <tr><td><code>#/processes</code></td><td>Every distinct process observed in the window, sorted by run volume.</td></tr>
+          <tr><td><code>#/process/:id</code></td><td>Full drill-down for a single process — runs, errors, durations, recent executions.</td></tr>
+          <tr><td><code>#/errors</code></td><td>All error executions in the window with timestamp, process, and error message.</td></tr>
+          <tr><td><code>#/discards</code></td><td>Concurrency-discarded executions (process busy when a new event arrived).</td></tr>
+          <tr><td><code>#/dormant</code></td><td>Deployments with zero executions in the 30-day window — candidates for cleanup.</td></tr>
+          <tr><td><code>#/recommendations</code></td><td>Prioritized action list (P0/P1/P2/P3) auto-derived from observed signals.</td></tr>
+          <tr><td><code>#/executions</code></td><td>Raw execution feed — every run, success or failure, across the window.</td></tr>
+          <tr><td><code>#/about</code></td><td>Snapshot metadata — tenant, environment, atom, data sources, refresh timestamp.</td></tr>
+          <tr><td><code>#/docs</code></td><td>This page — operator and stakeholder documentation.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3>4. Dashboard Widgets Guide</h3>
+      <p>The home page (<code>#/</code>) is designed as a one-screen executive summary. Each widget below is fully interactive — clicking drills into the underlying detail view.</p>
+
+      <h3 style="margin-top:16px;font-size:15px;">KPI Tiles (6 across the top)</h3>
+      <table>
+        <thead><tr><th>Tile</th><th>What it shows</th><th>Drills to</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Deployments</strong></td><td>Total deployed packages currently active in the environment.</td><td><code>#/deployments</code></td></tr>
+          <tr><td><strong>Successful Runs</strong></td><td>Count of executions that completed without error in the 30-day window.</td><td><code>#/executions</code></td></tr>
+          <tr><td><strong>Errors</strong></td><td>Count of failed executions — the single most important attention metric.</td><td><code>#/errors</code></td></tr>
+          <tr><td><strong>Discarded</strong></td><td>Concurrency discards — events dropped because the process was already busy.</td><td><code>#/discards</code></td></tr>
+          <tr><td><strong>Total Runs</strong></td><td>All executions (success + error + discard) — a proxy for platform load.</td><td><code>#/executions</code></td></tr>
+          <tr><td><strong>Avg Duration</strong></td><td>Mean execution duration across all successful runs in the window.</td><td><code>#/processes</code></td></tr>
+        </tbody>
+      </table>
+
+      <h3 style="margin-top:16px;font-size:15px;">Volume Bar Chart</h3>
+      <p>Horizontal bars showing run counts per top process. Bar length is normalized to the highest-volume process. <strong>Click any bar</strong> to jump straight to that process's detail page.</p>
+
+      <h3 style="margin-top:16px;font-size:15px;">Status Donut</h3>
+      <p>Three-slice donut summarizing every execution in the window: <span class="badge healthy">Success</span> · <span class="badge attention">Discarded</span> · <span class="badge critical">Error</span>. The percentage labels are clickable to drill into the corresponding feed.</p>
+
+      <h3 style="margin-top:16px;font-size:15px;">Health Grid (4 Quadrants)</h3>
+      <table>
+        <thead><tr><th>Quadrant</th><th>Classification Rule</th></tr></thead>
+        <tbody>
+          <tr><td><span class="badge healthy">Healthy</span></td><td>Deployments with 100% success rate in the window.</td></tr>
+          <tr><td><span class="badge attention">Attention</span></td><td>Deployments with at least one error or concurrency discard, but not 100% failure.</td></tr>
+          <tr><td><span class="badge critical">Critical</span></td><td>Deployments with 100% failure rate — every observed run errored.</td></tr>
+          <tr><td><span class="badge dormant">Dormant</span></td><td>Deployments with zero executions in the 30-day window.</td></tr>
+        </tbody>
+      </table>
+
+      <h3 style="margin-top:16px;font-size:15px;">Active Processes</h3>
+      <p>Top processes by run count — the workhorses of the tenant. Each row links to the process detail page.</p>
+
+      <h3 style="margin-top:16px;font-size:15px;">Critical Alerts</h3>
+      <p>Auto-surfaced critical items: any process flagged <span class="badge critical">Critical</span> appears here with a one-line explanation and a direct link to its drill-down.</p>
+
+      <h3 style="margin-top:16px;font-size:15px;">Top Actions</h3>
+      <p>A live preview of the top <span class="badge p0">P0</span> and <span class="badge p1">P1</span> recommendations from <code>#/recommendations</code> — the next things an operator should do this week.</p>
+    </div>
+
+    <div class="card">
+      <h3>5. Status Classification Rules</h3>
+      <p>Every deployment and process is assigned exactly one status badge based on its 30-day execution record. The rules are deterministic and apply in this order:</p>
+      <table>
+        <thead><tr><th>Status</th><th>Rule</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td><span class="badge healthy">Healthy</span></td><td>100% success in 30 days</td><td>Running cleanly — no operator attention needed.</td></tr>
+          <tr><td><span class="badge attention">Attention</span></td><td>Some errors <em>or</em> concurrency discards, but not 100% failure</td><td>Mixed signal — investigate during normal ops cycle.</td></tr>
+          <tr><td><span class="badge critical">Critical</span></td><td>100% failure rate (every run errored)</td><td>Broken — needs immediate triage.</td></tr>
+          <tr><td><span class="badge dormant">Dormant</span></td><td>0 executions in 30 days</td><td>Inactive — candidate for archival or undeployment.</td></tr>
+          <tr><td><span class="badge info">Info</span></td><td>Listener / wrapper component with no own executions</td><td>Infrastructure — runs are attributed to child processes.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3>6. Data Refresh Mechanism</h3>
+      <p>The dashboard is intentionally <strong>static</strong> — it loads a pre-generated JavaScript file rather than calling the Boomi API at view time. This means it works over <code>file://</code>, prints cleanly, and can't be broken by transient API issues. Freshness is guaranteed by a scheduled refresh job.</p>
+      <table>
+        <thead><tr><th>Mechanism</th><th>Detail</th></tr></thead>
+        <tbody>
+          <tr><td>Data file</td><td><code>dashboard-data.js</code> — auto-generated, sets <code>window.DATA = {…}</code>.</td></tr>
+          <tr><td>Generator</td><td><code>generate-dashboard-data.sh</code> — pulls from API, transforms, writes data file.</td></tr>
+          <tr><td>Scheduler</td><td>macOS <code>launchd</code> via <code>com.boomi.dashboard-refresh.plist</code>.</td></tr>
+          <tr><td>Cadence</td><td>Daily at <strong>11:00 AM IST</strong>.</td></tr>
+          <tr><td>HTML load</td><td><code>&lt;script src="dashboard-data.js"&gt;</code> — works on <code>file://</code>, no server required.</td></tr>
+          <tr><td>Live indicator</td><td>Top nav shows <em>"Live · refreshed Xh ago"</em> or <em>"⚠️ Stale"</em> if data is &gt; 30h old.</td></tr>
+          <tr><td>Manual refresh</td><td><code>bash active-development/scripts/generate-dashboard-data.sh</code></td></tr>
+          <tr><td>Trigger scheduler now</td><td><code>launchctl start com.boomi.dashboard-refresh</code></td></tr>
+        </tbody>
+      </table>
+      <div class="callout success" style="margin-top:10px;">
+        <strong>Tip:</strong> If you've just run a generator and the dashboard still shows old data, hard-reload the browser with <strong>Cmd+Shift+R</strong> to bust the cache.
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>⚡ Refresh Performance Optimization</h3>
+      <p>Each scheduled run does <strong>not</strong> re-fetch the full 30-day execution history from scratch. Instead, the refresh script performs an <strong>incremental delta pull</strong> — it asks the Boomi Platform API only for what's new since the last successful run, then merges those records into a rolling on-disk cache. This keeps the daily refresh fast, friendly to the platform, and resilient to the laptop being asleep or offline for a few days.</p>
+
+      <p>The rolling 30-day window lives at <code>active-development/feedback/execution-results/_executions_cache.json</code>. Alongside the records it stores a <code>lastRefreshAt</code> timestamp. On every run the script computes <code>SINCE = max(lastRefreshAt, now - 30 days)</code> and queries the API only for records newer than that. New records are deduped against the cache by <code>executionId</code>, merged in, and anything older than 30 days is pruned out — so the cache stays a tight, accurate snapshot of the most recent month.</p>
+
+      <table>
+        <thead><tr><th>Scenario</th><th>Behavior</th><th>Typical Duration</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Bootstrap</strong> — first run, missing cache, or cache &gt; 30 days old</td><td>Falls back to a full 30-day pull (~120 paginated API calls).</td><td>~5 minutes</td></tr>
+          <tr><td><strong>Steady state</strong> — normal daily run</td><td>Pulls only ~24 hours of new records (~5 paginated API calls), dedupes, merges, prunes.</td><td>~15–30 seconds</td></tr>
+        </tbody>
+      </table>
+      <p style="font-size:13px; color:var(--muted); margin-top:8px;">In steady state the refresh is roughly <strong>~15× faster</strong> than the naive full-pull approach.</p>
+
+      <p>Component names are cached separately in <code>_component_names_cache.json</code> and are only re-resolved against the Component API if the cache is older than 7 days. Component names rarely change, so this avoids hundreds of redundant lookups on every run.</p>
+
+      <div class="callout info" style="margin-top:10px;">
+        <strong>Why this matters:</strong> lower API load on the Boomi platform, faster perceived dashboard freshness, and correct behavior even when the laptop has been off for a few days — the next run automatically catches up on whatever was missed, up to the 30-day cap.
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>7. File Structure</h3>
+      <pre>NTT Demo/
+├── Tenant-Dashboard.html              ← the SPA
+├── dashboard-data.js                  ← auto-generated data
+├── Tenant-30-Day-Report.md            ← static markdown report
+├── Tenant-30-Day-Report.html          ← static HTML report
+└── active-development/
+    └── scripts/
+        ├── generate-dashboard-data.sh         ← main refresh script
+        ├── tenant-report.sh                   ← API queries
+        ├── resolve-components.sh              ← component name lookup
+        ├── com.boomi.dashboard-refresh.plist  ← launchd job
+        └── install-dashboard-refresh.sh       ← one-command installer</pre>
+    </div>
+
+    <div class="card">
+      <h3>8. Common Operations</h3>
+      <table>
+        <thead><tr><th>I want to…</th><th>Command / Action</th></tr></thead>
+        <tbody>
+          <tr><td>Refresh data now</td><td><code>bash active-development/scripts/generate-dashboard-data.sh</code></td></tr>
+          <tr><td>Install daily refresh</td><td><code>bash active-development/scripts/install-dashboard-refresh.sh</code></td></tr>
+          <tr><td>Check schedule status</td><td><code>launchctl list | grep com.boomi.dashboard-refresh</code></td></tr>
+          <tr><td>View refresh logs</td><td><code>tail -50 active-development/feedback/dashboard-refresh-logs/launchd-stdout.log</code></td></tr>
+          <tr><td>Manually trigger schedule</td><td><code>launchctl start com.boomi.dashboard-refresh</code></td></tr>
+          <tr><td>Uninstall schedule</td><td><code>launchctl unload ~/Library/LaunchAgents/com.boomi.dashboard-refresh.plist</code></td></tr>
+          <tr><td>Print / export to PDF</td><td>Click the <strong>🖨️ Print</strong> button (top right of the sub-bar).</td></tr>
+          <tr><td>Drill into any process</td><td>Click its name <em>anywhere</em> in the dashboard.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3>9. Troubleshooting</h3>
+      <table>
+        <thead><tr><th>Symptom</th><th>Cause &amp; Fix</th></tr></thead>
+        <tbody>
+          <tr><td><span class="badge critical">⚠️ dashboard-data.js not found</span></td><td>The generator has never run. Run it once: <code>bash active-development/scripts/generate-dashboard-data.sh</code>.</td></tr>
+          <tr><td><span class="badge attention">⚠️ Stale · last refresh 30+ hr ago</span></td><td>The Mac was likely asleep at 11 AM. Run the generator manually, or verify launchd is loaded with <code>launchctl list | grep com.boomi</code>.</td></tr>
+          <tr><td>Dashboard shows old data after refresh</td><td>Browser cache. Hard-reload with <strong>Cmd+Shift+R</strong>.</td></tr>
+          <tr><td>launchd job not running</td><td><code>launchctl list | grep com.boomi</code> — if it's missing, re-run the installer script.</td></tr>
+          <tr><td>API errors during refresh</td><td>Check that <code>.env</code> contains valid Boomi credentials and that the Atom token has not expired.</td></tr>
+          <tr><td>Numbers look wrong</td><td>Inspect the raw API responses under <code>active-development/feedback/execution-results/</code> to confirm what the API actually returned.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3>10. Roadmap / Future Enhancements</h3>
+      <p>The dashboard ships today as a local file, but the roadmap is to make it a first-class operations product. Aspirations on the backlog:</p>
+      <ul style="font-size:13px;">
+        <li><strong>Host publicly on Boomi via a WSS listener</strong> — eat-your-own-dog-food: serve the dashboard through the same platform it monitors.</li>
+        <li><strong>Email / Slack alerts</strong> when a process flips to <span class="badge critical">Critical</span>.</li>
+        <li><strong>Multi-environment support</strong> with a Dev / Test / Prod toggle in the top nav.</li>
+        <li><strong>Trend charts</strong> — daily run volume and error rate over the 30-day window.</li>
+        <li><strong>Configurable refresh cadence</strong> — per-stakeholder schedules (e.g. CEO @ 7 AM, ops @ hourly).</li>
+        <li><strong>User-customizable widget layout</strong> — drag-and-drop tile arrangement, saved per user.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>11. About the Data</h3>
+      <p>Every number on this dashboard comes from the <strong>live Boomi Platform API</strong> at refresh time. The reporting window is always <strong>30 days back from "now"</strong> at generation time — there is no manual date selection.</p>
+      <p>Primary endpoints used by the generator:</p>
+      <ul style="font-size:13px;color:var(--text-muted);">
+        <li><code>POST /api/rest/v1/{account}/DeployedPackage/query</code> — what's deployed in the environment</li>
+        <li><code>POST /api/rest/v1/{account}/ExecutionRecord/query</code> (paginated via queryMore) — every run in the window</li>
+        <li><code>GET /api/rest/v1/{account}/Component/{id}</code> — human-readable names for deployed components</li>
+      </ul>
+      <div class="callout info" style="margin-top:10px;">
+        <strong>Window:</strong> ${fmtDate(DATA.windowStart)} → ${fmtDate(DATA.windowEnd)} · <strong>Tenant:</strong> <code>${DATA.tenant}</code> · <strong>Environment:</strong> <strong>${DATA.environment}</strong>
+      </div>
+    </div>
+  </div>`;
+};
+
+// ============================================================================
+// ROUTER
+// ============================================================================
+function router() {
+  const hash = location.hash || '#/';
+  const [path, queryStr] = hash.split('?');
+  const params = {};
+  if (queryStr) queryStr.split('&').forEach(p => { const [k,v] = p.split('='); params[k] = decodeURIComponent(v); });
+
+  let view = '';
+  let crumbs = [{ label: 'Home', route: '#/' }];
+  let activeNav = '#/';
+
+  if (path === '#/' || path === '') {
+    view = Views.dashboard();
+    crumbs = [{ label: 'CEO Dashboard', route: '#/' }];
+  } else if (path === '#/deployments') {
+    view = Views.deployments(params);
+    crumbs.push({ label: 'Deployments', route: '#/deployments' });
+    activeNav = '#/deployments';
+  } else if (path.startsWith('#/process/')) {
+    const id = path.replace('#/process/', '');
+    view = Views.process(id);
+    crumbs.push({ label: 'Processes', route: '#/processes' });
+    const p = DATA.processStats[id];
+    crumbs.push({ label: p ? p.name : 'Detail', route: path });
+    activeNav = '#/processes';
+  } else if (path === '#/processes') {
+    view = Views.processes();
+    crumbs.push({ label: 'Processes', route: '#/processes' });
+    activeNav = '#/processes';
+  } else if (path === '#/errors') {
+    view = Views.errors();
+    crumbs.push({ label: 'Errors', route: '#/errors' });
+    activeNav = '#/errors';
+  } else if (path === '#/discards') {
+    view = Views.discards();
+    crumbs.push({ label: 'Discards', route: '#/discards' });
+    activeNav = '#/discards';
+  } else if (path === '#/dormant') {
+    view = Views.dormant();
+    crumbs.push({ label: 'Dormant', route: '#/dormant' });
+    activeNav = '#/dormant';
+  } else if (path === '#/recommendations') {
+    view = Views.recommendations();
+    crumbs.push({ label: 'Actions', route: '#/recommendations' });
+    activeNav = '#/recommendations';
+  } else if (path === '#/executions') {
+    view = Views.executions();
+    crumbs.push({ label: 'Executions', route: '#/executions' });
+    activeNav = '#/executions';
+  } else if (path === '#/about') {
+    view = Views.about();
+    crumbs.push({ label: 'About', route: '#/about' });
+    activeNav = '#/about';
+  } else if (path === '#/docs') {
+    view = Views.docs();
+    crumbs.push({ label: 'Docs', route: '#/docs' });
+    activeNav = '#/docs';
+  } else {
+    view = `<div class="detail-page fade-in"><h2>404</h2><p class="lead">Page not found. <a onclick="nav('#/')" style="cursor:pointer;color:var(--primary);">Go home →</a></p></div>`;
+  }
+
+  document.getElementById('app').innerHTML = view;
+  setBreadcrumb(crumbs);
+  updateNav(activeNav);
+  window.scrollTo(0, 0);
+}
+
+function copyToClipboard(text) {
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = event.target.textContent;
+    event.target.textContent = '✓ Copied!';
+    setTimeout(() => event.target.textContent = orig, 1500);
+  });
+}
+
+// Wire up nav clicks
+document.querySelectorAll('.nav-link').forEach(el => {
+  el.addEventListener('click', (e) => { e.preventDefault(); nav(el.dataset.route); });
+});
+
+window.addEventListener('hashchange', router);
+router();
+</script>
+
+</body>
+</html>

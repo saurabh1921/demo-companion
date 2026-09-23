@@ -1,0 +1,535 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Subsidiary Performance Data Product</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Serif:wght@500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --ground:#f4f7f8; --surface:#fff; --surface-alt:#e9f0f2;
+    --ink:#101c24; --ink-soft:#3a4f5b; --muted:#5e7583;
+    --line:#d7e2e6; --line-strong:#b6c8cf;
+    --accent:#0f6e78; --accent-ink:#0a4c53; --accent-soft:#dcf0f2;
+    --live:#0c6b47; --live-soft:#ddf1e7; --live-line:#a4d7c0;
+    --mock:#8a5100; --mock-soft:#fdf2e0; --mock-line:#e8cd9d;
+    --warn:#a33418; --warn-soft:#fceee9; --warn-line:#eec4b5;
+    --serif:"IBM Plex Serif",Georgia,serif;
+    --sans:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+    --ground:#0c141a; --surface:#141e26; --surface-alt:#1a2730;
+    --ink:#e3ecf0; --ink-soft:#b0c3cd; --muted:#8098a6;
+    --line:#25333c; --line-strong:#3a4d58;
+    --accent:#4fc3ce; --accent-ink:#7fd6de; --accent-soft:#0f3239;
+    --live:#5ec898; --live-soft:#0f2b20; --live-line:#245c43;
+    --mock:#e2a852; --mock-soft:#2b2112; --mock-line:#4d3a1a;
+    --warn:#ef8f6d; --warn-soft:#2c1710; --warn-line:#5c3324;
+  }}
+  :root[data-theme="dark"]{
+    --ground:#0c141a; --surface:#141e26; --surface-alt:#1a2730;
+    --ink:#e3ecf0; --ink-soft:#b0c3cd; --muted:#8098a6;
+    --line:#25333c; --line-strong:#3a4d58;
+    --accent:#4fc3ce; --accent-ink:#7fd6de; --accent-soft:#0f3239;
+    --live:#5ec898; --live-soft:#0f2b20; --live-line:#245c43;
+    --mock:#e2a852; --mock-soft:#2b2112; --mock-line:#4d3a1a;
+    --warn:#ef8f6d; --warn-soft:#2c1710; --warn-line:#5c3324;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--sans);
+    font-size:15.5px;line-height:1.6;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:960px;margin:0 auto;padding:0 24px 110px}
+  h1,h2,h3{margin:0;text-wrap:balance}
+  h1{font-family:var(--mono);font-weight:600;font-size:clamp(22px,3.2vw,31px);
+     letter-spacing:-.02em;line-height:1.15}
+  h2{font-family:var(--serif);font-weight:600;font-size:21px;line-height:1.25}
+  h3{font-size:14.5px;font-weight:600}
+  p{margin:0}
+  .note{font-size:14px;color:var(--muted);line-height:1.5}
+  code{font-family:var(--mono);font-size:.86em;background:var(--surface-alt);
+    border:1px solid var(--line);padding:1px 5px;border-radius:4px;word-break:break-all}
+  section{margin-top:46px;display:flex;flex-direction:column;gap:16px}
+  .col{max-width:70ch}
+  .eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--accent)}
+
+  /* legend + chips */
+  .chip{font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.07em;
+    text-transform:uppercase;padding:3px 9px;border-radius:5px;border:1px solid;white-space:nowrap;
+    display:inline-flex;align-items:center;gap:5px}
+  .chip.live{background:var(--live-soft);border-color:var(--live-line);color:var(--live)}
+  .chip.mock{background:var(--mock-soft);border-color:var(--mock-line);color:var(--mock)}
+  .chip.acc{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-ink)}
+  .chip.neutral{background:var(--surface-alt);border-color:var(--line);color:var(--muted)}
+  .legend{display:flex;flex-wrap:wrap;gap:9px;align-items:center;
+    background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:12px 15px}
+
+  header.top{padding:13px 0 0;display:flex;flex-direction:column;gap:13px}
+  .page-header{position:sticky;top:0;z-index:40;background:var(--ground);padding:28px 0 14px;
+    display:flex;flex-direction:column;gap:13px;border-bottom:1px solid var(--line)}
+  .crumb{font-family:var(--mono);font-size:12px;color:var(--muted)}
+  .titlerow{display:flex;flex-wrap:wrap;align-items:center;gap:11px}
+  .purpose{font-size:17.5px;line-height:1.5;color:var(--ink-soft);max-width:62ch}
+
+  /* catalogue strip */
+  .cat{display:grid;grid-template-columns:repeat(2,1fr);gap:13px}
+  @media (min-width:900px){.cat{grid-template-columns:repeat(4,1fr)}}
+  @media (max-width:560px){.cat{grid-template-columns:1fr}}
+  .prod{background:var(--surface);border:1px solid var(--line);border-radius:9px;
+    padding:15px 16px;display:flex;flex-direction:column;gap:7px}
+  .prod.here{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+  .prod .nm{font-family:var(--mono);font-size:13px;font-weight:600;word-break:break-all}
+  .prod .ds{font-size:13.4px;color:var(--muted);line-height:1.45}
+  .prod .ft{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}
+
+  /* ownership */
+  .owners{display:grid;grid-template-columns:repeat(2,1fr);gap:13px}
+  @media (max-width:760px){.owners{grid-template-columns:1fr}}
+  .own{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--accent);
+    border-radius:9px;padding:15px 17px;display:flex;flex-direction:column;gap:5px}
+  .own .role{font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--accent)}
+  .own .who{font-weight:600;font-size:15.5px}
+  .own .ct{font-family:var(--mono);font-size:12.5px;color:var(--muted);word-break:break-all}
+  .own p{font-size:13.8px;color:var(--ink-soft);line-height:1.45}
+
+  /* tables */
+  .tw{overflow-x:auto;border:1px solid var(--line);border-radius:9px;background:var(--surface)}
+  table{border-collapse:collapse;width:100%;min-width:660px;font-size:13.8px}
+  th,td{text-align:left;padding:9px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+  tr:last-child td{border-bottom:0}
+  th{font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.09em;
+    text-transform:uppercase;color:var(--muted);background:var(--surface-alt);white-space:nowrap}
+  td.m{font-family:var(--mono);font-size:12.6px;white-space:nowrap}
+  td.d{color:var(--ink-soft);font-size:13.4px;line-height:1.45}
+  tr.grp td{background:var(--surface-alt);font-family:var(--mono);font-size:11px;
+    font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+
+  /* lineage */
+  .lin{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+  @media (max-width:760px){.lin{grid-template-columns:1fr}}
+  .linbox{background:var(--surface);border:1px solid var(--line);border-radius:9px;overflow:hidden}
+  .linbox .h{padding:10px 15px;background:var(--surface-alt);border-bottom:1px solid var(--line);
+    font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--muted)}
+  .linbox ul{margin:0;padding:12px 15px;list-style:none;display:flex;flex-direction:column;gap:11px}
+  .linbox li{display:flex;flex-direction:column;gap:2px}
+  .linbox .n{font-weight:600;font-size:14.2px}
+  .linbox .s{font-size:13.2px;color:var(--muted);line-height:1.42}
+
+  /* generic cards */
+  .grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:13px}
+  @media (max-width:760px){.grid2{grid-template-columns:1fr}}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:9px;
+    padding:15px 17px;display:flex;flex-direction:column;gap:6px}
+  .card .k{font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--muted)}
+  .card .v{font-size:15.5px;font-weight:500}
+  .card p{font-size:13.6px;color:var(--ink-soft);line-height:1.45}
+
+  pre{margin:0;padding:13px 15px;overflow-x:auto;font-family:var(--mono);font-size:12.3px;
+    line-height:1.55;background:var(--surface);border:1px solid var(--line);border-radius:9px}
+
+  ul.lim{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:11px}
+  ul.lim li{background:var(--warn-soft);border:1px solid var(--warn-line);border-left:3px solid var(--warn);
+    border-radius:8px;padding:12px 15px;font-size:14.2px;line-height:1.5}
+  ul.lim b{color:var(--warn)}
+
+  ol.val{list-style:none;counter-reset:v;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+  ol.val li{counter-increment:v;display:grid;grid-template-columns:26px 1fr;gap:13px;align-items:baseline}
+  ol.val li::before{content:counter(v);font-family:var(--mono);font-size:11.5px;font-weight:600;
+    color:#fff;background:var(--accent);width:21px;height:21px;border-radius:5px;
+    display:inline-flex;align-items:center;justify-content:center}
+  :root[data-theme="dark"] ol.val li::before{color:#08222a}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) ol.val li::before{color:#08222a}}
+  ol.val .q{font-weight:600;display:block;margin-bottom:1px}
+  ol.val .a{font-size:14.2px;color:var(--ink-soft);line-height:1.5}
+
+  .foot{margin-top:56px;padding-top:20px;border-top:1px solid var(--line);
+    display:flex;flex-wrap:wrap;gap:16px;font-size:14px}
+  a{color:var(--accent-ink)}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="page-header">
+    <p class="crumb">Data Catalogue &nbsp;/&nbsp; Finance &nbsp;/&nbsp; Regional Reporting</p>
+    <div class="titlerow">
+      <h1 id="pName"></h1>
+      <span class="chip acc" id="pVer"></span>
+      <span class="chip live" id="pStatus"></span>
+      <span class="chip neutral" id="pShape"></span>
+    </div>
+  </div>
+  <header class="top">
+    <p class="purpose" id="pPurpose"></p>
+    <div class="legend">
+      <span class="chip live">Live</span>
+      <span class="note">verified against the running system &mdash;</span>
+      <span class="chip mock">Illustrative</span>
+      <span class="note">specimen content showing what a complete entry looks like</span>
+    </div>
+  </header>
+
+  <section>
+    <div class="col"><h2>In the catalogue</h2>
+      <p class="note" style="margin-top:6px">Three products in the Finance domain. Click one to read its entry.
+        A designer starts here &mdash; before scoping a build.</p></div>
+    <div class="cat" id="catStrip"></div>
+    <div class="card" style="border-left:3px solid var(--accent)">
+      <span class="k">Why the two published products look different</span>
+      <p><strong>subsidiary_master</strong> is <em>master data</em> &mdash; attributes only, never measures, and it
+        exists because two ERPs disagree about the same entity.
+        <strong>subsidiary_performance_consolidated</strong> is <em>analytical</em> &mdash; historical, many rows,
+        and it needs Data Hub because two ERPs disagree about the same entity.
+        <strong>open_receivables_by_subsidiary</strong> is <em>operational</em> &mdash; current-state, entity-scoped,
+        and it needs no Data Hub at all because a single system owns the fact. Both are data products.
+        A warehouse is a delivery mechanism, not a qualifying criterion.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="col"><h2>Ownership <span class="chip mock" style="vertical-align:middle">Illustrative</span></h2>
+      <p class="note" style="margin-top:6px">A data product without a named owner is just a table someone left behind.
+        The split is deliberate: the business decides <em>what is true</em>, engineering decides <em>how it is delivered</em>.</p></div>
+    <div class="owners" id="pOwners"></div>
+  </section>
+
+  <section>
+    <div class="col"><h2>What it answers</h2>
+      <p class="note" style="margin-top:6px">If your question is on the left, do not build anything &mdash; consume this.</p></div>
+    <div class="grid2">
+      <div class="card"><span class="k">Answers well</span><p id="pAnswers"></p></div>
+      <div class="card"><span class="k">Does not answer &mdash; look elsewhere</span><p id="pNotAnswers"></p></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="col"><h2>The contract <span class="chip live" style="vertical-align:middle">Live</span></h2>
+      <p class="note" style="margin-top:6px">Verified against the deployed endpoint. <em>Source of truth</em> is the column
+        that matters in design review &mdash; it names the steward to talk to about a field.</p></div>
+    <div class="tw"><table id="pContract"></table></div>
+    <div class="card" id="pMapNote" style="border-left:3px solid var(--accent);display:none">
+      <span class="k">Modeled, not passthrough</span>
+      <p id="pMapText"></p>
+    </div>
+  </section>
+
+  <section>
+    <div class="col"><h2>Guarantees</h2></div>
+    <div class="grid2" id="pGuarantees"></div>
+  </section>
+
+  <section>
+    <div class="col"><h2>Lineage &mdash; who feeds it, who depends on it</h2>
+      <p class="note" style="margin-top:6px">The right-hand column is the one that saves you: it tells you who breaks
+        if you change this product.</p></div>
+    <div class="lin">
+      <div class="linbox"><div class="h">Upstream</div><ul id="pUp"></ul></div>
+      <div class="linbox"><div class="h">Downstream consumers</div><ul id="pDown"></ul></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="col"><h2>Access <span class="chip live" style="vertical-align:middle">Live</span></h2></div>
+    <div class="grid2">
+      <div class="card"><span class="k">Protocol</span><span class="v">REST, JSON</span>
+        <p><code id="pEndpoint"></code></p></div>
+      <div class="card"><span class="k">Authentication</span><span class="v">HTTP Basic</span>
+        <p>Runtime credentials. Anonymous callers receive <code>401</code>. An API Management key with
+          rate limiting is planned &mdash; see limitations.</p></div>
+    </div>
+    <pre id="pExample"></pre>
+  </section>
+
+  <section>
+    <div class="col"><h2>Known limitations <span class="chip live" style="vertical-align:middle">Live</span></h2>
+      <p class="note" style="margin-top:6px">Published deliberately. A consumer who discovers these in production loses
+        trust in the product; one who reads them here designs around them.</p></div>
+    <ul class="lim" id="pLimits"></ul>
+  </section>
+
+  <section>
+    <div class="col"><h2>What a solution designer gets from this page</h2>
+      <p class="note" style="margin-top:6px">This is the argument for the catalogue, not for any one product.</p></div>
+    <ol class="val">
+      <li><span class="q">&ldquo;Does this already exist?&rdquo;</span>
+        <span class="a">Answered in thirty seconds from the catalogue strip and the <em>what it answers</em> panel &mdash;
+        before anyone scopes a build. Most duplicated pipelines exist because this question had no cheap answer.</span></li>
+      <li><span class="q">&ldquo;Can I trust it, and who says so?&rdquo;</span>
+        <span class="a">A named accountable owner and per-field stewards. When a figure is disputed you know whose
+        decision to reopen &mdash; and that it was a decision, not an accident of load order.</span></li>
+      <li><span class="q">&ldquo;What will break if I change it?&rdquo;</span>
+        <span class="a">The downstream list turns a risky change into a scoped one. Without it, impact analysis is a
+        group email and a hopeful deploy.</span></li>
+      <li><span class="q">&ldquo;What can I <em>not</em> rely on?&rdquo;</span>
+        <span class="a">Published limitations let a designer route around a gap at design time instead of discovering
+        it in UAT.</span></li>
+      <li><span class="q">&ldquo;Do I need the whole stack?&rdquo;</span>
+        <span class="a">No. Compare the two published entries: one needs master data because its sources disagree,
+        one does not because a single system owns the fact. The catalogue makes that call visible.</span></li>
+    </ol>
+  </section>
+
+  <section>
+    <div class="col"><h2>Changelog <span class="chip mock" style="vertical-align:middle">Illustrative</span></h2></div>
+    <div class="tw"><table id="pChangelog" style="min-width:520px"></table></div>
+    <p class="note col">Requesting a change: definition changes go to the Product owner; delivery, schema and
+      availability issues go to the Technical owner. Field-level source-of-truth disputes go to the steward named
+      for that field in the contract table.</p>
+  </section>
+
+  <div class="foot">
+    <a href="./sea-data-product-assistant-why.html">Why these products exist &rarr;</a>
+    <a href="./sea-data-product-assistant-flow.html">See the data flow &rarr;</a>
+    <a href="./sea-data-product-assistant.html">Ask the agent &rarr;</a>
+  </div>
+
+</div>
+<script>
+(function(){
+  "use strict";
+  const esc = t => String(t==null?"":t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  const $ = s => document.querySelector(s);
+
+  const CATALOGUE = [
+    {
+      id:"master", name:"subsidiary_master", version:"v4.0.0",
+      status:"Production", statusClass:"live", shape:"Master data",
+      blurb:"The governed Subsidiary golden record. Who each entity is, and who is accountable for it.",
+      purpose:"The single agreed answer to \u201cwho is this subsidiary?\u201d. Two ERPs contribute; Data Hub matches them on Legal Entity ID and resolves each field to one authoritative value using a source ranking the business owns. Consumed directly by the agent, and by both downstream products as their identity spine.",
+      owners:[
+        ["Product owner &mdash; accountable","Head of Group Entity Governance","entity-governance@example.com","Owns the entity register: which entities exist, when one is created or wound down, and the definition of every attribute on the record."],
+        ["Technical owner &mdash; responsible","Integration Platform Team","#boomi-platform &middot; platform-team@example.com","Owns the Data Hub model, match rule, source attachment and deployment."],
+        ["Data steward &mdash; currency &amp; tax","Group Finance Systems","finance-systems@example.com","SAP is authoritative for reporting currency, tax registration and the finance contact. Requests to change those rankings come here."],
+        ["Data steward &mdash; status &amp; ownership","Regional Operations, SEA","sea-ops@example.com","Oracle EBS is authoritative for trading status and the entity owner, because Operations knows who actually runs the entity today."]],
+      answers:"&ldquo;Who is the entity owner for Vietnam?&rdquo;<br>&ldquo;Can we post an invoice to Thailand?&rdquo;<br>&ldquo;What is Indonesia&rsquo;s tax ID and fiscal year end?&rdquo;<br>&ldquo;What currency does this entity report in?&rdquo;<br>&ldquo;Who do I contact in finance for Singapore?&rdquo;",
+      notAnswers:"Any figure &mdash; revenue, cost, headcount, receivables. Master data holds attributes, never measures.<br>History: only the current agreed value is published.<br>Entities outside SEA.<br>Customers, products or suppliers &mdash; this domain is legal entities only.",
+      contract:[
+        ["grp","Identity"],
+        ["legalEntityId","string","Shared key","The match key. Every downstream product joins on it. Stable; never reused."],
+        ["subsidiaryName","string","Last write","Governed legal name. <strong>No ranking set</strong> &mdash; currently resolves to the Oracle trading name. See limitations."],
+        ["country","string","Last write","Country code. No ranking set."],
+        ["taxId","string","SAP_ERP","Tax registration. Ranked to SAP by the Group Finance steward &mdash; SAP carries the fully-qualified registration."],
+        ["fiscalYearEnd","string","Both agree","MM-DD. Both sources supply the same value, so no ranking is needed."],
+        ["grp","Governance &amp; accountability"],
+        ["entityOwner","string","ORACLE_EBS","The person accountable for the entity. Ranked to Oracle &mdash; the finance system's copy goes stale when people move."],
+        ["financeContact","string","SAP_ERP","Mailbox for finance queries. Ranked to SAP (controller mailbox) over Oracle's AP mailbox."],
+        ["reportingStatus","string","ORACLE_EBS","Operational or Dormant. Ranked to Oracle by the Regional Operations steward."],
+        ["currency","string","SAP_ERP","The currency the entity reports in. Ranked to SAP &mdash; this is the field that decides whether downstream figures are right."]],
+      guarantees:[
+        ["Grain","One legal entity","Primary key <code>legalEntityId</code>. Four SEA entities, eight contributing source records."],
+        ["Match rule <span class='chip live'>Live</span>","Exact on Legal Entity ID","Sources use different internal keys (SAP-1002 vs EBS-77002), so matching is on the shared business identifier."],
+        ["Conflict resolution","Per-field source ranking","Five of nine fields carry an explicit ranking. The rest fall to last-write-wins &mdash; deliberately visible in the contract above."],
+        ["Quarantine","0 records","Nothing has failed ingest. A rise here means the match rule needs work, not the runtime."]],
+      up:[["SAP S/4HANA Regional","Contributes all nine attributes. Authoritative for currency, tax ID and finance contact."],
+          ["Oracle EBS Legacy","Contributes all nine attributes. Authoritative for trading status and entity owner."]],
+      down:[["SEA Regional Performance Assistant","Reads this record <strong>directly</strong> via the Subsidiary Master Lookup tool &mdash; a native Data Hub query, no API in between."],
+            ["subsidiary_performance_consolidated","Uses it as the identity spine and for reporting status. Currently a build-time snapshot."],
+            ["open_receivables_by_subsidiary","Should read <code>currency</code> from here for its currency validation. Currently does not &mdash; see that product's limitations."]],
+      endpoint:"Boomi Data Hub repository API &middot; universe ba3393d1-\u2026",
+      example:'The agent queries this through the native Data Hub tool, not a REST endpoint:\n\n  Subsidiary Master Lookup  ->  all four golden records, nine fields each\n\nExample resolved record (Vietnam):\n\n  legal_entity_id  LE-VN-003\n  subsidiary_name  Vietnam Trading Co Ltd\n  reports_in       VND              <- SAP won the ranking\n  trading_status   Operational      <- Oracle won the ranking\n  entity_owner     Nguyen Thi Lan   <- Oracle won the ranking\n  finance_contact  vn.finance@\u2026    <- SAP won the ranking\n  tax_id           VN-0312345678    <- SAP won the ranking\n  fiscal_year_end  12-31            <- both sources agreed',
+      mapNote:"Two source systems win five different fields on one record. That is the whole point of per-field ranking: there is no single \u201cbest\u201d system, only a best system <em>per attribute</em>, and the business decides which.",
+      limits:[
+        ["<code>subsidiaryName</code> and <code>country</code> have no ranking.","They fall to last-contribution-wins, which is why the governed name is the Oracle trading name rather than SAP's formal legal name. Set a ranking if the legal name matters for contracts."],
+        ["No history.","Only the current agreed value is published. There is no as-at query, so you cannot ask what the owner was last quarter."],
+        ["No data-quality rules configured.","<code>dataQualitySteps</code> is empty. Nothing validates that a tax ID is well-formed or an email is an email."],
+        ["No tags.","Records are not classified, so the outbound channel cannot be filtered by a business rule."],
+        ["Downstream consumers do not all read it live.","Both integration products currently hold copies. Until they read this record at runtime, a change here does not reach them."]],
+      changelog:[["4.0.0","2026-09-07","Added entityOwner, financeContact, taxId, fiscalYearEnd with rankings for the first three. Enables governed ownership and eligibility lookups."],
+                 ["3.0.0","2026-09-07","Per-field source ranking corrected: currency to SAP, trading status to Oracle."],
+                 ["1.0.0","2026-09-07","First publication. Identity, country, currency and status, matched on Legal Entity ID."]]
+    },
+    {
+      id:"perf", name:"subsidiary_performance_consolidated", version:"v1.2.0",
+      status:"Production", statusClass:"live", shape:"Analytical",
+      blurb:"Monthly P&L and headcount by subsidiary, in USD.",
+      purpose:"Monthly revenue, operating cost and headcount for every South-East Asia subsidiary, reconciled against the governed Subsidiary master record and normalised to a single reporting currency. The one place to get a regional number that finance, operations and the board will all recognise.",
+      owners:[
+        ["Product owner &mdash; accountable","Head of Regional FP&amp;A, SEA","sea-fpna-lead@example.com","Owns the definition. Signs off what &ldquo;revenue&rdquo; means, which entities are in scope, and any change that alters a published figure."],
+        ["Technical owner &mdash; responsible","Integration Platform Team","#boomi-platform &middot; platform-team@example.com","Owns delivery, uptime and the endpoint contract. First responder if the product is late, wrong-shaped or unavailable."],
+        ["Data steward &mdash; currency","Group Finance Systems","finance-systems@example.com","Decides that SAP is authoritative for reporting currency. Requests to change that ranking go here, not to the platform team."],
+        ["Data steward &mdash; trading status","Regional Operations, SEA","sea-ops@example.com","Decides that Oracle EBS is authoritative for whether an entity is trading. Owns the Operational / Dormant vocabulary."]],
+      answers:"&ldquo;How did Vietnam perform last month?&rdquo;<br>&ldquo;Which market had the highest operating cost in Q2?&rdquo;<br>&ldquo;What is regional revenue year to date?&rdquo;<br>&ldquo;Which entities are not currently trading?&rdquo;",
+      notAnswers:"Anything below monthly grain.<br>Figures in local currency &mdash; only USD is published.<br>Balance-sheet items; this is P&amp;L and headcount only.<br>What customers currently owe &mdash; use open_receivables_by_subsidiary.",
+      contract:[
+        ["grp","Identity &mdash; from the Subsidiary golden record"],
+        ["legalEntityId","string","Shared key","The join key across every system. Stable; never reused."],
+        ["subsidiary","string","Derived","Short country-style name used for lookup."],
+        ["subsidiaryName","string","Data Hub","Governed legal name. Currently resolves to the Oracle EBS trading name."],
+        ["country","string","Data Hub","ISO-style country code as carried on the golden record."],
+        ["reportingStatus","string","Oracle EBS","Operational or Dormant. Ranked to Oracle by the Regional Operations steward."],
+        ["grp","Measures &mdash; one object per month in months[]"],
+        ["month","string","Source system","Accounting period, YYYY-MM. The grain of this product."],
+        ["revenueUSD","number","Derived","Revenue converted to USD. See limitations for the rate applied."],
+        ["operatingCostUSD","number","Derived","Operating cost converted to USD."],
+        ["headcount","integer","Source system","Period-end headcount. Not converted, not apportioned."],
+        ["grp","Context"],
+        ["reportingCurrency","string","Fixed","Always USD. Present so consumers never assume."],
+        ["sourceCurrency","string","SAP","The entity's local currency. Ranked to SAP by the Group Finance steward."],
+        ["summary","object","Derived","Pre-computed totals and latest-month figures across the window."]],
+      guarantees:[
+        ["Grain","Subsidiary &times; month","Primary key <code>legalEntityId + month</code>. One row per entity per period."],
+        ["Coverage","Rolling 6 months","Four SEA legal entities. Currently 2026-03 to 2026-08."],
+        ["Freshness <span class='chip mock'>Illustrative</span>","Monthly, by working day 3","Refreshed after period close. Intra-month figures are not published."],
+        ["Breaking changes <span class='chip mock'>Illustrative</span>","30 days notice","Additive fields ship in a minor version. Removals require a major version and consumer sign-off."]],
+      up:[["SAP S/4HANA Regional","Performance actuals; authoritative for reporting currency."],
+          ["Oracle EBS Legacy","Performance actuals; authoritative for trading status."],
+          ["subsidiary_master (Data Hub)","Golden record. Match on Legal Entity ID, per-field source ranking."]],
+      down:[["SEA Regional Performance Assistant","Agent Garden agent, via the Subsidiary Performance Lookup tool."],
+            ["Regional exec chat front end","Consumes via the agent, not directly."],
+            ["Board pack &mdash; regional summary <span class='chip mock'>Illustrative</span>","Monthly deck. Breaks visibly if the grain changes."]],
+      endpoint:"POST /ws/simple/querySubsidiaryperformance",
+      example:'Request   { "subsidiary": "Vietnam" }      // omit or leave empty to return all four\n\nResponse  { "subsidiary": "Vietnam",\n            "subsidiaryName": "Vietnam Trading Co Ltd",\n            "legalEntityId": "LE-VN-003",\n            "reportingStatus": "Operational",\n            "reportingCurrency": "USD",\n            "sourceCurrency": "VND",\n            "months": [ { "month": "2026-08",\n                          "revenueUSD": 2267875.52,\n                          "operatingCostUSD": 1814012.65,\n                          "headcount": 313 }, ... ],\n            "summary": { "totalRevenueUSD": 12591956.49, ... },\n            "matched": true }',
+      limits:[
+        ["One exchange rate for all periods.","Conversion applies a single fixed rate per currency across every month, rather than a period rate. Do not use these figures where the accounting standard requires an average or closing rate. Blocked on <code>fx_rates_daily</code>, which has no owner yet."],
+        ["The applied rate is not published.","<code>sourceCurrency</code> is returned but the rate is not, so a consumer cannot reconstruct or audit a figure. Planned for v1.3.0."],
+        ["Local-currency amounts are not exposed.","Only USD is published. If you need local values you must go to the source systems."],
+        ["Not yet warehouse-backed.","The dataset is materialised inside the delivery process rather than a warehouse table, so it cannot be joined to other products in SQL."],
+        ["No rate limiting.","Authentication is enforced; throttling and per-consumer keys are not."]],
+      changelog:[["1.2.0","2026-09-07","Added <code>reportingStatus</code> from the governed golden record; per-field source ranking applied to currency and status."],
+                 ["1.1.0","2026-08-14","Added <code>summary</code> block. Additive, non-breaking."],
+                 ["1.0.0","2026-07-30","First publication. Monthly revenue, operating cost, headcount in USD."]]
+    },
+    {
+      id:"ar", name:"open_receivables_by_subsidiary", version:"v1.0.0",
+      status:"Production", statusClass:"live", shape:"Operational",
+      blurb:"Open customer invoices, ageing and overdue exposure, per subsidiary.",
+      purpose:"What customers currently owe a South-East Asia subsidiary: every open invoice with its ageing, overdue position and USD equivalent, plus the data-quality issues found while validating the ledger. Current-state, read at the moment you ask &mdash; there is no nightly snapshot to be stale.",
+      owners:[
+        ["Product owner &mdash; accountable","Regional Credit &amp; Collections Manager, SEA","sea-collections@example.com","Owns the definition of &ldquo;open&rdquo;, the ageing buckets, and what counts as a data-quality failure worth flagging."],
+        ["Technical owner &mdash; responsible","Integration Platform Team","#boomi-platform &middot; platform-team@example.com","Owns delivery, uptime and the endpoint contract."],
+        ["Source system owner","Group Finance Systems (AR ledger)","finance-systems@example.com","Single authoritative source. No reconciliation needed &mdash; one system owns the receivable."],
+        ["Data quality escalation","Regional Credit &amp; Collections, SEA","sea-collections@example.com","Receives CURRENCY_MISMATCH and MISSING_CUSTOMER_NAME flags. These are control issues, not noise."]],
+      answers:"&ldquo;What is outstanding in Indonesia?&rdquo;<br>&ldquo;How much is overdue, and how old is the oldest item?&rdquo;<br>&ldquo;Who are the largest overdue customers?&rdquo;<br>&ldquo;Are there invoices we cannot chase?&rdquo;",
+      notAnswers:"Revenue, operating cost or headcount &mdash; use subsidiary_performance_consolidated.<br>Cleared or paid invoices; only open items are published.<br>Accounts payable &mdash; this is money owed <em>to</em> the business.<br>Cross-subsidiary totals; the subsidiary parameter is required.",
+      contract:[
+        ["grp","Entity context"],
+        ["subsidiary","string","Request","The subsidiary the caller asked for, echoed back."],
+        ["legalEntityId","string","Shared key","Same key as the performance product, so the two join."],
+        ["companyCode","string","AR ledger","The source ERP company code (SG01, ID01, VN01, TH01)."],
+        ["reportsIn","string","AR ledger","The currency the entity is expected to invoice in. Used by the currency validation."],
+        ["asOf","string","Derived","The extract timestamp the ageing was calculated against."],
+        ["grp","Invoices &mdash; one object per open item in invoices[]"],
+        ["invoiceNumber","string","AR ledger","Mapped from the ERP's BELNR."],
+        ["customerId","string","AR ledger","Mapped from KUNNR, with leading zeros stripped."],
+        ["customerName","string","AR ledger","Mapped from NAME1. Null when the ledger has none &mdash; flagged."],
+        ["invoiceDate","string","Derived","Mapped from BLDAT and reformatted YYYYMMDD to ISO."],
+        ["dueDate","string","Derived","Mapped from NETDT and reformatted to ISO."],
+        ["currency","string","AR ledger","Mapped from WAERS. Validated against reportsIn."],
+        ["amount","number","AR ledger","Mapped from DMBTR, in the invoice currency."],
+        ["amountUSD","number","Derived","Converted at the same fixed rates as the performance product."],
+        ["daysOverdue","integer","Derived","Days between dueDate and asOf. Zero when not yet due."],
+        ["agingBucket","string","Derived","Current, 1-30, 31-60, 61-90 or 90+."],
+        ["status","string","Derived","Current or Overdue."],
+        ["dataQualityFlags","array","Derived","Present only when validation failed. CURRENCY_MISMATCH, MISSING_CUSTOMER_NAME, AMOUNT_NOT_NUMERIC, DUE_DATE_UNPARSEABLE, NO_FX_RATE."],
+        ["grp","Rollups"],
+        ["summary","object","Derived","openInvoices, totalOpenUSD, overdueInvoices, totalOverdueUSD, oldestOverdueDays, cleanInvoices, dataQualityIssues."],
+        ["dataQuality","object","Derived","Issue count plus the per-invoice flags, so a steward can action them."]],
+      guarantees:[
+        ["Grain","One open invoice","Entity-scoped. The subsidiary parameter is required; there is no all-entities call."],
+        ["Freshness","Real time","Read from the ledger at request time. There is no snapshot to go stale."],
+        ["Validation <span class='chip live'>Live</span>","Every invoice, every call","Currency, customer name, amount and due date are checked on each read, not on a nightly job."],
+        ["Breaking changes <span class='chip mock'>Illustrative</span>","30 days notice","New dataQualityFlags values may be added without notice; treat the array as open."]],
+      up:[["SAP FI-AR open items","Single authoritative source. <strong>No Data Hub involved</strong> &mdash; one system owns the receivable, so there is nothing to reconcile."],
+          ["subsidiary_master (Data Hub) <span class='chip mock'>Planned</span>","The expected reporting currency is currently held in the extract. It should come from the golden record so the two products cannot disagree."]],
+      down:[["SEA Regional Performance Assistant","Agent Garden agent, via the Open Receivables Lookup tool."],
+            ["Collections worklist <span class='chip mock'>Illustrative</span>","Daily chase list. Consumes the ageing buckets directly."],
+            ["Regional exec chat front end","Consumes via the agent, for combined performance-and-cash briefings."]],
+      endpoint:"POST /ws/simple/queryOpenreceivables",
+      example:'Request   { "subsidiary": "Indonesia" }     // required for this product\n\nResponse  { "subsidiary": "Indonesia",\n            "legalEntityId": "LE-ID-002",\n            "companyCode": "ID01",\n            "reportsIn": "IDR",\n            "asOf": "2026-09-07",\n            "invoices": [ { "invoiceNumber": "1800005187",\n                            "customerName": "PT Jaya Distribusi",\n                            "currency": "USD",\n                            "amountUSD": 128000.00,\n                            "daysOverdue": 29,\n                            "agingBucket": "1-30",\n                            "status": "Overdue",\n                            "dataQualityFlags": ["CURRENCY_MISMATCH"] }, ... ],\n            "summary": { "totalOpenUSD": 501625.00,\n                         "totalOverdueUSD": 387250.00,\n                         "dataQualityIssues": 2 } }',
+      mapNote:"The source ERP emits <code>KUNNR</code>, <code>BELNR</code>, <code>WAERS</code>, <code>DMBTR</code>, <code>BLDAT</code>. None of those names appear in this contract. A Map component in the delivery process defines every consumer-facing field, so replacing the source system is a remap rather than a breaking change for every consumer. That is the difference between a data product and a passthrough.",
+      limits:[
+        ["The source is a stub.","The AR extract is generated inside the process rather than read from a live ledger. The Map and every validation downstream of it are real; the swap point is marked in the retrieve step."],
+        ["Expected currency is not yet read from the golden record.","<code>reportsIn</code> comes from the extract. It should come from <code>subsidiary_master</code>, so the currency validation cannot drift from the governed value."],
+        ["Same fixed FX rates as the performance product.","One rate per currency, no period rates. Consistent between the two products, but not audit-grade."],
+        ["No pagination.","Every open invoice is returned in one response. Fine at this volume; it would not survive a real ledger."],
+        ["No rate limiting.","Authentication is enforced; throttling and per-consumer keys are not."]],
+      changelog:[["1.0.0","2026-09-07","First publication. Open items, ageing, USD conversion and four validation rules."]]
+    },
+    {
+      id:"fx", name:"fx_rates_daily", version:"&mdash;",
+      status:"Proposed", statusClass:"mock", shape:"Reference",
+      blurb:"Dated exchange rates by currency and period. Not yet built &mdash; blocks the FX limitation on both products above.",
+      proposed:true
+    }
+  ];
+
+  function renderStrip(active){
+    document.getElementById("catStrip").innerHTML = CATALOGUE.map(p => `
+      <div class="prod ${p.id===active?"here":""}" data-id="${p.id}" ${p.proposed?"":'role="button" tabindex="0"'}
+           style="${p.proposed?"":"cursor:pointer"}">
+        <span class="nm">${esc(p.name)}</span>
+        <span class="ds">${p.blurb}</span>
+        <span class="ft"><span class="chip ${p.statusClass}">${esc(p.status)}</span>
+          <span class="chip neutral">${p.proposed?"no owner yet":esc(p.shape)}</span></span>
+      </div>`).join("");
+  }
+
+  function render(id){
+    const p = CATALOGUE.find(x => x.id === id);
+    if(!p || p.proposed) return;
+    renderStrip(id);
+    document.getElementById("pName").textContent = p.name;
+    document.getElementById("pVer").innerHTML = p.version;
+    document.getElementById("pStatus").textContent = p.status;
+    document.getElementById("pShape").textContent = p.shape;
+    document.getElementById("pPurpose").textContent = p.purpose;
+
+    document.getElementById("pOwners").innerHTML = p.owners.map(o => `
+      <div class="own"><span class="role">${o[0]}</span><span class="who">${o[1]}</span>
+        <span class="ct">${o[2]}</span><p>${o[3]}</p></div>`).join("");
+
+    document.getElementById("pAnswers").innerHTML = p.answers;
+    document.getElementById("pNotAnswers").innerHTML = p.notAnswers;
+
+    document.getElementById("pContract").innerHTML =
+      `<tr><th>Field</th><th>Type</th><th>Source of truth</th><th>Meaning</th></tr>` +
+      p.contract.map(r => r[0]==="grp"
+        ? `<tr class="grp"><td colspan="4">${r[1]}</td></tr>`
+        : `<tr><td class="m">${esc(r[0])}</td><td class="m">${esc(r[1])}</td>
+               <td class="m">${esc(r[2])}</td><td class="d">${r[3]}</td></tr>`).join("");
+
+    const mn = document.getElementById("pMapNote");
+    if(p.mapNote){ mn.style.display="flex"; document.getElementById("pMapText").innerHTML = p.mapNote; }
+    else mn.style.display="none";
+
+    document.getElementById("pGuarantees").innerHTML = p.guarantees.map(g => `
+      <div class="card"><span class="k">${g[0]}</span><span class="v">${g[1]}</span><p>${g[2]}</p></div>`).join("");
+
+    document.getElementById("pUp").innerHTML = p.up.map(u =>
+      `<li><span class="n">${u[0]}</span><span class="s">${u[1]}</span></li>`).join("");
+    document.getElementById("pDown").innerHTML = p.down.map(d =>
+      `<li><span class="n">${d[0]}</span><span class="s">${d[1]}</span></li>`).join("");
+
+    document.getElementById("pEndpoint").textContent = p.endpoint;
+    document.getElementById("pExample").textContent = p.example;
+
+    document.getElementById("pLimits").innerHTML = p.limits.map(l =>
+      `<li><b>${l[0]}</b> ${l[1]}</li>`).join("");
+
+    document.getElementById("pChangelog").innerHTML =
+      `<tr><th>Version</th><th>Date</th><th>Change</th></tr>` +
+      p.changelog.map(c => `<tr><td class="m">${esc(c[0])}</td><td class="m">${esc(c[1])}</td>
+                                <td class="d">${c[2]}</td></tr>`).join("");
+    window.scrollTo({top:0, behavior:"smooth"});
+  }
+
+  document.getElementById("catStrip").addEventListener("click", e => {
+    const el = e.target.closest(".prod[data-id]"); if(el) render(el.dataset.id);
+  });
+  document.getElementById("catStrip").addEventListener("keydown", e => {
+    if(e.key!=="Enter" && e.key!==" ") return;
+    const el = e.target.closest(".prod[data-id]"); if(el){ e.preventDefault(); render(el.dataset.id); }
+  });
+
+  render(new URLSearchParams(location.search).get("p") || "master");
+})();
+</script>
+</body>
+</html>

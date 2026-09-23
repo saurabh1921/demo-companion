@@ -1,0 +1,1409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NTT Demo — JSON to XML Order Integration | Executive Documentation</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --bg-soft: #f7f9fc;
+    --text: #1a202c;
+    --text-muted: #4a5568;
+    --primary: #1e40af;
+    --primary-soft: #dbeafe;
+    --accent-en: #1e40af;
+    --accent-id: #b91c1c;
+    --en-bg: #eff6ff;
+    --en-border: #93c5fd;
+    --id-bg: #fef2f2;
+    --id-border: #fca5a5;
+    --code-bg: #1e293b;
+    --code-text: #e2e8f0;
+    --border: #e2e8f0;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-lg: 0 10px 25px rgba(0,0,0,0.08), 0 4px 10px rgba(0,0,0,0.04);
+  }
+
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.65;
+    color: var(--text);
+    background: var(--bg-soft);
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Header */
+  .hero {
+    background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+    color: white;
+    padding: 60px 40px 40px;
+    box-shadow: var(--shadow-lg);
+  }
+  .hero-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .hero h1 {
+    margin: 0 0 8px;
+    font-size: 36px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+  .hero .subtitle {
+    font-size: 18px;
+    font-weight: 400;
+    opacity: 0.92;
+    margin: 0 0 24px;
+  }
+  .hero .meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px 24px;
+    margin-top: 16px;
+    font-size: 14px;
+  }
+  .hero .meta div {
+    border-left: 3px solid rgba(255,255,255,0.4);
+    padding-left: 12px;
+  }
+  .hero .meta strong { display: block; opacity: 0.75; font-weight: 500; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  /* Toggle bar */
+  .toggle-bar {
+    background: white;
+    border-bottom: 1px solid var(--border);
+    padding: 14px 40px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: var(--shadow);
+  }
+  .toggle-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .toggle-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .toggle-btn {
+    padding: 8px 16px;
+    border: 1px solid var(--border);
+    background: white;
+    color: var(--text);
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.15s ease;
+  }
+  .toggle-btn:hover { border-color: var(--primary); color: var(--primary); }
+  .toggle-btn.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+  }
+  .toggle-print {
+    margin-left: auto;
+    padding: 8px 16px;
+    background: var(--primary-soft);
+    color: var(--primary);
+    border: 1px solid var(--primary-soft);
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .toggle-print:hover { background: var(--primary); color: white; }
+
+  /* Layout */
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px;
+  }
+
+  /* TOC */
+  .toc {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px 28px;
+    margin-bottom: 32px;
+    box-shadow: var(--shadow);
+  }
+  .toc h3 {
+    margin: 0 0 16px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .toc ol {
+    columns: 2;
+    column-gap: 32px;
+    margin: 0;
+    padding-left: 24px;
+    font-size: 14px;
+  }
+  .toc li { margin-bottom: 6px; break-inside: avoid; }
+  .toc a {
+    color: var(--text);
+    text-decoration: none;
+    border-bottom: 1px dotted transparent;
+    transition: border-color 0.15s;
+  }
+  .toc a:hover { border-bottom-color: var(--primary); color: var(--primary); }
+
+  /* Sections */
+  section {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 32px 36px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow);
+  }
+  section h2 {
+    margin: 0 0 24px;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--primary);
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--primary-soft);
+  }
+  section h2 .num {
+    display: inline-block;
+    background: var(--primary);
+    color: white;
+    width: 32px;
+    height: 32px;
+    line-height: 32px;
+    text-align: center;
+    border-radius: 50%;
+    font-size: 14px;
+    margin-right: 12px;
+    vertical-align: middle;
+  }
+
+  /* Bilingual blocks */
+  .lang-block {
+    padding: 20px 24px;
+    margin: 16px 0;
+    border-radius: 8px;
+    border-left: 4px solid;
+  }
+  .lang-block.en { background: var(--en-bg); border-color: var(--en-border); }
+  .lang-block.id { background: var(--id-bg); border-color: var(--id-border); }
+  .lang-flag {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 3px 10px;
+    border-radius: 4px;
+    margin-bottom: 12px;
+  }
+  .lang-block.en .lang-flag { background: var(--accent-en); color: white; }
+  .lang-block.id .lang-flag { background: var(--accent-id); color: white; }
+
+  /* Language visibility toggle */
+  body.show-en .lang-block.id { display: none; }
+  body.show-id .lang-block.en { display: none; }
+
+  /* Typography */
+  p { margin: 12px 0; }
+  strong { color: var(--text); font-weight: 600; }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    background: white;
+    font-size: 14px;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  th, td {
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  th {
+    background: var(--bg-soft);
+    font-weight: 600;
+    color: var(--text);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--bg-soft); }
+  td code, th code {
+    background: rgba(0,0,0,0.05);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-family: "SF Mono", Monaco, Consolas, monospace;
+  }
+
+  /* Code blocks */
+  pre {
+    background: var(--code-bg);
+    color: var(--code-text);
+    padding: 18px 22px;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-family: "SF Mono", Monaco, Consolas, "Courier New", monospace;
+    font-size: 13px;
+    line-height: 1.55;
+    margin: 16px 0;
+  }
+  code {
+    font-family: "SF Mono", Monaco, Consolas, "Courier New", monospace;
+    font-size: 13px;
+  }
+  p code, li code {
+    background: rgba(30, 64, 175, 0.08);
+    color: var(--primary);
+    padding: 2px 6px;
+    border-radius: 3px;
+  }
+
+  /* ASCII diagrams */
+  pre.ascii {
+    background: #fafbfc;
+    color: var(--text);
+    border: 1px solid var(--border);
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
+  /* Lists */
+  ul, ol { padding-left: 24px; }
+  li { margin-bottom: 6px; }
+
+  /* Callout boxes */
+  .callout {
+    padding: 16px 20px;
+    border-radius: 8px;
+    margin: 16px 0;
+    border-left: 4px solid;
+  }
+  .callout.success { background: #f0fdf4; border-color: #4ade80; }
+  .callout.warn { background: #fffbeb; border-color: #fbbf24; }
+  .callout.info { background: var(--primary-soft); border-color: var(--primary); }
+
+  /* Status badges */
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .badge-success { background: #dcfce7; color: #166534; }
+  .badge-info { background: var(--primary-soft); color: var(--primary); }
+
+  /* Footer */
+  footer {
+    text-align: center;
+    padding: 40px 20px 60px;
+    color: var(--text-muted);
+    font-size: 13px;
+  }
+
+  /* Diagram embed */
+  .diagram-wrap {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px;
+    margin: 20px 0;
+    overflow-x: auto;
+    box-shadow: var(--shadow);
+  }
+  .diagram-wrap svg { display: block; max-width: 100%; height: auto; margin: 0 auto; }
+  .diagram-caption {
+    text-align: center;
+    margin-top: 12px;
+    font-size: 13px;
+    color: var(--text-muted);
+    font-style: italic;
+  }
+  .diagram-links {
+    text-align: center;
+    margin-top: 10px;
+    font-size: 13px;
+  }
+  .diagram-links a {
+    display: inline-block;
+    margin: 0 8px;
+    padding: 6px 14px;
+    background: var(--primary-soft);
+    color: var(--primary);
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: 600;
+  }
+  .diagram-links a:hover { background: var(--primary); color: white; }
+
+  /* Print */
+  @media print {
+    body { background: white; }
+    .hero { background: var(--primary) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .toggle-bar { display: none; }
+    section { break-inside: avoid; page-break-inside: avoid; box-shadow: none; border: 1px solid #ccc; }
+    .lang-block { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    pre { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .toc { page-break-after: always; }
+  }
+
+  /* Responsive */
+  @media (max-width: 720px) {
+    .hero { padding: 40px 20px 30px; }
+    .hero h1 { font-size: 26px; }
+    .toggle-bar, .container { padding: 14px 20px; }
+    .container { padding-top: 24px; }
+    section { padding: 20px 22px; }
+    .toc ol { columns: 1; }
+    table { font-size: 12px; }
+    th, td { padding: 8px 10px; }
+  }
+</style>
+</head>
+<body class="show-both">
+<!-- SEDC-NAV:START -->
+<style>
+  .sedc-nav * { box-sizing: border-box; }
+  .sedc-nav {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    margin: 0;
+    background: #072B55;
+    color: #ffffff;
+    font-family: 'Poppins',Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    font-size: 14px;
+    line-height: 1.4;
+  }
+  .sedc-nav-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 10px 20px;
+  }
+  .sedc-nav-brand {
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+  }
+  .sedc-nav-brand:hover,
+  .sedc-nav-brand:focus {
+    text-decoration: underline;
+  }
+  .sedc-nav-jump {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .sedc-nav-label {
+    white-space: nowrap;
+    color: #ffffff;
+  }
+  .sedc-nav-select {
+    font-family: inherit;
+    font-size: 13px;
+    color: #072B55;
+    background: #ffffff;
+    border: 1px solid #ffffff;
+    border-radius: 4px;
+    padding: 5px 8px;
+    max-width: 60vw;
+  }
+  .sedc-nav-rule {
+    height: 3px;
+    width: 100%;
+    background: linear-gradient(90deg,#FF7C66 0%,#A03291 100%);
+  }
+</style>
+<div class="sedc-nav" role="navigation" aria-label="SE Demo Companion navigation">
+  <div class="sedc-nav-bar">
+    <a class="sedc-nav-brand" href="../index.html" target="_top">SE Demo Companion</a>
+    <div class="sedc-nav-jump">
+      <label class="sedc-nav-label" for="sedc-nav-select">Jump to use case</label>
+      <select class="sedc-nav-select" id="sedc-nav-select" onchange="(function(sel){try{var opt=sel.options[sel.selectedIndex];var url=opt&&opt.getAttribute('data-href');if(!url)return;try{window.top.location.href=url;}catch(e){window.location.href=url;}}catch(e){}})(this)">
+        <option value="amc-fee-change-agent" data-href="./amc-fee-change-agent.html">AMC fee-change agent — Finnomena</option>
+        <option value="bvtpa-claims-integration-demo" data-href="./bvtpa-claims-integration-demo.html">Blue Venture TPA claims integration demo — Blue Venture TPA</option>
+        <option value="bvtpa-claims-adjudication-cio-brief" data-href="./bvtpa-claims-adjudication-cio-brief.html">Claims adjudication CIO brief — Blue Venture TPA</option>
+        <option value="delivery-status-sync-demo" data-href="./delivery-status-sync-demo.html">Delivery status sync demo — TOTO</option>
+        <option value="boomi-tenant-ceo-dashboard" data-href="./boomi-tenant-ceo-dashboard.html">Boomi tenant CEO dashboard — Boomi internal tenant</option>
+        <option value="boomi-tenant-30-day-report" data-href="./boomi-tenant-30-day-report.html">Boomi tenant operations report, 30-day view — Boomi internal tenant</option>
+        <option value="json-to-xml-order-integration" data-href="./json-to-xml-order-integration.html" selected>JSON to XML order integration, executive documentation — NTT</option>
+        <option value="edi-850-flight-deck" data-href="./edi-850-flight-deck.html">EDI 850 flight deck — Infosys</option>
+        <option value="whatsapp-to-sap-master-agent" data-href="./whatsapp-to-sap-master-agent.html">WhatsApp to SAP master agent — Boomi internal build</option>
+        <option value="student-xml-to-crm-json" data-href="./student-xml-to-crm-json.html">Student XML to CRM JSON — Attura</option>
+        <option value="sap-accounting-document-poc-outcome" data-href="./sap-accounting-document-poc-outcome.html">SAP accounting document automation, POC outcome — Abans PLC</option>
+        <option value="abans-sap-posting-poc-dashboard" data-href="./abans-sap-posting-poc-dashboard.html">Abans SAP posting, live POC dashboard — Abans PLC</option>
+        <option value="order-intake-api-fan-out" data-href="./order-intake-api-fan-out.html">Order intake API with multi-target fan-out — LTIMindtree</option>
+        <option value="electromart-track-and-reschedule" data-href="./electromart-track-and-reschedule.html">ElectroMart track order and reschedule delivery — ElectroMart (demo brand)</option>
+        <option value="enterprise-portal-ai-agent" data-href="./enterprise-portal-ai-agent.html">Enterprise portal with an embedded AI agent — ITG</option>
+        <option value="o2c-qad-build-journey" data-href="./o2c-qad-build-journey.html">O2C-QAD build journey — Boomi internal build</option>
+        <option value="boomi-accenture-trivia" data-href="./boomi-accenture-trivia.html">Boomi x Accenture trivia — Boomi internal build</option>
+        <option value="cloud-runtime-sizing-calculator" data-href="./cloud-runtime-sizing-calculator.html">Boomi public cloud runtime sizing estimator — Boomi internal build</option>
+        <option value="coupa-netsuite-vendor-bill" data-href="./coupa-netsuite-vendor-bill.html">Vendor bill pipeline, Coupa to NetSuite — Boomi internal build</option>
+        <option value="coupa-oracle-s2p-console" data-href="./coupa-oracle-s2p-console.html">Source-to-pay flow console, Coupa to Oracle Fusion — Boomi internal build</option>
+        <option value="epic-rauland-adt-nurse-call" data-href="./epic-rauland-adt-nurse-call.html">Epic ADT to Rauland Responder 5, nurse call integration — Boomi internal build</option>
+        <option value="epic-salesforce-trial-screening" data-href="./epic-salesforce-trial-screening.html">Clinical trial screening console, Epic to Salesforce — Meridian Research (demo brand)</option>
+        <option value="jc-hifi-order-tracker" data-href="./jc-hifi-order-tracker.html">JC Hi-Fi order tracker, customer self-service — JC Hi-Fi (demo brand)</option>
+        <option value="pacific-bank-onboarding" data-href="./pacific-bank-onboarding.html">Pacific onboarding console, retail bank customer onboarding — Pacific Islands Community Bank (demo brand)</option>
+        <option value="sea-data-product-assistant" data-href="./sea-data-product-assistant.html">SEA regional performance, data products and an agent over two ERPs — Boomi internal build</option>
+        <option value="servicenow-jira-incident-sync" data-href="./servicenow-jira-incident-sync.html">Incident sync prototype, ServiceNow to Jira — Boomi internal build</option>
+        <option value="zendesk-magento-order-status" data-href="./zendesk-magento-order-status.html">Order status bot and flow inspector, Zendesk to Magento — Avery Products (demo brand)</option>
+        <option value="zoho-netsuite-invoice-sync" data-href="./zoho-netsuite-invoice-sync.html">Invoice sync console, Zoho CRM to NetSuite — Boomi internal build</option>
+      </select>
+    </div>
+  </div>
+  <div class="sedc-nav-rule"></div>
+</div>
+<!-- SEDC-NAV:END -->
+
+
+<div class="hero">
+  <div class="hero-inner">
+    <h1>NTT Demo — JSON to XML Order Integration</h1>
+    <p class="subtitle">Executive Documentation · Dokumentasi Eksekutif · Bilingual EN / ID</p>
+    <div class="meta">
+      <div><strong>Audience</strong>CEO, CIO, Solution Architects</div>
+      <div><strong>Prepared by</strong>Integration Engineering</div>
+      <div><strong>Date</strong>2026-05-18</div>
+      <div><strong>Platform</strong>Boomi (AI-assisted)</div>
+      <div><strong>Build Time</strong>~10 minutes</div>
+      <div><strong>Status</strong><span class="badge badge-success">✓ COMPLETE</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="toggle-bar">
+  <div class="toggle-inner">
+    <span class="toggle-label">Language / Bahasa:</span>
+    <button class="toggle-btn active" data-lang="both">Both / Keduanya</button>
+    <button class="toggle-btn" data-lang="en">🇬🇧 English</button>
+    <button class="toggle-btn" data-lang="id">🇮🇩 Bahasa Indonesia</button>
+    <button class="toggle-print" onclick="window.print()">🖨️ Print / PDF</button>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- TOC -->
+  <div class="toc">
+    <h3>Table of Contents / Daftar Isi</h3>
+    <ol>
+      <li><a href="#s1">Executive Summary / Ringkasan Eksekutif</a></li>
+      <li><a href="#s2">Business Context / Konteks Bisnis</a></li>
+      <li><a href="#s3">Solution at a Glance / Gambaran Solusi</a></li>
+      <li><a href="#s4">What Each Step Does / Apa yang Dilakukan Setiap Langkah</a></li>
+      <li><a href="#s5">Sample Input and Output / Contoh Input dan Output</a></li>
+      <li><a href="#s6">Deep Dive / Penjelasan Cara Kerja</a></li>
+      <li><a href="#s7">Component Inventory / Inventaris Komponen</a></li>
+      <li><a href="#s8">Test Evidence / Bukti Pengujian</a></li>
+      <li><a href="#s9">Why Boomi / Mengapa Boomi</a></li>
+      <li><a href="#s10">Common Pitfalls / Kesalahan Umum</a></li>
+      <li><a href="#s11">Roadmap to Production / Peta Jalan ke Produksi</a></li>
+      <li><a href="#s12">Risk and Governance / Risiko dan Tata Kelola</a></li>
+      <li><a href="#s13">AI-Assisted Build / Pembangunan Berbantu AI</a></li>
+      <li><a href="#s14">Glossary / Glosarium</a></li>
+      <li><a href="#s15">Executive Talking Points / Poin Komunikasi Eksekutif</a></li>
+    </ol>
+  </div>
+
+  <!-- 1. Executive Summary -->
+  <section id="s1">
+    <h2><span class="num">1</span>Executive Summary / Ringkasan Eksekutif</h2>
+
+    <div class="lang-block en">
+      <span class="lang-flag">🇬🇧 EN</span>
+      <p>A working, production-pattern integration was built and tested on the Boomi platform that takes a <strong>modern JSON order</strong> from any upstream channel (mobile app, e-commerce site, partner API) and transforms it into the <strong>XML format required by a legacy ERP system</strong> — without writing a single line of custom code.</p>
+      <table>
+        <tr><th>Metric</th><th>Value</th></tr>
+        <tr><td>Lines of custom code written</td><td><strong>0</strong></td></tr>
+        <tr><td>Boomi components used</td><td><strong>5</strong> (1 process, 2 profiles, 1 map, 1 folder)</td></tr>
+        <tr><td>Time from blank canvas to verified output</td><td><strong>~10 minutes</strong></td></tr>
+        <tr><td>Test execution status</td><td><span class="badge badge-success">✓ COMPLETE</span> (verified end-to-end)</td></tr>
+        <tr><td>Reusability</td><td>Reusable, environment-promotable, version-controlled</td></tr>
+      </table>
+      <div class="callout info"><strong>Bottom line:</strong> What traditionally takes a Java/.NET developer 2–3 days of coding, testing, and packaging was delivered as a maintainable, GUI-visible Boomi process in minutes.</div>
+    </div>
+
+    <div class="lang-block id">
+      <span class="lang-flag">🇮🇩 ID</span>
+      <p>Sebuah integrasi siap-produksi telah dibangun dan diuji pada platform Boomi yang mengambil <strong>pesanan JSON modern</strong> dari saluran hulu mana pun (aplikasi mobile, e-commerce, API mitra) dan mengubahnya menjadi <strong>format XML yang dibutuhkan sistem ERP legacy</strong> — tanpa menulis satu baris kode pun.</p>
+      <table>
+        <tr><th>Metrik</th><th>Nilai</th></tr>
+        <tr><td>Baris kode kustom yang ditulis</td><td><strong>0</strong></td></tr>
+        <tr><td>Komponen Boomi yang digunakan</td><td><strong>5</strong> (1 proses, 2 profil, 1 pemetaan, 1 folder)</td></tr>
+        <tr><td>Waktu dari kanvas kosong hingga output terverifikasi</td><td><strong>~10 menit</strong></td></tr>
+        <tr><td>Status eksekusi pengujian</td><td><span class="badge badge-success">✓ SELESAI</span> (terverifikasi end-to-end)</td></tr>
+        <tr><td>Reusabilitas</td><td>Dapat dipakai ulang, dipromosikan antar-lingkungan, terkontrol versi</td></tr>
+      </table>
+      <div class="callout info"><strong>Kesimpulan:</strong> Apa yang biasanya memerlukan 2–3 hari pengembangan oleh developer Java/.NET berhasil dikirim sebagai proses Boomi yang mudah dirawat dan terlihat secara visual dalam hitungan menit.</div>
+    </div>
+  </section>
+
+  <!-- 2. Business Context -->
+  <section id="s2">
+    <h2><span class="num">2</span>Business Context / Konteks Bisnis</h2>
+
+    <div class="lang-block en">
+      <span class="lang-flag">🇬🇧 EN</span>
+      <p><strong>The Problem.</strong> Most enterprises run a mix of modern (REST/JSON) and legacy (XML/SOAP/EDI) systems. Order data arriving from a customer-facing app must be reshaped before a legacy ERP can accept it. The two formats describe the <strong>same data</strong>, but the <strong>structure differs</strong>.</p>
+      <table>
+        <tr><th>Modern Channel (JSON)</th><th>Legacy ERP (XML)</th></tr>
+        <tr><td>Flat object with arrays</td><td>Nested elements with repeating blocks</td></tr>
+        <tr><td>Camel-case field names (<code>customerName</code>)</td><td>Pascal-case wrapped (<code>Customer &gt; Name</code>)</td></tr>
+        <tr><td>Numbers as primitives</td><td>Numbers as element text</td></tr>
+        <tr><td>Metadata mixed with items</td><td>Strict header / customer / items / footer hierarchy</td></tr>
+      </table>
+      <p><strong>The Risk of Not Solving It Cleanly:</strong></p>
+      <ul>
+        <li>Hand-coded transformers become a single-developer dependency, hard to audit, brittle when payloads evolve.</li>
+        <li>Point-to-point integrations explode in count as more channels and ERPs are added (N × M problem).</li>
+        <li>No central visibility means business teams can't see where an order is, what failed, or why.</li>
+      </ul>
+      <p><strong>The Boomi Approach.</strong> A declarative, profile-driven transformation that any moderately trained developer can read, modify, and extend. Hosted on a managed runtime. Auditable. Versioned. Promotable across Dev → Test → Prod through configuration alone.</p>
+    </div>
+
+    <div class="lang-block id">
+      <span class="lang-flag">🇮🇩 ID</span>
+      <p><strong>Masalahnya.</strong> Sebagian besar perusahaan menjalankan campuran sistem modern (REST/JSON) dan legacy (XML/SOAP/EDI). Data pesanan yang masuk dari aplikasi pelanggan harus diubah bentuknya sebelum dapat diterima ERP legacy. Kedua format menjelaskan <strong>data yang sama</strong>, tetapi <strong>strukturnya berbeda</strong>.</p>
+      <table>
+        <tr><th>Saluran Modern (JSON)</th><th>ERP Legacy (XML)</th></tr>
+        <tr><td>Objek datar dengan array</td><td>Elemen bersarang dengan blok berulang</td></tr>
+        <tr><td>Nama field camel-case (<code>customerName</code>)</td><td>Pascal-case bersarang (<code>Customer &gt; Name</code>)</td></tr>
+        <tr><td>Angka sebagai primitif</td><td>Angka sebagai teks elemen</td></tr>
+        <tr><td>Metadata tercampur dengan item</td><td>Hirarki ketat: header / customer / items / footer</td></tr>
+      </table>
+      <p><strong>Risiko Jika Tidak Diselesaikan dengan Baik:</strong></p>
+      <ul>
+        <li>Transformator yang ditulis tangan menjadi ketergantungan pada satu developer, sulit diaudit, rapuh saat payload berubah.</li>
+        <li>Integrasi titik-ke-titik bertambah eksponensial saat ada lebih banyak saluran dan ERP (masalah N × M).</li>
+        <li>Tanpa visibilitas terpusat, tim bisnis tidak dapat melihat di mana pesanan berada, apa yang gagal, atau mengapa.</li>
+      </ul>
+      <p><strong>Pendekatan Boomi.</strong> Transformasi deklaratif berbasis profil yang dapat dibaca, dimodifikasi, dan diperluas oleh developer dengan keterampilan menengah. Berjalan pada runtime terkelola. Dapat diaudit. Terversi. Dapat dipromosikan Dev → Test → Prod hanya melalui konfigurasi.</p>
+    </div>
+  </section>
+
+  <!-- 3. Solution at a Glance -->
+  <section id="s3">
+    <h2><span class="num">3</span>Solution at a Glance / Gambaran Solusi</h2>
+
+    <div class="lang-block en">
+      <span class="lang-flag">🇬🇧 EN — High-Level Architecture</span>
+<pre class="ascii">   ┌─────────────────┐       ┌──────────────────────────────┐       ┌──────────────────┐
+   │  Source System  │       │       BOOMI INTEGRATION      │       │   Target System  │
+   │   (JSON In)     │──────▶│    (Profile + Map + Process) │──────▶│     (XML Out)    │
+   │                 │       │                              │       │                  │
+   │ • Mobile App    │       │  Start → Message → Notify    │       │  • Legacy ERP    │
+   │ • E-commerce    │       │      → Map → Notify → Stop   │       │  • B2B Partner   │
+   │ • Partner API   │       │                              │       │  • Data Lake     │
+   └─────────────────┘       └──────────────────────────────┘       └──────────────────┘</pre>
+    </div>
+
+    <div class="lang-block id">
+      <span class="lang-flag">🇮🇩 ID — Arsitektur Tingkat Tinggi</span>
+<pre class="ascii">   ┌─────────────────┐       ┌──────────────────────────────┐       ┌──────────────────┐
+   │  Sistem Sumber  │       │       INTEGRASI BOOMI        │       │  Sistem Tujuan   │
+   │  (JSON Masuk)   │──────▶│    (Profil + Map + Proses)   │──────▶│   (XML Keluar)   │
+   │                 │       │                              │       │                  │
+   │ • Aplikasi      │       │  Start → Message → Notify    │       │  • ERP Legacy    │
+   │ • E-commerce    │       │      → Map → Notify → Stop   │       │  • Mitra B2B     │
+   │ • API Mitra     │       │                              │       │  • Data Lake     │
+   └─────────────────┘       └──────────────────────────────┘       └──────────────────┘</pre>
+    </div>
+
+    <h3 style="margin-top:24px;color:var(--text-muted);font-size:16px;">High-Level Architecture Diagram / Diagram Arsitektur Tingkat Tinggi</h3>
+    <div class="diagram-wrap">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1300 620" role="img" aria-label="High-level architecture diagram">
+        <style>
+          .src-fill { fill: #fef3c7; stroke: #f59e0b; }
+          .src-box { fill: #ffffff; stroke: #f59e0b; }
+          .boomi-fill { fill: #dbeafe; stroke: #1e40af; }
+          .boomi-box { fill: #ffffff; stroke: #1e40af; }
+          .boomi-core { fill: #1e40af; stroke: #1e3a8a; }
+          .boomi-map { fill: #fde68a; stroke: #f59e0b; }
+          .tgt-fill { fill: #dcfce7; stroke: #16a34a; }
+          .tgt-box { fill: #ffffff; stroke: #16a34a; }
+          .lbl { font: 13px 'Segoe UI', sans-serif; fill: #1a202c; text-anchor: middle; }
+          .lbl-sm { font: 11px 'Segoe UI', sans-serif; fill: #4a5568; text-anchor: middle; }
+          .lbl-title { font: bold 14px 'Segoe UI', sans-serif; fill: #ffffff; text-anchor: middle; }
+          .lbl-section { font: bold 14px 'Segoe UI', sans-serif; text-anchor: middle; }
+          .lbl-white { font: bold 13px 'Segoe UI', sans-serif; fill: #ffffff; text-anchor: middle; }
+          .lbl-italic { font: italic 11px 'Segoe UI', sans-serif; fill: #4a5568; text-anchor: middle; }
+        </style>
+        <defs>
+          <marker id="arrYel" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L9,3 L0,6 z" fill="#f59e0b"/></marker>
+          <marker id="arrBlu" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L9,3 L0,6 z" fill="#1e40af"/></marker>
+          <marker id="arrGrn" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L9,3 L0,6 z" fill="#16a34a"/></marker>
+        </defs>
+
+        <!-- Title -->
+        <text x="650" y="30" class="lbl-section" style="font-size:18px;fill:#1e40af;">NTT Demo · End-to-End Integration Architecture</text>
+
+        <!-- SOURCE column -->
+        <rect x="30" y="60" width="280" height="500" rx="8" class="src-fill" stroke-width="2"/>
+        <text x="170" y="85" class="lbl-section" style="fill:#92400e;">SOURCE SYSTEMS (JSON)</text>
+        <rect x="60" y="110" width="220" height="55" rx="6" class="src-box" stroke-width="1.5"/>
+        <text x="170" y="135" class="lbl">📱 Mobile App</text>
+        <text x="170" y="153" class="lbl-sm">iOS / Android</text>
+        <rect x="60" y="185" width="220" height="55" rx="6" class="src-box" stroke-width="1.5"/>
+        <text x="170" y="210" class="lbl">🛒 E-commerce Web</text>
+        <text x="170" y="228" class="lbl-sm">Storefront</text>
+        <rect x="60" y="260" width="220" height="55" rx="6" class="src-box" stroke-width="1.5"/>
+        <text x="170" y="285" class="lbl">🤝 Partner API</text>
+        <text x="170" y="303" class="lbl-sm">B2B Marketplace</text>
+        <rect x="60" y="335" width="220" height="55" rx="6" class="src-box" stroke-width="1.5"/>
+        <text x="170" y="360" class="lbl">☎️ Call Center / CSR</text>
+        <text x="170" y="378" class="lbl-sm">Manual Entry</text>
+        <text x="170" y="450" class="lbl-italic">Output format:</text>
+        <text x="170" y="466" class="lbl-italic">JSON over HTTPS</text>
+
+        <!-- BOOMI column -->
+        <rect x="370" y="60" width="560" height="500" rx="8" class="boomi-fill" stroke-width="2"/>
+        <text x="650" y="85" class="lbl-section" style="fill:#1e40af;">BOOMI INTEGRATION PLATFORM</text>
+        <rect x="400" y="115" width="220" height="55" rx="6" class="boomi-box" stroke-width="1.5"/>
+        <text x="510" y="140" class="lbl">🌐 Listener / Connector</text>
+        <text x="510" y="158" class="lbl-sm">HTTPS · SFTP · Queue</text>
+        <rect x="660" y="115" width="240" height="55" rx="6" class="boomi-core" stroke-width="1.5"/>
+        <text x="780" y="140" class="lbl-title">⚙️ Integration Process</text>
+        <text x="780" y="158" class="lbl-white" style="font-size:11px;">Start → Map → Stop</text>
+
+        <rect x="400" y="195" width="160" height="50" rx="6" class="boomi-box" stroke-width="1.5"/>
+        <text x="480" y="217" class="lbl-sm">📄 JSON Profile</text>
+        <text x="480" y="234" class="lbl-sm" style="font-family:monospace;font-size:10px;">j.NTTDemo.Order.REQ</text>
+        <rect x="580" y="195" width="180" height="50" rx="6" class="boomi-map" stroke-width="1.5"/>
+        <text x="670" y="217" class="lbl-sm" style="font-weight:bold;">🔄 Transformation Map</text>
+        <text x="670" y="234" class="lbl-sm" style="font-family:monospace;font-size:10px;">JSON → XML</text>
+        <rect x="780" y="195" width="160" height="50" rx="6" class="boomi-box" stroke-width="1.5"/>
+        <text x="860" y="217" class="lbl-sm">📄 XML Profile</text>
+        <text x="860" y="234" class="lbl-sm" style="font-family:monospace;font-size:10px;">x.NTTDemo.Order.ERP</text>
+
+        <rect x="400" y="270" width="260" height="50" rx="6" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5"/>
+        <text x="530" y="293" class="lbl-sm">📋 Logging / Audit Trail</text>
+        <text x="530" y="310" class="lbl-sm">(Notify + Process Reporting)</text>
+        <rect x="680" y="270" width="260" height="50" rx="6" fill="#fef2f2" stroke="#dc2626" stroke-width="1.5"/>
+        <text x="810" y="293" class="lbl-sm">⚠️ Try / Catch + Alerts</text>
+        <text x="810" y="310" class="lbl-sm">Email · Dead-letter queue</text>
+
+        <rect x="400" y="345" width="540" height="55" rx="6" fill="#e0e7ff" stroke="#4f46e5" stroke-width="1.5"/>
+        <text x="670" y="370" class="lbl" style="font-weight:bold;">🖥️ Atom Runtime  (Cloud or On-Prem)</text>
+        <text x="670" y="388" class="lbl-sm">Hosts deployed process · Concurrency control · Auto-scaling</text>
+
+        <text x="670" y="440" class="lbl-italic" style="font-style:italic;">Profile-driven transformation · Zero custom code · Visual maintenance</text>
+
+        <!-- TARGET column -->
+        <rect x="990" y="60" width="280" height="500" rx="8" class="tgt-fill" stroke-width="2"/>
+        <text x="1130" y="85" class="lbl-section" style="fill:#15803d;">TARGET SYSTEMS (XML)</text>
+        <rect x="1020" y="110" width="220" height="55" rx="6" class="tgt-box" stroke-width="1.5"/>
+        <text x="1130" y="135" class="lbl">🏛️ Legacy ERP</text>
+        <text x="1130" y="153" class="lbl-sm">Oracle / SAP / Custom</text>
+        <rect x="1020" y="185" width="220" height="55" rx="6" class="tgt-box" stroke-width="1.5"/>
+        <text x="1130" y="210" class="lbl">🤝 B2B Trading Partner</text>
+        <text x="1130" y="228" class="lbl-sm">XML / EDI</text>
+        <rect x="1020" y="260" width="220" height="55" rx="6" class="tgt-box" stroke-width="1.5"/>
+        <text x="1130" y="285" class="lbl">🗄️ Data Lake</text>
+        <text x="1130" y="303" class="lbl-sm">Analytics</text>
+        <rect x="1020" y="335" width="220" height="55" rx="6" class="tgt-box" stroke-width="1.5"/>
+        <text x="1130" y="360" class="lbl">📦 Archive Store</text>
+        <text x="1130" y="378" class="lbl-sm">Compliance</text>
+        <text x="1130" y="450" class="lbl-italic">Input format:</text>
+        <text x="1130" y="466" class="lbl-italic">XML over file / REST / JMS</text>
+
+        <!-- Arrows: Sources → Boomi listener -->
+        <line x1="285" y1="137" x2="395" y2="142" stroke="#f59e0b" stroke-width="2" marker-end="url(#arrYel)"/>
+        <line x1="285" y1="212" x2="395" y2="148" stroke="#f59e0b" stroke-width="2" marker-end="url(#arrYel)"/>
+        <line x1="285" y1="287" x2="395" y2="155" stroke="#f59e0b" stroke-width="2" marker-end="url(#arrYel)"/>
+        <line x1="285" y1="362" x2="395" y2="162" stroke="#f59e0b" stroke-width="2" marker-end="url(#arrYel)"/>
+
+        <!-- Arrow: Listener → Process -->
+        <line x1="625" y1="142" x2="655" y2="142" stroke="#1e40af" stroke-width="3" marker-end="url(#arrBlu)"/>
+
+        <!-- Arrows: Process → Targets -->
+        <line x1="905" y1="138" x2="1015" y2="137" stroke="#16a34a" stroke-width="2" marker-end="url(#arrGrn)"/>
+        <line x1="905" y1="145" x2="1015" y2="212" stroke="#16a34a" stroke-width="2" marker-end="url(#arrGrn)"/>
+        <line x1="905" y1="152" x2="1015" y2="287" stroke="#16a34a" stroke-width="2" marker-end="url(#arrGrn)"/>
+        <line x1="905" y1="160" x2="1015" y2="362" stroke="#16a34a" stroke-width="2" marker-end="url(#arrGrn)"/>
+
+        <!-- Footer -->
+        <text x="650" y="595" class="lbl-section" style="font-size:13px;">🟡 Source Systems (JSON)        🔵 Boomi Platform        🟢 Target Systems (XML)</text>
+      </svg>
+      <div class="diagram-caption">Architecture · Sumber → Boomi → Tujuan — one Boomi process replaces N×M point-to-point integrations</div>
+      <div class="diagram-links">
+        <a href="diagrams/01-architecture.drawio" download>📥 Download .drawio</a>
+        <a href="https://app.diagrams.net/?url=" onclick="alert('Open https://app.diagrams.net and use File → Open → diagrams/01-architecture.drawio'); return false;">✏️ Edit in draw.io</a>
+      </div>
+    </div>
+
+    <h3 style="margin-top:32px;color:var(--text-muted);font-size:16px;">The Six-Step Process Canvas / Kanvas Proses Enam Langkah</h3>
+
+    <div class="diagram-wrap">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 520" role="img" aria-label="Process flow diagram">
+        <style>
+          .pf-start { fill: #10b981; stroke: #047857; }
+          .pf-msg { fill: #3b82f6; stroke: #1e40af; }
+          .pf-notify { fill: #a78bfa; stroke: #6d28d9; }
+          .pf-map { fill: #f59e0b; stroke: #b45309; }
+          .pf-stop { fill: #ef4444; stroke: #991b1b; }
+          .pf-biz { fill: #fef3c7; stroke: #f59e0b; }
+          .pf-lbl-white { font: bold 13px 'Segoe UI', sans-serif; fill: #ffffff; text-anchor: middle; }
+          .pf-lbl-num { font: bold 12px 'Segoe UI', sans-serif; fill: #ffffff; text-anchor: middle; }
+          .pf-desc { font: 11px 'Segoe UI', sans-serif; fill: #4a5568; text-anchor: middle; }
+          .pf-biz-text { font: italic 10px 'Segoe UI', sans-serif; fill: #92400e; text-anchor: middle; }
+        </style>
+        <defs>
+          <marker id="pfArr" markerWidth="12" markerHeight="12" refX="11" refY="4" orient="auto"><path d="M0,0 L11,4 L0,8 z" fill="#1e40af"/></marker>
+        </defs>
+
+        <text x="700" y="30" style="font:bold 18px 'Segoe UI';fill:#1e40af;text-anchor:middle;">Boomi Process Canvas · NTTDemo-Order-JSON-to-XML-Process</text>
+        <text x="700" y="52" style="font:italic 12px 'Segoe UI';fill:#4a5568;text-anchor:middle;">Six shapes executed left-to-right · Each shape inspectable in the Boomi GUI</text>
+
+        <!-- Data flow banner -->
+        <rect x="450" y="75" width="500" height="32" rx="6" fill="#eff6ff" stroke="#3b82f6"/>
+        <text x="700" y="96" style="font:italic 12px 'Segoe UI';fill:#1e40af;text-anchor:middle;">📂 Data document flows left → right through every shape</text>
+
+        <!-- Shape 1: Start -->
+        <circle cx="110" cy="200" r="50" class="pf-start" stroke-width="3"/>
+        <text x="110" y="195" class="pf-lbl-num">①</text>
+        <text x="110" y="215" class="pf-lbl-white">START</text>
+        <text x="110" y="280" class="pf-desc" style="font-weight:bold;">No Data Start</text>
+        <text x="110" y="298" class="pf-desc">Entry point</text>
+        <text x="110" y="316" class="pf-desc">Emits empty doc</text>
+        <rect x="30" y="340" width="160" height="40" rx="4" class="pf-biz"/>
+        <text x="110" y="358" class="pf-biz-text" style="font-weight:bold;">📌 Conveyor belt switch</text>
+        <text x="110" y="372" class="pf-biz-text">(Business analog)</text>
+
+        <!-- Arrow 1→2 -->
+        <line x1="165" y1="200" x2="230" y2="200" stroke="#1e40af" stroke-width="3" marker-end="url(#pfArr)"/>
+
+        <!-- Shape 2: Message -->
+        <rect x="240" y="160" width="140" height="80" rx="10" class="pf-msg" stroke-width="2"/>
+        <text x="310" y="190" class="pf-lbl-num">②</text>
+        <text x="310" y="210" class="pf-lbl-white">MESSAGE</text>
+        <text x="310" y="228" class="pf-lbl-white" style="font-size:11px;">Inject JSON</text>
+        <text x="310" y="270" class="pf-desc" style="font-weight:bold;">Inject sample JSON</text>
+        <text x="310" y="288" class="pf-desc">In PROD: real listener</text>
+        <text x="310" y="306" class="pf-desc">(HTTPS / SFTP / Queue)</text>
+        <rect x="230" y="340" width="160" height="40" rx="4" class="pf-biz"/>
+        <text x="310" y="358" class="pf-biz-text" style="font-weight:bold;">📌 Envelope on belt</text>
+        <text x="310" y="372" class="pf-biz-text">(Business analog)</text>
+
+        <!-- Arrow 2→3 -->
+        <line x1="385" y1="200" x2="450" y2="200" stroke="#1e40af" stroke-width="3" marker-end="url(#pfArr)"/>
+
+        <!-- Shape 3: Notify -->
+        <rect x="460" y="160" width="140" height="80" rx="10" class="pf-notify" stroke-width="2"/>
+        <text x="530" y="190" class="pf-lbl-num">③</text>
+        <text x="530" y="210" class="pf-lbl-white">NOTIFY</text>
+        <text x="530" y="228" class="pf-lbl-white" style="font-size:11px;">Log Input</text>
+        <text x="530" y="270" class="pf-desc" style="font-weight:bold;">Log incoming JSON</text>
+        <text x="530" y="288" class="pf-desc">For audit + replay</text>
+        <text x="530" y="306" class="pf-desc">+ troubleshooting</text>
+        <rect x="450" y="340" width="160" height="40" rx="4" class="pf-biz"/>
+        <text x="530" y="358" class="pf-biz-text" style="font-weight:bold;">📌 Photograph envelope</text>
+        <text x="530" y="372" class="pf-biz-text">(Business analog)</text>
+
+        <!-- Arrow 3→4 -->
+        <line x1="605" y1="200" x2="670" y2="200" stroke="#1e40af" stroke-width="3" marker-end="url(#pfArr)"/>
+
+        <!-- Shape 4: Map (highlighted) -->
+        <rect x="680" y="150" width="160" height="100" rx="10" class="pf-map" stroke-width="4"/>
+        <text x="760" y="180" class="pf-lbl-num">④</text>
+        <text x="760" y="202" class="pf-lbl-white">MAP</text>
+        <text x="760" y="220" class="pf-lbl-white" style="font-size:11px;">JSON → XML</text>
+        <text x="760" y="236" class="pf-lbl-white" style="font-size:10px;">⭐ HEART OF PROCESS</text>
+        <text x="760" y="278" class="pf-desc" style="font-weight:bold;">Transformation engine</text>
+        <text x="760" y="296" class="pf-desc">Repeating items →</text>
+        <text x="760" y="314" class="pf-desc">repeating XML blocks</text>
+        <rect x="675" y="340" width="170" height="40" rx="4" class="pf-biz"/>
+        <text x="760" y="358" class="pf-biz-text" style="font-weight:bold;">📌 Translator at dock</text>
+        <text x="760" y="372" class="pf-biz-text">(Business analog)</text>
+
+        <!-- Arrow 4→5 -->
+        <line x1="845" y1="200" x2="910" y2="200" stroke="#1e40af" stroke-width="3" marker-end="url(#pfArr)"/>
+
+        <!-- Shape 5: Notify -->
+        <rect x="920" y="160" width="140" height="80" rx="10" class="pf-notify" stroke-width="2"/>
+        <text x="990" y="190" class="pf-lbl-num">⑤</text>
+        <text x="990" y="210" class="pf-lbl-white">NOTIFY</text>
+        <text x="990" y="228" class="pf-lbl-white" style="font-size:11px;">Log Output</text>
+        <text x="990" y="270" class="pf-desc" style="font-weight:bold;">Log outgoing XML</text>
+        <text x="990" y="288" class="pf-desc">Prove what was sent</text>
+        <text x="990" y="306" class="pf-desc">Audit-ready</text>
+        <rect x="910" y="340" width="160" height="40" rx="4" class="pf-biz"/>
+        <text x="990" y="358" class="pf-biz-text" style="font-weight:bold;">📌 Photograph label</text>
+        <text x="990" y="372" class="pf-biz-text">(Business analog)</text>
+
+        <!-- Arrow 5→6 -->
+        <line x1="1065" y1="200" x2="1130" y2="200" stroke="#1e40af" stroke-width="3" marker-end="url(#pfArr)"/>
+
+        <!-- Shape 6: Stop -->
+        <circle cx="1190" cy="200" r="50" class="pf-stop" stroke-width="3"/>
+        <text x="1190" y="195" class="pf-lbl-num">⑥</text>
+        <text x="1190" y="215" class="pf-lbl-white">STOP</text>
+        <text x="1190" y="280" class="pf-desc" style="font-weight:bold;">Terminate path</text>
+        <text x="1190" y="298" class="pf-desc">In PROD: target</text>
+        <text x="1190" y="316" class="pf-desc">connector (ERP write)</text>
+        <rect x="1110" y="340" width="160" height="40" rx="4" class="pf-biz"/>
+        <text x="1190" y="358" class="pf-biz-text" style="font-weight:bold;">📌 Belt halts</text>
+        <text x="1190" y="372" class="pf-biz-text">(Business analog)</text>
+
+        <!-- Bottom -->
+        <text x="700" y="425" style="font:bold 14px 'Segoe UI';fill:#16a34a;text-anchor:middle;">⏱️ End-to-end execution time observed: ~135 ms</text>
+
+        <rect x="100" y="445" width="1200" height="58" rx="6" fill="#dcfce7" stroke="#16a34a"/>
+        <text x="120" y="465" style="font:bold 12px 'Segoe UI';fill:#15803d;">🚀 PRODUCTION VARIANT</text>
+        <text x="120" y="482" style="font:11px 'Segoe UI';fill:#1a202c;">Shape 2 (Message) → real listener · Shape 6 (Stop) → target connector · Shapes 1, 3, 4, 5 remain identical.</text>
+        <text x="120" y="498" style="font:11px 'Segoe UI';fill:#1a202c;">The transformation logic doesn't change — only the source and destination plumbing.</text>
+      </svg>
+      <div class="diagram-caption">Process flow · Alur proses — six shapes, drag-and-drop on the Boomi canvas</div>
+      <div class="diagram-links">
+        <a href="diagrams/02-process-flow.drawio" download>📥 Download .drawio</a>
+        <a href="https://app.diagrams.net" target="_blank">✏️ Open draw.io</a>
+      </div>
+    </div>
+
+    <p style="font-size:14px;color:var(--text-muted);"><em>Each box is a shape on the Boomi canvas — visually self-documenting, drag-and-drop reconfigurable, inspectable at runtime. / Setiap kotak adalah sebuah shape pada kanvas Boomi — terdokumentasi visual, dapat dikonfigurasi ulang dengan drag-and-drop, dapat diperiksa saat runtime.</em></p>
+  </section>
+
+  <!-- 4. What Each Step Does -->
+  <section id="s4">
+    <h2><span class="num">4</span>What Each Step Does / Apa yang Dilakukan Setiap Langkah</h2>
+
+    <div class="lang-block en">
+      <span class="lang-flag">🇬🇧 EN</span>
+      <table>
+        <tr><th>#</th><th>Shape</th><th>What It Does</th><th>Business Equivalent</th></tr>
+        <tr><td>1</td><td><strong>Start</strong></td><td>Process entry point; kicks off the flow</td><td>"The conveyor belt switch"</td></tr>
+        <tr><td>2</td><td><strong>Message</strong></td><td>Injects a sample order payload (demo only)</td><td>"Customer drops an envelope on the belt"</td></tr>
+        <tr><td>3</td><td><strong>Notify</strong></td><td>Logs the incoming JSON for traceability and audit</td><td>"Camera photographs the envelope"</td></tr>
+        <tr><td>4</td><td><strong>Map</strong></td><td>The transformation engine — JSON to ERP-formatted XML</td><td>"Translator at the receiving dock"</td></tr>
+        <tr><td>5</td><td><strong>Notify</strong></td><td>Logs the outgoing XML to prove what was sent</td><td>"Camera photographs the translated label"</td></tr>
+        <tr><td>6</td><td><strong>Stop</strong></td><td>Cleanly ends the process</td><td>"Belt halts; package ready for ERP"</td></tr>
+      </table>
+      <p>In production, <strong>Step 2 is replaced</strong> with a real connector: HTTPS listener, file pickup (SFTP/MFT), API call, or message-queue subscription. Everything else stays identical.</p>
+    </div>
+
+    <div class="lang-block id">
+      <span class="lang-flag">🇮🇩 ID</span>
+      <table>
+        <tr><th>#</th><th>Shape</th><th>Fungsi</th><th>Padanan Bisnis</th></tr>
+        <tr><td>1</td><td><strong>Start</strong></td><td>Titik masuk proses; memulai alur</td><td>"Saklar ban berjalan"</td></tr>
+        <tr><td>2</td><td><strong>Message</strong></td><td>Menyuntikkan payload pesanan contoh (hanya demo)</td><td>"Pelanggan menaruh amplop di ban berjalan"</td></tr>
+        <tr><td>3</td><td><strong>Notify</strong></td><td>Mencatat JSON yang masuk untuk keterlacakan dan audit</td><td>"Kamera memotret amplop"</td></tr>
+        <tr><td>4</td><td><strong>Map</strong></td><td>Mesin transformasi — JSON menjadi XML format ERP</td><td>"Penerjemah di dermaga penerimaan"</td></tr>
+        <tr><td>5</td><td><strong>Notify</strong></td><td>Mencatat XML keluaran untuk pembuktian</td><td>"Kamera memotret label terjemahan"</td></tr>
+        <tr><td>6</td><td><strong>Stop</strong></td><td>Mengakhiri proses dengan bersih</td><td>"Ban berhenti; paket siap untuk ERP"</td></tr>
+      </table>
+      <p>Di produksi, <strong>Langkah 2 diganti</strong> dengan konektor sesungguhnya: HTTPS listener, pengambilan file (SFTP/MFT), panggilan API, atau langganan antrian pesan. Sisanya tetap sama.</p>
+    </div>
+  </section>
+
+  <!-- 5. Sample Input and Output -->
+  <section id="s5">
+    <h2><span class="num">5</span>Sample Input and Output / Contoh Input dan Output</h2>
+
+    <h3 style="color:var(--text-muted);font-size:16px;">Input — Modern JSON Order / Pesanan JSON Modern</h3>
+<pre>{
+  "orderId": "ORD1001",
+  "customerName": "Rahul Sharma",
+  "email": "rahul@gmail.com",
+  "orderDate": "2026-05-18",
+  "items": [
+    { "sku": "LAP123", "description": "Laptop",         "quantity": 1, "price": 55000 },
+    { "sku": "MOU456", "description": "Wireless Mouse", "quantity": 2, "price": 800   }
+  ],
+  "totalAmount": 56600,
+  "paymentMethod": "UPI"
+}</pre>
+
+    <h3 style="color:var(--text-muted);font-size:16px;margin-top:24px;">Output — Legacy ERP XML <span class="badge badge-success">verified from execution log</span></h3>
+<pre>&lt;?xml version='1.0' encoding='UTF-8'?&gt;
+&lt;Order&gt;
+  &lt;OrderId&gt;ORD1001&lt;/OrderId&gt;
+  &lt;OrderDate&gt;2026-05-18&lt;/OrderDate&gt;
+  &lt;Customer&gt;
+    &lt;Name&gt;Rahul Sharma&lt;/Name&gt;
+    &lt;Email&gt;rahul@gmail.com&lt;/Email&gt;
+  &lt;/Customer&gt;
+  &lt;Items&gt;
+    &lt;Item&gt;
+      &lt;SKU&gt;LAP123&lt;/SKU&gt;
+      &lt;Description&gt;Laptop&lt;/Description&gt;
+      &lt;Quantity&gt;1&lt;/Quantity&gt;
+      &lt;Price&gt;55000&lt;/Price&gt;
+    &lt;/Item&gt;
+    &lt;Item&gt;
+      &lt;SKU&gt;MOU456&lt;/SKU&gt;
+      &lt;Description&gt;Wireless Mouse&lt;/Description&gt;
+      &lt;Quantity&gt;2&lt;/Quantity&gt;
+      &lt;Price&gt;800&lt;/Price&gt;
+    &lt;/Item&gt;
+  &lt;/Items&gt;
+  &lt;TotalAmount&gt;56600&lt;/TotalAmount&gt;
+  &lt;PaymentMethod&gt;UPI&lt;/PaymentMethod&gt;
+&lt;/Order&gt;</pre>
+
+    <div class="lang-block en"><span class="lang-flag">🇬🇧 EN</span><p>Both line items appear correctly. Boomi iterated the <code>items</code> array automatically — we mapped each leaf field exactly once, and the engine produced N output blocks for N input items.</p></div>
+    <div class="lang-block id"><span class="lang-flag">🇮🇩 ID</span><p>Kedua item baris muncul dengan benar. Boomi mengiterasi array <code>items</code> secara otomatis — kami memetakan setiap field daun hanya satu kali, dan engine menghasilkan N blok keluaran untuk N item masukan.</p></div>
+  </section>
+
+  <!-- 6. Deep Dive -->
+  <section id="s6">
+    <h2><span class="num">6</span>How It Works — Deep Dive / Penjelasan Cara Kerja</h2>
+
+    <h3 style="color:var(--primary);">Concept 1 — Profiles Are Contracts / Konsep 1 — Profil Adalah Kontrak</h3>
+    <div class="lang-block en"><span class="lang-flag">🇬🇧 EN</span><p>A <strong>profile</strong> is Boomi's name for a schema. It defines the <em>shape</em> of data: which fields exist, their type, what's optional, what repeats. Two profiles were defined: <code>j.NTTDemo.Order.REQ</code> (JSON) and <code>x.NTTDemo.Order.ERP</code> (XML). Profiles are reusable across processes.</p></div>
+    <div class="lang-block id"><span class="lang-flag">🇮🇩 ID</span><p>Sebuah <strong>profil</strong> adalah nama Boomi untuk skema. Profil mendefinisikan <em>bentuk</em> data: field apa saja, tipenya, mana opsional, mana berulang. Dua profil didefinisikan: <code>j.NTTDemo.Order.REQ</code> (JSON) dan <code>x.NTTDemo.Order.ERP</code> (XML). Profil dapat dipakai ulang lintas proses.</p></div>
+
+    <h3 style="color:var(--primary);margin-top:24px;">Concept 2 — The Map Is Just Lines on a Picture / Konsep 2 — Map Hanyalah Garis pada Gambar</h3>
+
+    <div class="diagram-wrap">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1300 780" role="img" aria-label="Data transformation map">
+        <style>
+          .dm-src-hdr { fill: #fde68a; stroke: #b45309; }
+          .dm-src-field { fill: #fffbeb; stroke: #f59e0b; }
+          .dm-src-array { fill: #fef3c7; stroke: #b45309; }
+          .dm-src-child { fill: #ffffff; stroke: #f59e0b; }
+          .dm-tgt-hdr { fill: #bbf7d0; stroke: #15803d; }
+          .dm-tgt-field { fill: #f0fdf4; stroke: #16a34a; }
+          .dm-tgt-cont { fill: #dcfce7; stroke: #15803d; }
+          .dm-tgt-array { fill: #fef3c7; stroke: #b45309; }
+          .dm-tgt-child { fill: #ffffff; stroke: #16a34a; }
+          .dm-magic { fill: #fef2f2; stroke: #dc2626; }
+          .dm-callout { fill: #dbeafe; stroke: #1e40af; }
+          .dm-lbl { font: 12px 'Segoe UI', sans-serif; fill: #1a202c; }
+          .dm-lbl-hdr { font: bold 14px 'Segoe UI', sans-serif; text-anchor: middle; }
+        </style>
+        <defs>
+          <marker id="dmArrBlue" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L9,3 L0,6 z" fill="#1e40af"/></marker>
+          <marker id="dmArrRed" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L9,3 L0,6 z" fill="#dc2626"/></marker>
+        </defs>
+
+        <!-- Title -->
+        <text x="650" y="28" style="font:bold 18px 'Segoe UI';fill:#1e40af;text-anchor:middle;">Data Transformation Map · JSON Order → ERP XML</text>
+        <text x="650" y="50" style="font:italic 12px 'Segoe UI';fill:#4a5568;text-anchor:middle;">Each line is a single drag-and-drop in the Boomi map editor — no code, no loops</text>
+
+        <!-- SOURCE column header -->
+        <rect x="40" y="75" width="300" height="50" rx="6" class="dm-src-hdr" stroke-width="2"/>
+        <text x="190" y="98" class="dm-lbl-hdr" style="fill:#92400e;">SOURCE · JSON Profile</text>
+        <text x="190" y="116" class="dm-lbl-hdr" style="fill:#92400e;font-size:11px;font-family:monospace;">j.NTTDemo.Order.REQ</text>
+
+        <!-- Source flat fields -->
+        <rect x="40" y="140" width="300" height="32" rx="4" class="dm-src-field"/>
+        <text x="55" y="160" class="dm-lbl">🔑 orderId  (string)</text>
+        <rect x="40" y="180" width="300" height="32" rx="4" class="dm-src-field"/>
+        <text x="55" y="200" class="dm-lbl">👤 customerName  (string)</text>
+        <rect x="40" y="220" width="300" height="32" rx="4" class="dm-src-field"/>
+        <text x="55" y="240" class="dm-lbl">📧 email  (string)</text>
+        <rect x="40" y="260" width="300" height="32" rx="4" class="dm-src-field"/>
+        <text x="55" y="280" class="dm-lbl">📅 orderDate  (string)</text>
+
+        <!-- Source items array -->
+        <rect x="40" y="305" width="300" height="180" rx="4" class="dm-src-array" stroke-width="2"/>
+        <text x="55" y="328" class="dm-lbl" style="font-weight:bold;">🔁 items  [REPEATING ARRAY]</text>
+        <rect x="60" y="340" width="270" height="28" rx="3" class="dm-src-child"/>
+        <text x="75" y="358" class="dm-lbl">• sku  (string)</text>
+        <rect x="60" y="375" width="270" height="28" rx="3" class="dm-src-child"/>
+        <text x="75" y="393" class="dm-lbl">• description  (string)</text>
+        <rect x="60" y="410" width="270" height="28" rx="3" class="dm-src-child"/>
+        <text x="75" y="428" class="dm-lbl">• quantity  (number)</text>
+        <rect x="60" y="445" width="270" height="28" rx="3" class="dm-src-child"/>
+        <text x="75" y="463" class="dm-lbl">• price  (number)</text>
+
+        <!-- Source footer fields -->
+        <rect x="40" y="500" width="300" height="32" rx="4" class="dm-src-field"/>
+        <text x="55" y="520" class="dm-lbl">💰 totalAmount  (number)</text>
+        <rect x="40" y="540" width="300" height="32" rx="4" class="dm-src-field"/>
+        <text x="55" y="560" class="dm-lbl">💳 paymentMethod  (string)</text>
+
+        <!-- TARGET column header -->
+        <rect x="960" y="75" width="300" height="50" rx="6" class="dm-tgt-hdr" stroke-width="2"/>
+        <text x="1110" y="98" class="dm-lbl-hdr" style="fill:#15803d;">TARGET · XML Profile</text>
+        <text x="1110" y="116" class="dm-lbl-hdr" style="fill:#15803d;font-size:11px;font-family:monospace;">x.NTTDemo.Order.ERP</text>
+
+        <!-- Target fields top -->
+        <rect x="960" y="140" width="300" height="32" rx="4" class="dm-tgt-field"/>
+        <text x="975" y="160" class="dm-lbl">&lt;OrderId&gt;  (string)</text>
+        <rect x="960" y="180" width="300" height="32" rx="4" class="dm-tgt-field"/>
+        <text x="975" y="200" class="dm-lbl">&lt;OrderDate&gt;  (string)</text>
+
+        <!-- Target Customer container -->
+        <rect x="960" y="225" width="300" height="100" rx="4" class="dm-tgt-cont" stroke-width="2"/>
+        <text x="975" y="247" class="dm-lbl" style="font-weight:bold;">&lt;Customer&gt;  [NESTED]</text>
+        <rect x="980" y="258" width="270" height="28" rx="3" class="dm-tgt-child"/>
+        <text x="995" y="276" class="dm-lbl">&lt;Name&gt;  (string)</text>
+        <rect x="980" y="291" width="270" height="28" rx="3" class="dm-tgt-child"/>
+        <text x="995" y="309" class="dm-lbl">&lt;Email&gt;  (string)</text>
+
+        <!-- Target items -->
+        <rect x="960" y="340" width="300" height="180" rx="4" class="dm-tgt-array" stroke-width="2"/>
+        <text x="975" y="362" class="dm-lbl" style="font-weight:bold;">&lt;Items&gt; → &lt;Item&gt; [REPEATING]</text>
+        <rect x="980" y="375" width="270" height="28" rx="3" class="dm-tgt-child"/>
+        <text x="995" y="393" class="dm-lbl">• &lt;SKU&gt;  (string)</text>
+        <rect x="980" y="410" width="270" height="28" rx="3" class="dm-tgt-child"/>
+        <text x="995" y="428" class="dm-lbl">• &lt;Description&gt;  (string)</text>
+        <rect x="980" y="445" width="270" height="28" rx="3" class="dm-tgt-child"/>
+        <text x="995" y="463" class="dm-lbl">• &lt;Quantity&gt;  (number)</text>
+        <rect x="980" y="480" width="270" height="28" rx="3" class="dm-tgt-child"/>
+        <text x="995" y="498" class="dm-lbl">• &lt;Price&gt;  (number)</text>
+
+        <!-- Target footer -->
+        <rect x="960" y="535" width="300" height="32" rx="4" class="dm-tgt-field"/>
+        <text x="975" y="555" class="dm-lbl">&lt;TotalAmount&gt;  (number)</text>
+        <rect x="960" y="575" width="300" height="32" rx="4" class="dm-tgt-field"/>
+        <text x="975" y="595" class="dm-lbl">&lt;PaymentMethod&gt;  (string)</text>
+
+        <!-- Mapping arrows (flat fields - blue) -->
+        <line x1="340" y1="156" x2="955" y2="156" stroke="#1e40af" stroke-width="2" marker-end="url(#dmArrBlue)"/>
+        <line x1="340" y1="196" x2="975" y2="274" stroke="#1e40af" stroke-width="2" marker-end="url(#dmArrBlue)"/>
+        <line x1="340" y1="236" x2="975" y2="307" stroke="#1e40af" stroke-width="2" marker-end="url(#dmArrBlue)"/>
+        <line x1="340" y1="276" x2="955" y2="196" stroke="#1e40af" stroke-width="2" marker-end="url(#dmArrBlue)"/>
+
+        <!-- Mapping arrows (array items - red) -->
+        <line x1="335" y1="354" x2="975" y2="391" stroke="#dc2626" stroke-width="3" marker-end="url(#dmArrRed)"/>
+        <line x1="335" y1="389" x2="975" y2="426" stroke="#dc2626" stroke-width="3" marker-end="url(#dmArrRed)"/>
+        <line x1="335" y1="424" x2="975" y2="461" stroke="#dc2626" stroke-width="3" marker-end="url(#dmArrRed)"/>
+        <line x1="335" y1="459" x2="975" y2="496" stroke="#dc2626" stroke-width="3" marker-end="url(#dmArrRed)"/>
+
+        <!-- Mapping arrows footer (blue) -->
+        <line x1="340" y1="516" x2="955" y2="551" stroke="#1e40af" stroke-width="2" marker-end="url(#dmArrBlue)"/>
+        <line x1="340" y1="556" x2="955" y2="591" stroke="#1e40af" stroke-width="2" marker-end="url(#dmArrBlue)"/>
+
+        <!-- Magic box center -->
+        <rect x="500" y="380" width="300" height="120" rx="8" class="dm-magic" stroke-width="3"/>
+        <text x="650" y="408" style="font:bold 14px 'Segoe UI';fill:#991b1b;text-anchor:middle;">✨ THE MAGIC ✨</text>
+        <text x="650" y="432" class="dm-lbl" style="text-anchor:middle;font-weight:bold;">Both sides marked "repeating".</text>
+        <text x="650" y="450" class="dm-lbl" style="text-anchor:middle;">Boomi auto-iterates.</text>
+        <text x="650" y="470" class="dm-lbl" style="text-anchor:middle;">Map drawn ONCE.</text>
+        <text x="650" y="488" class="dm-lbl" style="text-anchor:middle;">Engine emits N &lt;Item&gt; blocks for N items.</text>
+
+        <!-- Legend -->
+        <line x1="40" y1="635" x2="80" y2="635" stroke="#1e40af" stroke-width="2"/>
+        <text x="90" y="640" class="dm-lbl" style="fill:#1e40af;">Standard field-to-field mapping (drawn once, applied once)</text>
+        <line x1="40" y1="660" x2="80" y2="660" stroke="#dc2626" stroke-width="3"/>
+        <text x="90" y="665" class="dm-lbl" style="fill:#dc2626;">Repeating-element mapping (drawn once, applied N times — one per array item)</text>
+
+        <!-- CEO callout -->
+        <rect x="40" y="685" width="1220" height="75" rx="6" class="dm-callout" stroke-width="2"/>
+        <text x="55" y="708" style="font:bold 13px 'Segoe UI';fill:#1e40af;">⚡ KEY INSIGHT FOR THE CEO</text>
+        <text x="55" y="728" class="dm-lbl">If the customer adds a 3rd line item, no code change is needed. Boomi sees the array and emits a 3rd &lt;Item&gt;</text>
+        <text x="55" y="748" class="dm-lbl">block automatically. Same for 100 items, or 1000. The map is structural — not procedural.</text>
+      </svg>
+      <div class="diagram-caption">Data mapping · Pemetaan data — 10 mapping lines describe the entire transformation</div>
+      <div class="diagram-links">
+        <a href="diagrams/03-data-mapping.drawio" download>📥 Download .drawio</a>
+        <a href="https://app.diagrams.net" target="_blank">✏️ Open draw.io</a>
+      </div>
+    </div>
+
+<pre class="ascii">  SOURCE (JSON) / SUMBER         TARGET (XML) / TUJUAN
+  ─────────────                  ────────────
+  orderId         ──────────▶    OrderId
+  orderDate       ──────────▶    OrderDate
+  customerName    ──────────▶    Customer/Name
+  email           ──────────▶    Customer/Email
+  items[*].sku    ──────────▶    Items/Item/SKU         ◄── These four lines are
+  items[*].desc   ──────────▶    Items/Item/Description     drawn ONCE. Boomi
+  items[*].qty    ──────────▶    Items/Item/Quantity        handles the loop.
+  items[*].price  ──────────▶    Items/Item/Price
+  totalAmount     ──────────▶    TotalAmount
+  paymentMethod   ──────────▶    PaymentMethod</pre>
+    <div class="lang-block en"><span class="lang-flag">🇬🇧 EN</span><p><strong>This is the single most important takeaway.</strong> Hand-coded transformations require explicit <code>for</code> loops, array index management, and null checks. Boomi infers all of that from the profiles. <strong>Less code = fewer bugs = faster delivery.</strong></p></div>
+    <div class="lang-block id"><span class="lang-flag">🇮🇩 ID</span><p><strong>Inilah poin terpenting.</strong> Transformasi yang ditulis tangan memerlukan loop <code>for</code> eksplisit, manajemen indeks array, dan pemeriksaan null. Boomi menyimpulkan semuanya dari profil. <strong>Lebih sedikit kode = lebih sedikit bug = pengiriman lebih cepat.</strong></p></div>
+
+    <h3 style="color:var(--primary);margin-top:24px;">Concept 3 — Documents Flow / Konsep 3 — Dokumen Mengalir</h3>
+    <div class="lang-block en"><span class="lang-flag">🇬🇧 EN</span><p>Boomi models data as a <strong>stream of documents</strong> flowing left-to-right through shapes. Each shape passes them through, transforms, replaces, or terminates them. This pipeline model matches modern data-engineering thinking.</p></div>
+    <div class="lang-block id"><span class="lang-flag">🇮🇩 ID</span><p>Boomi memodelkan data sebagai <strong>aliran dokumen</strong> dari kiri ke kanan melalui shape. Setiap shape meneruskan, mentransformasi, mengganti, atau menghentikan dokumen. Model pipeline ini sesuai cara pikir data engineer modern.</p></div>
+
+    <h3 style="color:var(--primary);margin-top:24px;">Concept 4 — Repeating Elements Are Declared / Konsep 4 — Elemen Berulang Dideklarasikan</h3>
+    <div class="lang-block en"><span class="lang-flag">🇬🇧 EN</span><p>In both profiles, array/repeating structures are flagged with <code>maxOccurs="-1"</code> (unbounded). This single attribute tells Boomi: <em>"there can be many of these — iterate."</em> No explicit loop is ever written.</p></div>
+    <div class="lang-block id"><span class="lang-flag">🇮🇩 ID</span><p>Pada kedua profil, struktur berulang ditandai <code>maxOccurs="-1"</code> (tak terbatas). Atribut tunggal ini memberitahu Boomi: <em>"bisa ada banyak — lakukan iterasi."</em> Tidak ada loop eksplisit yang ditulis.</p></div>
+  </section>
+
+  <!-- 7. Component Inventory -->
+  <section id="s7">
+    <h2><span class="num">7</span>Component Inventory / Inventaris Komponen</h2>
+    <div class="lang-block en"><span class="lang-flag">🇬🇧 EN</span><p>All artifacts live on the Boomi platform under folder <code>NTTDemo-OrderJsonToXml</code> with unique component IDs for change control.</p></div>
+    <div class="lang-block id"><span class="lang-flag">🇮🇩 ID</span><p>Semua artefak berada di platform Boomi di bawah folder <code>NTTDemo-OrderJsonToXml</code> dengan ID komponen unik untuk kontrol perubahan.</p></div>
+
+    <table>
+      <tr><th>Artifact / Artefak</th><th>Boomi Type / Tipe</th><th>Component ID / ID Komponen</th></tr>
+      <tr><td>Project Folder / Folder Proyek</td><td>Folder</td><td><code>Rjo4NTU1NjUy</code></td></tr>
+      <tr><td>Source JSON Profile / Profil JSON Sumber</td><td><code>profile.json</code></td><td><code>afc9bcfd-5af2-404d-a9d7-19744fb67b2d</code></td></tr>
+      <tr><td>Target XML Profile / Profil XML Tujuan</td><td><code>profile.xml</code></td><td><code>90f7c480-433d-4f0a-81d5-b8a15227ee43</code></td></tr>
+      <tr><td>Transformation Map / Map Transformasi</td><td><code>transform.map</code></td><td><code>46014c8f-ffee-4c0d-a4d7-b969d504ad35</code></td></tr>
+      <tr><td>Integration Process / Proses Integrasi</td><td><code>process</code></td><td><code>a2bc729b-35c1-47a9-befd-0634a60dccff</code></td></tr>
+    </table>
+
+    <div class="lang-block en"><span class="lang-flag">🇬🇧 EN</span><p>Each ID is a stable, version-controlled handle. Promoting Dev → Test → Prod is a single API call. Rollback is a single API call.</p></div>
+    <div class="lang-block id"><span class="lang-flag">🇮🇩 ID</span><p>Setiap ID adalah pegangan stabil dan terkontrol versi. Promosi Dev → Test → Prod hanya satu panggilan API. Rollback juga hanya satu panggilan API.</p></div>
+  </section>
+
+  <!-- 8. Test Evidence -->
+  <section id="s8">
+    <h2><span class="num">8</span>Test Evidence / Bukti Pengujian</h2>
+    <table>
+      <tr><th>Test / Pengujian</th><th>Result / Hasil</th></tr>
+      <tr><td>Process deployed to Atom runtime / Proses diterapkan ke runtime Atom</td><td><span class="badge badge-success">✓ SUCCESS</span> (package <code>79d0b6c0-…</code>)</td></tr>
+      <tr><td>Execution triggered via Boomi API / Eksekusi dipicu via API Boomi</td><td><span class="badge badge-success">✓ SUCCESS</span> (execution <code>9e586872-…</code>)</td></tr>
+      <tr><td>Final status / Status akhir</td><td><span class="badge badge-success">✓ COMPLETE / SELESAI</span></td></tr>
+      <tr><td>Output structure matches schema / Struktur output cocok skema</td><td><span class="badge badge-success">✓ Verified / Terverifikasi</span></td></tr>
+      <tr><td>Both line items present / Kedua item hadir</td><td><span class="badge badge-success">✓ Confirmed / Terkonfirmasi</span></td></tr>
+      <tr><td>Numeric fields preserved / Field numerik terjaga</td><td><span class="badge badge-success">✓ Confirmed / Terkonfirmasi</span></td></tr>
+      <tr><td>Nested <code>&lt;Customer&gt;</code> block / Blok bersarang</td><td><span class="badge badge-success">✓ Confirmed / Terkonfirmasi</span></td></tr>
+      <tr><td>End-to-end runtime / Runtime end-to-end</td><td><strong>~135 ms</strong></td></tr>
+    </table>
+    <div class="lang-block en"><span class="lang-flag">🇬🇧 EN</span><p>Full execution logs are persisted under <code>active-development/feedback/execution-results/</code> for audit.</p></div>
+    <div class="lang-block id"><span class="lang-flag">🇮🇩 ID</span><p>Log eksekusi lengkap tersimpan di <code>active-development/feedback/execution-results/</code> untuk audit.</p></div>
+  </section>
+
+  <!-- 9. Why Boomi -->
+  <section id="s9">
+    <h2><span class="num">9</span>Why Boomi / Mengapa Boomi</h2>
+    <div class="lang-block en">
+      <span class="lang-flag">🇬🇧 EN — vs. Custom Code / Other Approaches</span>
+      <table>
+        <tr><th>Capability</th><th>Custom Java/.NET</th><th>Boomi</th></tr>
+        <tr><td>Time to first version</td><td>1–3 days</td><td><strong>10 minutes</strong></td></tr>
+        <tr><td>Skills required</td><td>Senior dev</td><td>Junior + business analyst</td></tr>
+        <tr><td>Visual representation</td><td>None</td><td>Yes — canvas diagram</td></tr>
+        <tr><td>Runtime monitoring</td><td>Build yourself</td><td>Built-in</td></tr>
+        <tr><td>Environment promotion</td><td>CI/CD pipeline</td><td>Configuration only</td></tr>
+        <tr><td>Audit trail</td><td>Git, if disciplined</td><td>Platform-managed</td></tr>
+        <tr><td>Pre-built connectors</td><td>None</td><td>200+ SaaS connectors</td></tr>
+        <tr><td>Multi-tenant security</td><td>Build it</td><td>Built-in</td></tr>
+        <tr><td>Disaster recovery / HA</td><td>Build it</td><td>Managed</td></tr>
+      </table>
+    </div>
+    <div class="lang-block id">
+      <span class="lang-flag">🇮🇩 ID — vs. Kode Kustom / Pendekatan Lain</span>
+      <table>
+        <tr><th>Kemampuan</th><th>Java/.NET Kustom</th><th>Boomi</th></tr>
+        <tr><td>Waktu ke versi pertama</td><td>1–3 hari</td><td><strong>10 menit</strong></td></tr>
+        <tr><td>Keterampilan dibutuhkan</td><td>Developer senior</td><td>Junior + analis bisnis</td></tr>
+        <tr><td>Representasi visual</td><td>Tidak ada</td><td>Ya — diagram kanvas</td></tr>
+        <tr><td>Pemantauan runtime</td><td>Bangun sendiri</td><td>Bawaan</td></tr>
+        <tr><td>Promosi lingkungan</td><td>Pipeline CI/CD</td><td>Hanya konfigurasi</td></tr>
+        <tr><td>Jejak audit</td><td>Git, jika disiplin</td><td>Dikelola platform</td></tr>
+        <tr><td>Konektor siap-pakai</td><td>Tidak ada</td><td>200+ konektor SaaS</td></tr>
+        <tr><td>Keamanan multi-tenant</td><td>Bangun sendiri</td><td>Bawaan</td></tr>
+        <tr><td>Pemulihan bencana / HA</td><td>Bangun sendiri</td><td>Dikelola</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <!-- 10. Pitfalls -->
+  <section id="s10">
+    <h2><span class="num">10</span>Common Pitfalls / Kesalahan Umum</h2>
+    <div class="lang-block en">
+      <span class="lang-flag">🇬🇧 EN — How We Avoided Them</span>
+      <ol>
+        <li><strong>Mapping container nodes instead of leaves</strong> — only leaves carry data. <span class="badge badge-success">✓ Avoided</span></li>
+        <li><strong>Missing <code>maxOccurs="-1"</code></strong> — would emit only one <code>&lt;Item&gt;</code>. <span class="badge badge-success">✓ Avoided</span></li>
+        <li><strong>Quote-escaping bugs in Message shapes</strong> — most common silent bug. <span class="badge badge-success">✓ Avoided</span></li>
+        <li><strong>Number-vs-string type mismatch</strong> — would yield <code>"55000"</code> instead of <code>55000</code>. <span class="badge badge-success">✓ Avoided</span></li>
+        <li><strong>Components in account root</strong> — un-auditable. <span class="badge badge-success">✓ Avoided</span></li>
+        <li><strong>Pushed but not deployed</strong> — design push doesn't make it executable. <span class="badge badge-success">✓ Avoided</span></li>
+      </ol>
+    </div>
+    <div class="lang-block id">
+      <span class="lang-flag">🇮🇩 ID — Cara Kami Menghindarinya</span>
+      <ol>
+        <li><strong>Memetakan node container, bukan field daun</strong> — hanya daun yang membawa data. <span class="badge badge-success">✓ Dihindari</span></li>
+        <li><strong>Lupa <code>maxOccurs="-1"</code></strong> — akan menghasilkan hanya satu <code>&lt;Item&gt;</code>. <span class="badge badge-success">✓ Dihindari</span></li>
+        <li><strong>Bug escape kutip pada shape Message</strong> — bug diam-diam paling umum. <span class="badge badge-success">✓ Dihindari</span></li>
+        <li><strong>Ketidaksesuaian tipe angka vs string</strong> — akan menghasilkan <code>"55000"</code> bukan <code>55000</code>. <span class="badge badge-success">✓ Dihindari</span></li>
+        <li><strong>Komponen di root akun</strong> — tidak dapat diaudit. <span class="badge badge-success">✓ Dihindari</span></li>
+        <li><strong>Sudah push tapi belum deploy</strong> — push desain tidak membuatnya dapat dieksekusi. <span class="badge badge-success">✓ Dihindari</span></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- 11. Roadmap -->
+  <section id="s11">
+    <h2><span class="num">11</span>Roadmap to Production / Peta Jalan ke Produksi</h2>
+    <div class="lang-block en">
+      <span class="lang-flag">🇬🇧 EN</span>
+      <table>
+        <tr><th>Phase</th><th>Activity</th><th>Effort</th></tr>
+        <tr><td>1. Source integration</td><td>Replace Message with HTTPS listener / SFTP / queue subscriber</td><td>0.5 day</td></tr>
+        <tr><td>2. Target delivery</td><td>Add connector to write XML to ERP (file / REST / JMS)</td><td>0.5 day</td></tr>
+        <tr><td>3. Validation</td><td>Add Decision shape for required-field checks</td><td>0.5 day</td></tr>
+        <tr><td>4. Error handling</td><td>Wrap in Try/Catch with email alerts and dead-letter queue</td><td>1 day</td></tr>
+        <tr><td>5. Reference data</td><td>Cross-reference SKU to internal IDs via Cross-Reference</td><td>1 day</td></tr>
+        <tr><td>6. Idempotency</td><td>Add duplicate-order detection via Document Cache</td><td>0.5 day</td></tr>
+        <tr><td>7. Monitoring</td><td>Wire up Boomi Process Reporting + APM dashboards</td><td>0.5 day</td></tr>
+        <tr><td>8. Environment promotion</td><td>Configure Dev / Test / Prod with Environment Extensions</td><td>0.5 day</td></tr>
+        <tr><td colspan="2"><strong>Total to production</strong></td><td><strong>~4–5 person-days</strong></td></tr>
+      </table>
+    </div>
+    <div class="lang-block id">
+      <span class="lang-flag">🇮🇩 ID</span>
+      <table>
+        <tr><th>Tahap</th><th>Aktivitas</th><th>Usaha</th></tr>
+        <tr><td>1. Integrasi sumber</td><td>Ganti Message dengan HTTPS listener / SFTP / pelanggan antrian</td><td>0.5 hari</td></tr>
+        <tr><td>2. Pengiriman tujuan</td><td>Tambah konektor untuk menulis XML ke ERP (file / REST / JMS)</td><td>0.5 hari</td></tr>
+        <tr><td>3. Validasi</td><td>Tambah shape Decision untuk pemeriksaan field wajib</td><td>0.5 hari</td></tr>
+        <tr><td>4. Penanganan error</td><td>Bungkus Try/Catch + email alert + dead-letter queue</td><td>1 hari</td></tr>
+        <tr><td>5. Data referensi</td><td>Cross-reference SKU ke ID internal via Cross-Reference</td><td>1 hari</td></tr>
+        <tr><td>6. Idempotensi</td><td>Tambah deteksi pesanan duplikat via Document Cache</td><td>0.5 hari</td></tr>
+        <tr><td>7. Pemantauan</td><td>Hubungkan Boomi Process Reporting + dashboard APM</td><td>0.5 hari</td></tr>
+        <tr><td>8. Promosi lingkungan</td><td>Konfigurasi Dev / Test / Prod dengan Environment Extensions</td><td>0.5 hari</td></tr>
+        <tr><td colspan="2"><strong>Total ke produksi</strong></td><td><strong>~4–5 hari-orang</strong></td></tr>
+      </table>
+    </div>
+  </section>
+
+  <!-- 12. Risk and Governance -->
+  <section id="s12">
+    <h2><span class="num">12</span>Risk and Governance / Risiko dan Tata Kelola</h2>
+    <div class="lang-block en">
+      <span class="lang-flag">🇬🇧 EN</span>
+      <table>
+        <tr><th>Concern</th><th>Mitigation</th></tr>
+        <tr><td>Credentials in code</td><td>Boomi auto-encrypts password fields; production secrets in platform vault</td></tr>
+        <tr><td>Schema drift</td><td>Profile-driven design — schema updates are visual and impact-analysable</td></tr>
+        <tr><td>Runaway executions</td><td>Atom runtime has built-in concurrency limits and timeouts</td></tr>
+        <tr><td>PII / PCI data</td><td>Boomi supports document purging, field-level encryption, HIPAA-ready hosting</td></tr>
+        <tr><td>Vendor lock-in</td><td>All component XML is exportable (versioned locally)</td></tr>
+        <tr><td>Audit &amp; compliance</td><td>Every change versioned, every execution logged, every component has a stable ID</td></tr>
+      </table>
+    </div>
+    <div class="lang-block id">
+      <span class="lang-flag">🇮🇩 ID</span>
+      <table>
+        <tr><th>Perhatian</th><th>Mitigasi</th></tr>
+        <tr><td>Kredensial dalam kode</td><td>Boomi otomatis enkripsi field password; rahasia produksi di platform vault</td></tr>
+        <tr><td>Pergeseran skema</td><td>Desain berbasis profil — pembaruan skema visual dan dapat dianalisis dampaknya</td></tr>
+        <tr><td>Eksekusi liar</td><td>Runtime Atom punya batas konkurensi dan timeout bawaan</td></tr>
+        <tr><td>Data PII / PCI</td><td>Boomi mendukung purging dokumen, enkripsi field, hosting siap-HIPAA</td></tr>
+        <tr><td>Ketergantungan vendor</td><td>Semua XML komponen dapat diekspor (terversi lokal)</td></tr>
+        <tr><td>Audit &amp; kepatuhan</td><td>Setiap perubahan terversi, setiap eksekusi tercatat, ID komponen stabil</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <!-- 13. AI-Assisted Build -->
+  <section id="s13">
+    <h2><span class="num">13</span>AI-Assisted Build / Pembangunan Berbantu AI</h2>
+    <div class="lang-block en">
+      <span class="lang-flag">🇬🇧 EN</span>
+      <p>This entire integration was generated and deployed by <strong>Boomi Companion</strong> — an AI agent that:</p>
+      <ul>
+        <li>Read the requirements</li>
+        <li>Designed components in dependency order</li>
+        <li>Generated valid Boomi XML for each artifact</li>
+        <li>Pushed them via official Boomi APIs</li>
+        <li>Deployed and executed an end-to-end test</li>
+        <li>Verified the output matched the target schema</li>
+      </ul>
+      <p>The role of a Boomi-skilled human is now <strong>review, refine, and govern</strong> — not "write XML from scratch." This is a meaningful productivity multiplier for the integration practice.</p>
+    </div>
+    <div class="lang-block id">
+      <span class="lang-flag">🇮🇩 ID</span>
+      <p>Seluruh integrasi ini dihasilkan dan diterapkan oleh <strong>Boomi Companion</strong> — agen AI yang:</p>
+      <ul>
+        <li>Membaca persyaratan</li>
+        <li>Mendesain komponen sesuai urutan dependensi</li>
+        <li>Menghasilkan XML Boomi yang valid untuk setiap artefak</li>
+        <li>Mendorongnya via API resmi Boomi</li>
+        <li>Menerapkan dan menjalankan pengujian end-to-end</li>
+        <li>Memverifikasi output cocok dengan skema target</li>
+      </ul>
+      <p>Peran manusia ahli Boomi sekarang adalah <strong>meninjau, menyempurnakan, dan mengatur</strong> — bukan "menulis XML dari nol." Ini adalah pengganda produktivitas yang nyata untuk praktik integrasi.</p>
+    </div>
+  </section>
+
+  <!-- 14. Glossary -->
+  <section id="s14">
+    <h2><span class="num">14</span>Glossary / Glosarium</h2>
+    <table>
+      <tr><th>Term</th><th>Meaning (EN)</th><th>Arti (ID)</th></tr>
+      <tr><td><strong>Atom</strong></td><td>The Boomi runtime engine (cloud or on-prem)</td><td>Mesin runtime Boomi (cloud atau on-prem)</td></tr>
+      <tr><td><strong>Component</strong></td><td>A reusable building block</td><td>Blok bangunan dapat dipakai ulang</td></tr>
+      <tr><td><strong>Profile</strong></td><td>A schema for JSON, XML, CSV, EDI, or database</td><td>Skema untuk data JSON, XML, CSV, EDI, atau database</td></tr>
+      <tr><td><strong>Map</strong></td><td>A visual transformation between two profiles</td><td>Transformasi visual antar dua profil</td></tr>
+      <tr><td><strong>Process</strong></td><td>An end-to-end integration flow</td><td>Alur integrasi end-to-end</td></tr>
+      <tr><td><strong>Shape</strong></td><td>A single step on the canvas</td><td>Satu langkah pada kanvas</td></tr>
+      <tr><td><strong>DDP / DPP</strong></td><td>Boomi's per-document / per-process variables</td><td>Variabel per-dokumen / per-proses di Boomi</td></tr>
+      <tr><td><strong>Deploy</strong></td><td>Promote to a runtime environment for execution</td><td>Promosi ke lingkungan runtime untuk eksekusi</td></tr>
+      <tr><td><strong>Connector</strong></td><td>A reusable adapter to an external system</td><td>Adaptor reusable ke sistem eksternal</td></tr>
+    </table>
+  </section>
+
+  <!-- 15. Executive Talking Points -->
+  <section id="s15">
+    <h2><span class="num">15</span>Executive Talking Points / Poin Komunikasi Eksekutif</h2>
+    <div class="lang-block en">
+      <span class="lang-flag">🇬🇧 EN — 5-Minute Walkthrough</span>
+      <ol>
+        <li><strong>"This used to take days. It now takes minutes — and zero code."</strong></li>
+        <li><strong>"Both formats describe the same order. Boomi knows how to bridge them because we taught it the shape, not the steps."</strong></li>
+        <li><strong>"Repeating items in the source produce repeating items in the output — automatically. No loops, no scripts."</strong></li>
+        <li><strong>"Everything is versioned, auditable, and promotable across environments through configuration."</strong></li>
+      </ol>
+    </div>
+    <div class="lang-block id">
+      <span class="lang-flag">🇮🇩 ID — Penjelasan 5 Menit</span>
+      <ol>
+        <li><strong>"Dulu ini perlu berhari-hari. Sekarang hanya menit — dan tanpa kode."</strong></li>
+        <li><strong>"Kedua format menjelaskan pesanan yang sama. Boomi tahu cara menjembataninya karena kita mengajarinya bentuknya, bukan langkah-langkahnya."</strong></li>
+        <li><strong>"Item berulang di sumber menghasilkan item berulang di output — otomatis. Tanpa loop, tanpa skrip."</strong></li>
+        <li><strong>"Semuanya terversi, dapat diaudit, dan dapat dipromosikan antar-lingkungan melalui konfigurasi."</strong></li>
+      </ol>
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  <p>NTT Demo · JSON to XML Order Integration · Built with Boomi Companion · 2026-05-18</p>
+  <p style="font-size:11px;opacity:0.7;">For questions or live walkthrough requests, contact Integration Engineering / Untuk pertanyaan atau permintaan demo langsung, hubungi tim Integration Engineering</p>
+</footer>
+
+<script>
+  document.querySelectorAll('.toggle-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const lang = btn.dataset.lang;
+      document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.body.classList.remove('show-en', 'show-id', 'show-both');
+      document.body.classList.add('show-' + lang);
+    });
+  });
+</script>
+
+</body>
+</html>

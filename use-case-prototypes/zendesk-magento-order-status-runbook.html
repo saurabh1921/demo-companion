@@ -1,0 +1,688 @@
+<title>Order Status API — Demo to Production Cutover</title>
+<style>
+  :root {
+    --ground:      #EFF2F5;
+    --surface:     #FFFFFF;
+    --surface-alt: #F7F9FB;
+    --ink:         #131C26;
+    --muted:       #56677A;
+    --faint:       #7C8B9B;
+    --rule:        #D8E0E7;
+    --rule-soft:   #E7EDF2;
+    --accent:      #1F3A5F;
+    --accent-soft: #E3EAF3;
+
+    --demo:        #A14A3C;
+    --demo-bg:     #FAEDEA;
+    --demo-rule:   #EBD2CB;
+    --live:        #1F6B4A;
+    --live-bg:     #E8F1EC;
+    --live-rule:   #C9DFD3;
+    --warn:        #8A5F10;
+    --warn-bg:     #FBF3DF;
+    --warn-rule:   #E8D9AE;
+    --block:       #B02A2A;
+    --block-bg:    #FAEAEA;
+    --block-rule:  #EDCBCB;
+
+    --serif: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --sans:  system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --mono:  ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:      #0D141B;
+      --surface:     #151E27;
+      --surface-alt: #1A242E;
+      --ink:         #E3EAF1;
+      --muted:       #9BAAB9;
+      --faint:       #74869A;
+      --rule:        #2A3742;
+      --rule-soft:   #222E39;
+      --accent:      #8FB3DC;
+      --accent-soft: #1C2A3A;
+
+      --demo:        #E09480;
+      --demo-bg:     #2C1D19;
+      --demo-rule:   #4A2E27;
+      --live:        #71C79C;
+      --live-bg:     #14261D;
+      --live-rule:   #26432F;
+      --warn:        #D9AE5A;
+      --warn-bg:     #2A2213;
+      --warn-rule:   #47391D;
+      --block:       #E58585;
+      --block-bg:    #2C1818;
+      --block-rule:  #4C2626;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground:      #0D141B;
+    --surface:     #151E27;
+    --surface-alt: #1A242E;
+    --ink:         #E3EAF1;
+    --muted:       #9BAAB9;
+    --faint:       #74869A;
+    --rule:        #2A3742;
+    --rule-soft:   #222E39;
+    --accent:      #8FB3DC;
+    --accent-soft: #1C2A3A;
+
+    --demo:        #E09480;
+    --demo-bg:     #2C1D19;
+    --demo-rule:   #4A2E27;
+    --live:        #71C79C;
+    --live-bg:     #14261D;
+    --live-rule:   #26432F;
+    --warn:        #D9AE5A;
+    --warn-bg:     #2A2213;
+    --warn-rule:   #47391D;
+    --block:       #E58585;
+    --block-bg:    #2C1818;
+    --block-rule:  #4C2626;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page { max-width: 940px; margin: 0 auto; padding: 56px 28px 96px; }
+
+  /* ---------- masthead ---------- */
+  .masthead { border-bottom: 2px solid var(--ink); padding-bottom: 22px; margin-bottom: 34px; }
+  .kicker {
+    font-family: var(--mono); font-size: 11.5px; letter-spacing: .13em;
+    text-transform: uppercase; color: var(--muted); margin: 0 0 12px;
+  }
+  h1 {
+    font-family: var(--serif); font-weight: 600; font-size: 40px; line-height: 1.12;
+    letter-spacing: -.015em; margin: 0 0 14px; text-wrap: balance;
+  }
+  .standfirst { font-size: 17px; color: var(--muted); max-width: 66ch; margin: 0; }
+
+  /* ---------- typography ---------- */
+  h2 {
+    font-family: var(--serif); font-weight: 600; font-size: 25px; letter-spacing: -.01em;
+    margin: 0; text-wrap: balance;
+  }
+  h3 {
+    font-family: var(--sans); font-weight: 650; font-size: 15.5px;
+    margin: 26px 0 10px; letter-spacing: -.005em;
+  }
+  p { margin: 0 0 13px; max-width: 68ch; }
+  ul, ol { margin: 0 0 13px; padding-left: 22px; max-width: 68ch; }
+  li { margin-bottom: 7px; }
+  li::marker { color: var(--faint); }
+  a { color: var(--accent); text-underline-offset: 2px; }
+  strong { font-weight: 650; }
+  code {
+    font-family: var(--mono); font-size: .855em;
+    background: var(--surface-alt); border: 1px solid var(--rule-soft);
+    padding: 1px 5px; border-radius: 4px; word-break: break-word;
+  }
+
+  /* ---------- summary ---------- */
+  .summary {
+    background: var(--surface); border: 1px solid var(--rule); border-radius: 10px;
+    padding: 22px 24px; margin-bottom: 40px;
+  }
+  .summary h2 { font-size: 19px; margin-bottom: 12px; }
+  .paths { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 16px; }
+  @media (max-width: 720px) { .paths { grid-template-columns: 1fr; } }
+  .path { border-left: 3px solid var(--rule); padding-left: 14px; }
+  .path.now { border-left-color: var(--warn); }
+  .path.full { border-left-color: var(--live); }
+  .path h4 {
+    font-family: var(--mono); font-size: 11.5px; letter-spacing: .1em; text-transform: uppercase;
+    margin: 0 0 7px; color: var(--muted);
+  }
+  .path p { font-size: 14.5px; margin: 0; color: var(--ink); }
+
+  /* ---------- step spine ---------- */
+  .step { margin-bottom: 40px; }
+  .step-head {
+    display: grid; grid-template-columns: 44px 1fr auto; gap: 14px; align-items: baseline;
+    border-bottom: 1px solid var(--rule); padding-bottom: 11px; margin-bottom: 18px;
+  }
+  .num {
+    font-family: var(--mono); font-size: 13px; font-weight: 500; color: var(--accent);
+    background: var(--accent-soft); border-radius: 5px; text-align: center;
+    padding: 3px 0; align-self: center;
+  }
+  .owner {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .07em; text-transform: uppercase;
+    color: var(--faint); white-space: nowrap; align-self: center;
+  }
+  .step-body { padding-left: 58px; }
+  @media (max-width: 640px) {
+    .step-head { grid-template-columns: 38px 1fr; }
+    .owner { grid-column: 2; }
+    .step-body { padding-left: 0; }
+  }
+
+  /* ---------- chips ---------- */
+  .chip {
+    display: inline-block; font-family: var(--mono); font-size: 10.5px; font-weight: 500;
+    letter-spacing: .06em; text-transform: uppercase; padding: 2px 7px;
+    border-radius: 4px; border: 1px solid; vertical-align: 2px; margin-left: 8px; white-space: nowrap;
+  }
+  .chip.block { color: var(--block); background: var(--block-bg); border-color: var(--block-rule); }
+  .chip.req   { color: var(--accent); background: var(--accent-soft); border-color: var(--rule); }
+  .chip.rec   { color: var(--muted); background: var(--surface-alt); border-color: var(--rule); }
+  .chip.code  { color: var(--warn); background: var(--warn-bg); border-color: var(--warn-rule); }
+
+  /* ---------- change record ---------- */
+  .change {
+    border: 1px solid var(--rule); border-radius: 9px; overflow: hidden;
+    margin: 16px 0 20px; background: var(--surface);
+  }
+  .change-loc {
+    font-family: var(--mono); font-size: 11.5px; color: var(--muted);
+    padding: 8px 14px; border-bottom: 1px solid var(--rule-soft); background: var(--surface-alt);
+    overflow-x: auto; white-space: nowrap;
+  }
+  .change-row { display: grid; grid-template-columns: 1fr 1fr; }
+  @media (max-width: 720px) { .change-row { grid-template-columns: 1fr; } }
+  .side { padding: 12px 14px; font-family: var(--mono); font-size: 12.5px; line-height: 1.55; overflow-x: auto; }
+  .side.from { background: var(--demo-bg); color: var(--demo); border-right: 1px solid var(--rule-soft); }
+  .side.to   { background: var(--live-bg); color: var(--live); }
+  @media (max-width: 720px) {
+    .side.from { border-right: 0; border-bottom: 1px solid var(--rule-soft); }
+  }
+  .side-label {
+    display: block; font-size: 10px; letter-spacing: .1em; text-transform: uppercase;
+    opacity: .72; margin-bottom: 5px;
+  }
+  .side .val { word-break: break-all; }
+
+  /* ---------- callouts ---------- */
+  .note {
+    border: 1px solid; border-radius: 8px; padding: 13px 16px; margin: 16px 0;
+    font-size: 14.5px;
+  }
+  .note p:last-child, .note ul:last-child { margin-bottom: 0; }
+  .note.warn  { background: var(--warn-bg);  border-color: var(--warn-rule); }
+  .note.block { background: var(--block-bg); border-color: var(--block-rule); }
+  .note-title {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase;
+    display: block; margin-bottom: 6px;
+  }
+  .note.warn  .note-title { color: var(--warn); }
+  .note.block .note-title { color: var(--block); }
+
+  /* ---------- terminal ---------- */
+  pre {
+    background: var(--surface-alt); border: 1px solid var(--rule); border-left: 3px solid var(--accent);
+    border-radius: 7px; padding: 13px 15px; overflow-x: auto;
+    font-family: var(--mono); font-size: 12.5px; line-height: 1.65; margin: 14px 0; color: var(--ink);
+  }
+  pre .c { color: var(--faint); }
+
+  /* ---------- table ---------- */
+  .tw { overflow-x: auto; margin: 16px 0; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; min-width: 520px; }
+  th {
+    text-align: left; font-family: var(--mono); font-size: 10.5px; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--muted); font-weight: 500;
+    border-bottom: 1px solid var(--rule); padding: 7px 11px 7px 0;
+  }
+  td { border-bottom: 1px solid var(--rule-soft); padding: 9px 11px 9px 0; vertical-align: top; }
+  td:last-child, th:last-child { padding-right: 0; }
+  tbody tr:last-child td { border-bottom: 0; }
+
+  /* ---------- checklist ---------- */
+  .check { list-style: none; padding-left: 0; }
+  .check li {
+    padding-left: 27px; position: relative; margin-bottom: 9px;
+  }
+  .check li::before {
+    content: ""; position: absolute; left: 0; top: .38em;
+    width: 13px; height: 13px; border: 1.5px solid var(--faint); border-radius: 3px;
+  }
+
+  footer {
+    margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--rule);
+    font-size: 13px; color: var(--faint);
+  }
+
+  /* ---------- persistent title bar ---------- */
+  .page-header {
+    position: sticky; top: 0; z-index: 40;
+    background: var(--ground);
+    border-bottom: 2px solid var(--ink);
+  }
+  .page-header .page-header-inner {
+    max-width: 940px; margin: 0 auto; padding: 15px 28px;
+  }
+  .page-header .kicker { margin: 0 0 5px; }
+  .page-header h1 {
+    font-size: 18px; line-height: 1.3; margin: 0; letter-spacing: -.01em;
+  }
+  .page > .standfirst { margin: 0 0 34px; }
+</style>
+
+<div class="page-header">
+  <div class="page-header-inner">
+    <p class="kicker">Boomi · Zendesk · Magento — Cutover Runbook</p>
+    <h1>Taking the order status API from demo to live</h1>
+  </div>
+</div>
+
+<div class="page">
+
+  <p class="standfirst">
+    Everything currently deployed works end to end, but against mock data behind a
+    <em>Demo Mode</em> switch. This is the exact set of changes that replaces the mocks
+    with a real Magento store — what is configuration, what is code, and what is genuinely
+    unfinished.
+  </p>
+
+  <div class="summary">
+    <h2>What makes it a demo right now</h2>
+    <p>Six things, in descending order of how much work they are:</p>
+    <div class="tw">
+      <table>
+        <thead>
+          <tr><th>#</th><th>What</th><th>Effort</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td>Magento base URL is a placeholder host that does not resolve</td><td>Config</td></tr>
+          <tr><td>2</td><td>Bearer token is the literal string <code>REPLACE_WITH_…</code></td><td>Config</td></tr>
+          <tr><td>3</td><td><code>DPP_DEMO_MODE</code> is <code>true</code>, so both lookups hit Message-step mocks instead of the REST calls</td><td>Config</td></tr>
+          <tr><td>4</td><td>Demo scaffolding on the canvas — mock steps, a standalone test harness, a Notify that logs the full customer payload</td><td>Small code change</td></tr>
+          <tr><td>5</td><td>Tracking number and carrier are modelled on a field real Magento does not return there</td><td>Real code change</td></tr>
+          <tr><td>6</td><td>Nothing has ever run against a real Magento order document</td><td>Testing</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="paths">
+      <div class="path now">
+        <h4>Minimum to see real data</h4>
+        <p>Steps 1–4. Roughly half a day, mostly waiting on Magento credentials. You get live orders in the chat window, without tracking numbers.</p>
+      </div>
+      <div class="path full">
+        <h4>Production ready</h4>
+        <p>All eleven steps. Adds the shipments lookup, PII handling, a production runtime, and the Zendesk-side integration that this prototype fakes with a local proxy.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <div class="step">
+    <div class="step-head">
+      <span class="num">01</span>
+      <h2>Create a Magento integration and get a token<span class="chip block">Blocking</span></h2>
+      <span class="owner">Magento admin</span>
+    </div>
+    <div class="step-body">
+      <p>In the Magento admin: <strong>System → Extensions → Integrations → Add New Integration</strong>.</p>
+      <ol>
+        <li>Name it something traceable, e.g. <code>Boomi Order Status Bot</code>.</li>
+        <li>On the <strong>API</strong> tab set Resource Access to <strong>Custom</strong> and tick
+            <code>Sales → Operations → Orders</code>. If you are doing step 06 as well, also tick
+            <code>Sales → Operations → Shipments</code>.</li>
+        <li>Save, then <strong>Activate</strong> the integration from the grid and approve it.</li>
+        <li>Copy the <strong>Access Token</strong>. That single value is what Boomi sends as
+            <code>Authorization: Bearer &lt;token&gt;</code>.</li>
+      </ol>
+      <div class="note warn">
+        <span class="note-title">Use an integration token, not an admin token</span>
+        <p>Magento also issues tokens from <code>POST /rest/V1/integration/admin/token</code>, but those
+        expire (4 hours by default) and would need refresh logic Boomi does not currently have.
+        Integration access tokens do not expire, which is why the connection is built around one.</p>
+      </div>
+      <p>Grant read-only order access and nothing else. This token can list every order in the store,
+      so treat it as a production secret.</p>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <div class="step">
+    <div class="step-head">
+      <span class="num">02</span>
+      <h2>Point the connection at the real store<span class="chip req">Required</span></h2>
+      <span class="owner">Boomi</span>
+    </div>
+    <div class="step-body">
+      <p>Component <code>Magento REST Connection (Demo)</code> — <code>362a16cc-a38e-44f7-a0ad-98fa8197369d</code>.
+      Rename it too; the "(Demo)" suffix will outlive the demo otherwise.</p>
+      <div class="change">
+        <div class="change-loc">Connection → field <code>url</code></div>
+        <div class="change-row">
+          <div class="side from"><span class="side-label">Now</span><span class="val">https://magento-demo.example.com/rest/V1</span></div>
+          <div class="side to"><span class="side-label">Change to</span><span class="val">https://&lt;your-store-host&gt;/rest/V1</span></div>
+        </div>
+      </div>
+      <p>If the store is multi-site and orders are scoped per store view, the path is
+      <code>/rest/&lt;store_code&gt;/V1</code> instead. Leave <code>auth</code> as <code>NONE</code> —
+      authentication travels in the operation header, not the connection.</p>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <div class="step">
+    <div class="step-head">
+      <span class="num">03</span>
+      <h2>Put the token into both operations<span class="chip req">Required</span></h2>
+      <span class="owner">Boomi</span>
+    </div>
+    <div class="step-body">
+      <p>The same edit in two places — the operations do not share a header.</p>
+      <div class="change">
+        <div class="change-loc">
+          <code>GET Magento Order by Increment ID</code> — edc08219-420d-4fb5-9023-837d869c1f1d<br/>
+          <code>GET Magento Orders by Customer Email (3 Most Recent)</code> — d5c34b3c-46d5-494d-a5a8-894d7faf3391
+        </div>
+        <div class="change-row">
+          <div class="side from"><span class="side-label">Now</span><span class="val">Authorization: Bearer REPLACE_WITH_MAGENTO_INTEGRATION_ACCESS_TOKEN</span></div>
+          <div class="side to"><span class="side-label">Change to</span><span class="val">Authorization: Bearer &lt;access token from step 01&gt;</span></div>
+        </div>
+      </div>
+      <div class="note block">
+        <span class="note-title">Set this one in the Boomi UI, then encrypt it</span>
+        <p>Paste the token in the operation's Request Headers, then use the UI's encrypt control on that
+        header. Do not commit the real token to the XML in this repo — the placeholder is there so the
+        component can be version-controlled without a secret in it.</p>
+      </div>
+      <p>Nothing else about the operations changes. The <code>searchCriteria</code> parameters are already
+      correct for Magento's order search: filter on <code>increment_id</code> or <code>customer_email</code>,
+      sorted <code>created_at DESC</code>, <code>pageSize</code> 1 and 3 respectively. The filter
+      <em>value</em> is bound at the step from <code>DDP_ORDER_ID</code> / <code>DDP_EMAIL</code> and needs
+      no change.</p>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <div class="step">
+    <div class="step-head">
+      <span class="num">04</span>
+      <h2>Turn off demo mode<span class="chip req">Required</span></h2>
+      <span class="owner">Boomi</span>
+    </div>
+    <div class="step-body">
+      <p>In <code>[SUB] Magento Order Status Lookup</code>, the <strong>Set Demo Mode Flag</strong> step
+      near the start controls which way both lookups branch.</p>
+      <div class="change">
+        <div class="change-loc">Subprocess → Set Demo Mode Flag → <code>DPP_DEMO_MODE</code></div>
+        <div class="change-row">
+          <div class="side from"><span class="side-label">Now</span><span class="val">true → Message-step mocks</span></div>
+          <div class="side to"><span class="side-label">Change to</span><span class="val">false → real REST calls</span></div>
+        </div>
+      </div>
+      <p>That one value is the whole switch. Both <strong>Demo Mode?</strong> decisions then route to
+      <strong>Clear Document Before GET</strong> → the REST connector instead of the mock.</p>
+      <div class="note warn">
+        <span class="note-title">This cannot be an environment extension as built</span>
+        <p>The obvious instinct is to expose <code>DPP_DEMO_MODE</code> as an environment extension so
+        test and production can differ. That will not work while the Set Properties step exists: a step
+        that explicitly sets a DPP overwrites any extension-injected value for the rest of the execution.
+        To make it environment-driven you must delete the Set Properties step first — at which point you
+        may as well do step 05 and remove the branch entirely.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <div class="step">
+    <div class="step-head">
+      <span class="num">05</span>
+      <h2>Strip the demo scaffolding<span class="chip code">Code change</span></h2>
+      <span class="owner">Boomi</span>
+    </div>
+    <div class="step-body">
+      <p>Once you are live, six shapes are dead weight and one is a liability. Delete these from the
+      subprocess:</p>
+      <div class="tw">
+        <table>
+          <thead><tr><th>Shape</th><th>Why it goes</th></tr></thead>
+          <tbody>
+            <tr><td><code>Set Demo Mode Flag</code></td><td>No longer a decision to make</td></tr>
+            <tr><td><code>Demo Mode? (Order ID Lookup)</code><br/><code>Demo Mode? (Email Lookup)</code></td><td>Both branches now always go the same way</td></tr>
+            <tr><td><code>Mock: Magento Order by ID</code><br/><code>Mock: Magento Orders by Email</code></td><td>Fabricated order data — must not survive into production</td></tr>
+            <tr><td><code>Called From Wrapper?</code><br/><code>TEST HARNESS · Standalone Sample Request</code></td><td>Only fires on standalone runs; would query live Magento with a hardcoded demo email</td></tr>
+            <tr><td><code>Log Outgoing Chat Payload</code></td><td>Writes the customer's full order history to the process log — see step 08</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>Rewiring after removal</h3>
+      <p>The surviving path is straightforward:</p>
+      <pre>Start
+  → Catch Magento Failures
+      try:   Extract Request Fields → Order ID Provided?
+               false → Clear Document Before GET → GET Order by Increment ID  ┐
+               true  → Email Provided?                                        │
+                         false → Clear Document Before GET → GET by Email     ├→ Orders Found?
+                         true  → Need More Info Response ──────────────────┐  │
+      catch: Log Magento Failure → Generic Unavailable Response ───────────┤  │
+                                                                           │  ├ true  → Format Orders for Chat Window
+                                                                           │  └ false → Not Found Response
+                                                                           └──┴→ Chat Response</pre>
+      <p>Keep <strong>Log Magento Failure (Internal Only)</strong>. It logs the exception detail and the
+      request context at SEVERE while the customer still gets the generic message — that separation is the
+      point, and it is your only diagnostic on the failure path once payload logging is gone.</p>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <div class="step">
+    <div class="step-head">
+      <span class="num">06</span>
+      <h2>Fix tracking — it will silently come back empty<span class="chip code">Code change</span></h2>
+      <span class="owner">Boomi</span>
+    </div>
+    <div class="step-body">
+      <p>This is the one place where the demo made an assumption that real Magento does not satisfy, and
+      it fails quietly rather than loudly.</p>
+      <p>The profile <code>j.Magento.OrderSearch.RESP</code> reads tracking from
+      <code>items[].extension_attributes.tracking_number</code> and <code>.carrier_title</code>. A stock
+      Magento <code>/V1/orders</code> search does not return those fields. Tracking lives on
+      <em>shipments</em>, not orders. The map will simply find nothing, omit both keys, and every order
+      will render without a tracking block — no error anywhere.</p>
+      <h3>Three ways out</h3>
+      <ol>
+        <li><strong>Second call to <code>/V1/shipments</code>.</strong> Filter on <code>order_id</code>
+        — note that is Magento's numeric <code>entity_id</code>, not the <code>increment_id</code> the
+        customer quotes, so add <code>entity_id</code> to the order profile first. Read
+        <code>items[].tracks[].track_number</code> and <code>.title</code>, then join back with a
+        Document Cache keyed on order id.</li>
+        <li><strong>Have Magento expose it.</strong> If you have developers on the store, a custom
+        extension attribute surfacing tracks on the order endpoint keeps Boomi at one call per lookup.
+        Cheapest option at runtime, needs a Magento release.</li>
+        <li><strong>Ship without tracking for now.</strong> Genuinely viable: the widget already handles
+        a missing tracking block cleanly — one of the demo orders has no tracking and renders correctly.
+        The bot just cannot answer "where is it".</li>
+      </ol>
+      <div class="note warn">
+        <span class="note-title">Also verify line items against a configurable product</span>
+        <p>Magento returns configurable products as two rows in <code>items[]</code> — the configurable
+        parent and its simple child. The map does not distinguish them, so such an order may show each
+        item twice in the chat window. Test with a real configurable-product order before launch; if you
+        see duplicates, add <code>parent_item_id</code> to the profile and filter the rows where it is
+        populated.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <div class="step">
+    <div class="step-head">
+      <span class="num">07</span>
+      <h2>Make the endpoint environment-configurable<span class="chip rec">Recommended</span></h2>
+      <span class="owner">Boomi</span>
+    </div>
+    <div class="step-body">
+      <p>Right now the Magento URL and token are baked into the components, so a staging store and a
+      production store would need two copies. Neither process declares
+      <code>&lt;bns:processOverrides&gt;</code> yet. Add one to the subprocess — it owns the connector
+      steps:</p>
+      <pre>&lt;bns:processOverrides&gt;
+  &lt;Overrides xmlns=""&gt;
+    &lt;Connections&gt;
+      &lt;ConnectionOverride id="362a16cc-a38e-44f7-a0ad-98fa8197369d"&gt;
+        &lt;field id="url" label="Magento Base URL" overrideable="true"/&gt;
+      &lt;/ConnectionOverride&gt;
+    &lt;/Connections&gt;
+  &lt;/Overrides&gt;
+&lt;/bns:processOverrides&gt;</pre>
+      <p>Then set the per-environment value through the Environment Extensions API and confirm it
+      surfaced:</p>
+      <pre><span class="c"># read what is currently overrideable in an environment</span>
+GET /api/rest/v1/{accountId}/EnvironmentExtensions/{environmentId}</pre>
+      <div class="note block">
+        <span class="note-title">Never push an empty processOverrides element</span>
+        <p>Deploying a process with <code>&lt;bns:processOverrides/&gt;</code> or an empty
+        <code>&lt;Overrides/&gt;</code> <strong>deletes</strong> that process's extension declarations
+        from the environment, discarding values already set through the API. Either declare the full
+        block or omit the element entirely.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <div class="step">
+    <div class="step-head">
+      <span class="num">08</span>
+      <h2>Decide how much customer data you keep<span class="chip req">Required</span></h2>
+      <span class="owner">Boomi · Privacy</span>
+    </div>
+    <div class="step-body">
+      <p>The demo is deliberately transparent, which is the wrong default for real orders.</p>
+      <ul>
+        <li><strong>Payload logging.</strong> <code>Log Outgoing Chat Payload</code> writes every
+        customer's order history, totals and tracking numbers into the process log. Remove it (step 05).</li>
+        <li><strong>Document retention.</strong> Both processes run with
+        <code>purgeDataImmediately="false"</code>, so request and response documents persist for
+        troubleshooting. For real customer data, consider setting it <code>true</code> on the wrapper —
+        you lose payload-level debugging in exchange for not retaining PII.</li>
+        <li><strong>Retry on the connector.</strong> The try/catch is set to <code>retryCount="0"</code>.
+        One or two retries would absorb transient network blips before the customer sees the
+        "temporarily unable" message. Do not go higher — every retry re-runs the whole try path.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <div class="step">
+    <div class="step-head">
+      <span class="num">09</span>
+      <h2>Deploy to a production runtime<span class="chip req">Required</span></h2>
+      <span class="owner">Boomi ops</span>
+    </div>
+    <div class="step-body">
+      <p>Everything is currently deployed to the test environment
+      <code>fa239dee-b397-45a6-8cff-89e659f64a22</code> on atom
+      <code>f02b49c7-7cb6-420f-b645-f57e32fe4d1f</code>.</p>
+      <div class="note warn">
+        <span class="note-title">Atom type is not a free choice here</span>
+        <p>This is a plain Web Services Server listener with no API Service component wrapping it. That
+        pattern deploys to <strong>Basic or Intermediate</strong> atoms only — it will not serve traffic
+        from an Advanced atom. If production is an Advanced runtime, the process has to be wrapped in an
+        API Service component first, which is a different build.</p>
+      </div>
+      <p>Deploy order matters — the parent snapshots the subprocess at deploy time, so the subprocess
+      goes first and the parent second, always:</p>
+      <pre>bash scripts/boomi-deploy.sh active-development/processes/SUB_Magento_Order_Status_Lookup.xml
+bash scripts/boomi-deploy.sh active-development/processes/API_Zendesk_Order_Status.xml</pre>
+      <p>Then allow 10–15 seconds before the first request. Executing sooner runs the previous package
+      and will look like your change did not take.</p>
+      <p>On the production atom, configure the <strong>Shared Web Server</strong>: enable it, set
+      authentication to Basic (or client certificate), install a real TLS certificate, and note the base
+      URL. The endpoint path is unchanged:</p>
+      <pre>POST https://&lt;prod-atom-host&gt;/ws/simple/queryZendeskOrderStatus</pre>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <div class="step">
+    <div class="step-head">
+      <span class="num">10</span>
+      <h2>Connect Zendesk for real<span class="chip block">Blocking</span></h2>
+      <span class="owner">Zendesk admin</span>
+    </div>
+    <div class="step-body">
+      <p>The prototype's <code>server.py</code> stands in for this. It is a development proxy — a
+      single-threaded Python <code>HTTPServer</code> with no TLS, rate limiting, or error budget. It must
+      not go to production.</p>
+      <div class="note block">
+        <span class="note-title">Credentials cannot live in the browser</span>
+        <p>The Boomi shared web server expects Basic auth. Anything running in the customer's browser —
+        including the Zendesk Web Widget — would expose those credentials to anyone who opens developer
+        tools. The call has to be made server-side.</p>
+      </div>
+      <p>Which route depends on your Zendesk plan:</p>
+      <ul>
+        <li><strong>Zendesk bot builder with an API call step</strong> — the bot calls the Boomi endpoint
+        directly and holds the auth header in Zendesk's config. Simplest when your plan includes it.</li>
+        <li><strong>Sunshine Conversations webhook</strong> — Zendesk posts to your own service, which
+        adds auth and forwards to Boomi. More moving parts, more control.</li>
+        <li><strong>A small internal API service</strong> — the same shape as <code>server.py</code> but
+        production-grade, if you already run one.</li>
+      </ul>
+      <p>Whichever you pick, the contract does not change. The bot collects an order number or an email
+      and posts:</p>
+      <pre>{
+  "request_type":    "order_status",
+  "email":           "",
+  "order_id":        "000000498",
+  "conversation_id": "zd-88421"
+}</pre>
+      <p>Send one or the other. Order number wins if both are present. Send neither and the API returns a
+      polite prompt for more detail rather than an error, which the bot can show verbatim.</p>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <div class="step">
+    <div class="step-head">
+      <span class="num">11</span>
+      <h2>Verify against real orders<span class="chip req">Required</span></h2>
+      <span class="owner">Whoever cuts over</span>
+    </div>
+    <div class="step-body">
+      <p>Pull three real order numbers from the store first — one shipped, one still processing, one
+      cancelled or closed — plus a customer email with more than three orders.</p>
+      <ul class="check">
+        <li>Known order number returns that order, with the correct total and line items</li>
+        <li>Email returns exactly three orders, newest first — proves <code>pageSize</code> and the sort survived</li>
+        <li>Customer with a configurable-product order shows each item <em>once</em> (see step 06)</li>
+        <li>Shipped order shows a tracking number, or you have accepted option 3 in step 06</li>
+        <li>Order number that does not exist returns <code>not_found</code>, not an error</li>
+        <li>Email with no orders returns <code>not_found</code></li>
+        <li>Empty request returns the "need more info" prompt</li>
+        <li>Wrong token returns the generic unavailable message, and the real cause appears in the Boomi log at SEVERE</li>
+        <li>Magento unreachable behaves the same way, and the process still completes rather than erroring</li>
+        <li>Several requests at once all succeed</li>
+      </ul>
+      <p>The last four matter most. They are the difference between an outage the bot absorbs gracefully
+      and one that shows a stack trace to a customer.</p>
+      <div class="note warn">
+        <span class="note-title">Two testing traps already hit on this build</span>
+        <p>macOS <code>curl</code> fails against the Boomi shared web server at the TLS layer even with
+        <code>-k</code>; it is a local LibreSSL problem, not an unreachable endpoint. Test with Python
+        <code>requests</code>/<code>urllib</code> or Postman instead. Separately, a test execution
+        returning <code>DISCARDED</code> means a previous run of the same process was still active — it
+        is a concurrency gate, not a failure.</p>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p><strong>Components</strong> — Boomi folder <code>Zendesk-MagentoOrderStatus</code>.
+    Wrapper <code>API - Zendesk Chatbot Order Status</code> · logic
+    <code>[SUB] Magento Order Status Lookup</code> · transform
+    <code>Map Magento Orders to Chat Payload</code> · profiles
+    <code>j.Zendesk.OrderStatus.REQ</code>, <code>j.Magento.OrderSearch.RESP</code>,
+    <code>j.Zendesk.OrderStatus.RESP</code>.</p>
+    <p>Steps 01–04 get real data flowing. Steps 05–11 are what make it safe to leave running.</p>
+  </footer>
+
+</div>

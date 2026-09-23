@@ -1,0 +1,804 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SEA Data Product Explorer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Serif:wght@500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --ground:#f5f8f9; --surface:#fff; --surface-alt:#eef4f5;
+    --ink:#131f28; --ink-soft:#3d525f; --muted:#5f7686;
+    --line:#d9e3e7; --line-strong:#b9cad1;
+    --accent:#0f6e78; --accent-ink:#0b5259; --accent-soft:#ddeff1;
+    --win:#0d6d4a; --win-soft:#dff2e8; --win-line:#a9d9c3;
+    --lose:#8a3f2b; --lose-soft:#fbeae5; --lose-line:#e8c0b2;
+    --warn:#8a5100; --warn-soft:#fdf2e0; --warn-line:#e8cd9d;
+    --serif:"IBM Plex Serif",Georgia,serif;
+    --sans:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+    --ground:#0d151b; --surface:#151f27; --surface-alt:#1b2831;
+    --ink:#e4edf1; --ink-soft:#b3c5cf; --muted:#8399a7;
+    --line:#26343d; --line-strong:#3a4c57;
+    --accent:#4fc3ce; --accent-ink:#7fd6de; --accent-soft:#10333a;
+    --win:#5cc794; --win-soft:#102c21; --win-line:#255c44;
+    --lose:#e08b6d; --lose-soft:#2d1a13; --lose-line:#5c3527;
+    --warn:#e2a852; --warn-soft:#2b2112; --warn-line:#4d3a1a;
+  }}
+  :root[data-theme="dark"]{
+    --ground:#0d151b; --surface:#151f27; --surface-alt:#1b2831;
+    --ink:#e4edf1; --ink-soft:#b3c5cf; --muted:#8399a7;
+    --line:#26343d; --line-strong:#3a4c57;
+    --accent:#4fc3ce; --accent-ink:#7fd6de; --accent-soft:#10333a;
+    --win:#5cc794; --win-soft:#102c21; --win-line:#255c44;
+    --lose:#e08b6d; --lose-soft:#2d1a13; --lose-line:#5c3527;
+    --warn:#e2a852; --warn-soft:#2b2112; --warn-line:#4d3a1a;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--sans);
+       font-size:15.5px;line-height:1.6;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:900px;margin:0 auto;padding:0 22px 100px}
+  h1,h2,h3{margin:0;text-wrap:balance}
+  h1{font-family:var(--serif);font-weight:600;font-size:clamp(25px,3.4vw,33px);line-height:1.16;letter-spacing:-.015em}
+  h2{font-family:var(--serif);font-weight:600;font-size:20px;line-height:1.26}
+  h3{font-size:14px;font-weight:600}
+  p{margin:0}
+  .eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.13em;
+           text-transform:uppercase;color:var(--accent)}
+  .note{font-size:13.6px;color:var(--muted);line-height:1.5}
+  code{font-family:var(--mono);font-size:.85em;background:var(--surface-alt);
+       border:1px solid var(--line);padding:1px 5px;border-radius:4px;word-break:break-all}
+
+  /* sticky control bar */
+  .bar{position:sticky;top:0;z-index:20;background:var(--ground);
+       border-bottom:1px solid var(--line);padding:12px 0 11px;margin-bottom:8px}
+  .bar-in{max-width:900px;margin:0 auto;padding:0 22px;display:flex;flex-wrap:wrap;
+          align-items:center;gap:10px}
+  .bar .lbl{font-family:var(--mono);font-size:10.5px;letter-spacing:.11em;
+            text-transform:uppercase;color:var(--muted);margin-right:2px}
+  .subs{display:flex;flex-wrap:wrap;gap:6px}
+  .subs button{background:var(--surface);border:1px solid var(--line);color:var(--ink);
+    padding:6px 13px;border-radius:999px;font:inherit;font-size:13.5px;cursor:pointer;
+    transition:background .12s,border-color .12s,color .12s}
+  .subs button:hover{border-color:var(--accent)}
+  .subs button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+  :root[data-theme="dark"] .subs button[aria-pressed="true"]{color:#08222a}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .subs button[aria-pressed="true"]{color:#08222a}}
+  .spacer{flex:1}
+  .modechip{font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.08em;
+    text-transform:uppercase;padding:4px 9px;border-radius:5px;border:1px solid var(--line);
+    background:var(--surface);color:var(--muted);white-space:nowrap}
+  .modechip.live{background:var(--win-soft);border-color:var(--win-line);color:var(--win)}
+  .modechip.snap{background:var(--warn-soft);border-color:var(--warn-line);color:var(--warn)}
+
+  header.top{padding:34px 0 6px;display:flex;flex-direction:column;gap:11px}
+  .lede{font-size:17px;color:var(--ink-soft);line-height:1.55;max-width:64ch}
+
+  /* stage */
+  .stage{margin-top:34px;background:var(--surface);border:1px solid var(--line);
+         border-radius:11px;overflow:hidden}
+  .stage-hd{display:flex;gap:13px;align-items:flex-start;padding:17px 20px;
+            border-bottom:1px solid var(--line);background:var(--surface-alt)}
+  .stage-hd .num{font-family:var(--mono);font-size:12.5px;font-weight:600;color:#fff;
+    background:var(--accent);min-width:23px;height:23px;border-radius:5px;flex:none;
+    display:inline-flex;align-items:center;justify-content:center;margin-top:2px}
+  :root[data-theme="dark"] .stage-hd .num{color:#08222a}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .stage-hd .num{color:#08222a}}
+  .stage-hd .txt{display:flex;flex-direction:column;gap:3px}
+  .stage-bd{padding:19px 20px;display:flex;flex-direction:column;gap:15px}
+
+  .flowline{display:flex;align-items:center;gap:9px;padding:9px 20px;
+    background:var(--accent-soft);border-bottom:1px solid var(--line);
+    font-size:13.4px;color:var(--accent-ink)}
+  .flowline .arw{font-family:var(--mono);font-weight:600}
+
+  /* source cards */
+  .srcs{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+  @media (max-width:660px){.srcs{grid-template-columns:1fr}}
+  .src{border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface)}
+  .src .h{padding:10px 13px;background:var(--surface-alt);border-bottom:1px solid var(--line);
+    display:flex;flex-direction:column;gap:1px}
+  .src .h .n{font-weight:600;font-size:13.8px}
+  .src .h .k{font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+  .src dl{margin:0;padding:11px 13px;display:grid;grid-template-columns:auto 1fr;gap:6px 12px}
+  .src dt{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--muted);padding-top:3px;white-space:nowrap}
+  .src dd{margin:0;font-size:14px;word-break:break-word}
+  .src dd.diff{background:var(--lose-soft);border:1px solid var(--lose-line);
+    color:var(--lose);padding:0 6px;border-radius:4px;display:inline-block;font-weight:500}
+
+  /* resolve table */
+  .tw{overflow-x:auto;border:1px solid var(--line);border-radius:8px}
+  table{border-collapse:collapse;width:100%;min-width:600px;font-size:13.8px}
+  th,td{text-align:left;padding:9px 13px;border-bottom:1px solid var(--line);vertical-align:middle}
+  tr:last-child td{border-bottom:0}
+  th{font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.09em;
+     text-transform:uppercase;color:var(--muted);background:var(--surface-alt);white-space:nowrap}
+  td.m{font-family:var(--mono);font-size:12.6px;font-variant-numeric:tabular-nums}
+  td.gold{font-weight:600}
+  .tag{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.05em;
+    padding:2px 7px;border-radius:4px;white-space:nowrap;display:inline-block}
+  .tag.w{background:var(--win-soft);border:1px solid var(--win-line);color:var(--win)}
+  .tag.l{background:var(--lose-soft);border:1px solid var(--lose-line);color:var(--lose);
+    text-decoration:line-through;text-decoration-thickness:1px}
+  .tag.n{background:var(--surface-alt);border:1px solid var(--line);color:var(--muted)}
+  .tag.rule{background:var(--accent-soft);border:1px solid var(--accent);color:var(--accent-ink)}
+
+  .kv{display:flex;flex-wrap:wrap;gap:7px}
+  .kv span{font-family:var(--mono);font-size:11.5px;color:var(--muted);
+    background:var(--surface-alt);border:1px solid var(--line);padding:3px 8px;border-radius:5px}
+
+  /* buttons */
+  .btns{display:flex;flex-wrap:wrap;gap:9px}
+  button.act{background:var(--accent);border:1px solid var(--accent);color:#fff;
+    padding:8px 15px;border-radius:7px;font:inherit;font-size:13.8px;font-weight:500;cursor:pointer}
+  :root[data-theme="dark"] button.act{color:#08222a}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) button.act{color:#08222a}}
+  button.ghost{background:var(--surface);border:1px solid var(--line-strong);color:var(--ink);
+    padding:8px 15px;border-radius:7px;font:inherit;font-size:13.8px;cursor:pointer}
+  button.act:disabled,button.ghost:disabled{opacity:.45;cursor:default}
+  button.act:hover:not(:disabled){filter:brightness(1.08)}
+  button.ghost:hover:not(:disabled){border-color:var(--accent)}
+
+  .result{border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  .result .rh{padding:8px 13px;background:var(--surface-alt);border-bottom:1px solid var(--line);
+    display:flex;align-items:center;gap:9px;font-size:13.2px}
+  .status{font-family:var(--mono);font-size:11px;font-weight:600;padding:2px 8px;border-radius:4px}
+  .status.ok{background:var(--win-soft);border:1px solid var(--win-line);color:var(--win)}
+  .status.no{background:var(--lose-soft);border:1px solid var(--lose-line);color:var(--lose)}
+  pre{margin:0;padding:12px 13px;overflow-x:auto;font-family:var(--mono);font-size:12.2px;
+      line-height:1.5;background:var(--surface);max-height:300px;overflow-y:auto}
+
+  /* chat */
+  .chat{border:1px solid var(--line);border-radius:8px;background:var(--surface);
+    min-height:180px;max-height:400px;overflow-y:auto;padding:13px;
+    display:flex;flex-direction:column;gap:10px}
+  .msg{max-width:88%;padding:9px 12px;border-radius:10px;white-space:pre-wrap;
+       word-wrap:break-word;font-size:14.2px;line-height:1.5}
+  .msg.user{align-self:flex-end;background:var(--accent);color:#fff;border-bottom-right-radius:3px}
+  :root[data-theme="dark"] .msg.user{color:#08222a}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .msg.user{color:#08222a}}
+  .msg.agent{align-self:flex-start;background:var(--surface-alt);border-bottom-left-radius:3px}
+  .msg.err{align-self:flex-start;background:var(--lose-soft);border:1px solid var(--lose-line);
+    color:var(--lose);font-size:13.4px}
+  .msg.agent strong{font-weight:600}
+  .stat{align-self:flex-start;color:var(--muted);font-size:12.6px;font-style:italic}
+  .stat .dot{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--accent);
+    margin-right:6px;vertical-align:middle;animation:p 1s ease-in-out infinite}
+  @keyframes p{0%,100%{opacity:.3}50%{opacity:1}}
+  .chat-empty{color:var(--muted);font-size:13.4px;margin:auto;text-align:center;padding:14px}
+  form.ask{display:flex;gap:8px}
+  form.ask input{flex:1;padding:9px 12px;border:1px solid var(--line);border-radius:7px;
+    font:inherit;font-size:14px;background:var(--surface);color:var(--ink)}
+  form.ask input:focus{outline:2px solid var(--accent-soft);border-color:var(--accent)}
+
+  .warn{background:var(--warn-soft);border:1px solid var(--warn-line);border-left:3px solid var(--warn);
+    border-radius:7px;padding:12px 14px;font-size:13.8px;line-height:1.5}
+  .warn b{color:var(--warn)}
+  a{color:var(--accent-ink)}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <div class="bar-in">
+    <span class="lbl">Subsidiary</span>
+    <div class="subs" id="subs" role="group" aria-label="Choose a subsidiary"></div>
+    <span class="spacer"></span>
+    <span class="modechip" id="mode">checking hub…</span>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div id="offlineBanner" style="display:none;margin:18px 0 0;padding:11px 14px;
+       border:1px solid var(--bad-line);background:var(--bad-soft);color:var(--ink);
+       border-radius:8px;font-size:13.4px;line-height:1.5"></div>
+
+  <header class="top">
+    <p class="eyebrow">Prototype · data product explorer</p>
+    <h1>How one trustworthy number gets made</h1>
+    <p class="lede">Pick a subsidiary above. Every panel below then shows that subsidiary's <strong>real</strong> data at
+      that stage of the chain — two arguing ERPs, the golden record that settles them, the currency
+      normalisation, the governed API, and the agent that can only see what the product exposes.</p>
+  </header>
+
+  <!-- 1 -->
+  <section class="stage">
+    <div class="stage-hd">
+      <span class="num">1</span>
+      <span class="txt"><h2>Two systems describe the same company</h2>
+      <p class="note">What each ERP actually contributed to Data Hub. Highlighted values are where they disagree.</p></span>
+    </div>
+    <div class="stage-bd">
+      <div class="srcs" id="s1"></div>
+      <p class="note" id="s1note"></p>
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section class="stage">
+    <div class="flowline"><span class="arw">↓</span> both records matched on <strong>Legal Entity ID</strong></div>
+    <div class="stage-hd">
+      <span class="num">2</span>
+      <span class="txt"><h2>Data Hub settles it, field by field &mdash; and that <em>is</em> a data product</h2>
+      <p class="note">Read live from the deployed universe. <em>Won</em> is derived by comparing values;
+        <em>rule</em> is the source ranking configured on the model. Note that <strong>two different
+        sources win different fields on the same record</strong> &mdash; there is no single best system,
+        only a best system per attribute.</p></span>
+    </div>
+    <div class="stage-bd">
+      <div class="tw"><table id="s2"><tbody></tbody></table></div>
+      <div class="kv" id="s2meta"></div>
+      <div class="card" style="background:var(--accent-soft);border:1px solid var(--accent);border-radius:8px;padding:14px 16px;display:flex;flex-direction:column;gap:6px">
+        <span class="n" style="font-weight:600;font-size:14.5px">This table is <code>subsidiary_master</code></span>
+        <p class="note" style="color:var(--accent-ink)">It has its own catalogue entry, its own accountable
+          owner and two stewards split by field &mdash; Finance owns currency, tax ID and the finance contact;
+          Operations owns trading status and who runs the entity. The agent queries it
+          <strong>natively, with no API in between</strong>, which is why questions like
+          <em>&ldquo;who is the entity owner for Vietnam?&rdquo;</em> and
+          <em>&ldquo;can we post an invoice to Thailand?&rdquo;</em> are answered straight from the
+          governed record. Attributes only &mdash; never measures.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section class="stage">
+    <div class="flowline"><span class="arw">↓</span> identity, currency and status carry forward into every product below</div>
+    <div class="stage-hd">
+      <span class="num">3</span>
+      <span class="txt"><h2>Local currency becomes one comparable number</h2>
+      <p class="note">The raw column is unreadable across four denominations. That is the problem normalisation solves.</p></span>
+    </div>
+    <div class="stage-bd">
+      <div class="tw"><table id="s3"><tbody></tbody></table></div>
+      <p class="note" id="s3note"></p>
+    </div>
+  </section>
+
+  <!-- 4 -->
+  <section class="stage">
+    <div class="flowline"><span class="arw">↓</span> published as <code>subsidiary_performance_consolidated</code></div>
+    <div class="stage-hd">
+      <span class="num">4</span>
+      <span class="txt"><h2>Consumption is governed, not open</h2>
+      <p class="note">Both buttons make a real call to the deployed Boomi endpoint.</p></span>
+    </div>
+    <div class="stage-bd">
+      <div class="btns">
+        <button class="ghost" id="btnProbe">Call without credentials</button>
+        <button class="act"   id="btnCall">Call the product</button>
+      </div>
+      <div id="s4"></div>
+    </div>
+  </section>
+
+  <!-- 5 -->
+  <section class="stage">
+    <div class="flowline"><span class="arw">↓</span> the agent's only route to data is that endpoint</div>
+    <div class="stage-hd">
+      <span class="num">5</span>
+      <span class="txt"><h2>Ask it in plain language</h2>
+      <p class="note">Watch the status line — that is the agent deciding to call the same endpoint you just called.</p></span>
+    </div>
+    <div class="stage-bd">
+      <div class="btns" id="quick"></div>
+      <div class="chat" id="chat" aria-live="polite" aria-atomic="false">
+        <div class="chat-empty" id="chatEmpty">Pick a question above, or type your own.</div>
+      </div>
+      <form class="ask" id="askForm" autocomplete="off">
+        <input type="text" id="askInput" placeholder="Ask about subsidiary performance…" aria-label="Your question">
+        <button type="submit" class="act" id="askSend">Send</button>
+        <button type="button" class="ghost" id="askReset" title="Start a new conversation">Reset</button>
+      </form>
+      <p class="note" id="sessNote">No conversation yet.</p>
+    </div>
+  </section>
+
+
+  <!-- second product -->
+  <section class="stage">
+    <div class="stage-hd">
+      <span class="num">+</span>
+      <span class="txt"><h2>Three products, three shapes &mdash; and only two need Data Hub</h2>
+      <p class="note">One shared key runs through all three. Note the last row: a warehouse and a
+        golden record are delivery choices, not entry requirements.</p></span>
+    </div>
+    <div class="stage-bd">
+      <div class="tw"><table><tbody>
+        <tr><th></th><th>subsidiary_master</th><th>subsidiary_performance_consolidated</th><th>open_receivables_by_subsidiary</th></tr>
+        <tr><td>Question</td><td>&ldquo;Who is this, and who owns it?&rdquo;</td><td>&ldquo;How did we do?&rdquo;</td><td>&ldquo;What is true right now?&rdquo;</td></tr>
+        <tr><td>Shape</td><td class="m">Master data &middot; attributes only</td><td class="m">Analytical &middot; historical</td><td class="m">Operational &middot; current</td></tr>
+        <tr><td>Sources</td><td class="m">Two ERPs that disagree</td><td class="m">Two ERPs that disagree</td><td class="m">One AR ledger</td></tr>
+        <tr><td>Needs Data Hub?</td><td><span class="tag w">It <em>is</em> Data Hub</span></td><td><span class="tag w">Yes &mdash; sources conflict</span></td><td><span class="tag n">No &mdash; single owner</span></td></tr>
+        <tr><td>Changes</td><td class="m">Rarely</td><td class="m">Monthly, after close</td><td class="m">Continuously</td></tr>
+        <tr><td>Agent reads it</td><td class="m">Natively (Hub tool)</td><td class="m">Via REST</td><td class="m">Via REST</td></tr>
+      </tbody></table></div>
+      <p class="note">The receivables process does the work on the canvas: a <strong>Decision</strong> rejects a
+        request with no subsidiary, a <strong>Map</strong> renames every ERP field
+        (<code>KUNNR</code>, <code>BELNR</code>, <code>WAERS</code>) onto the published contract, and a
+        validation step flags <code>CURRENCY_MISMATCH</code> and <code>MISSING_CUSTOMER_NAME</code>
+        on each invoice. Indonesia carries one of each &mdash; ask about it below.</p>
+      <div class="btns">
+        <button class="ghost" id="btnAR">Call the receivables product</button>
+      </div>
+      <div id="s6"></div>
+    </div>
+  </section>
+
+  <div class="warn" style="margin-top:26px">
+    <b>Prototype scope.</b> Stage&nbsp;2 reads Data Hub live. Stages&nbsp;3–5 serve the consolidated dataset
+    built at design time — there is no warehouse in this account, so
+    <code>subsidiary_performance_consolidated</code> is embedded in the Boomi process with the swap point
+    marked. Stage&nbsp;4 is protected by runtime Basic auth, not yet an API Management key with rate limiting.
+  </div>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+  const $ = s => document.querySelector(s);
+  const CUR = { sub: null };
+
+  const esc = t => String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  const fmtUSD = n => "$" + Number(n).toLocaleString("en-US",{maximumFractionDigits:0});
+  const fmtLocal = n => Number(n).toLocaleString("en-US",{maximumFractionDigits:0});
+  const LABEL = { SAP_ERP:"SAP", ORACLE_EBS:"Oracle" };
+  const FIELD = { subsidiaryName:"Legal name", country:"Country",
+                  currency:"Reports in", reportingStatus:"Trading status",
+                  entityOwner:"Entity owner", financeContact:"Finance contact",
+                  taxId:"Tax ID", fiscalYearEnd:"FY end" };
+
+  /* ============================================================
+     Standalone fallback.
+
+     Every panel on this page is served by server.py, which reads the Data Hub
+     universe live plus three build-time files (the two ERP batch-upsert XMLs
+     and the consolidated performance dataset). None of those travel with this
+     copy, so opened as a file the page cannot reconstruct stages 1-3 without
+     inventing source values - which it does not do. What it can show is what
+     this demo already publishes for itself: the subsidiary list, the runtime's
+     documented refusal of an anonymous caller, and the two example response
+     payloads printed in catalog.html.
+     ============================================================ */
+  const OFFLINE = (location.protocol !== "http:" && location.protocol !== "https:");
+
+  // From server.py: ORDER, and FX_TO_USD, which names each entity's currency.
+  const OFFLINE_SUBS = [
+    {name:"Singapore", currency:"SGD"}, {name:"Indonesia", currency:"IDR"},
+    {name:"Vietnam",   currency:"VND"}, {name:"Thailand",  currency:"THB"}
+  ];
+
+  // catalog.html, subsidiary_performance_consolidated -> "Example"
+  const OFFLINE_PERF_EXAMPLE = {
+    subsidiary: "Vietnam",
+    subsidiaryName: "Vietnam Trading Co Ltd",
+    legalEntityId: "LE-VN-003",
+    reportingStatus: "Operational",
+    reportingCurrency: "USD",
+    sourceCurrency: "VND",
+    months: [{month: "2026-08", revenueUSD: 2267875.52, operatingCostUSD: 1814012.65, headcount: 313}],
+    summary: {totalRevenueUSD: 12591956.49},
+    matched: true
+  };
+
+  // catalog.html, open_receivables_by_subsidiary -> "Example"
+  const OFFLINE_AR_EXAMPLE = {
+    subsidiary: "Indonesia",
+    legalEntityId: "LE-ID-002",
+    companyCode: "ID01",
+    reportsIn: "IDR",
+    asOf: "2026-09-07",
+    invoices: [{invoiceNumber: "1800005187", customerName: "PT Jaya Distribusi",
+                currency: "USD", amountUSD: 128000.00, daysOverdue: 29,
+                agingBucket: "1-30", status: "Overdue",
+                dataQualityFlags: ["CURRENCY_MISMATCH"]}],
+    summary: {totalOpenUSD: 501625.00, totalOverdueUSD: 387250.00, dataQualityIssues: 2}
+  };
+
+  function offlineNote(what, where){
+    return `<div class="result"><div class="rh">
+      <span class="status no">offline</span>
+      <span>${esc(what)}</span></div>
+      <p class="note" style="margin:10px 0 0">${where}</p></div>`;
+  }
+
+  async function api(path, opts){
+    const r = await fetch(path, opts);
+    const j = await r.json().catch(() => ({error:"bad response"}));
+    if(!r.ok) throw new Error(j.error || ("HTTP " + r.status));
+    return j;
+  }
+
+  /* ---------- offline renderings of stages 1-3 ---------- */
+  function offline1(sub){
+    $("#s1").innerHTML = offlineNote(
+      `What SAP and Oracle each contributed for ${sub} is read from the two batch-upsert XMLs loaded into Data Hub.`,
+      'Those files are not part of this standalone copy, and the per-field source values are not ' +
+      'published anywhere else in the demo, so nothing is shown here rather than a guess. ' +
+      'The one fully published record &mdash; Vietnam, with the source that won each field &mdash; is in ' +
+      '<a href="./sea-data-product-assistant-catalog.html">catalog.html</a> under <em>subsidiary_master</em>.');
+    $("#s1note").textContent =
+      "Standalone copy: matching is on the shared Legal Entity ID, not the internal record id. "
+      + "Run server.py from the original project path to see the contributed values.";
+  }
+  function offline2(sub){
+    const chip = $("#mode");
+    chip.className = "modechip snap";
+    chip.textContent = "hub: offline";
+    chip.title = "No local server, so Data Hub was not queried";
+    $("#s2 tbody").innerHTML =
+      `<tr><th>Field</th><th>SAP</th><th>Oracle</th><th>Golden record</th><th>Ruled by</th></tr>` +
+      [["Legal name","Last write"],["Country","Last write"],["Reports in","SAP ranked 1st"],
+       ["Trading status","Oracle ranked 1st"],["Entity owner","Oracle ranked 1st"],
+       ["Finance contact","SAP ranked 1st"],["Tax ID","SAP ranked 1st"],["FY end","Both agree"]]
+      .map(([f,rule]) => `<tr><td>${esc(f)}</td><td class="m">&mdash;</td><td class="m">&mdash;</td>
+           <td class="m gold">&mdash;</td><td><span class="tag rule">${esc(rule)}</span></td></tr>`).join("");
+    $("#s2meta").innerHTML =
+      ['no local server &mdash; Data Hub was not queried',
+       'the configured per-field ranking is shown; the resolved values are not',
+       'published example record: catalog.html \u2192 subsidiary_master']
+      .map(t => `<span>${esc(t)}</span>`).join("");
+  }
+  function offline3(sub){
+    const row = OFFLINE_PERF_EXAMPLE.months[0];
+    const isVN = sub === "Vietnam";
+    $("#s3 tbody").innerHTML =
+      `<tr><th>Month</th><th>Revenue (local)</th><th>Revenue (USD)</th>
+           <th>Op. cost (USD)</th><th>Headcount</th></tr>` +
+      (isVN
+        ? `<tr><td class="m">${row.month}</td><td class="m" style="color:var(--muted)">&mdash;</td>
+             <td class="m gold">${fmtUSD(row.revenueUSD)}</td>
+             <td class="m">${fmtUSD(row.operatingCostUSD)}</td>
+             <td class="m">${row.headcount}</td></tr>`
+        : `<tr><td class="m" colspan="5" style="color:var(--muted)">Not in this standalone copy</td></tr>`);
+    $("#s3note").textContent = isVN
+      ? "Standalone copy: the one published month of this dataset, from the example response in "
+        + "catalog.html. The six-month series and the local-currency column come from the consolidated "
+        + "dataset the local server reads. The grain is subsidiary \u00d7 month."
+      : "Standalone copy: only the published Vietnam example travels with this copy. Pick Vietnam, "
+        + "or run server.py from the original project path for all four subsidiaries and all six months.";
+  }
+
+  /* ---------- stage 1 ---------- */
+  async function load1(sub){
+    const d = await api("/api/stage1?sub=" + encodeURIComponent(sub));
+    $("#s1").innerHTML = d.sources.map(s => `
+      <div class="src">
+        <div class="h"><span class="n">${esc(s.label)}</span>
+          <span class="k">${esc(s.id)} · record ${esc(s.entityId)}</span></div>
+        <dl>${Object.keys(FIELD).map(f => `
+          <dt>${esc(FIELD[f])}</dt>
+          <dd>${d.conflicts.includes(f)
+                ? `<span class="diff">${esc(s.values[f])}</span>`
+                : esc(s.values[f])}</dd>`).join("")}
+        </dl>
+      </div>`).join("");
+    $("#s1note").textContent =
+      `Both rows carry Legal Entity ID ${d.legalEntityId}, but use different internal keys — `
+      + `so matching has to happen on the shared business identifier, not the record id. `
+      + `${d.conflicts.length} of 4 fields disagree.`;
+  }
+
+  /* ---------- stage 2 ---------- */
+  async function load2(sub){
+    const d = await api("/api/stage2?sub=" + encodeURIComponent(sub));
+    const chip = $("#mode");
+    chip.className = "modechip " + (d.mode === "live" ? "live" : "snap");
+    chip.textContent = d.mode === "live" ? "hub: live" : "hub: snapshot";
+    chip.title = d.detail;
+
+    const cell = (val, src, winners) => {
+      if(val === "") return `<td class="m">—</td>`;
+      const won = winners.includes(src);
+      const cls = winners.length ? (won ? "w" : "l") : "n";
+      return `<td class="m"><span class="tag ${cls}">${esc(val)}</span></td>`;
+    };
+    $("#s2 tbody").innerHTML =
+      `<tr><th>Field</th><th>SAP</th><th>Oracle</th><th>Golden record</th><th>Ruled by</th></tr>` +
+      d.resolved.map(r => `
+        <tr>
+          <td>${esc(FIELD[r.field] || r.field)}</td>
+          ${cell(r.sap, "SAP_ERP", r.winners)}
+          ${cell(r.ebs, "ORACLE_EBS", r.winners)}
+          <td class="m gold">${esc(r.golden)}</td>
+          <td>${r.ruledBy
+                ? `<span class="tag rule">${esc(LABEL[r.ruledBy])} ranked 1st</span>`
+                : (r.contested ? `<span class="tag n">last write</span>` : `<span class="tag n">agreed</span>`)}</td>
+        </tr>`).join("");
+
+    $("#s2meta").innerHTML =
+      [`golden record ${d.recordId || "—"}`]
+      .concat(d.links.map(l => `${LABEL[l.source] || l.source} → ${l.entityId}`))
+      .concat([d.detail])
+      .map(t => `<span>${esc(t)}</span>`).join("");
+  }
+
+  /* ---------- stage 3 ---------- */
+  async function load3(sub){
+    const d = await api("/api/stage3?sub=" + encodeURIComponent(sub));
+    $("#s3 tbody").innerHTML =
+      `<tr><th>Month</th><th>Revenue (${esc(d.currency)})</th><th>Revenue (USD)</th>
+           <th>Op. cost (USD)</th><th>Headcount</th></tr>` +
+      d.rows.map(r => `
+        <tr>
+          <td class="m">${esc(r.month)}</td>
+          <td class="m" style="color:var(--muted)">${fmtLocal(r.revenueLocal)}</td>
+          <td class="m gold">${fmtUSD(r.revenueUSD)}</td>
+          <td class="m">${fmtUSD(r.operatingCostUSD)}</td>
+          <td class="m">${esc(r.headcount)}</td>
+        </tr>`).join("");
+    const tot = d.rows.reduce((a,r) => a + r.revenueUSD, 0);
+    $("#s3note").textContent =
+      `Fixed rate 1 ${d.currency} = ${d.rate} USD. Six-month revenue ${fmtUSD(tot)}. `
+      + `The grain is subsidiary × month — which is why a consumer can answer a question about a quarter `
+      + `without the product having to anticipate it.`;
+  }
+
+  /* ---------- stage 4 ---------- */
+  function showResult(html){ $("#s4").innerHTML = html; }
+
+  $("#btnProbe").addEventListener("click", async () => {
+    const b = $("#btnProbe"); b.disabled = true;
+    showResult(`<p class="note">Calling without credentials…</p>`);
+    try{
+      if(OFFLINE){
+        // The refusal is the product's published behaviour, not a live result.
+        showResult(`<div class="result"><div class="rh">
+          <span class="status no">HTTP 401</span>
+          <span>Endpoint refused the anonymous caller.</span></div>
+          <p class="note" style="margin:10px 0 0">Recorded, not called &mdash; this standalone copy has no
+          runtime to reach. <em>Anonymous callers receive 401</em> is the access rule published in
+          <a href="./sea-data-product-assistant-catalog.html">catalog.html</a>.</p></div>`);
+        return;
+      }
+      const d = await api("/api/stage4-probe");
+      const ok = d.status === 401 || d.status === 403;
+      showResult(`<div class="result"><div class="rh">
+        <span class="status ${ok?"no":"ok"}">HTTP ${d.status}</span>
+        <span>${esc(d.note||"")}</span></div></div>`);
+    }catch(e){ showResult(`<div class="result"><div class="rh">
+        <span class="status no">failed</span><span>${esc(e.message)}</span></div></div>`); }
+    finally{ b.disabled = false; }
+  });
+
+  $("#btnCall").addEventListener("click", async () => {
+    const b = $("#btnCall"); b.disabled = true;
+    showResult(`<p class="note">Calling the product…</p>`);
+    try{
+      if(OFFLINE){
+        const body = OFFLINE_PERF_EXAMPLE;
+        showResult(`<div class="result">
+          <div class="rh"><span class="status ok">example payload</span>
+            <span>${esc(body.subsidiary)} \u00b7 ${esc(body.months[0].month)} \u00b7 revenue
+              ${fmtUSD(body.months[0].revenueUSD)} \u00b7 HC ${body.months[0].headcount}</span></div>
+          <pre>${esc(JSON.stringify(body, null, 2))}</pre>
+          <p class="note" style="margin:10px 0 0">Not a live call. This is the example response the
+          product publishes for itself in <a href="./sea-data-product-assistant-catalog.html">catalog.html</a>
+          (<em>subsidiary_performance_consolidated</em>), shown here so the shape of the contract is
+          still visible offline. ${CUR.sub === "Vietnam" ? "" :
+            "The published example is for Vietnam; you have " + esc(CUR.sub) + " selected."}</p></div>`);
+        return;
+      }
+      const d = await api("/api/stage4-call", {
+        method:"POST", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({subsidiary: CUR.sub})});
+      const s = d.body && d.body.summary;
+      const head = s
+        ? `latest ${s.latestMonth} · revenue ${fmtUSD(s.latestRevenueUSD)} · op cost ${fmtUSD(s.latestOperatingCostUSD)} · HC ${s.latestHeadcount}`
+        : "response received";
+      showResult(`<div class="result">
+        <div class="rh"><span class="status ok">HTTP ${d.status}</span><span>${esc(head)}</span></div>
+        <pre>${esc(JSON.stringify(d.body, null, 2))}</pre></div>`);
+    }catch(e){ showResult(`<div class="result"><div class="rh">
+        <span class="status no">failed</span><span>${esc(e.message)}</span></div></div>`); }
+    finally{ b.disabled = false; }
+  });
+
+  /* ---------- second product ---------- */
+  document.getElementById("btnAR").addEventListener("click", async () => {
+    const b = document.getElementById("btnAR"); b.disabled = true;
+    document.getElementById("s6").innerHTML = `<p class="note">Calling open_receivables_by_subsidiary…</p>`;
+    try{
+      if(OFFLINE){
+        const body = OFFLINE_AR_EXAMPLE;
+        document.getElementById("s6").innerHTML = `<div class="result">
+          <div class="rh"><span class="status ok">example payload</span>
+            <span>${esc(body.subsidiary)} \u00b7 open ${fmtUSD(body.summary.totalOpenUSD)}
+              \u00b7 overdue ${fmtUSD(body.summary.totalOverdueUSD)}
+              \u00b7 ${body.summary.dataQualityIssues} data-quality issue(s)</span></div>
+          <pre>${esc(JSON.stringify(body, null, 2))}</pre>
+          <p class="note" style="margin:10px 0 0">Not a live call. This is the example response
+          published in <a href="./sea-data-product-assistant-catalog.html">catalog.html</a>
+          (<em>open_receivables_by_subsidiary</em>). ${CUR.sub === "Indonesia" ? "" :
+            "The published example is for Indonesia; you have " + esc(CUR.sub) + " selected."}</p></div>`;
+        return;
+      }
+      const d = await api("/api/receivables", {
+        method:"POST", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({subsidiary: CUR.sub})});
+      const s = d.body && d.body.summary;
+      const head = s ? `${d.body.subsidiary} · open ${fmtUSD(s.totalOpenUSD)} · overdue ${fmtUSD(s.totalOverdueUSD)} · ${s.dataQualityIssues} data-quality issue(s)`
+                     : "response received";
+      document.getElementById("s6").innerHTML = `<div class="result">
+        <div class="rh"><span class="status ok">HTTP ${d.status}</span><span>${esc(head)}</span></div>
+        <pre>${esc(JSON.stringify(d.body, null, 2))}</pre></div>`;
+    }catch(e){ document.getElementById("s6").innerHTML = `<div class="result"><div class="rh">
+        <span class="status no">failed</span><span>${esc(e.message)}</span></div></div>`; }
+    finally{ b.disabled = false; }
+  });
+
+  /* ---------- stage 5: chat ---------- */
+  let sessionId = null, busy = false;
+  const chat = $("#chat");
+
+  function render(md){
+    return esc(md)
+      .replace(/^#{1,6}\s*(.+)$/gm, "<strong>$1</strong>")
+      .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+      .replace(/^\s*[-*]\s+/gm, "• ");
+  }
+  function bubble(cls, text){
+    const e = $("#chatEmpty"); if(e) e.remove();
+    const el = document.createElement("div");
+    el.className = "msg " + cls;
+    if(cls === "agent") el.innerHTML = render(text); else el.textContent = text;
+    chat.appendChild(el); chat.scrollTop = chat.scrollHeight; return el;
+  }
+  function stat(t){
+    let el = chat.querySelector(".stat");
+    if(!el){ const e=$("#chatEmpty"); if(e) e.remove();
+      el = document.createElement("div"); el.className="stat"; chat.appendChild(el); }
+    el.innerHTML = '<span class="dot"></span>' + esc(t);
+    chat.scrollTop = chat.scrollHeight;
+  }
+  function clearStat(){ const el = chat.querySelector(".stat"); if(el) el.remove(); }
+  function setBusy(v){
+    busy = v; $("#askSend").disabled = v; $("#askInput").disabled = v;
+    document.querySelectorAll("#quick button").forEach(b => b.disabled = v);
+  }
+
+  async function ask(q){
+    if(busy || !q.trim()) return;
+    bubble("user", q); $("#askInput").value = "";
+    if(OFFLINE){ bubble("err", "The assistant is a deployed Agent Garden agent, reached through server.py with credentials "
+        + "held server-side. It cannot be called from this standalone copy, and this page will not "
+        + "invent an answer on its behalf. demo-flow.html, act 5, records what it replies to each of "
+        + "these questions in a live run."); return; }
+    setBusy(true); stat("Thinking…");
+    const ctl = new AbortController();
+    const timer = setTimeout(() => ctl.abort(), 300000);   // don't hang forever
+    try{
+      const res = await fetch("/api/chat", {
+        method:"POST", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({message:q, session_id:sessionId}), signal: ctl.signal});
+      if(!res.ok){
+        let m = "HTTP " + res.status;
+        try{ const j = await res.json(); m = j.error + (j.detail ? " — " + j.detail : ""); }catch(_){}
+        clearStat(); bubble("err", m); return;
+      }
+      const rd = res.body.getReader(), dec = new TextDecoder();
+      let buf = "", answered = false, i;
+      while(true){
+        const {value, done} = await rd.read(); if(done) break;
+        buf += dec.decode(value, {stream:true});
+        while((i = buf.indexOf("\n\n")) !== -1){
+          const block = buf.slice(0,i); buf = buf.slice(i+2);
+          let ev="", data="";
+          for(const line of block.split("\n")){
+            if(line.startsWith("event:")) ev = line.slice(6).trim();
+            else if(line.startsWith("data:")) data += line.slice(5).trim();
+          }
+          if(!ev || !data || data === "null") continue;
+          let o; try{ o = JSON.parse(data); }catch(_){ continue; }
+          if(ev === "start" && o.session_id){
+            sessionId = o.session_id;
+            $("#sessNote").textContent = "Session " + sessionId.slice(0,12) + "… — follow-up questions keep context.";
+          } else if(ev === "progress_notification"){
+            stat(o.content || o.type || "Working…");
+          } else if(ev === "message" && o.content){
+            clearStat(); bubble("agent", o.content); answered = true;
+          } else if(ev === "error"){
+            clearStat(); bubble("err", o.content || o.message || "Agent error"); answered = true;
+          }
+        }
+      }
+      clearStat();
+      if(!answered) bubble("err","The agent returned no message. Check the server console.");
+    }catch(err){
+      clearStat();
+      bubble("err", err.name === "AbortError"
+        ? "Timed out after 5 minutes — the agent did not finish. Try Reset, then ask again."
+        : "Request failed: " + err.message);
+    }finally{ clearTimeout(timer); setBusy(false); $("#askInput").focus(); }
+  }
+
+  $("#askForm").addEventListener("submit", e => { e.preventDefault(); ask($("#askInput").value); });
+  $("#askReset").addEventListener("click", () => {
+    sessionId = null; chat.innerHTML = '<div class="chat-empty" id="chatEmpty">New conversation. Pick a question above, or type your own.</div>';
+    $("#sessNote").textContent = "No conversation yet.";
+  });
+
+  function quickButtons(sub){
+    const qs = [
+      ["How is " + sub + " performing this month?", "This month"],
+      ["Which SEA market had the highest operating cost last quarter?", "Highest cost, last quarter"],
+      ["Compare revenue across all four subsidiaries.", "Compare all four"],
+      ["Which subsidiaries are not currently Operational?", "Who isn't Operational?"],
+      ["Who is the entity owner for " + sub + "?", "Who owns it?"],
+      ["What is outstanding in " + sub + "?", "What's outstanding?"],
+      ["Give me a full picture of " + sub + ".", "Full picture"]
+    ];
+    $("#quick").innerHTML = qs.map((q,i) =>
+      `<button class="${i===0?"act":"ghost"}" data-q="${esc(q[0])}">${esc(q[1])}</button>`).join("");
+  }
+  $("#quick").addEventListener("click", e => {
+    const b = e.target.closest("button[data-q]"); if(b && !busy) ask(b.dataset.q);
+  });
+
+  /* ---------- boot ---------- */
+  async function select(sub){
+    CUR.sub = sub;
+    document.querySelectorAll("#subs button").forEach(b =>
+      b.setAttribute("aria-pressed", String(b.dataset.sub === sub)));
+    quickButtons(sub);
+    $("#s4").innerHTML = "";
+    $("#s6").innerHTML = "";
+    if(OFFLINE){ offline1(sub); offline2(sub); offline3(sub); return; }
+    const fail = (el,e) => { el.innerHTML = `<p class="note">Could not load: ${esc(e.message)}</p>`; };
+    load1(sub).catch(e => { offline1(sub); });
+    load2(sub).catch(e => { offline2(sub); });
+    load3(sub).catch(e => { offline3(sub); });
+  }
+
+  function paintSubs(list){
+    $("#subs").innerHTML = list.map(s =>
+      `<button data-sub="${esc(s.name)}" aria-pressed="false">${esc(s.name)}
+       <span style="opacity:.6;font-family:var(--mono);font-size:11px">${esc(s.currency)}</span></button>`).join("");
+    $("#subs").addEventListener("click", e => {
+      const b = e.target.closest("button[data-sub]"); if(b) select(b.dataset.sub);
+    });
+  }
+
+  function showOfflineBanner(){
+    const b = $("#offlineBanner");
+    b.style.display = "";
+    b.innerHTML = "<strong>Standalone copy.</strong> The local data server (<code>server.py</code>) is " +
+      "not reachable, so nothing on this page was read live. Stages&nbsp;1&ndash;3 read Data Hub and two " +
+      "build-time files that do not travel with this copy, so they show the configured rules and say " +
+      "what is missing rather than guess the values. Stage&nbsp;4 and the second product show the " +
+      "example payloads this demo publishes in <a href=\"catalog.html\">catalog.html</a>; " +
+      "stage&nbsp;5 needs the deployed Agent Garden agent. " +
+      "Start at <a href=\"why.html\">why.html</a>, and see " +
+      "<a href=\"demo-flow.html\">demo-flow.html</a> for what the live run shows.";
+  }
+
+  (async function init(){
+    if(OFFLINE){
+      paintSubs(OFFLINE_SUBS);
+      showOfflineBanner();
+      select("Vietnam");   // the one subsidiary this demo publishes a full record for
+      return;
+    }
+    try{
+      const d = await api("/api/subsidiaries");
+      paintSubs(d.subsidiaries);
+      select("Indonesia");   // best opening case: currency and status both contested
+    }catch(e){
+      paintSubs(OFFLINE_SUBS);
+      showOfflineBanner();
+      select("Vietnam");
+    }
+  })();
+})();
+</script>
+</body>
+</html>

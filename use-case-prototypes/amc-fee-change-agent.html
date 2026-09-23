@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>AMC Fee-Change Agent — Mimicked Boomi Flow</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root {
+    --bg: #f5f7f6;
+    --card: #ffffff;
+    --border: #d7ddda;
+    --text: #16211e;
+    --text-soft: #5c6c67;
+    --accent: #0b4f5c;
+    --good: #2f7a56;
+    --good-bg: #e4f3ea;
+    --bad: #b23a34;
+    --bad-bg: #fbe7e5;
+    --pending: #b0791f;
+    --pending-bg: #f7ecd6;
+    --hub: #6a4fb3;
+    --map: #2f6f8a;
+    --code-bg: #10262b;
+    --code-text: #cfeee3;
+    --grid-dot: #d7ddda;
+    --mark-bg: #f7e2a8;
+    --mark-text: #4a3a10;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0d1715;
+      --card: #142320;
+      --border: #29403b;
+      --text: #e7f1ee;
+      --text-soft: #9fb6b2;
+      --accent: #5fc7b8;
+      --good: #4fae7c;
+      --good-bg: #17332a;
+      --bad: #e2635c;
+      --bad-bg: #3a1c1a;
+      --pending: #e0b34c;
+      --pending-bg: #362a10;
+      --hub: #a894e0;
+      --map: #7fb6cf;
+      --code-bg: #0a1614;
+      --code-text: #bfe9dd;
+      --grid-dot: #24403b;
+      --mark-bg: #4a3a10;
+      --mark-text: #f7e2a8;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  }
+  .wrap { max-width: 1400px; margin: 0 auto; }
+  .page-header {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    box-shadow: 0 1px 3px rgba(0,0,0,.06);
+    padding: 20px 20px 14px;
+  }
+  .page-content { padding: 28px 20px 60px; }
+  h1 { font-size: 26px; margin: 0 0 4px; }
+  .sub { color: var(--text-soft); font-size: 14px; margin: 0 0 22px; max-width: 72ch; line-height: 1.5; }
+  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-soft); margin: 30px 0 10px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; }
+
+  /* ---- inbox (Gmail) ---- */
+  :root {
+    --gm-app: #f6f8fc;
+    --gm-surface: #ffffff;
+    --gm-read: #f2f6fc;
+    --gm-text: #202124;
+    --gm-soft: #5f6368;
+    --gm-line: #dadce0;
+    --gm-hairline: #e8eaed;
+    --gm-blue: #1a73e8;
+    --gm-pill: #d3e3fd;
+    --gm-pill-text: #041e49;
+    --gm-compose: #c2e7ff;
+    --gm-compose-text: #001d35;
+    --gm-search: #eaf1fb;
+    --gm-star: #f4b400;
+    --gm-imp: #f2b600;
+    --gm-hover: rgba(32,33,36,.039);
+    --gm-shadow: 0 1px 2px rgba(60,64,67,.3), 0 1px 3px 1px rgba(60,64,67,.15);
+    --gm-label: #b0791f;
+    --gm-label-bg: #fdf0d5;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --gm-app: #131314;
+      --gm-surface: #1f1f1f;
+      --gm-read: #1a1c1e;
+      --gm-text: #e3e3e3;
+      --gm-soft: #9aa0a6;
+      --gm-line: #3c4043;
+      --gm-hairline: #2d2f31;
+      --gm-blue: #8ab4f8;
+      --gm-pill: #004a77;
+      --gm-pill-text: #c2e7ff;
+      --gm-compose: #004a77;
+      --gm-compose-text: #c2e7ff;
+      --gm-search: #2a2b2d;
+      --gm-star: #fdd663;
+      --gm-imp: #fdd663;
+      --gm-hover: rgba(232,234,237,.05);
+      --gm-shadow: 0 1px 3px rgba(0,0,0,.6);
+      --gm-label: #e0b34c;
+      --gm-label-bg: #3a2e12;
+    }
+  }
+
+  .gmail {
+    font-family: Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: var(--gm-text);
+    background: var(--gm-app);
+    border: 1px solid var(--gm-line);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .gmail svg { display: block; }
+  .gm-ico {
+    background: none; border: none; padding: 0; border-radius: 50%;
+    width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center;
+    color: var(--gm-soft); cursor: pointer; flex: none; font-weight: 400; font-size: inherit;
+  }
+  .gm-ico:hover { background: var(--gm-hover); }
+  .gm-ico:focus-visible { outline: 2px solid var(--gm-blue); outline-offset: 1px; }
+
+  /* top app bar */
+  .gm-bar { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: var(--gm-app); }
+  .gm-brand { display: flex; align-items: center; gap: 6px; flex: none; margin-right: 6px; }
+  .gm-wordmark { font-size: 21px; color: var(--gm-soft); letter-spacing: -.3px; }
+  .gm-search {
+    flex: 1; max-width: 620px; display: flex; align-items: center; gap: 10px;
+    background: var(--gm-search); border-radius: 8px; padding: 0 14px; height: 44px;
+  }
+  .gm-search:focus-within { background: var(--gm-surface); box-shadow: var(--gm-shadow); }
+  .gm-search input {
+    flex: 1; border: none; background: none; outline: none; min-width: 0;
+    font: 400 15px Roboto, Arial, sans-serif; color: var(--gm-text);
+  }
+  .gm-search input::placeholder { color: var(--gm-soft); }
+  .gm-bar-right { display: flex; align-items: center; gap: 2px; margin-left: auto; flex: none; }
+  .gm-avatar {
+    width: 30px; height: 30px; border-radius: 50%; background: #0b8043; color: #fff;
+    font-size: 13px; font-weight: 500; display: flex; align-items: center; justify-content: center;
+    margin-left: 6px; flex: none;
+  }
+
+  /* body split */
+  .gm-body { display: flex; align-items: stretch; background: var(--gm-app); }
+  .gm-side { width: 212px; flex: none; padding: 0 0 12px 8px; }
+  .gm-compose {
+    display: flex; align-items: center; gap: 12px; margin: 0 8px 14px 4px; padding: 0 22px 0 16px;
+    height: 48px; border: none; border-radius: 24px;
+    background: var(--gm-compose); color: var(--gm-compose-text);
+    font: 500 14px Roboto, Arial, sans-serif; cursor: pointer;
+  }
+  .gm-compose:hover { box-shadow: var(--gm-shadow); }
+  .gm-nav { display: flex; flex-direction: column; }
+  .gm-nav a {
+    display: flex; align-items: center; gap: 16px; height: 32px; padding: 0 12px 0 14px;
+    border-radius: 0 16px 16px 0; color: var(--gm-text); text-decoration: none; font-size: 14px;
+  }
+  .gm-nav a:hover { background: var(--gm-hover); }
+  .gm-nav a.sel { background: var(--gm-pill); color: var(--gm-pill-text); font-weight: 700; }
+  .gm-nav .n { margin-left: auto; font-size: 12px; font-weight: 700; }
+  .gm-nav a:not(.sel) .n { color: var(--gm-soft); font-weight: 400; }
+
+  /* list pane */
+  .gm-list { flex: 1; min-width: 0; background: var(--gm-surface); border-radius: 16px 0 0 0; }
+  .gm-tools { display: flex; align-items: center; gap: 4px; padding: 4px 8px; min-height: 48px; }
+  .gm-count { margin-left: auto; font-size: 12px; color: var(--gm-soft); padding-right: 4px; }
+  .gm-tabs { display: flex; border-bottom: 1px solid var(--gm-hairline); padding: 0 8px; }
+  .gm-tab {
+    display: flex; align-items: center; gap: 12px; padding: 0 28px 0 12px; height: 56px;
+    font-size: 14px; color: var(--gm-soft); border-bottom: 3px solid transparent; cursor: pointer;
+  }
+  .gm-tab.on { color: var(--gm-blue); border-bottom-color: var(--gm-blue); font-weight: 500; }
+  .gm-tab:hover { background: var(--gm-hover); }
+
+  .gm-cb {
+    width: 18px; height: 18px; border: 2px solid var(--gm-soft); border-radius: 2px; flex: none;
+  }
+  .gm-row {
+    position: relative; display: flex; align-items: center; height: 40px; padding: 0 12px 0 8px;
+    background: var(--gm-read); box-shadow: inset 0 -1px 0 var(--gm-hairline);
+    font-size: 14px; cursor: pointer;
+  }
+  .gm-row.unread { background: var(--gm-surface); }
+  .gm-row:hover { box-shadow: var(--gm-shadow); z-index: 2; }
+  .gm-row .gm-from {
+    width: 190px; flex: none; padding-right: 12px; overflow: hidden;
+    text-overflow: ellipsis; white-space: nowrap;
+  }
+  .gm-row.unread .gm-from, .gm-row.unread .gm-subj { font-weight: 700; }
+  .gm-mid { flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px; overflow: hidden; white-space: nowrap; }
+  .gm-snip { color: var(--gm-soft); overflow: hidden; text-overflow: ellipsis; }
+  .gm-label {
+    flex: none; background: var(--gm-label-bg); color: var(--gm-label);
+    border-radius: 4px; padding: 1px 6px; font-size: 11px; font-weight: 500; letter-spacing: .1px;
+  }
+  .gm-time { width: 62px; flex: none; text-align: right; font-size: 12px; color: var(--gm-soft); }
+  .gm-row.unread .gm-time { font-weight: 700; color: var(--gm-text); }
+  .gm-rowacts { display: none; gap: 2px; }
+  .gm-row:hover .gm-time { display: none; }
+  .gm-row:hover .gm-rowacts { display: flex; }
+  .gm-star svg, .gm-imp svg { fill: none; stroke: var(--gm-soft); stroke-width: 1.6; }
+  .gm-star.on svg { fill: var(--gm-star); stroke: var(--gm-star); }
+  .gm-imp.on svg { fill: var(--gm-imp); stroke: var(--gm-imp); }
+  .gm-clip { color: var(--gm-soft); flex: none; margin-right: 4px; }
+
+  @media (max-width: 880px) {
+    .gm-side { display: none; }
+    .gm-list { border-radius: 0; }
+  }
+  @media (max-width: 620px) {
+    .gm-wordmark, .gm-snip, .gm-count { display: none; }
+    .gm-row .gm-from { width: 112px; }
+    .gm-tab { padding-right: 14px; }
+  }
+
+  /* ---- extraction ---- */
+  .extract-grid { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 16px; align-items: start; }
+  @media (max-width: 760px) { .extract-grid { grid-template-columns: 1fr; } }
+  mark { background: var(--mark-bg); color: var(--mark-text); border-radius: 3px; padding: 0 2px; }
+  .byline { font-size: 11.5px; color: var(--pending); font-weight: 700; margin-top: 12px; }
+
+  /* ---- opened message (Gmail) ---- */
+  .gm-open { background: var(--gm-surface); }
+  .gm-open-tools { display: flex; align-items: center; gap: 2px; padding: 4px 8px; border-bottom: 1px solid var(--gm-hairline); }
+  .gm-open-tools .gm-count { margin-left: auto; }
+  .gm-head { padding: 18px 20px 4px; }
+  .gm-subject { display: flex; align-items: flex-start; gap: 10px; flex-wrap: wrap; }
+  .gm-subject h3 { font: 400 20px/1.4 Roboto, Arial, sans-serif; color: var(--gm-text); margin: 0; }
+  .gm-chip-inbox {
+    background: var(--gm-hover); color: var(--gm-soft); border-radius: 4px;
+    padding: 2px 7px; font-size: 11px; font-weight: 500; margin-top: 4px; flex: none;
+  }
+  .gm-subject .gm-label { margin-top: 4px; }
+  .gm-sender { display: flex; align-items: flex-start; gap: 14px; padding: 12px 20px 0; }
+  .gm-av {
+    width: 38px; height: 38px; border-radius: 50%; background: #c5221f; color: #fff; flex: none;
+    display: flex; align-items: center; justify-content: center; font: 500 17px Roboto, Arial, sans-serif;
+  }
+  .gm-who { min-width: 0; flex: 1; font-size: 14px; }
+  .gm-who .nm { font-weight: 700; }
+  .gm-who .addr { color: var(--gm-soft); }
+  .gm-who .to { display: flex; align-items: center; gap: 2px; color: var(--gm-soft); font-size: 12px; margin-top: 2px; }
+  .gm-when { display: flex; align-items: center; gap: 2px; flex: none; color: var(--gm-soft); font-size: 12px; }
+  .gm-msgbody {
+    padding: 18px 20px 20px 72px; font-size: 14px; line-height: 1.7;
+    color: var(--gm-text); white-space: pre-wrap;
+  }
+  .gm-replybar { display: flex; gap: 12px; padding: 0 20px 20px 72px; }
+  .gm-reply {
+    display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 22px;
+    border: 1px solid var(--gm-line); border-radius: 18px; background: var(--gm-surface);
+    color: var(--gm-text); font: 500 14px Roboto, Arial, sans-serif; cursor: pointer;
+  }
+  .gm-reply:hover { background: var(--gm-hover); }
+  .gm-open .byline { padding: 0 20px 16px 72px; margin: 0; }
+  @media (max-width: 620px) {
+    .gm-msgbody, .gm-replybar, .gm-open .byline { padding-left: 20px; }
+    .gm-subject h3 { font-size: 17px; }
+  }
+  .fields { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .fields td { padding: 6px 4px; border-bottom: 1px solid var(--border); }
+  .fields td:first-child { color: var(--text-soft); width: 40%; }
+  .fields td:last-child { font-weight: 600; }
+  .confidence { margin-top: 10px; font-size: 12px; color: var(--text-soft); }
+
+  /* ---- decision bar ---- */
+  .decision-bar { display: flex; align-items: center; gap: 12px; margin-top: 14px; flex-wrap: wrap; }
+  button { border: none; padding: 10px 18px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; }
+  button:disabled { opacity: .45; cursor: default; }
+  .btn-accept { background: var(--good); color: #fff; }
+  .btn-reject { background: var(--card); color: var(--bad); border: 1.5px solid var(--bad); }
+  .btn-reset { background: var(--card); color: var(--text-soft); border: 1.5px solid var(--border); }
+  .decision-note { font-size: 13px; color: var(--text-soft); }
+
+  /* ---- process canvas ---- */
+  .canvas-wrap {
+    overflow-x: auto;
+    background: radial-gradient(var(--grid-dot) 1px, transparent 1px);
+    background-size: 22px 22px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px;
+  }
+  .canvas { position: relative; width: 1080px; height: 440px; }
+  .canvas svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .flowpath { fill: none; stroke: var(--border); stroke-width: 2; transition: none; }
+  .flowpath.done { stroke: var(--accent); }
+  .flowpath.bad-path.done { stroke: var(--bad); }
+  .arrow-fill-default { fill: var(--border); }
+  .arrow-fill-done { fill: var(--accent); }
+  .arrow-fill-bad { fill: var(--bad); }
+
+  .node {
+    position: absolute; background: var(--card); border: 1.5px solid var(--border); border-left: 5px solid var(--border);
+    border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; padding: 6px 10px; font-size: 11.5px; line-height: 1.35; transition: box-shadow .25s, border-color .25s;
+  }
+  .node .kind { font-size: 9px; text-transform: uppercase; letter-spacing: .06em; color: var(--text-soft); margin-bottom: 2px; }
+  .node .label { font-weight: 700; }
+  .node.k-conn { border-left-color: var(--accent); }
+  .node.k-agent { border-left-color: var(--hub); }
+  .node.k-approval { border-left-color: var(--pending); }
+  .node.k-good { border-left-color: var(--good); }
+  .node.k-bad { border-left-color: var(--bad); }
+  .node.k-stop { border-radius: 50%; border-left-width: 1.5px; }
+  .node.k-stop.k-good { border-color: var(--good); }
+  .node.k-stop.k-bad { border-color: var(--bad); }
+  .node.active { box-shadow: 0 0 0 3px rgba(11,79,92,.18); border-color: var(--accent); }
+  .node.k-approval.awaiting {
+    border-color: var(--pending);
+    box-shadow: 0 0 0 4px rgba(176,121,31,.22);
+    animation: pulse 1.8s ease-in-out infinite;
+  }
+  @media (prefers-reduced-motion: reduce) { .node.k-approval.awaiting { animation: none; } }
+  @keyframes pulse { 0%,100% { box-shadow: 0 0 0 3px rgba(176,121,31,.20); } 50% { box-shadow: 0 0 0 7px rgba(176,121,31,.08); } }
+  .node.k-approval.approved { border-color: var(--good); box-shadow: 0 0 0 3px rgba(47,122,86,.18); animation: none; }
+  .node.k-approval.rejected { border-color: var(--bad); box-shadow: 0 0 0 3px rgba(178,58,52,.18); animation: none; }
+
+  /* ---- outcome section ---- */
+  .outcome-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 6px; }
+  @media (max-width: 760px) { .outcome-grid { grid-template-columns: 1fr; } }
+  .email-preview { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .email-preview .ep-head { background: var(--good-bg); color: var(--good); font-size: 12px; font-weight: 700; padding: 8px 12px; }
+  .email-preview .ep-body { padding: 12px 14px; font-size: 13px; line-height: 1.6; white-space: pre-wrap; }
+  .browser-mock { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .browser-mock .bar { background: var(--bg); border-bottom: 1px solid var(--border); padding: 7px 12px; font-size: 11.5px; color: var(--text-soft); font-family: monospace; }
+  .notice-list { padding: 10px 14px; display: flex; flex-direction: column; gap: 8px; }
+  .notice-item { font-size: 12.5px; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border); }
+  .notice-item.new { border-color: var(--good); background: var(--good-bg); }
+  .notice-item .tag { font-size: 10px; font-weight: 700; color: var(--good); margin-right: 6px; }
+  .notice-item .when { color: var(--text-soft); font-size: 11px; display: block; margin-top: 2px; }
+
+  /* ---- audit ---- */
+  table.audit { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  table.audit th, table.audit td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--border); }
+  table.audit th { color: var(--text-soft); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+  .chip { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+  .chip.good { background: var(--good-bg); color: var(--good); }
+  .chip.bad { background: var(--bad-bg); color: var(--bad); }
+  .empty-note { font-size: 13px; color: var(--text-soft); padding: 10px 2px; }
+
+  .fade { opacity: 0; transform: translateY(6px); transition: opacity .4s, transform .4s; }
+  .fade.show { opacity: 1; transform: translateY(0); }
+  footer { margin-top: 30px; font-size: 12px; color: var(--text-soft); line-height: 1.7; }
+
+  /* ---- value band ---- */
+  .band {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px;
+    background: var(--border); border: 1px solid var(--border); border-radius: 10px;
+    overflow: hidden; margin: 0 0 10px;
+  }
+  @media (max-width: 860px) { .band { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 460px) { .band { grid-template-columns: 1fr; } }
+  .stat { background: var(--card); padding: 18px 18px 16px; }
+  .stat .fig {
+    font-size: 42px; line-height: 1; font-weight: 300; letter-spacing: -1.5px;
+    color: var(--accent); font-variant-numeric: tabular-nums;
+  }
+  .stat .fig .u { font-size: 17px; font-weight: 500; letter-spacing: 0; margin-left: 3px; }
+  .stat .cap { font-size: 13px; margin-top: 9px; line-height: 1.45; }
+  .stat .sub2 { font-size: 11.5px; color: var(--text-soft); margin-top: 5px; line-height: 1.5; }
+  .stat.gate .fig { font-size: 30px; font-weight: 400; letter-spacing: -.8px; color: var(--pending); padding-top: 9px; }
+
+  /* ---- people graphic ---- */
+  .people-card {
+    border: 1px solid var(--border); border-radius: 10px; background: var(--card);
+    padding: 16px 18px; display: flex; align-items: center; gap: 22px; flex-wrap: wrap;
+  }
+  .people { display: flex; gap: 5px; }
+  .people svg { width: 27px; height: 36px; flex: none; }
+  .p-off { fill: var(--border); }
+  .p-on { fill: var(--good); }
+  .people-say { font-size: 14px; line-height: 1.5; }
+  .people-say b { color: var(--good); }
+
+  /* ---- hand-off chains ---- */
+  .chain-row {
+    border: 1px solid var(--border); border-radius: 10px; background: var(--card);
+    padding: 13px 16px 14px; margin-bottom: 12px;
+  }
+  .chain-row:last-child { margin-bottom: 0; }
+  .chain-row h3 { margin: 0 0 11px; font-size: 13px; font-weight: 600; }
+  .chain-row.now h3 { color: var(--bad); }
+  .chain-row.next h3 { color: var(--good); }
+  .chain { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+  .step {
+    border: 1px solid var(--border); border-radius: 6px; padding: 6px 11px;
+    font-size: 12.5px; background: var(--bg); color: var(--text-soft);
+  }
+  .step.auto { border-color: var(--good); background: var(--good-bg); color: var(--good); font-weight: 600; }
+  .step.you { border-color: var(--pending); background: var(--pending-bg); color: var(--pending); font-weight: 700; }
+  .arw { color: var(--border); flex: none; }
+  .chain-toll { margin-top: 11px; font-size: 13px; font-weight: 600; }
+  .chain-row.now .chain-toll { color: var(--bad); }
+  .chain-row.next .chain-toll { color: var(--good); }
+
+  /* ---- section ledes ---- */
+  .lede { font-size: 13px; color: var(--text-soft); line-height: 1.6; margin: -4px 0 12px; max-width: 74ch; }
+  .lede b { color: var(--text); font-weight: 600; }
+  .node .what { font-size: 9.5px; font-weight: 400; color: var(--text-soft); line-height: 1.3; margin-top: 3px; }
+  .elapsed { font-size: 12.5px; color: var(--good); font-weight: 600; margin-top: 8px; }
+</style>
+<!-- SEDC-WIDTH:START -->
+<!-- Re-runnable width override injected by scripts/set-page-width.mjs — do not hand-edit, re-run the script instead. -->
+<style>
+  .wrap { max-width: 1400px; }
+</style>
+<!-- SEDC-WIDTH:END -->
+</head>
+<body>
+<!-- SEDC-NAV:START -->
+<style>
+  .sedc-nav * { box-sizing: border-box; }
+  .sedc-nav {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    margin: 0;
+    background: #072B55;
+    color: #ffffff;
+    font-family: 'Poppins',Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    font-size: 14px;
+    line-height: 1.4;
+  }
+  .sedc-nav-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 10px 20px;
+  }
+  .sedc-nav-brand {
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+  }
+  .sedc-nav-brand:hover,
+  .sedc-nav-brand:focus {
+    text-decoration: underline;
+  }
+  .sedc-nav-jump {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .sedc-nav-label {
+    white-space: nowrap;
+    color: #ffffff;
+  }
+  .sedc-nav-select {
+    font-family: inherit;
+    font-size: 13px;
+    color: #072B55;
+    background: #ffffff;
+    border: 1px solid #ffffff;
+    border-radius: 4px;
+    padding: 5px 8px;
+    max-width: 60vw;
+  }
+  .sedc-nav-rule {
+    height: 3px;
+    width: 100%;
+    background: linear-gradient(90deg,#FF7C66 0%,#A03291 100%);
+  }
+</style>
+<div class="sedc-nav" role="navigation" aria-label="SE Demo Companion navigation">
+  <div class="sedc-nav-bar">
+    <a class="sedc-nav-brand" href="../index.html" target="_top">SE Demo Companion</a>
+    <div class="sedc-nav-jump">
+      <label class="sedc-nav-label" for="sedc-nav-select">Jump to use case</label>
+      <select class="sedc-nav-select" id="sedc-nav-select" onchange="(function(sel){try{var opt=sel.options[sel.selectedIndex];var url=opt&&opt.getAttribute('data-href');if(!url)return;try{window.top.location.href=url;}catch(e){window.location.href=url;}}catch(e){}})(this)">
+        <option value="amc-fee-change-agent" data-href="./amc-fee-change-agent.html" selected>AMC fee-change agent — Finnomena</option>
+        <option value="bvtpa-claims-integration-demo" data-href="./bvtpa-claims-integration-demo.html">Blue Venture TPA claims integration demo — Blue Venture TPA</option>
+        <option value="bvtpa-claims-adjudication-cio-brief" data-href="./bvtpa-claims-adjudication-cio-brief.html">Claims adjudication CIO brief — Blue Venture TPA</option>
+        <option value="delivery-status-sync-demo" data-href="./delivery-status-sync-demo.html">Delivery status sync demo — TOTO</option>
+        <option value="boomi-tenant-ceo-dashboard" data-href="./boomi-tenant-ceo-dashboard.html">Boomi tenant CEO dashboard — Boomi internal tenant</option>
+        <option value="boomi-tenant-30-day-report" data-href="./boomi-tenant-30-day-report.html">Boomi tenant operations report, 30-day view — Boomi internal tenant</option>
+        <option value="json-to-xml-order-integration" data-href="./json-to-xml-order-integration.html">JSON to XML order integration, executive documentation — NTT</option>
+        <option value="edi-850-flight-deck" data-href="./edi-850-flight-deck.html">EDI 850 flight deck — Infosys</option>
+        <option value="whatsapp-to-sap-master-agent" data-href="./whatsapp-to-sap-master-agent.html">WhatsApp to SAP master agent — Boomi internal build</option>
+        <option value="student-xml-to-crm-json" data-href="./student-xml-to-crm-json.html">Student XML to CRM JSON — Attura</option>
+        <option value="sap-accounting-document-poc-outcome" data-href="./sap-accounting-document-poc-outcome.html">SAP accounting document automation, POC outcome — Abans PLC</option>
+        <option value="abans-sap-posting-poc-dashboard" data-href="./abans-sap-posting-poc-dashboard.html">Abans SAP posting, live POC dashboard — Abans PLC</option>
+        <option value="order-intake-api-fan-out" data-href="./order-intake-api-fan-out.html">Order intake API with multi-target fan-out — LTIMindtree</option>
+        <option value="electromart-track-and-reschedule" data-href="./electromart-track-and-reschedule.html">ElectroMart track order and reschedule delivery — ElectroMart (demo brand)</option>
+        <option value="enterprise-portal-ai-agent" data-href="./enterprise-portal-ai-agent.html">Enterprise portal with an embedded AI agent — ITG</option>
+        <option value="o2c-qad-build-journey" data-href="./o2c-qad-build-journey.html">O2C-QAD build journey — Boomi internal build</option>
+        <option value="boomi-accenture-trivia" data-href="./boomi-accenture-trivia.html">Boomi x Accenture trivia — Boomi internal build</option>
+        <option value="cloud-runtime-sizing-calculator" data-href="./cloud-runtime-sizing-calculator.html">Boomi public cloud runtime sizing estimator — Boomi internal build</option>
+        <option value="coupa-netsuite-vendor-bill" data-href="./coupa-netsuite-vendor-bill.html">Vendor bill pipeline, Coupa to NetSuite — Boomi internal build</option>
+        <option value="coupa-oracle-s2p-console" data-href="./coupa-oracle-s2p-console.html">Source-to-pay flow console, Coupa to Oracle Fusion — Boomi internal build</option>
+        <option value="epic-rauland-adt-nurse-call" data-href="./epic-rauland-adt-nurse-call.html">Epic ADT to Rauland Responder 5, nurse call integration — Boomi internal build</option>
+        <option value="epic-salesforce-trial-screening" data-href="./epic-salesforce-trial-screening.html">Clinical trial screening console, Epic to Salesforce — Meridian Research (demo brand)</option>
+        <option value="jc-hifi-order-tracker" data-href="./jc-hifi-order-tracker.html">JC Hi-Fi order tracker, customer self-service — JC Hi-Fi (demo brand)</option>
+        <option value="pacific-bank-onboarding" data-href="./pacific-bank-onboarding.html">Pacific onboarding console, retail bank customer onboarding — Pacific Islands Community Bank (demo brand)</option>
+        <option value="sea-data-product-assistant" data-href="./sea-data-product-assistant.html">SEA regional performance, data products and an agent over two ERPs — Boomi internal build</option>
+        <option value="servicenow-jira-incident-sync" data-href="./servicenow-jira-incident-sync.html">Incident sync prototype, ServiceNow to Jira — Boomi internal build</option>
+        <option value="zendesk-magento-order-status" data-href="./zendesk-magento-order-status.html">Order status bot and flow inspector, Zendesk to Magento — Avery Products (demo brand)</option>
+        <option value="zoho-netsuite-invoice-sync" data-href="./zoho-netsuite-invoice-sync.html">Invoice sync console, Zoho CRM to NetSuite — Boomi internal build</option>
+      </select>
+    </div>
+  </div>
+  <div class="sedc-nav-rule"></div>
+</div>
+<!-- SEDC-NAV:END -->
+
+<div class="page-header">
+  <div class="wrap">
+    <h1>AMC Fee-Change Agent</h1>
+    <p class="sub">Asset managers announce fee changes, holidays and factsheet updates by email. Today a team reads those emails, re-keys the numbers, writes the customer notice and updates the website by hand. This page walks through the same work done by an agent that reads the inbox, extracts the change, and waits for one person to approve before anything reaches an investor.</p>
+  </div>
+</div>
+<div class="page-content">
+<div class="wrap">
+  <h2>What this saves</h2>
+  <div class="band">
+    <div class="stat">
+      <div class="fig">800<span class="u">hrs</span></div>
+      <div class="cap">go into this process every month today</div>
+      <div class="sub2">10 people, half a month each</div>
+    </div>
+    <div class="stat">
+      <div class="fig">9,600<span class="u">hrs</span></div>
+      <div class="cap">a year spent reading, re-keying and re-checking notices</div>
+      <div class="sub2">60 person-months</div>
+    </div>
+    <div class="stat">
+      <div class="fig">5<span class="u">people</span></div>
+      <div class="cap">worth of full-time capacity returned to the business</div>
+      <div class="sub2">Redeployed, not removed</div>
+    </div>
+    <div class="stat gate">
+      <div class="fig">1 click</div>
+      <div class="cap">and nothing reaches an investor without it</div>
+      <div class="sub2">Faster, not less controlled</div>
+    </div>
+  </div>
+
+  <div class="people-card">
+    <div class="people">
+      <svg viewBox="0 0 24 32" aria-hidden="true"><circle class="p-on" cx="12" cy="7" r="6"/><path class="p-on" d="M12 15c-6 0-10 4-10 9v8h20v-8c0-5-4-9-10-9z"/></svg>
+      <svg viewBox="0 0 24 32" aria-hidden="true"><circle class="p-on" cx="12" cy="7" r="6"/><path class="p-on" d="M12 15c-6 0-10 4-10 9v8h20v-8c0-5-4-9-10-9z"/></svg>
+      <svg viewBox="0 0 24 32" aria-hidden="true"><circle class="p-on" cx="12" cy="7" r="6"/><path class="p-on" d="M12 15c-6 0-10 4-10 9v8h20v-8c0-5-4-9-10-9z"/></svg>
+      <svg viewBox="0 0 24 32" aria-hidden="true"><circle class="p-on" cx="12" cy="7" r="6"/><path class="p-on" d="M12 15c-6 0-10 4-10 9v8h20v-8c0-5-4-9-10-9z"/></svg>
+      <svg viewBox="0 0 24 32" aria-hidden="true"><circle class="p-on" cx="12" cy="7" r="6"/><path class="p-on" d="M12 15c-6 0-10 4-10 9v8h20v-8c0-5-4-9-10-9z"/></svg>
+      <svg viewBox="0 0 24 32" aria-hidden="true"><circle class="p-off" cx="12" cy="7" r="6"/><path class="p-off" d="M12 15c-6 0-10 4-10 9v8h20v-8c0-5-4-9-10-9z"/></svg>
+      <svg viewBox="0 0 24 32" aria-hidden="true"><circle class="p-off" cx="12" cy="7" r="6"/><path class="p-off" d="M12 15c-6 0-10 4-10 9v8h20v-8c0-5-4-9-10-9z"/></svg>
+      <svg viewBox="0 0 24 32" aria-hidden="true"><circle class="p-off" cx="12" cy="7" r="6"/><path class="p-off" d="M12 15c-6 0-10 4-10 9v8h20v-8c0-5-4-9-10-9z"/></svg>
+      <svg viewBox="0 0 24 32" aria-hidden="true"><circle class="p-off" cx="12" cy="7" r="6"/><path class="p-off" d="M12 15c-6 0-10 4-10 9v8h20v-8c0-5-4-9-10-9z"/></svg>
+      <svg viewBox="0 0 24 32" aria-hidden="true"><circle class="p-off" cx="12" cy="7" r="6"/><path class="p-off" d="M12 15c-6 0-10 4-10 9v8h20v-8c0-5-4-9-10-9z"/></svg>
+    </div>
+    <div class="people-say">Ten people give half a month each to this. That is <b>five people's whole month, every month</b> — handed back.</div>
+  </div>
+
+  <h2>Today, and with the agent</h2>
+  <div class="chain-row now">
+    <h3>Today — every notice passes through this by hand</h3>
+    <div class="chain">
+      <span class="step">Read the email</span><span class="arw">→</span>
+      <span class="step">Decide if it matters</span><span class="arw">→</span>
+      <span class="step">Re-key the numbers</span><span class="arw">→</span>
+      <span class="step">Look up the old fee</span><span class="arw">→</span>
+      <span class="step">Draft the notice</span><span class="arw">→</span>
+      <span class="step">Get it reviewed</span><span class="arw">→</span>
+      <span class="step">Email investors</span><span class="arw">→</span>
+      <span class="step">Edit the website</span><span class="arw">→</span>
+      <span class="step">File the evidence</span>
+    </div>
+    <div class="chain-toll">Nine manual steps · 10 people · half a month each · every month</div>
+  </div>
+  <div class="chain-row next">
+    <h3>With the agent — one of those steps is still yours</h3>
+    <div class="chain">
+      <span class="step auto">Agent reads and extracts</span><span class="arw">→</span>
+      <span class="step you">You accept or reject</span><span class="arw">→</span>
+      <span class="step auto">Investors emailed</span>
+      <span class="step auto">Website updated</span>
+      <span class="step auto">Evidence filed</span>
+    </div>
+    <div class="chain-toll">One decision · everything either side of it runs itself</div>
+  </div>
+
+  <h2>Step 1 · The inbox the agent watches</h2>
+  <p class="lede">Five AMC emails, one fee change. Today a person reads all five to find it. The agent reads all five and labels the one that matters.</p>
+  <div class="gmail">
+    <div class="gm-bar">
+      <button class="gm-ico" aria-label="Main menu"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/></svg></button>
+      <span class="gm-brand">
+        <svg width="26" height="20" viewBox="0 0 49 37" aria-hidden="true">
+          <path fill="#4285f4" d="M3.5 37h8.2V17.5L0 8.4v25.1C0 35.4 1.6 37 3.5 37z"/>
+          <path fill="#34a853" d="M36.8 37H45c1.9 0 3.5-1.6 3.5-3.5V8.4L36.8 17.5V37z"/>
+          <path fill="#fbbc04" d="M36.8 3.5v14L48.5 8.4V5.2c0-4.3-4.9-6.7-8.3-4.1l-3.4 2.4z"/>
+          <path fill="#ea4335" d="M11.7 17.5v-14l12.5 9.4 12.6-9.4v14L24.2 27 11.7 17.5z"/>
+          <path fill="#c5221f" d="M0 5.2v3.2l11.7 9.1v-14L8.3 1.1C4.9-1.5 0 .9 0 5.2z"/>
+        </svg>
+        <span class="gm-wordmark">Gmail</span>
+      </span>
+      <div class="gm-search">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="color:var(--gm-soft)"><path d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 10-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1114 9.5 4.5 4.5 0 019.5 14z"/></svg>
+        <input type="text" placeholder="Search mail" aria-label="Search mail">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="color:var(--gm-soft)"><path d="M3 5h18v2H3V5zm3 6h12v2H6v-2zm4 6h4v2h-4v-2z"/></svg>
+      </div>
+      <div class="gm-bar-right">
+        <button class="gm-ico" aria-label="Support"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M11 18h2v-2h-2v2zm1-16a10 10 0 100 20 10 10 0 000-20zm0 18a8 8 0 110-16 8 8 0 010 16zm0-14a4 4 0 00-4 4h2a2 2 0 114 0c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5a4 4 0 00-4-4z"/></svg></button>
+        <button class="gm-ico" aria-label="Settings"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19.4 13a7.9 7.9 0 000-2l2.1-1.6a.5.5 0 00.1-.6l-2-3.5a.5.5 0 00-.6-.2l-2.5 1a7.6 7.6 0 00-1.7-1l-.4-2.6a.5.5 0 00-.5-.5h-4a.5.5 0 00-.5.5l-.4 2.6a7.6 7.6 0 00-1.7 1l-2.5-1a.5.5 0 00-.6.2l-2 3.5a.5.5 0 00.1.6L4.6 11a7.9 7.9 0 000 2l-2.1 1.6a.5.5 0 00-.1.6l2 3.5a.5.5 0 00.6.2l2.5-1a7.6 7.6 0 001.7 1l.4 2.6a.5.5 0 00.5.5h4a.5.5 0 00.5-.5l.4-2.6a7.6 7.6 0 001.7-1l2.5 1a.5.5 0 00.6-.2l2-3.5a.5.5 0 00-.1-.6L19.4 13zM12 15.5A3.5 3.5 0 1112 8.5a3.5 3.5 0 010 7z"/></svg></button>
+        <button class="gm-ico" aria-label="Google apps"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M6 8a2 2 0 110-4 2 2 0 010 4zm6 0a2 2 0 110-4 2 2 0 010 4zm6 0a2 2 0 110-4 2 2 0 010 4zM6 14a2 2 0 110-4 2 2 0 010 4zm6 0a2 2 0 110-4 2 2 0 010 4zm6 0a2 2 0 110-4 2 2 0 010 4zM6 20a2 2 0 110-4 2 2 0 010 4zm6 0a2 2 0 110-4 2 2 0 010 4zm6 0a2 2 0 110-4 2 2 0 010 4z"/></svg></button>
+        <span class="gm-avatar" title="compliance@finnomena.com">C</span>
+      </div>
+    </div>
+
+    <div class="gm-body">
+      <div class="gm-side">
+        <button class="gm-compose">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.8 9.94l-3.75-3.75L3 17.25zM20.7 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+          Compose
+        </button>
+        <nav class="gm-nav">
+          <a href="#" class="sel"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zm0 12h-4a3 3 0 01-6 0H5V5h14v10z"/></svg>Inbox<span class="n">3</span></a>
+          <a href="#"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.62L12 2 9.19 8.62 2 9.24l5.46 4.73L5.82 21 12 17.27z"/></svg>Starred<span class="n">1</span></a>
+          <a href="#"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm0 18a8 8 0 110-16 8 8 0 010 16zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg>Snoozed</a>
+          <a href="#"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>Sent</a>
+          <a href="#"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.8 9.94l-3.75-3.75L3 17.25z"/></svg>Drafts<span class="n">2</span></a>
+          <a href="#"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5z"/></svg>More</a>
+        </nav>
+      </div>
+
+      <div class="gm-list">
+        <div class="gm-tools">
+          <button class="gm-ico" aria-label="Select all"><span class="gm-cb"></span></button>
+          <button class="gm-ico" aria-label="Selection options"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5z"/></svg></button>
+          <button class="gm-ico" aria-label="Refresh"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.65 6.35A8 8 0 1019.73 14h-2.08A6 6 0 1112 6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg></button>
+          <button class="gm-ico" aria-label="More options"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 8a2 2 0 110-4 2 2 0 010 4zm0 6a2 2 0 110-4 2 2 0 010 4zm0 6a2 2 0 110-4 2 2 0 010 4z"/></svg></button>
+          <span class="gm-count">1–5 of 5</span>
+          <button class="gm-ico" aria-label="Newer"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg></button>
+          <button class="gm-ico" aria-label="Older"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg></button>
+        </div>
+
+        <div class="gm-tabs">
+          <div class="gm-tab on"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zm0 12h-4a3 3 0 01-6 0H5V5h14v10z"/></svg>Primary</div>
+          <div class="gm-tab"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20 7h-3.2l1.6-2.2-1.6-1.2L14 7h-4L7.2 3.6 5.6 4.8 7.2 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2zm0 12H4V9h16v10z"/></svg>Promotions</div>
+          <div class="gm-tab"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M16 11a3 3 0 100-6 3 3 0 000 6zm-8 0a3 3 0 100-6 3 3 0 000 6zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>Social</div>
+        </div>
+
+        <div class="gm-row unread">
+          <button class="gm-ico" aria-label="Select"><span class="gm-cb"></span></button>
+          <button class="gm-ico gm-star" aria-label="Star"><svg width="18" height="18" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.62L12 2 9.19 8.62 2 9.24l5.46 4.73L5.82 21 12 17.27z"/></svg></button>
+          <button class="gm-ico gm-imp" aria-label="Mark important"><svg width="18" height="18" viewBox="0 0 24 24"><path d="M6.5 5h11l-4 7 4 7h-11l4-7-4-7z"/></svg></button>
+          <span class="gm-from">Kasikorn Asset Mgmt</span>
+          <span class="gm-mid"><span class="gm-subj">Daily NAV &amp; Holdings File — 2026-09-15</span><span class="gm-snip">— Consolidated NAV and holdings extract for all share classes is attached.</span></span>
+          <span class="gm-clip"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 6v11.5a4.5 4.5 0 01-9 0V5a3 3 0 016 0v10.5a1.5 1.5 0 01-3 0V6H10v9.5a3 3 0 006 0V5a4.5 4.5 0 00-9 0v12.5a6 6 0 0012 0V6h-2.5z"/></svg></span>
+          <span class="gm-time">09:02</span>
+          <span class="gm-rowacts">
+            <button class="gm-ico" aria-label="Archive"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20 6H4V4h16v2zm-1 2H5l-1 12h16L19 8zm-5 5H10v-2h4v2z"/></svg></button>
+            <button class="gm-ico" aria-label="Delete"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19a2 2 0 002 2h8a2 2 0 002-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></button>
+            <button class="gm-ico" aria-label="Snooze"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm.5 5H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg></button>
+          </span>
+        </div>
+
+        <div class="gm-row unread">
+          <button class="gm-ico" aria-label="Select"><span class="gm-cb"></span></button>
+          <button class="gm-ico gm-star" aria-label="Star"><svg width="18" height="18" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.62L12 2 9.19 8.62 2 9.24l5.46 4.73L5.82 21 12 17.27z"/></svg></button>
+          <button class="gm-ico gm-imp" aria-label="Mark important"><svg width="18" height="18" viewBox="0 0 24 24"><path d="M6.5 5h11l-4 7 4 7h-11l4-7-4-7z"/></svg></button>
+          <span class="gm-from">SCB Asset Mgmt</span>
+          <span class="gm-mid"><span class="gm-subj">Fund Trading Holiday Notice: 23 Oct 2026</span><span class="gm-snip">— Subscription and redemption orders will not be processed on the date below.</span></span>
+          <span class="gm-time">08:47</span>
+          <span class="gm-rowacts">
+            <button class="gm-ico" aria-label="Archive"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20 6H4V4h16v2zm-1 2H5l-1 12h16L19 8zm-5 5H10v-2h4v2z"/></svg></button>
+            <button class="gm-ico" aria-label="Delete"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19a2 2 0 002 2h8a2 2 0 002-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></button>
+            <button class="gm-ico" aria-label="Snooze"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm.5 5H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg></button>
+          </span>
+        </div>
+
+        <div class="gm-row unread">
+          <button class="gm-ico" aria-label="Select"><span class="gm-cb"></span></button>
+          <button class="gm-ico gm-star on" aria-label="Starred"><svg width="18" height="18" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.62L12 2 9.19 8.62 2 9.24l5.46 4.73L5.82 21 12 17.27z"/></svg></button>
+          <button class="gm-ico gm-imp on" aria-label="Important"><svg width="18" height="18" viewBox="0 0 24 24"><path d="M6.5 5h11l-4 7 4 7h-11l4-7-4-7z"/></svg></button>
+          <span class="gm-from">Krungsri Asset Mgmt</span>
+          <span class="gm-mid"><span class="gm-label">Fee change detected</span><span class="gm-subj">Notice of Management Fee Adjustment — FUND-KEQTY</span><span class="gm-snip">— Krungsri will revise the management fee from 1.50% to 1.75% per annum, effective 1 Nov 2026.</span></span>
+          <span class="gm-time">08:31</span>
+          <span class="gm-rowacts">
+            <button class="gm-ico" aria-label="Archive"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20 6H4V4h16v2zm-1 2H5l-1 12h16L19 8zm-5 5H10v-2h4v2z"/></svg></button>
+            <button class="gm-ico" aria-label="Delete"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19a2 2 0 002 2h8a2 2 0 002-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></button>
+            <button class="gm-ico" aria-label="Snooze"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm.5 5H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg></button>
+          </span>
+        </div>
+
+        <div class="gm-row">
+          <button class="gm-ico" aria-label="Select"><span class="gm-cb"></span></button>
+          <button class="gm-ico gm-star" aria-label="Star"><svg width="18" height="18" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.62L12 2 9.19 8.62 2 9.24l5.46 4.73L5.82 21 12 17.27z"/></svg></button>
+          <button class="gm-ico gm-imp" aria-label="Mark important"><svg width="18" height="18" viewBox="0 0 24 24"><path d="M6.5 5h11l-4 7 4 7h-11l4-7-4-7z"/></svg></button>
+          <span class="gm-from">TMBAM Eastspring</span>
+          <span class="gm-mid"><span class="gm-subj">Monthly Factsheet — August 2026</span><span class="gm-snip">— Performance, portfolio breakdown and top holdings for the month ending 31 Aug.</span></span>
+          <span class="gm-clip"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 6v11.5a4.5 4.5 0 01-9 0V5a3 3 0 016 0v10.5a1.5 1.5 0 01-3 0V6H10v9.5a3 3 0 006 0V5a4.5 4.5 0 00-9 0v12.5a6 6 0 0012 0V6h-2.5z"/></svg></span>
+          <span class="gm-time">08:15</span>
+          <span class="gm-rowacts">
+            <button class="gm-ico" aria-label="Archive"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20 6H4V4h16v2zm-1 2H5l-1 12h16L19 8zm-5 5H10v-2h4v2z"/></svg></button>
+            <button class="gm-ico" aria-label="Delete"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19a2 2 0 002 2h8a2 2 0 002-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></button>
+            <button class="gm-ico" aria-label="Snooze"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm.5 5H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg></button>
+          </span>
+        </div>
+
+        <div class="gm-row">
+          <button class="gm-ico" aria-label="Select"><span class="gm-cb"></span></button>
+          <button class="gm-ico gm-star" aria-label="Star"><svg width="18" height="18" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.62L12 2 9.19 8.62 2 9.24l5.46 4.73L5.82 21 12 17.27z"/></svg></button>
+          <button class="gm-ico gm-imp" aria-label="Mark important"><svg width="18" height="18" viewBox="0 0 24 24"><path d="M6.5 5h11l-4 7 4 7h-11l4-7-4-7z"/></svg></button>
+          <span class="gm-from">Bualuang Securities AM</span>
+          <span class="gm-mid"><span class="gm-subj">KYC Re-verification Reminder</span><span class="gm-snip">— Two partner accounts are due for re-verification before the end of the quarter.</span></span>
+          <span class="gm-time">07:58</span>
+          <span class="gm-rowacts">
+            <button class="gm-ico" aria-label="Archive"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20 6H4V4h16v2zm-1 2H5l-1 12h16L19 8zm-5 5H10v-2h4v2z"/></svg></button>
+            <button class="gm-ico" aria-label="Delete"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19a2 2 0 002 2h8a2 2 0 002-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></button>
+            <button class="gm-ico" aria-label="Snooze"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm.5 5H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg></button>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h2>Step 2 · What the agent pulled out, and your decision</h2>
+  <p class="lede">The email as it arrived, with the sentence the agent used highlighted. On the right, the same facts as fields — the part that gets typed by hand today. <b>Press Accept or Reject and watch the flow below react.</b></p>
+  <div class="extract-grid">
+    <div class="gmail gm-open">
+      <div class="gm-open-tools">
+        <button class="gm-ico" aria-label="Back to Inbox"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button>
+        <button class="gm-ico" aria-label="Archive"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20 6H4V4h16v2zm-1 2H5l-1 12h16L19 8zm-5 5H10v-2h4v2z"/></svg></button>
+        <button class="gm-ico" aria-label="Report spam"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L1 21h22L12 2zm1 15h-2v-2h2v2zm0-4h-2V9h2v4z"/></svg></button>
+        <button class="gm-ico" aria-label="Delete"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19a2 2 0 002 2h8a2 2 0 002-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></button>
+        <button class="gm-ico" aria-label="Mark as unread"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V6a2 2 0 00-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg></button>
+        <button class="gm-ico" aria-label="Snooze"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm.5 5H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg></button>
+        <button class="gm-ico" aria-label="Add to Tasks"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg></button>
+        <button class="gm-ico" aria-label="Move to"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M10 4H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V8a2 2 0 00-2-2h-8l-2-2z"/></svg></button>
+        <button class="gm-ico" aria-label="Labels"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.63 5.84A2 2 0 0016 5H5l.01 14H16a2 2 0 001.63-.84L22 12l-4.37-6.16z"/></svg></button>
+        <button class="gm-ico" aria-label="More"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 8a2 2 0 110-4 2 2 0 010 4zm0 6a2 2 0 110-4 2 2 0 010 4zm0 6a2 2 0 110-4 2 2 0 010 4z"/></svg></button>
+        <span class="gm-count">3 of 5</span>
+        <button class="gm-ico" aria-label="Newer"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg></button>
+        <button class="gm-ico" aria-label="Older"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg></button>
+      </div>
+
+      <div class="gm-head">
+        <div class="gm-subject">
+          <h3>Notice of Management Fee Adjustment — Krungsri Equity Fund (FUND-KEQTY)</h3>
+          <span class="gm-label">Fee change detected</span>
+          <span class="gm-chip-inbox">Inbox</span>
+        </div>
+      </div>
+
+      <div class="gm-sender">
+        <span class="gm-av">K</span>
+        <div class="gm-who">
+          <span class="nm">Krungsri Asset Management</span>
+          <span class="addr">&lt;compliance@krungsriasset.co.th&gt;</span>
+          <div class="to">to me
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5z"/></svg>
+          </div>
+        </div>
+        <div class="gm-when">
+          08:31 (2 hours ago)
+          <button class="gm-ico gm-star on" aria-label="Starred"><svg width="18" height="18" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.62L12 2 9.19 8.62 2 9.24l5.46 4.73L5.82 21 12 17.27z"/></svg></button>
+          <button class="gm-ico" aria-label="Reply"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z"/></svg></button>
+          <button class="gm-ico" aria-label="More"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 8a2 2 0 110-4 2 2 0 010 4zm0 6a2 2 0 110-4 2 2 0 010 4zm0 6a2 2 0 110-4 2 2 0 010 4z"/></svg></button>
+        </div>
+      </div>
+
+      <div class="gm-msgbody">Dear Partner,
+
+Please be informed that Krungsri Asset Management will <mark>revise the management fee for the Krungsri Equity Fund (FUND-KEQTY) from 1.50% to 1.75% per annum, effective 1 November 2026</mark>, in line with enhanced portfolio research coverage.
+
+Kindly update your systems and inform your clients accordingly ahead of the effective date.
+
+Best regards,
+Compliance Team
+Krungsri Asset Management</div>
+
+      <div class="gm-replybar">
+        <button class="gm-reply"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z"/></svg>Reply</button>
+        <button class="gm-reply"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M14 9V5l7 7-7 7v-4.1c-5 0-8.5 1.6-11 5.1 1-5 4-10 11-11z"/></svg>Forward</button>
+      </div>
+
+      <div class="byline">Extracted by AgentStudio · Fee Change Monitor</div>
+    </div>
+    <div class="card">
+      <table class="fields">
+        <tr><td>AMC</td><td>Krungsri Asset Management</td></tr>
+        <tr><td>Fund</td><td>FUND-KEQTY</td></tr>
+        <tr><td>Current fee</td><td>1.50% p.a.</td></tr>
+        <tr><td>New fee</td><td>1.75% p.a.</td></tr>
+        <tr><td>Effective date</td><td>2026-11-01</td></tr>
+      </table>
+      <div class="confidence">Extraction confidence: 96%</div>
+      <div class="decision-bar">
+        <button class="btn-accept" id="acceptBtn">✓ Accept change</button>
+        <button class="btn-reject" id="rejectBtn">✕ Reject</button>
+        <button class="btn-reset" id="resetBtn" style="display:none;">↺ Reset demo</button>
+      </div>
+      <div class="decision-note" id="decisionNote">Awaiting compliance review — no customer or website action has been taken yet.</div>
+      <div class="elapsed" id="elapsed" style="display:none;"></div>
+    </div>
+  </div>
+
+  <h2>Step 3 · What actually runs</h2>
+  <p class="lede">Solid lines have already run. Pale lines are waiting on you. The amber step is the stop — nothing gets past it on its own.</p>
+  <div class="canvas-wrap">
+    <div class="canvas" id="canvas">
+      <svg viewBox="0 0 1080 440">
+        <defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="arrow-fill-default" d="M0,0 L10,5 L0,10 z"></path></marker>
+          <marker id="arrowDone" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="arrow-fill-done" d="M0,0 L10,5 L0,10 z"></path></marker>
+          <marker id="arrowBad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="arrow-fill-bad" d="M0,0 L10,5 L0,10 z"></path></marker>
+        </defs>
+        <path id="p-start-agent" class="flowpath" marker-end="url(#arrow)" d="M190,200 L230,200"></path>
+        <path id="p-agent-approval" class="flowpath" marker-end="url(#arrow)" d="M410,200 L450,200"></path>
+        <path id="p-approval-notify" class="flowpath" marker-end="url(#arrow)" d="M650,190 C690,190 690,95 720,95"></path>
+        <path id="p-approval-web" class="flowpath" marker-end="url(#arrow)" d="M650,210 C690,210 690,345 720,345"></path>
+        <path id="p-notify-stop" class="flowpath" marker-end="url(#arrow)" d="M920,95 L975,95"></path>
+        <path id="p-web-stop" class="flowpath" marker-end="url(#arrow)" d="M920,345 L975,345"></path>
+        <path id="p-approval-reject" class="flowpath bad-path" marker-end="url(#arrow)" d="M550,240 C550,290 600,290 600,340"></path>
+      </svg>
+
+      <div class="node k-conn active" id="n-start" style="left:20px;top:161px;width:170px;height:78px;">
+        <div class="kind">Connector · Email (IMAP)</div><div class="label">Inbox: compliance@finnomena.com</div>
+        <div class="what">Picks up every new email</div>
+      </div>
+      <div class="node k-agent active" id="n-agent" style="left:230px;top:161px;width:180px;height:78px;">
+        <div class="kind">AgentStudio</div><div class="label">Fee Change Monitor</div>
+        <div class="what">Reads it, decides if it is a fee change, pulls the numbers out</div>
+      </div>
+      <div class="node k-approval awaiting" id="n-approval" style="left:450px;top:160px;width:200px;height:80px;">
+        <div class="kind">Human Task</div><div class="label">Compliance Review</div>
+        <div class="what">Waits here until a person accepts or rejects</div>
+      </div>
+      <div class="node k-good" id="n-notify" style="left:720px;top:56px;width:200px;height:78px;">
+        <div class="kind">Notify</div><div class="label">Customer Email Broadcast</div>
+        <div class="what">Emails only the investors holding the fund</div>
+      </div>
+      <div class="node k-good" id="n-web" style="left:720px;top:306px;width:200px;height:78px;">
+        <div class="kind">Connector · Web / CMS</div><div class="label">Update Notices Page</div>
+        <div class="what">Publishes the public notice, no manual edit</div>
+      </div>
+      <div class="node k-stop k-good" id="n-stopA1" style="left:975px;top:60px;width:70px;height:70px;"><div class="label">STOP</div></div>
+      <div class="node k-stop k-good" id="n-stopA2" style="left:975px;top:310px;width:70px;height:70px;"><div class="label">STOP</div></div>
+      <div class="node k-stop k-bad" id="n-stopR" style="left:520px;top:340px;width:160px;height:60px;border-radius:8px;"><div class="kind">Stop</div><div class="label">Returned to AMC</div></div>
+    </div>
+  </div>
+
+  <h2>Step 4 · What the customer sees, only after you approve</h2>
+  <p class="lede">Both built from the extracted fields — nobody retypes the fee or the date. Empty until you accept.</p>
+  <div class="outcome-grid fade" id="outcomeSection">
+    <div class="email-preview">
+      <div class="ep-head">Sent to 4,820 investors holding FUND-KEQTY</div>
+      <div class="ep-body">Subject: Fee Update Notice — Krungsri Equity Fund (FUND-KEQTY)
+
+Dear Investor,
+
+We would like to inform you that, effective 1 November 2026, the management fee for the Krungsri Equity Fund (FUND-KEQTY) will change from 1.50% to 1.75% per annum. This adjustment is made by Krungsri Asset Management in line with enhanced portfolio research coverage.
+
+No action is required on your part. If you have questions, please contact your advisor or our support team.
+
+Warm regards,
+Finnomena Investor Relations</div>
+    </div>
+    <div class="browser-mock">
+      <div class="bar">finnomena.com/notices</div>
+      <div class="notice-list" id="noticeList">
+        <div class="notice-item"><span class="tag" style="color:var(--text-soft)">·</span>Platform maintenance window — 20 Sep 2026, 01:00–03:00<span class="when">Posted 5 days ago</span></div>
+        <div class="notice-item"><span class="tag" style="color:var(--text-soft)">·</span>Fund trading holiday — SCB funds — 23 Oct 2026<span class="when">Posted 2 days ago</span></div>
+      </div>
+    </div>
+  </div>
+
+  <h2>Step 5 · The proof trail</h2>
+  <p class="lede">Written by the decision itself, not filed afterwards. This is what a regulator asks to see.</p>
+  <div class="card">
+    <table class="audit" id="auditTable">
+      <thead><tr><th>Time</th><th>Item</th><th>Decision</th><th>Channels notified</th></tr></thead>
+      <tbody id="auditBody"></tbody>
+    </table>
+    <div class="empty-note" id="auditEmpty">No decisions recorded yet — the item above is still awaiting review.</div>
+  </div>
+
+  <footer>
+    Every hour figure comes from one number Finnomena gave us — 10 people, half a month each, every month — at a 160-hour month. Nothing else here is measured. Emails, fund and fees are illustrative.<br>
+    Fee changes are one notice type in this mailbox. Holidays, factsheets and KYC reminders follow the same pattern, which is where the rest of the 800 hours sits.
+  </footer>
+</div>
+</div>
+
+<script>
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const svgPaths = Array.from(document.querySelectorAll('.flowpath'));
+const approvalNode = document.getElementById('n-approval');
+const acceptBtn = document.getElementById('acceptBtn');
+const rejectBtn = document.getElementById('rejectBtn');
+const resetBtn = document.getElementById('resetBtn');
+const decisionNote = document.getElementById('decisionNote');
+const elapsedEl = document.getElementById('elapsed');
+let t0 = 0;
+const outcomeSection = document.getElementById('outcomeSection');
+const noticeList = document.getElementById('noticeList');
+const auditBody = document.getElementById('auditBody');
+const auditEmpty = document.getElementById('auditEmpty');
+
+function prepPaths(){
+  svgPaths.forEach(p => {
+    const len = p.getTotalLength();
+    p.style.strokeDasharray = len;
+    p.style.strokeDashoffset = len;
+  });
+}
+function drawPath(p, instant){
+  const isBad = p.classList.contains('bad-path');
+  p.setAttribute('marker-end', isBad ? 'url(#arrowBad)' : 'url(#arrowDone)');
+  p.style.transition = instant ? 'none' : 'stroke-dashoffset .5s ease';
+  if (instant) { p.style.strokeDashoffset = 0; }
+  else { requestAnimationFrame(() => { p.style.strokeDashoffset = 0; }); }
+  p.classList.add('done');
+}
+function hidePath(id){
+  const p = document.getElementById(id);
+  p.classList.remove('done');
+  p.style.transition = 'none';
+  p.style.strokeDashoffset = p.getTotalLength();
+}
+
+function fmtNow(){
+  const d = new Date();
+  return d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+}
+
+function addAuditRow(decision, channels){
+  auditEmpty.style.display = 'none';
+  const tr = document.createElement('tr');
+  tr.innerHTML = `<td>${fmtNow()}</td><td>Krungsri FUND-KEQTY fee 1.50% → 1.75%</td>
+    <td><span class="chip ${decision==='Approved' ? 'good' : 'bad'}">${decision}</span></td>
+    <td>${channels}</td>`;
+  auditBody.prepend(tr);
+}
+
+function setButtonsEnabled(enabled){
+  acceptBtn.disabled = !enabled;
+  rejectBtn.disabled = !enabled;
+}
+
+function onAccept(){
+  setButtonsEnabled(false);
+  t0 = performance.now();
+  approvalNode.classList.remove('awaiting');
+  approvalNode.classList.add('approved');
+  decisionNote.textContent = 'Approved — notifying customers and updating the website now.';
+
+  const delay = reduceMotion ? 0 : 450;
+  drawPath(document.getElementById('p-approval-notify'), reduceMotion);
+  drawPath(document.getElementById('p-approval-web'), reduceMotion);
+  setTimeout(() => {
+    document.getElementById('n-notify').classList.add('active');
+    document.getElementById('n-web').classList.add('active');
+  }, reduceMotion ? 0 : 500);
+
+  setTimeout(() => {
+    drawPath(document.getElementById('p-notify-stop'), reduceMotion);
+    drawPath(document.getElementById('p-web-stop'), reduceMotion);
+    document.getElementById('n-stopA1').classList.add('active');
+    document.getElementById('n-stopA2').classList.add('active');
+  }, reduceMotion ? 0 : 950);
+
+  setTimeout(() => {
+    outcomeSection.classList.add('show');
+    const item = document.createElement('div');
+    item.className = 'notice-item new';
+    item.innerHTML = '<span class="tag">NEW</span>Fee update: Krungsri Equity Fund (FUND-KEQTY) management fee changes to 1.75% p.a. from 1 Nov 2026<span class="when">Posted just now</span>';
+    noticeList.prepend(item);
+    addAuditRow('Approved', 'Customer email · Website notice');
+    const secs = ((performance.now() - t0) / 1000).toFixed(1);
+    elapsedEl.textContent = 'Approval to investors notified and website live: ' + secs + 's. Today that hand-off is a multi-person loop measured in days.';
+    elapsedEl.style.display = 'block';
+    resetBtn.style.display = 'inline-block';
+  }, reduceMotion ? 0 : 1400);
+}
+
+function onReject(){
+  setButtonsEnabled(false);
+  approvalNode.classList.remove('awaiting');
+  approvalNode.classList.add('rejected');
+  decisionNote.textContent = 'Rejected — no customer email sent, website not updated. Flagged back to Krungsri Asset Management for clarification.';
+
+  drawPath(document.getElementById('p-approval-reject'), reduceMotion);
+  setTimeout(() => {
+    document.getElementById('n-stopR').classList.add('active');
+    addAuditRow('Rejected', '— none —');
+    elapsedEl.textContent = 'Stopped here. No investor was contacted and the notices page is unchanged — and the rejection is still on the record below.';
+    elapsedEl.style.color = 'var(--bad)';
+    elapsedEl.style.display = 'block';
+    resetBtn.style.display = 'inline-block';
+  }, reduceMotion ? 0 : 500);
+}
+
+function resetDemo(){
+  setButtonsEnabled(true);
+  approvalNode.classList.remove('approved', 'rejected');
+  approvalNode.classList.add('awaiting');
+  decisionNote.textContent = 'Awaiting compliance review — no customer or website action has been taken yet.';
+  outcomeSection.classList.remove('show');
+  ['n-notify','n-web','n-stopA1','n-stopA2','n-stopR'].forEach(id => document.getElementById(id).classList.remove('active'));
+  ['p-approval-notify','p-approval-web','p-notify-stop','p-web-stop','p-approval-reject'].forEach(hidePath);
+  // remove the "new" notice item if present, leaving the original two
+  while (noticeList.children.length > 2) noticeList.removeChild(noticeList.firstChild);
+  resetBtn.style.display = 'none';
+}
+
+prepPaths();
+drawPath(document.getElementById('p-start-agent'), true);
+drawPath(document.getElementById('p-agent-approval'), true);
+['p-approval-notify','p-approval-web','p-notify-stop','p-web-stop','p-approval-reject'].forEach(hidePath);
+
+acceptBtn.addEventListener('click', onAccept);
+rejectBtn.addEventListener('click', onReject);
+resetBtn.addEventListener('click', resetDemo);
+</script>
+</body>
+</html>

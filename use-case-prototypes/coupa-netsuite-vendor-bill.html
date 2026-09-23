@@ -1,0 +1,1254 @@
+<!-- SEDC-NAV:START -->
+<style>
+  .sedc-nav * { box-sizing: border-box; }
+  .sedc-nav {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    margin: 0;
+    background: #072B55;
+    color: #ffffff;
+    font-family: 'Poppins',Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    font-size: 14px;
+    line-height: 1.4;
+  }
+  .sedc-nav-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 10px 20px;
+  }
+  .sedc-nav-brand {
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+  }
+  .sedc-nav-brand:hover,
+  .sedc-nav-brand:focus {
+    text-decoration: underline;
+  }
+  .sedc-nav-jump {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .sedc-nav-label {
+    white-space: nowrap;
+    color: #ffffff;
+  }
+  .sedc-nav-select {
+    font-family: inherit;
+    font-size: 13px;
+    color: #072B55;
+    background: #ffffff;
+    border: 1px solid #ffffff;
+    border-radius: 4px;
+    padding: 5px 8px;
+    max-width: 60vw;
+  }
+  .sedc-nav-rule {
+    height: 3px;
+    width: 100%;
+    background: linear-gradient(90deg,#FF7C66 0%,#A03291 100%);
+  }
+</style>
+<div class="sedc-nav" role="navigation" aria-label="SE Demo Companion navigation">
+  <div class="sedc-nav-bar">
+    <a class="sedc-nav-brand" href="../index.html" target="_top">SE Demo Companion</a>
+    <div class="sedc-nav-jump">
+      <label class="sedc-nav-label" for="sedc-nav-select">Jump to use case</label>
+      <select class="sedc-nav-select" id="sedc-nav-select" onchange="(function(sel){try{var opt=sel.options[sel.selectedIndex];var url=opt&&opt.getAttribute('data-href');if(!url)return;try{window.top.location.href=url;}catch(e){window.location.href=url;}}catch(e){}})(this)">
+        <option value="amc-fee-change-agent" data-href="./amc-fee-change-agent.html">AMC fee-change agent — Finnomena</option>
+        <option value="bvtpa-claims-integration-demo" data-href="./bvtpa-claims-integration-demo.html">Blue Venture TPA claims integration demo — Blue Venture TPA</option>
+        <option value="bvtpa-claims-adjudication-cio-brief" data-href="./bvtpa-claims-adjudication-cio-brief.html">Claims adjudication CIO brief — Blue Venture TPA</option>
+        <option value="delivery-status-sync-demo" data-href="./delivery-status-sync-demo.html">Delivery status sync demo — TOTO</option>
+        <option value="boomi-tenant-ceo-dashboard" data-href="./boomi-tenant-ceo-dashboard.html">Boomi tenant CEO dashboard — Boomi internal tenant</option>
+        <option value="boomi-tenant-30-day-report" data-href="./boomi-tenant-30-day-report.html">Boomi tenant operations report, 30-day view — Boomi internal tenant</option>
+        <option value="json-to-xml-order-integration" data-href="./json-to-xml-order-integration.html">JSON to XML order integration, executive documentation — NTT</option>
+        <option value="edi-850-flight-deck" data-href="./edi-850-flight-deck.html">EDI 850 flight deck — Infosys</option>
+        <option value="whatsapp-to-sap-master-agent" data-href="./whatsapp-to-sap-master-agent.html">WhatsApp to SAP master agent — Boomi internal build</option>
+        <option value="student-xml-to-crm-json" data-href="./student-xml-to-crm-json.html">Student XML to CRM JSON — Attura</option>
+        <option value="sap-accounting-document-poc-outcome" data-href="./sap-accounting-document-poc-outcome.html">SAP accounting document automation, POC outcome — Abans PLC</option>
+        <option value="abans-sap-posting-poc-dashboard" data-href="./abans-sap-posting-poc-dashboard.html">Abans SAP posting, live POC dashboard — Abans PLC</option>
+        <option value="order-intake-api-fan-out" data-href="./order-intake-api-fan-out.html">Order intake API with multi-target fan-out — LTIMindtree</option>
+        <option value="electromart-track-and-reschedule" data-href="./electromart-track-and-reschedule.html">ElectroMart track order and reschedule delivery — ElectroMart (demo brand)</option>
+        <option value="enterprise-portal-ai-agent" data-href="./enterprise-portal-ai-agent.html">Enterprise portal with an embedded AI agent — ITG</option>
+        <option value="o2c-qad-build-journey" data-href="./o2c-qad-build-journey.html">O2C-QAD build journey — Boomi internal build</option>
+        <option value="boomi-accenture-trivia" data-href="./boomi-accenture-trivia.html">Boomi x Accenture trivia — Boomi internal build</option>
+        <option value="cloud-runtime-sizing-calculator" data-href="./cloud-runtime-sizing-calculator.html">Boomi public cloud runtime sizing estimator — Boomi internal build</option>
+        <option value="coupa-netsuite-vendor-bill" data-href="./coupa-netsuite-vendor-bill.html" selected>Vendor bill pipeline, Coupa to NetSuite — Boomi internal build</option>
+        <option value="coupa-oracle-s2p-console" data-href="./coupa-oracle-s2p-console.html">Source-to-pay flow console, Coupa to Oracle Fusion — Boomi internal build</option>
+        <option value="epic-rauland-adt-nurse-call" data-href="./epic-rauland-adt-nurse-call.html">Epic ADT to Rauland Responder 5, nurse call integration — Boomi internal build</option>
+        <option value="epic-salesforce-trial-screening" data-href="./epic-salesforce-trial-screening.html">Clinical trial screening console, Epic to Salesforce — Meridian Research (demo brand)</option>
+        <option value="jc-hifi-order-tracker" data-href="./jc-hifi-order-tracker.html">JC Hi-Fi order tracker, customer self-service — JC Hi-Fi (demo brand)</option>
+        <option value="pacific-bank-onboarding" data-href="./pacific-bank-onboarding.html">Pacific onboarding console, retail bank customer onboarding — Pacific Islands Community Bank (demo brand)</option>
+        <option value="sea-data-product-assistant" data-href="./sea-data-product-assistant.html">SEA regional performance, data products and an agent over two ERPs — Boomi internal build</option>
+        <option value="servicenow-jira-incident-sync" data-href="./servicenow-jira-incident-sync.html">Incident sync prototype, ServiceNow to Jira — Boomi internal build</option>
+        <option value="zendesk-magento-order-status" data-href="./zendesk-magento-order-status.html">Order status bot and flow inspector, Zendesk to Magento — Avery Products (demo brand)</option>
+        <option value="zoho-netsuite-invoice-sync" data-href="./zoho-netsuite-invoice-sync.html">Invoice sync console, Zoho CRM to NetSuite — Boomi internal build</option>
+      </select>
+    </div>
+  </div>
+  <div class="sedc-nav-rule"></div>
+</div>
+<!-- SEDC-NAV:END -->
+<title>Vendor Bill Pipeline</title>
+<style>
+  /* ---------- tokens: light is the base, both dark states redefine only vars ---------- */
+  :root {
+    --ground:      #F4F6FA;
+    --surface:     #FFFFFF;
+    --surface-2:   #EAEDF4;
+    --surface-3:   #DFE4EE;
+    --ink:         #141826;
+    --ink-2:       #3A4258;
+    --muted:       #626A82;
+    --line:        #D8DDE8;
+    --line-strong: #BFC7D6;
+
+    --accent:      #1C6E8C;
+    --accent-ink:  #FFFFFF;
+    --accent-soft: #DCEBF1;
+
+    --ok:          #1B6F4A;
+    --ok-soft:     #D8EFE3;
+    --wait:        #8A5A06;
+    --wait-soft:   #F7E9CC;
+    --bad:         #A8281F;
+    --bad-soft:    #F7DDDA;
+
+    --shadow: 0 1px 2px rgba(20,24,38,.06), 0 8px 24px -12px rgba(20,24,38,.18);
+
+    --ui: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, "JetBrains Mono", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:      #0D1017;
+      --surface:     #161A24;
+      --surface-2:   #1E2430;
+      --surface-3:   #272E3C;
+      --ink:         #E7EBF3;
+      --ink-2:       #BAC3D4;
+      --muted:       #8E97AC;
+      --line:        #2A3140;
+      --line-strong: #3A4354;
+
+      --accent:      #58AECC;
+      --accent-ink:  #08222C;
+      --accent-soft: #14313D;
+
+      --ok:          #5FC08D;
+      --ok-soft:     #16321F;
+      --wait:        #DFA847;
+      --wait-soft:   #322613;
+      --bad:         #F0918A;
+      --bad-soft:    #351A1A;
+
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.7);
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground:      #0D1017;
+    --surface:     #161A24;
+    --surface-2:   #1E2430;
+    --surface-3:   #272E3C;
+    --ink:         #E7EBF3;
+    --ink-2:       #BAC3D4;
+    --muted:       #8E97AC;
+    --line:        #2A3140;
+    --line-strong: #3A4354;
+
+    --accent:      #58AECC;
+    --accent-ink:  #08222C;
+    --accent-soft: #14313D;
+
+    --ok:          #5FC08D;
+    --ok-soft:     #16321F;
+    --wait:        #DFA847;
+    --wait-soft:   #322613;
+    --bad:         #F0918A;
+    --bad-soft:    #351A1A;
+
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.7);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--ui);
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { max-width: 1400px; margin: 0 auto; padding: 28px 22px 64px; }
+
+  /* ---------- header ---------- */
+  .masthead {
+    position: sticky; top: 0; z-index: 40;
+    background: var(--ground);
+    display: flex; flex-wrap: wrap; align-items: flex-end;
+    justify-content: space-between; gap: 20px;
+    padding: 12px 0 18px; margin-bottom: 22px;
+    border-bottom: 1px solid var(--line);
+  }
+  .masthead h1 {
+    margin: 0; font-size: 25px; font-weight: 640; letter-spacing: -.018em;
+    text-wrap: balance;
+  }
+  .masthead p { margin: 6px 0 0; color: var(--muted); font-size: 14px; max-width: 62ch; }
+
+  .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+
+  button {
+    font: inherit; font-size: 13.5px; font-weight: 550;
+    padding: 8px 15px; border-radius: 7px;
+    border: 1px solid var(--line-strong);
+    background: var(--surface); color: var(--ink);
+    cursor: pointer; transition: background .14s, border-color .14s, transform .06s;
+  }
+  button:hover:not(:disabled) { background: var(--surface-2); border-color: var(--muted); }
+  button:active:not(:disabled) { transform: translateY(1px); }
+  button:disabled { opacity: .42; cursor: not-allowed; }
+  button.primary {
+    background: var(--accent); color: var(--accent-ink);
+    border-color: transparent;
+  }
+  button.primary:hover:not(:disabled) { background: var(--accent); filter: brightness(1.08); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .speed {
+    display: flex; align-items: center; gap: 7px;
+    font-size: 12px; color: var(--muted);
+    font-family: var(--mono); text-transform: uppercase; letter-spacing: .06em;
+  }
+  .speed select {
+    font: inherit; font-family: var(--ui); font-size: 13px; text-transform: none; letter-spacing: 0;
+    padding: 6px 8px; border-radius: 6px;
+    border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink);
+  }
+
+  /* ---------- three-lane board ---------- */
+  .board {
+    display: grid;
+    grid-template-columns: minmax(0,1fr) minmax(0,1.05fr) minmax(0,1fr);
+    gap: 18px;
+    align-items: start;
+  }
+  @media (max-width: 1080px) { .board { grid-template-columns: 1fr; } }
+
+  .lane {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .lane-head {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
+    padding: 13px 16px;
+    border-bottom: 1px solid var(--line);
+    background: var(--surface-2);
+  }
+  .lane-head h2 {
+    margin: 0; font-family: var(--mono);
+    font-size: 11.5px; font-weight: 650; letter-spacing: .11em; text-transform: uppercase;
+    color: var(--ink-2);
+  }
+  .lane-head .sys {
+    font-size: 11px; color: var(--muted);
+    font-family: var(--mono); letter-spacing: .04em;
+  }
+  .lane-body { padding: 14px 16px 18px; display: flex; flex-direction: column; gap: 11px; }
+
+  /* ---------- invoice + bill cards ---------- */
+  .card {
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    background: var(--surface);
+    padding: 12px 13px;
+    transition: border-color .16s, box-shadow .16s;
+  }
+  .card.sel { border-color: var(--accent); box-shadow: 0 0 0 2.5px var(--accent-soft); }
+  .card.live { border-color: var(--wait); }
+
+  .card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+  .card-id {
+    font-family: var(--mono); font-size: 13.5px; font-weight: 600;
+    letter-spacing: -.01em; color: var(--ink);
+  }
+  .card-sub { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+  .card-amt {
+    font-family: var(--mono); font-size: 14px; font-weight: 600;
+    font-variant-numeric: tabular-nums; white-space: nowrap;
+  }
+
+  .chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-family: var(--mono); font-size: 10.5px; font-weight: 620;
+    letter-spacing: .07em; text-transform: uppercase;
+    padding: 3px 8px; border-radius: 999px; white-space: nowrap;
+  }
+  .chip.idle { background: var(--surface-3); color: var(--ink-2); }
+  .chip.run  { background: var(--wait-soft); color: var(--wait); }
+  .chip.done { background: var(--ok-soft);   color: var(--ok); }
+  .chip.err  { background: var(--bad-soft);  color: var(--bad); }
+
+  .lines { margin-top: 10px; border-top: 1px dashed var(--line); padding-top: 9px; display: grid; gap: 6px; }
+  .lrow {
+    display: grid; grid-template-columns: 1fr auto; gap: 10px;
+    font-size: 12.5px; align-items: baseline;
+  }
+  .lrow .desc { color: var(--ink-2); }
+  .lrow .meta { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+  .lrow .amt { font-family: var(--mono); font-variant-numeric: tabular-nums; color: var(--ink-2); }
+
+  .card-actions { margin-top: 11px; display: flex; gap: 8px; }
+  .card-actions button { padding: 6px 12px; font-size: 12.5px; }
+
+  .writeback {
+    margin-top: 10px; padding: 8px 10px; border-radius: 7px;
+    background: var(--ok-soft); color: var(--ok);
+    font-family: var(--mono); font-size: 11.5px; line-height: 1.45;
+  }
+  .writeback.err { background: var(--bad-soft); color: var(--bad); }
+
+  .empty {
+    color: var(--muted); font-size: 13px; font-style: italic;
+    padding: 18px 4px; text-align: center;
+  }
+
+  /* ---------- pipeline spine ---------- */
+  .steps { display: flex; flex-direction: column; gap: 0; }
+  .step {
+    display: grid; grid-template-columns: 26px 1fr;
+    gap: 11px; align-items: start;
+    padding: 9px 10px 9px 8px;
+    border-radius: 8px;
+    border-left: 3px solid transparent;
+    cursor: pointer;
+    background: none;
+    text-align: left;
+    width: 100%;
+    font: inherit;
+    color: inherit;
+    transition: background .16s, border-color .16s;
+  }
+  .step:hover { background: var(--surface-2); }
+  .step.sel { background: var(--accent-soft); border-left-color: var(--accent); }
+  .step[disabled] { cursor: default; opacity: .5; }
+  .step[disabled]:hover { background: none; }
+
+  .dot {
+    width: 22px; height: 22px; border-radius: 50%;
+    display: grid; place-items: center;
+    font-family: var(--mono); font-size: 10.5px; font-weight: 700;
+    border: 1.5px solid var(--line-strong); color: var(--muted);
+    background: var(--surface);
+    margin-top: 1px;
+  }
+  .step.s-run  .dot { border-color: var(--wait); color: var(--wait); background: var(--wait-soft); }
+  .step.s-done .dot { border-color: var(--ok);   color: var(--ok);   background: var(--ok-soft); }
+  .step.s-err  .dot { border-color: var(--bad);  color: var(--bad);  background: var(--bad-soft); }
+  .step.s-skip .dot { opacity: .45; }
+
+  .step-name { font-size: 13.5px; font-weight: 560; letter-spacing: -.005em; }
+  .step-shape {
+    font-family: var(--mono); font-size: 10.5px; color: var(--muted);
+    letter-spacing: .03em; margin-top: 1px;
+  }
+  .step-note {
+    font-size: 12px; color: var(--ink-2); margin-top: 4px;
+    padding: 5px 8px; border-radius: 5px; background: var(--surface-2);
+    font-family: var(--mono); line-height: 1.45;
+  }
+  .step.s-err .step-note { background: var(--bad-soft); color: var(--bad); }
+
+  .spine-branch {
+    margin: 10px 0 2px; padding: 9px 11px;
+    border: 1px dashed var(--bad); border-radius: 8px;
+    background: var(--bad-soft);
+    font-size: 12.5px; color: var(--bad);
+  }
+  .spine-branch strong { font-weight: 640; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .step.s-run .dot { animation: pulse 1.1s ease-in-out infinite; }
+  }
+  @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.16); } }
+
+  /* ---------- inspector ---------- */
+  .inspector {
+    margin-top: 20px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .tabs {
+    display: flex; gap: 2px; padding: 8px 10px 0;
+    border-bottom: 1px solid var(--line);
+    background: var(--surface-2);
+    overflow-x: auto;
+  }
+  .tab {
+    border: none; background: none; border-radius: 7px 7px 0 0;
+    padding: 9px 14px; font-size: 13px; font-weight: 550;
+    color: var(--muted); cursor: pointer; white-space: nowrap;
+    border-bottom: 2px solid transparent;
+  }
+  .tab:hover { color: var(--ink); background: var(--surface); }
+  .tab.on { color: var(--accent); border-bottom-color: var(--accent); background: var(--surface); }
+
+  .panel { padding: 16px 18px 20px; }
+  .panel-head {
+    display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: baseline;
+    margin-bottom: 12px;
+  }
+  .panel-head h3 {
+    margin: 0; font-family: var(--mono);
+    font-size: 11.5px; font-weight: 650; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--ink-2);
+  }
+  .panel-head .hint { font-size: 12.5px; color: var(--muted); }
+
+  pre {
+    margin: 0; padding: 14px 15px;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    font-family: var(--mono); font-size: 12.5px; line-height: 1.55;
+    color: var(--ink);
+    overflow-x: auto;
+    max-height: 460px; overflow-y: auto;
+    white-space: pre;
+    tab-size: 2;
+  }
+
+  .tblwrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 9px; }
+  table { border-collapse: collapse; width: 100%; font-size: 12.5px; }
+  th, td {
+    text-align: left; padding: 8px 12px;
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  th {
+    font-family: var(--mono); font-size: 10.5px; font-weight: 650;
+    text-transform: uppercase; letter-spacing: .07em;
+    color: var(--muted); background: var(--surface-2);
+    position: sticky; top: 0;
+  }
+  td { font-family: var(--mono); font-variant-numeric: tabular-nums; color: var(--ink-2); }
+  td.name { font-family: var(--ui); color: var(--ink); }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr.hit { background: var(--ok-soft); }
+  tbody tr.hit td { color: var(--ok); font-weight: 600; }
+  tbody tr.miss { background: var(--bad-soft); }
+
+  .hitmark {
+    display: inline-block; width: 1.4em;
+    font-family: var(--mono); font-weight: 700;
+  }
+
+  /* ---------- field map ---------- */
+  .fmap { display: grid; gap: 16px; }
+  .fmap-group { border: 1px solid var(--line); border-radius: 9px; overflow: hidden; }
+  .fmap-title {
+    padding: 9px 13px; background: var(--surface-2);
+    font-family: var(--mono); font-size: 11px; font-weight: 650;
+    letter-spacing: .09em; text-transform: uppercase; color: var(--ink-2);
+    border-bottom: 1px solid var(--line);
+  }
+  .fmap-rows { display: grid; }
+  .fmap-row {
+    display: grid;
+    grid-template-columns: minmax(0,1fr) minmax(0,1.15fr) minmax(0,1fr);
+    gap: 10px; align-items: center;
+    padding: 8px 13px;
+    border-bottom: 1px solid var(--line);
+    font-size: 12.5px;
+  }
+  .fmap-row:last-child { border-bottom: none; }
+  @media (max-width: 720px) { .fmap-row { grid-template-columns: 1fr; gap: 3px; } }
+
+  .f-src, .f-tgt { font-family: var(--mono); font-size: 12px; }
+  .f-src { color: var(--ink-2); }
+  .f-tgt { color: var(--ink); font-weight: 600; }
+  .f-src .val, .f-tgt .val { display: block; color: var(--muted); font-weight: 400; margin-top: 1px; }
+  .f-op {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: .05em;
+    text-align: center; padding: 3px 8px; border-radius: 999px;
+    background: var(--surface-3); color: var(--ink-2);
+  }
+  .f-op.xref { background: var(--accent-soft); color: var(--accent); font-weight: 650; }
+  .f-op.prop { background: var(--wait-soft); color: var(--wait); font-weight: 650; }
+
+  .legend {
+    margin-top: 18px; padding: 13px 16px;
+    border: 1px solid var(--line); border-radius: 10px;
+    background: var(--surface);
+    display: flex; flex-wrap: wrap; gap: 8px 22px;
+    font-size: 12.5px; color: var(--muted);
+  }
+  .legend b { color: var(--ink-2); font-weight: 600; }
+</style>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <div>
+      <h1>Vendor Bill Pipeline</h1>
+      <p>A working prototype of the Coupa &rarr; NetSuite integration. Approve an invoice on the left and follow it through each Boomi step to the posted Vendor Bill on the right.</p>
+    </div>
+    <div class="controls">
+      <div class="speed">
+        <label for="speed">Pace</label>
+        <select id="speed">
+          <option value="1100">Slow</option>
+          <option value="650" selected>Normal</option>
+          <option value="200">Fast</option>
+        </select>
+      </div>
+      <button id="runAll">Sync all approved</button>
+      <button id="reset">Reset</button>
+    </div>
+  </header>
+
+  <div class="board">
+
+    <section class="lane" aria-labelledby="lane-src">
+      <div class="lane-head">
+        <h2 id="lane-src">Coupa</h2>
+        <span class="sys">source &middot; approved invoices</span>
+      </div>
+      <div class="lane-body" id="srcLane"></div>
+    </section>
+
+    <section class="lane" aria-labelledby="lane-pipe">
+      <div class="lane-head">
+        <h2 id="lane-pipe">Boomi Process</h2>
+        <span class="sys" id="pipeSubject">idle</span>
+      </div>
+      <div class="lane-body">
+        <div class="steps" id="steps"></div>
+        <div id="branchNote"></div>
+      </div>
+    </section>
+
+    <section class="lane" aria-labelledby="lane-tgt">
+      <div class="lane-head">
+        <h2 id="lane-tgt">NetSuite</h2>
+        <span class="sys">target &middot; vendor bills</span>
+      </div>
+      <div class="lane-body" id="tgtLane"></div>
+    </section>
+
+  </div>
+
+  <section class="inspector">
+    <div class="tabs" role="tablist">
+      <button class="tab on" data-tab="payload" role="tab">Document at this step</button>
+      <button class="tab" data-tab="fields" role="tab">Field mapping</button>
+      <button class="tab" data-tab="vendor" role="tab">Vendor cross-reference</button>
+      <button class="tab" data-tab="segment" role="tab">GL / commodity cross-reference</button>
+    </div>
+    <div class="panel" id="panel"></div>
+  </section>
+
+  <div class="legend">
+    <span><b>Direct</b> field copied as-is</span>
+    <span><b>Xref</b> resolved through a cross-reference table</span>
+    <span><b>Property</b> built upstream in Set Properties</span>
+    <span><b>INV-2026-0478</b> is wired to fail, to show the exception path</span>
+  </div>
+
+</div>
+
+<script>
+"use strict";
+
+/* ============================ reference data ============================ */
+/* Mirrors the two cross-reference tables deployed in the Boomi build. */
+
+const VENDOR_XREF = [
+  { sid:"4471", num:"SUP-4471", name:"Acme Industrial Supply",     ns:"1042" },
+  { sid:"4512", num:"SUP-4512", name:"Northwind Logistics",        ns:"1087" },
+  { sid:"4530", num:"SUP-4530", name:"Cascade Office Products",    ns:"1113" },
+  { sid:"4588", num:"SUP-4588", name:"Bluepeak Software Ltd",      ns:"1156" },
+  { sid:"4601", num:"SUP-4601", name:"Meridian Facilities Group",  ns:"1204" },
+  { sid:"4633", num:"SUP-4633", name:"Tri-State Freight Services", ns:"1249" },
+  { sid:"4677", num:"SUP-4677", name:"Halcyon Consulting Partners",ns:"1288" },
+  { sid:"4702", num:"SUP-4702", name:"Ironbridge Manufacturing",   ns:"1321" }
+];
+
+const SEGMENT_XREF = [
+  { gl:"6100", cm:"IND-EQP", acct:"412", dept:"12", cls:"5", sub:"2" },
+  { gl:"6100", cm:"MRO-SUP", acct:"412", dept:"12", cls:"5", sub:"2" },
+  { gl:"6200", cm:"OFF-SUP", acct:"428", dept:"11", cls:"3", sub:"1" },
+  { gl:"6300", cm:"PRO-SVC", acct:"455", dept:"14", cls:"7", sub:"2" },
+  { gl:"6400", cm:"SW-LIC",  acct:"471", dept:"18", cls:"9", sub:"1" },
+  { gl:"6500", cm:"FRT-SVC", acct:"483", dept:"15", cls:"6", sub:"2" },
+  { gl:"6600", cm:"FAC-SVC", acct:"494", dept:"16", cls:"4", sub:"1" },
+  { gl:"6700", cm:"CON-SVC", acct:"502", dept:"19", cls:"8", sub:"1" }
+];
+
+/* Source payloads in Coupa's own shape (hyphenated keys, string amounts). */
+const SOURCE_INVOICES = [
+  {
+    id: 88213,
+    "invoice-number": "INV-2026-0455",
+    "invoice-date": "2026-08-03",
+    status: "approved",
+    total: "12450.00",
+    "currency-code": "USD",
+    "payment-term-code": "NET30",
+    supplier: { id:"4471", name:"Acme Industrial Supply", number:"SUP-4471" },
+    "invoice-lines": [
+      { "line-num":1, description:"Hydraulic pump assembly",        amount:"8200.00", "gl-account-code":"6100", "cost-center":"CC-200", "commodity-code":"IND-EQP" },
+      { "line-num":2, description:"Preventive maintenance service", amount:"4250.00", "gl-account-code":"6300", "cost-center":"CC-410", "commodity-code":"PRO-SVC" }
+    ]
+  },
+  {
+    id: 88217,
+    "invoice-number": "INV-2026-0461",
+    "invoice-date": "2026-08-05",
+    status: "approved",
+    total: "3180.00",
+    "currency-code": "USD",
+    "payment-term-code": "NET45",
+    supplier: { id:"4530", name:"Cascade Office Products", number:"SUP-4530" },
+    "invoice-lines": [
+      { "line-num":1, description:"Quarterly office supply replenishment", amount:"1980.00", "gl-account-code":"6200", "cost-center":"CC-110", "commodity-code":"OFF-SUP" },
+      { "line-num":2, description:"Annual software license renewal",       amount:"1200.00", "gl-account-code":"6400", "cost-center":"CC-115", "commodity-code":"SW-LIC" }
+    ]
+  },
+  {
+    id: 88224,
+    "invoice-number": "INV-2026-0478",
+    "invoice-date": "2026-08-06",
+    status: "approved",
+    total: "6725.00",
+    "currency-code": "USD",
+    "payment-term-code": "NET30",
+    supplier: { id:"4999", name:"Vertex Robotics Inc", number:"SUP-4999" },
+    "invoice-lines": [
+      { "line-num":1, description:"Robotic arm calibration", amount:"6725.00", "gl-account-code":"6100", "cost-center":"CC-200", "commodity-code":"IND-EQP" }
+    ]
+  }
+];
+
+/* ============================ transformation ============================ */
+
+function lookupVendor(supplierId) {
+  return VENDOR_XREF.find(r => r.sid === supplierId) || null;
+}
+function lookupSegment(gl, cm) {
+  return SEGMENT_XREF.find(r => r.gl === gl && r.cm === cm) || null;
+}
+
+/* Resolves every lookup once, so the animation just replays a settled result. */
+function transform(inv) {
+  const vendor = lookupVendor(inv.supplier.id);
+  const lines = inv["invoice-lines"].map(l => ({
+    src: l,
+    seg: lookupSegment(l["gl-account-code"], l["commodity-code"])
+  }));
+
+  // Subsidiary is resolved upstream in Set Properties from the first line's coding.
+  const subsidiary = lines[0].seg ? lines[0].seg.sub : "";
+  const memo = "Coupa invoice " + inv["invoice-number"] + " / supplier " + inv.supplier.name;
+
+  const bill = {
+    externalId: String(inv.id),
+    tranId: inv["invoice-number"],
+    tranDate: inv["invoice-date"],
+    memo: memo,
+    entity: { id: vendor ? vendor.ns : "" },
+    subsidiary: { id: subsidiary },
+    currency: { refName: inv["currency-code"] },
+    terms: { refName: inv["payment-term-code"] },
+    expense: {
+      items: lines.map(x => ({
+        line: x.src["line-num"],
+        amount: Number(x.src.amount),
+        memo: x.src.description,
+        account:    { id: x.seg ? x.seg.acct : "" },
+        department: { id: x.seg ? x.seg.dept : "" },
+        class:      { id: x.seg ? x.seg.cls  : "" },
+        custcol_coupa_cost_center: x.src["cost-center"]
+      }))
+    }
+  };
+
+  const props = {
+    DDP_COUPA_INVOICE_ID: String(inv.id),
+    DDP_COUPA_INVOICE_NUMBER: inv["invoice-number"],
+    DDP_COUPA_PATH: "/invoices/" + inv.id,
+    DDP_NS_SUBSIDIARY_ID: subsidiary,
+    DDP_NS_MEMO: memo
+  };
+
+  // A vendor that is absent from the cross-reference leaves entity.id empty,
+  // which SuiteTalk rejects on POST. That is the exception path.
+  const fault = vendor ? null
+    : 'Invalid entity reference key: "entity" is required and cannot be empty. '
+      + 'Coupa supplier ' + inv.supplier.id + ' (' + inv.supplier.name + ') '
+      + 'has no row in the vendor cross-reference table.';
+
+  const internalId = fault ? null : "90" + inv.id;
+
+  return { vendor, lines, subsidiary, bill, props, fault, internalId };
+}
+
+/* ============================ pipeline steps ============================ */
+
+const STEPS = [
+  {
+    key: "poll", name: "Retrieve approved invoices", shape: "shape3 / shape5 · Message or REST GET",
+    note: () => "GET /invoices?status=approved → 1 document",
+    doc:  (inv) => [inv]
+  },
+  {
+    key: "split", name: "Split invoice list", shape: "shape6 · Data Process",
+    note: () => "Split on root array → one document per invoice",
+    doc:  (inv) => [inv]
+  },
+  {
+    key: "props", name: "Extract keys, look up subsidiary", shape: "shape7 · Set Properties",
+    note: (t) => t.subsidiary
+        ? "DDP_NS_SUBSIDIARY_ID = " + t.subsidiary + " (via GL/commodity xref)"
+        : "DDP_NS_SUBSIDIARY_ID = (no match)",
+    doc:  (inv, t) => t.props
+  },
+  {
+    key: "map", name: "Map to Vendor Bill", shape: "shape10 · Map",
+    note: (t, inv) => t.vendor
+        ? "Vendor xref: " + t.vendor.sid + " → " + t.vendor.ns + " · " + t.lines.length + " line(s) segmented"
+        : "Vendor xref: no row for supplier " + inv.supplier.id + " — entity.id left empty",
+    doc:  (inv, t) => t.bill
+  },
+  {
+    key: "post", name: "Post Vendor Bill to NetSuite", shape: "shape12 · REST POST",
+    note: (t) => t.fault
+        ? "HTTP 400 Bad Request"
+        : "HTTP 200 · internal ID " + t.internalId,
+    doc:  (inv, t) => t.fault
+        ? { status: 400, error: { type: "INVALID_REQUEST", message: t.fault } }
+        : { id: t.internalId, tranId: t.bill.tranId, externalId: t.bill.externalId, status: "pendingApproval" }
+  },
+  {
+    key: "capture", name: "Capture internal ID", shape: "shape13 · Set Properties",
+    note: (t) => "DDP_NS_INTERNAL_ID = " + t.internalId,
+    doc:  (inv, t) => ({ DDP_NS_INTERNAL_ID: t.internalId })
+  },
+  {
+    key: "writeback", name: "Write ID back to Coupa", shape: "shape15 · REST PUT",
+    note: (t) => "PUT /invoices/" + t.bill.externalId,
+    doc:  (inv, t) => ({ "custom-fields": { "netsuite-internal-id": t.internalId } })
+  },
+  {
+    key: "done", name: "Log success", shape: "shape16 · Notify",
+    note: (t) => "Coupa " + t.bill.tranId + " → NetSuite " + t.internalId,
+    doc:  (inv, t) => ({
+      result: "SUCCESS",
+      coupaInvoiceNumber: t.bill.tranId,
+      netsuiteInternalId: t.internalId
+    })
+  }
+];
+
+const CATCH_STEPS = [
+  {
+    key: "catch", name: "Capture error reason", shape: "shape18 · Set Properties",
+    note: () => "DDP_ERROR_REASON = catcherrorsmessage",
+    doc:  (inv, t) => ({ DDP_ERROR_REASON: t.fault })
+  },
+  {
+    key: "exception", name: "Route to exception process", shape: "shape20 · Process Call",
+    note: () => "[SUB] Coupa NetSuite Vendor Bill Error Handler",
+    doc:  (inv, t) => ({
+      errorReason: t.fault,
+      coupaInvoiceId: String(inv.id),
+      coupaInvoiceNumber: inv["invoice-number"],
+      failedAtUtc: "2026-08-17T06:06:08.412Z",
+      sourceSystem: "Coupa",
+      targetSystem: "NetSuite",
+      originalPayload: [inv]
+    })
+  }
+];
+
+/* ============================ state ============================ */
+
+const state = {
+  selected: SOURCE_INVOICES[0].id,   // which invoice the panes describe
+  selectedStep: null,                // which step's document the inspector shows
+  tab: "payload",
+  running: false,
+  runs: {},                          // invoiceId -> { status, stepStatus{}, transform, bills }
+  bills: []                          // posted vendor bills, in order
+};
+
+SOURCE_INVOICES.forEach(inv => {
+  state.runs[inv.id] = { status: "idle", stepStatus: {}, t: transform(inv) };
+});
+
+const $ = sel => document.querySelector(sel);
+const wait = ms => new Promise(r => setTimeout(r, ms));
+const pace = () => Number($("#speed").value);
+
+function money(v) {
+  return Number(v).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, c =>
+    ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+}
+
+/* ============================ rendering ============================ */
+
+function renderSource() {
+  const lane = $("#srcLane");
+  lane.innerHTML = "";
+
+  SOURCE_INVOICES.forEach(inv => {
+    const run = state.runs[inv.id];
+    const t = run.t;
+    const sel = inv.id === state.selected;
+
+    const card = document.createElement("div");
+    card.className = "card" + (sel ? " sel" : "") + (run.status === "running" ? " live" : "");
+
+    let chip = '<span class="chip idle">Approved</span>';
+    if (run.status === "running") chip = '<span class="chip run">Syncing</span>';
+    if (run.status === "done")    chip = '<span class="chip done">Synced</span>';
+    if (run.status === "error")   chip = '<span class="chip err">Exception</span>';
+
+    const lineRows = inv["invoice-lines"].map(l => `
+      <div class="lrow">
+        <div>
+          <div class="desc">${esc(l.description)}</div>
+          <div class="meta">GL ${esc(l["gl-account-code"])} &middot; ${esc(l["cost-center"])} &middot; ${esc(l["commodity-code"])}</div>
+        </div>
+        <div class="amt">${money(l.amount)}</div>
+      </div>`).join("");
+
+    let footer = "";
+    if (run.status === "done") {
+      footer = `<div class="writeback">custom-fields.netsuite-internal-id = "${esc(t.internalId)}"</div>`;
+    } else if (run.status === "error") {
+      footer = `<div class="writeback err">No writeback. Routed to exception process.</div>`;
+    }
+
+    card.innerHTML = `
+      <div class="card-top">
+        <div>
+          <div class="card-id">${esc(inv["invoice-number"])}</div>
+          <div class="card-sub">${esc(inv.supplier.name)} &middot; ${esc(inv["invoice-date"])}</div>
+        </div>
+        ${chip}
+      </div>
+      <div class="card-top" style="margin-top:8px">
+        <div class="card-sub">Supplier ID ${esc(inv.supplier.id)} &middot; ${esc(inv["payment-term-code"])}</div>
+        <div class="card-amt">${money(inv.total)} ${esc(inv["currency-code"])}</div>
+      </div>
+      <div class="lines">${lineRows}</div>
+      ${footer}
+      <div class="card-actions">
+        <button class="primary" data-run="${inv.id}" ${state.running || run.status !== "idle" ? "disabled" : ""}>
+          ${run.status === "idle" ? "Approve &amp; sync" : "Synced"}
+        </button>
+        <button data-view="${inv.id}">Inspect</button>
+      </div>`;
+
+    lane.appendChild(card);
+  });
+
+  lane.querySelectorAll("[data-run]").forEach(b =>
+    b.addEventListener("click", () => runOne(Number(b.dataset.run))));
+  lane.querySelectorAll("[data-view]").forEach(b =>
+    b.addEventListener("click", () => {
+      state.selected = Number(b.dataset.view);
+      state.selectedStep = null;
+      renderAll();
+    }));
+}
+
+function renderPipeline() {
+  const host = $("#steps");
+  host.innerHTML = "";
+
+  const inv = SOURCE_INVOICES.find(i => i.id === state.selected);
+  const run = state.runs[state.selected];
+  const t = run.t;
+
+  $("#pipeSubject").textContent =
+    run.status === "idle" ? "ready · " + inv["invoice-number"] : inv["invoice-number"];
+
+  const failedAt = run.stepStatus.post === "err";
+
+  STEPS.forEach((s, i) => {
+    const st = run.stepStatus[s.key] || "todo";
+    const btn = document.createElement("button");
+    btn.className = "step" + (state.selectedStep === s.key ? " sel" : "") +
+      (st === "run" ? " s-run" : st === "done" ? " s-done" :
+       st === "err" ? " s-err" : st === "skip" ? " s-skip" : "");
+    if (st === "todo" || st === "skip") btn.setAttribute("disabled", "");
+
+    const glyph = st === "done" ? "✓" : st === "err" ? "✕" : String(i + 1);
+    const showNote = st === "done" || st === "err" || st === "run";
+
+    btn.innerHTML = `
+      <span class="dot">${glyph}</span>
+      <span>
+        <span class="step-name">${esc(s.name)}</span>
+        <span class="step-shape">${esc(s.shape)}</span>
+        ${showNote ? `<span class="step-note">${esc(s.note(t, inv))}</span>` : ""}
+      </span>`;
+
+    btn.addEventListener("click", () => {
+      if (st === "todo" || st === "skip") return;
+      state.selectedStep = s.key;
+      state.tab = "payload";
+      renderAll();
+    });
+    host.appendChild(btn);
+  });
+
+  // Catch path renders only once the try path has actually faulted.
+  const branch = $("#branchNote");
+  branch.innerHTML = "";
+  if (failedAt) {
+    const box = document.createElement("div");
+    box.className = "spine-branch";
+    box.innerHTML = "<strong>Try/Catch caught the failure.</strong> " +
+      "The remaining try steps were skipped and the document took the catch path:";
+    branch.appendChild(box);
+
+    CATCH_STEPS.forEach((s, i) => {
+      const st = run.stepStatus[s.key] || "todo";
+      const btn = document.createElement("button");
+      btn.className = "step" + (state.selectedStep === s.key ? " sel" : "") +
+        (st === "run" ? " s-run" : st === "done" ? " s-err" : "");
+      if (st === "todo") btn.setAttribute("disabled", "");
+      btn.innerHTML = `
+        <span class="dot">${st === "done" ? "✕" : String(i + 1)}</span>
+        <span>
+          <span class="step-name">${esc(s.name)}</span>
+          <span class="step-shape">${esc(s.shape)}</span>
+          ${st === "done" ? `<span class="step-note">${esc(s.note(t, inv))}</span>` : ""}
+        </span>`;
+      btn.addEventListener("click", () => {
+        if (st === "todo") return;
+        state.selectedStep = s.key;
+        state.tab = "payload";
+        renderAll();
+      });
+      branch.appendChild(btn);
+    });
+  }
+}
+
+function renderTarget() {
+  const lane = $("#tgtLane");
+  lane.innerHTML = "";
+
+  if (state.bills.length === 0) {
+    lane.innerHTML = '<div class="empty">No vendor bills yet. Approve an invoice to post one.</div>';
+    return;
+  }
+
+  state.bills.forEach(b => {
+    const card = document.createElement("div");
+    card.className = "card";
+    const lineRows = b.expense.items.map(it => `
+      <div class="lrow">
+        <div>
+          <div class="desc">${esc(it.memo)}</div>
+          <div class="meta">Acct ${esc(it.account.id)} &middot; Dept ${esc(it.department.id)} &middot; Class ${esc(it.class.id)}</div>
+        </div>
+        <div class="amt">${money(it.amount)}</div>
+      </div>`).join("");
+
+    card.innerHTML = `
+      <div class="card-top">
+        <div>
+          <div class="card-id">${esc(b.tranId)}</div>
+          <div class="card-sub">Vendor ${esc(b.entity.id)} &middot; Subsidiary ${esc(b.subsidiary.id)}</div>
+        </div>
+        <span class="chip done">ID ${esc(b.__internalId)}</span>
+      </div>
+      <div class="card-top" style="margin-top:8px">
+        <div class="card-sub">${esc(b.tranDate)} &middot; ${esc(b.terms.refName)}</div>
+        <div class="card-amt">${money(b.expense.items.reduce((s, i) => s + i.amount, 0))} ${esc(b.currency.refName)}</div>
+      </div>
+      <div class="lines">${lineRows}</div>`;
+    lane.appendChild(card);
+  });
+}
+
+/* ---------------------------- inspector ---------------------------- */
+
+function renderPanel() {
+  document.querySelectorAll(".tab").forEach(t =>
+    t.classList.toggle("on", t.dataset.tab === state.tab));
+
+  const panel = $("#panel");
+  const inv = SOURCE_INVOICES.find(i => i.id === state.selected);
+  const run = state.runs[state.selected];
+  const t = run.t;
+
+  if (state.tab === "payload")  return renderPayload(panel, inv, run, t);
+  if (state.tab === "fields")   return renderFields(panel, inv, t);
+  if (state.tab === "vendor")   return renderVendorTable(panel, inv, t);
+  if (state.tab === "segment")  return renderSegmentTable(panel, inv, t);
+}
+
+function renderPayload(panel, inv, run, t) {
+  const all = STEPS.concat(CATCH_STEPS);
+  const step = all.find(s => s.key === state.selectedStep);
+
+  if (!step) {
+    panel.innerHTML = `
+      <div class="panel-head">
+        <h3>Source document</h3>
+        <span class="hint">${esc(inv["invoice-number"])} as it arrives from Coupa. Run the invoice, then click any completed step to see the document at that point.</span>
+      </div>
+      <pre>${esc(JSON.stringify([inv], null, 2))}</pre>`;
+    return;
+  }
+
+  panel.innerHTML = `
+    <div class="panel-head">
+      <h3>${esc(step.name)}</h3>
+      <span class="hint">${esc(step.shape)} &middot; ${esc(inv["invoice-number"])}</span>
+    </div>
+    <pre>${esc(JSON.stringify(step.doc(inv, t), null, 2))}</pre>`;
+}
+
+function renderFields(panel, inv, t) {
+  const l0 = t.lines[0];
+
+  const headerRows = [
+    ["id",                 String(inv.id),               "direct",  "externalId",        t.bill.externalId],
+    ["invoice-number",     inv["invoice-number"],        "direct",  "tranId",            t.bill.tranId],
+    ["invoice-date",       inv["invoice-date"],          "direct",  "tranDate",          t.bill.tranDate],
+    ["currency-code",      inv["currency-code"],         "direct",  "currency.refName",  t.bill.currency.refName],
+    ["payment-term-code",  inv["payment-term-code"],     "direct",  "terms.refName",     t.bill.terms.refName],
+    ["supplier.id",        inv.supplier.id,              "xref",    "entity.id",         t.bill.entity.id || "(unresolved)"],
+    ["first line coding",  l0.src["gl-account-code"] + " / " + l0.src["commodity-code"], "xref", "subsidiary.id", t.bill.subsidiary.id || "(unresolved)"],
+    ["invoice-number + supplier.name", "concatenated upstream", "prop", "memo", t.bill.memo]
+  ];
+
+  const opLabel = { direct: "direct", xref: "xref lookup", prop: "property" };
+
+  const rowHtml = r => `
+    <div class="fmap-row">
+      <span class="f-src">${esc(r[0])}<span class="val">${esc(r[1])}</span></span>
+      <span class="f-op ${r[2]}">${esc(opLabel[r[2]])}</span>
+      <span class="f-tgt">${esc(r[3])}<span class="val">${esc(r[4])}</span></span>
+    </div>`;
+
+  const lineGroups = t.lines.map((x, i) => {
+    const item = t.bill.expense.items[i];
+    const rows = [
+      ["line-num",         String(x.src["line-num"]),  "direct", "line",        String(item.line)],
+      ["amount",           x.src.amount,               "direct", "amount",      String(item.amount)],
+      ["description",      x.src.description,          "direct", "memo",        item.memo],
+      ["gl-account-code",  x.src["gl-account-code"],   "xref",   "account.id",    item.account.id    || "(unresolved)"],
+      ["+ commodity-code", x.src["commodity-code"],    "xref",   "department.id", item.department.id || "(unresolved)"],
+      ["↳ same lookup", "—",                 "xref",   "class.id",      item.class.id      || "(unresolved)"],
+      ["cost-center",      x.src["cost-center"],       "direct", "custcol_coupa_cost_center", item.custcol_coupa_cost_center]
+    ];
+    return `
+      <div class="fmap-group">
+        <div class="fmap-title">Line ${x.src["line-num"]} &mdash; ${esc(x.src.description)}</div>
+        <div class="fmap-rows">${rows.map(rowHtml).join("")}</div>
+      </div>`;
+  }).join("");
+
+  panel.innerHTML = `
+    <div class="panel-head">
+      <h3>Field mapping</h3>
+      <span class="hint">Every field the map writes, and how each one is derived. ${esc(inv["invoice-number"])}.</span>
+    </div>
+    <div class="fmap">
+      <div class="fmap-group">
+        <div class="fmap-title">Header</div>
+        <div class="fmap-rows">${headerRows.map(rowHtml).join("")}</div>
+      </div>
+      ${lineGroups}
+    </div>`;
+}
+
+function renderVendorTable(panel, inv, t) {
+  const rows = VENDOR_XREF.map(r => {
+    const hit = t.vendor && r.sid === t.vendor.sid;
+    return `<tr class="${hit ? "hit" : ""}">
+      <td><span class="hitmark">${hit ? "→" : ""}</span>${esc(r.sid)}</td>
+      <td>${esc(r.num)}</td>
+      <td class="name">${esc(r.name)}</td>
+      <td>${esc(r.ns)}</td>
+    </tr>`;
+  }).join("");
+
+  const verdict = t.vendor
+    ? `Supplier <b>${esc(inv.supplier.id)}</b> matched row <b>${esc(t.vendor.sid)}</b> &rarr; NetSuite vendor <b>${esc(t.vendor.ns)}</b>.`
+    : `Supplier <b>${esc(inv.supplier.id)}</b> has no row here, so <b>entity.id</b> is empty and NetSuite rejects the bill.`;
+
+  panel.innerHTML = `
+    <div class="panel-head">
+      <h3>Vendor cross-reference</h3>
+      <span class="hint">${verdict}</span>
+    </div>
+    <div class="tblwrap">
+      <table>
+        <thead><tr><th>coupa_supplier_id</th><th>coupa_supplier_number</th><th>supplier_name</th><th>netsuite_vendor_id</th></tr></thead>
+        <tbody>${rows}${t.vendor ? "" : `<tr class="miss"><td colspan="4">no match for ${esc(inv.supplier.id)} &mdash; ${esc(inv.supplier.name)}</td></tr>`}</tbody>
+      </table>
+    </div>`;
+}
+
+function renderSegmentTable(panel, inv, t) {
+  const hits = new Set(t.lines.filter(x => x.seg).map(x => x.seg.gl + "|" + x.seg.cm));
+
+  const rows = SEGMENT_XREF.map(r => {
+    const hit = hits.has(r.gl + "|" + r.cm);
+    return `<tr class="${hit ? "hit" : ""}">
+      <td><span class="hitmark">${hit ? "→" : ""}</span>${esc(r.gl)}</td>
+      <td>${esc(r.cm)}</td>
+      <td>${esc(r.acct)}</td>
+      <td>${esc(r.dept)}</td>
+      <td>${esc(r.cls)}</td>
+      <td>${esc(r.sub)}</td>
+    </tr>`;
+  }).join("");
+
+  const used = t.lines.map(x =>
+    x.src["gl-account-code"] + "/" + x.src["commodity-code"]).join(", ");
+
+  panel.innerHTML = `
+    <div class="panel-head">
+      <h3>GL / commodity cross-reference</h3>
+      <span class="hint">Two inputs, four outputs. ${esc(inv["invoice-number"])} looks up ${esc(used)}. The header subsidiary comes from the first line's row.</span>
+    </div>
+    <div class="tblwrap">
+      <table>
+        <thead><tr><th>gl_account_code</th><th>commodity_code</th><th>ns_account_id</th><th>ns_department_id</th><th>ns_class_id</th><th>ns_subsidiary_id</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+
+function renderAll() {
+  renderSource();
+  renderPipeline();
+  renderTarget();
+  renderPanel();
+}
+
+/* ============================ the run loop ============================ */
+
+async function runOne(id) {
+  if (state.running) return;
+  const run = state.runs[id];
+  if (run.status !== "idle") return;
+
+  state.running = true;
+  state.selected = id;
+  state.selectedStep = null;
+  run.status = "running";
+  run.stepStatus = {};
+  renderAll();
+
+  const inv = SOURCE_INVOICES.find(i => i.id === id);
+  const t = run.t;
+
+  for (let i = 0; i < STEPS.length; i++) {
+    const s = STEPS[i];
+    run.stepStatus[s.key] = "run";
+    state.selectedStep = s.key;
+    renderAll();
+    await wait(pace());
+
+    if (s.key === "post" && t.fault) {
+      run.stepStatus[s.key] = "err";
+      // Everything downstream of the fault never runs.
+      STEPS.slice(i + 1).forEach(rest => { run.stepStatus[rest.key] = "skip"; });
+      renderAll();
+      await wait(pace());
+
+      for (const cs of CATCH_STEPS) {
+        run.stepStatus[cs.key] = "run";
+        state.selectedStep = cs.key;
+        renderAll();
+        await wait(pace());
+        run.stepStatus[cs.key] = "done";
+        renderAll();
+      }
+
+      run.status = "error";
+      state.running = false;
+      renderAll();
+      return;
+    }
+
+    run.stepStatus[s.key] = "done";
+
+    // The bill lands in NetSuite the moment the POST returns.
+    if (s.key === "post") {
+      const posted = JSON.parse(JSON.stringify(t.bill));
+      posted.__internalId = t.internalId;
+      state.bills.push(posted);
+    }
+    renderAll();
+  }
+
+  run.status = "done";
+  state.running = false;
+  renderAll();
+}
+
+async function runAll() {
+  if (state.running) return;
+  for (const inv of SOURCE_INVOICES) {
+    if (state.runs[inv.id].status === "idle") {
+      await runOne(inv.id);
+      await wait(pace());
+    }
+  }
+}
+
+function resetAll() {
+  if (state.running) return;
+  SOURCE_INVOICES.forEach(inv => {
+    state.runs[inv.id] = { status: "idle", stepStatus: {}, t: transform(inv) };
+  });
+  state.bills = [];
+  state.selected = SOURCE_INVOICES[0].id;
+  state.selectedStep = null;
+  state.tab = "payload";
+  renderAll();
+}
+
+/* ============================ wiring ============================ */
+
+document.querySelectorAll(".tab").forEach(tab =>
+  tab.addEventListener("click", () => { state.tab = tab.dataset.tab; renderPanel(); }));
+
+$("#runAll").addEventListener("click", runAll);
+$("#reset").addEventListener("click", resetAll);
+
+renderAll();
+</script>

@@ -1,0 +1,1341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Order Intake API with Multi-Target Fan-Out | LTIMindtree × Boomi</title>
+  <style>
+    :root {
+      --ltim-purple:   #6C2D91;
+      --ltim-orange:   #FF6B00;
+      --ltim-dark:     #1A1A2E;
+      --boomi-teal:    #00C1D4;
+      --boomi-blue:    #1F3A8A;
+      --boomi-light:   #E8F9FB;
+      --white:         #FFFFFF;
+      --grey-50:       #F8F9FA;
+      --grey-100:      #F1F3F5;
+      --grey-200:      #E9ECEF;
+      --grey-600:      #6C757D;
+      --grey-800:      #343A40;
+      --success:       #2ECC71;
+      --warning:       #F39C12;
+      --danger:        #E74C3C;
+      --shadow-sm:     0 2px 8px rgba(0,0,0,.08);
+      --shadow-md:     0 4px 20px rgba(0,0,0,.12);
+      --shadow-lg:     0 8px 40px rgba(0,0,0,.16);
+      --radius:        10px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--grey-50);
+      color: var(--grey-800);
+      line-height: 1.7;
+    }
+
+    /* ── HEADER ── */
+    header {
+      background: linear-gradient(135deg, var(--ltim-dark) 0%, var(--boomi-blue) 60%, var(--ltim-purple) 100%);
+      color: var(--white);
+      padding: 0;
+    }
+    .header-brands {
+      position: sticky;
+      top: 0;
+      z-index: 110;
+      background: var(--ltim-dark);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 48px;
+      border-bottom: 1px solid rgba(255,255,255,.12);
+    }
+    .brand-badge {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: .5px;
+      text-transform: uppercase;
+      opacity: .9;
+    }
+    .brand-icon {
+      width: 34px; height: 34px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; font-weight: 900;
+    }
+    .ltim-icon { background: var(--ltim-orange); color: #fff; }
+    .boomi-icon { background: var(--boomi-teal); color: #fff; }
+    .brand-separator { opacity: .4; font-size: 20px; }
+
+    .header-content { padding: 48px 48px 52px; }
+    .doc-tag {
+      display: inline-block;
+      background: rgba(255,255,255,.15);
+      border: 1px solid rgba(255,255,255,.25);
+      border-radius: 20px;
+      padding: 4px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    header h1 {
+      font-size: 36px;
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 14px;
+    }
+    header h1 span { color: var(--boomi-teal); }
+    header .subtitle {
+      font-size: 17px;
+      opacity: .8;
+      max-width: 680px;
+      margin-bottom: 32px;
+    }
+    .meta-chips { display: flex; gap: 12px; flex-wrap: wrap; }
+    .meta-chip {
+      background: rgba(255,255,255,.1);
+      border: 1px solid rgba(255,255,255,.2);
+      border-radius: 6px;
+      padding: 5px 12px;
+      font-size: 12px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .meta-chip .dot { width: 7px; height: 7px; border-radius: 50%; }
+    .dot-green  { background: var(--success); }
+    .dot-teal   { background: var(--boomi-teal); }
+    .dot-orange { background: var(--ltim-orange); }
+
+    /* ── LAYOUT ── */
+    .page { max-width: 1200px; margin: 0 auto; padding: 0 32px; }
+
+    /* ── SECTION ── */
+    section { padding: 48px 0; }
+    section + section { border-top: 1px solid var(--grey-200); }
+    .section-label {
+      font-size: 11px; font-weight: 700; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--boomi-teal);
+      margin-bottom: 8px;
+    }
+    .section-title {
+      font-size: 26px; font-weight: 800; color: var(--ltim-dark);
+      margin-bottom: 12px;
+    }
+    .section-desc { color: var(--grey-600); max-width: 700px; margin-bottom: 32px; }
+
+    /* ── CARDS ── */
+    .card {
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--grey-200);
+      overflow: hidden;
+    }
+    .card-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--grey-200);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .card-header h3 { font-size: 15px; font-weight: 700; color: var(--ltim-dark); }
+    .card-body { padding: 20px; }
+
+    /* ── DIAGRAM CARD ── */
+    .diagram-card {
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--grey-200);
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+    .diagram-title {
+      padding: 14px 20px;
+      background: var(--ltim-dark);
+      color: var(--white);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: .5px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .diagram-body { padding: 24px; background: var(--grey-50); overflow-x: auto; }
+
+    /* ── COMPONENT TABLE ── */
+    table { width: 100%; border-collapse: collapse; }
+    th {
+      background: var(--ltim-dark); color: var(--white);
+      padding: 12px 16px; text-align: left; font-size: 12px;
+      font-weight: 700; letter-spacing: .5px; text-transform: uppercase;
+    }
+    th:first-child { border-radius: 8px 0 0 0; }
+    th:last-child  { border-radius: 0 8px 0 0; }
+    td { padding: 11px 16px; font-size: 13px; border-bottom: 1px solid var(--grey-100); }
+    tr:hover td { background: var(--grey-50); }
+    .badge {
+      display: inline-block;
+      padding: 3px 10px; border-radius: 12px;
+      font-size: 11px; font-weight: 700; letter-spacing: .3px;
+    }
+    .badge-profile   { background: #E8F4FD; color: #1A6FA8; }
+    .badge-conn      { background: #FEF3CD; color: #856404; }
+    .badge-op        { background: #D4EDDA; color: #155724; }
+    .badge-map       { background: #F3E5F5; color: #6A1B9A; }
+    .badge-process   { background: #FFE0B2; color: #BF360C; }
+    .badge-sub       { background: #E8F5E9; color: #1B5E20; }
+    .mono { font-family: 'Cascadia Code', 'Fira Code', monospace; font-size: 11px; color: var(--grey-600); }
+
+    /* ── CODE BLOCK ── */
+    .code-block {
+      background: #0D1117;
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow-md);
+    }
+    .code-block-header {
+      background: #161B22;
+      padding: 10px 16px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .code-block-header span { font-size: 12px; color: #8B949E; font-family: monospace; }
+    .code-block pre {
+      padding: 20px;
+      overflow-x: auto;
+      font-family: 'Cascadia Code', 'Fira Code', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      color: #C9D1D9;
+    }
+    .code-block .kw { color: #FF7B72; }
+    .code-block .str { color: #A5D6FF; }
+    .code-block .key { color: #79C0FF; }
+    .code-block .val { color: #FFA657; }
+    .code-block .comment { color: #8B949E; }
+
+    /* ── ENDPOINT BADGE ── */
+    .endpoint {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: var(--ltim-dark); border-radius: 8px;
+      padding: 10px 18px; margin-bottom: 16px;
+    }
+    .method-post {
+      background: #E3A008; color: #fff;
+      font-size: 11px; font-weight: 800;
+      padding: 3px 10px; border-radius: 5px; letter-spacing: .5px;
+    }
+    .endpoint-url { font-family: monospace; font-size: 14px; color: var(--boomi-teal); }
+
+    /* ── FLOW STEPS ── */
+    .flow-steps { display: flex; flex-direction: column; gap: 0; }
+    .flow-step {
+      display: flex; gap: 16px; align-items: flex-start;
+      padding: 16px 0;
+      border-left: 2px solid var(--grey-200);
+      margin-left: 16px;
+      padding-left: 24px;
+      position: relative;
+    }
+    .flow-step::before {
+      content: attr(data-n);
+      position: absolute; left: -13px; top: 16px;
+      width: 26px; height: 26px;
+      background: var(--ltim-purple); color: #fff;
+      border-radius: 50%;
+      font-size: 11px; font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .flow-step:last-child { border-left-color: transparent; }
+    .flow-step-title { font-weight: 700; font-size: 14px; color: var(--ltim-dark); margin-bottom: 4px; }
+    .flow-step-desc { font-size: 13px; color: var(--grey-600); }
+
+    /* ── HIGHLIGHT BOX ── */
+    .highlight-box {
+      border-left: 4px solid var(--boomi-teal);
+      background: var(--boomi-light);
+      border-radius: 0 8px 8px 0;
+      padding: 16px 20px;
+      margin: 20px 0;
+    }
+    .highlight-box.orange { border-color: var(--ltim-orange); background: #FFF8F3; }
+
+    /* ── GRID ── */
+    .grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
+    .grid-2 { display: grid; grid-template-columns: repeat(2,1fr); gap: 20px; }
+
+    /* ── STAT CARD ── */
+    .stat-card {
+      background: var(--white);
+      border: 1px solid var(--grey-200);
+      border-radius: var(--radius);
+      padding: 20px;
+      text-align: center;
+      box-shadow: var(--shadow-sm);
+    }
+    .stat-card .stat-number { font-size: 36px; font-weight: 900; color: var(--ltim-purple); line-height: 1; }
+    .stat-card .stat-label  { font-size: 12px; color: var(--grey-600); margin-top: 6px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--ltim-dark);
+      color: rgba(255,255,255,.6);
+      padding: 32px 48px;
+      margin-top: 48px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    footer .footer-brand { font-size: 13px; font-weight: 600; color: rgba(255,255,255,.9); }
+    footer .footer-meta  { font-size: 12px; }
+
+    /* ── SVG DIAGRAMS ── */
+    .svg-wrap { overflow-x: auto; }
+    svg text { font-family: 'Segoe UI', system-ui, sans-serif; }
+
+    /* ── NAV ── */
+    .sticky-nav {
+      position: sticky;
+      top: var(--header-brands-h, 0px);
+      z-index: 100;
+      background: rgba(26,26,46,.97);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      box-shadow: 0 2px 12px rgba(0,0,0,.25);
+    }
+    .sticky-nav-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 32px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .sticky-nav-inner::-webkit-scrollbar { display: none; }
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 12px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      color: rgba(255,255,255,.6);
+      text-decoration: none;
+      white-space: nowrap;
+      border-bottom: 2px solid transparent;
+      transition: color .2s, border-color .2s;
+      letter-spacing: .3px;
+    }
+    .nav-link:hover { color: var(--white); border-bottom-color: var(--boomi-teal); }
+    .nav-link.active { color: var(--boomi-teal); border-bottom-color: var(--boomi-teal); }
+    .nav-num {
+      font-size: 10px;
+      background: rgba(255,255,255,.12);
+      border-radius: 4px;
+      padding: 1px 5px;
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+
+    @media (max-width: 768px) {
+      .grid-3, .grid-2 { grid-template-columns: 1fr; }
+      header h1 { font-size: 26px; }
+      .header-brands { padding: 14px 20px; }
+      .header-content { padding: 32px 20px; }
+      .page { padding: 0 16px; }
+      .sticky-nav-inner { padding: 0 16px; }
+    }
+  </style>
+<!-- SEDC-WIDTH:START -->
+<!-- Re-runnable width override injected by scripts/set-page-width.mjs — do not hand-edit, re-run the script instead. -->
+<style>
+  .page { max-width: 1400px; }
+  .sticky-nav-inner { max-width: 1400px; }
+</style>
+<!-- SEDC-WIDTH:END -->
+</head>
+<body>
+<!-- SEDC-NAV:START -->
+<style>
+  .sedc-nav * { box-sizing: border-box; }
+  .sedc-nav {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    margin: 0;
+    background: #072B55;
+    color: #ffffff;
+    font-family: 'Poppins',Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    font-size: 14px;
+    line-height: 1.4;
+  }
+  .sedc-nav-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 10px 20px;
+  }
+  .sedc-nav-brand {
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+  }
+  .sedc-nav-brand:hover,
+  .sedc-nav-brand:focus {
+    text-decoration: underline;
+  }
+  .sedc-nav-jump {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .sedc-nav-label {
+    white-space: nowrap;
+    color: #ffffff;
+  }
+  .sedc-nav-select {
+    font-family: inherit;
+    font-size: 13px;
+    color: #072B55;
+    background: #ffffff;
+    border: 1px solid #ffffff;
+    border-radius: 4px;
+    padding: 5px 8px;
+    max-width: 60vw;
+  }
+  .sedc-nav-rule {
+    height: 3px;
+    width: 100%;
+    background: linear-gradient(90deg,#FF7C66 0%,#A03291 100%);
+  }
+</style>
+<div class="sedc-nav" role="navigation" aria-label="SE Demo Companion navigation">
+  <div class="sedc-nav-bar">
+    <a class="sedc-nav-brand" href="../index.html" target="_top">SE Demo Companion</a>
+    <div class="sedc-nav-jump">
+      <label class="sedc-nav-label" for="sedc-nav-select">Jump to use case</label>
+      <select class="sedc-nav-select" id="sedc-nav-select" onchange="(function(sel){try{var opt=sel.options[sel.selectedIndex];var url=opt&&opt.getAttribute('data-href');if(!url)return;try{window.top.location.href=url;}catch(e){window.location.href=url;}}catch(e){}})(this)">
+        <option value="amc-fee-change-agent" data-href="./amc-fee-change-agent.html">AMC fee-change agent — Finnomena</option>
+        <option value="bvtpa-claims-integration-demo" data-href="./bvtpa-claims-integration-demo.html">Blue Venture TPA claims integration demo — Blue Venture TPA</option>
+        <option value="bvtpa-claims-adjudication-cio-brief" data-href="./bvtpa-claims-adjudication-cio-brief.html">Claims adjudication CIO brief — Blue Venture TPA</option>
+        <option value="delivery-status-sync-demo" data-href="./delivery-status-sync-demo.html">Delivery status sync demo — TOTO</option>
+        <option value="boomi-tenant-ceo-dashboard" data-href="./boomi-tenant-ceo-dashboard.html">Boomi tenant CEO dashboard — Boomi internal tenant</option>
+        <option value="boomi-tenant-30-day-report" data-href="./boomi-tenant-30-day-report.html">Boomi tenant operations report, 30-day view — Boomi internal tenant</option>
+        <option value="json-to-xml-order-integration" data-href="./json-to-xml-order-integration.html">JSON to XML order integration, executive documentation — NTT</option>
+        <option value="edi-850-flight-deck" data-href="./edi-850-flight-deck.html">EDI 850 flight deck — Infosys</option>
+        <option value="whatsapp-to-sap-master-agent" data-href="./whatsapp-to-sap-master-agent.html">WhatsApp to SAP master agent — Boomi internal build</option>
+        <option value="student-xml-to-crm-json" data-href="./student-xml-to-crm-json.html">Student XML to CRM JSON — Attura</option>
+        <option value="sap-accounting-document-poc-outcome" data-href="./sap-accounting-document-poc-outcome.html">SAP accounting document automation, POC outcome — Abans PLC</option>
+        <option value="abans-sap-posting-poc-dashboard" data-href="./abans-sap-posting-poc-dashboard.html">Abans SAP posting, live POC dashboard — Abans PLC</option>
+        <option value="order-intake-api-fan-out" data-href="./order-intake-api-fan-out.html" selected>Order intake API with multi-target fan-out — LTIMindtree</option>
+        <option value="electromart-track-and-reschedule" data-href="./electromart-track-and-reschedule.html">ElectroMart track order and reschedule delivery — ElectroMart (demo brand)</option>
+        <option value="enterprise-portal-ai-agent" data-href="./enterprise-portal-ai-agent.html">Enterprise portal with an embedded AI agent — ITG</option>
+        <option value="o2c-qad-build-journey" data-href="./o2c-qad-build-journey.html">O2C-QAD build journey — Boomi internal build</option>
+        <option value="boomi-accenture-trivia" data-href="./boomi-accenture-trivia.html">Boomi x Accenture trivia — Boomi internal build</option>
+        <option value="cloud-runtime-sizing-calculator" data-href="./cloud-runtime-sizing-calculator.html">Boomi public cloud runtime sizing estimator — Boomi internal build</option>
+        <option value="coupa-netsuite-vendor-bill" data-href="./coupa-netsuite-vendor-bill.html">Vendor bill pipeline, Coupa to NetSuite — Boomi internal build</option>
+        <option value="coupa-oracle-s2p-console" data-href="./coupa-oracle-s2p-console.html">Source-to-pay flow console, Coupa to Oracle Fusion — Boomi internal build</option>
+        <option value="epic-rauland-adt-nurse-call" data-href="./epic-rauland-adt-nurse-call.html">Epic ADT to Rauland Responder 5, nurse call integration — Boomi internal build</option>
+        <option value="epic-salesforce-trial-screening" data-href="./epic-salesforce-trial-screening.html">Clinical trial screening console, Epic to Salesforce — Meridian Research (demo brand)</option>
+        <option value="jc-hifi-order-tracker" data-href="./jc-hifi-order-tracker.html">JC Hi-Fi order tracker, customer self-service — JC Hi-Fi (demo brand)</option>
+        <option value="pacific-bank-onboarding" data-href="./pacific-bank-onboarding.html">Pacific onboarding console, retail bank customer onboarding — Pacific Islands Community Bank (demo brand)</option>
+        <option value="sea-data-product-assistant" data-href="./sea-data-product-assistant.html">SEA regional performance, data products and an agent over two ERPs — Boomi internal build</option>
+        <option value="servicenow-jira-incident-sync" data-href="./servicenow-jira-incident-sync.html">Incident sync prototype, ServiceNow to Jira — Boomi internal build</option>
+        <option value="zendesk-magento-order-status" data-href="./zendesk-magento-order-status.html">Order status bot and flow inspector, Zendesk to Magento — Avery Products (demo brand)</option>
+        <option value="zoho-netsuite-invoice-sync" data-href="./zoho-netsuite-invoice-sync.html">Invoice sync console, Zoho CRM to NetSuite — Boomi internal build</option>
+      </select>
+    </div>
+  </div>
+  <div class="sedc-nav-rule"></div>
+</div>
+<!-- SEDC-NAV:END -->
+
+
+<!-- ═══════════════════════════════════════════════════════ HEADER -->
+<div class="header-brands" id="headerBrands">
+  <div style="display:flex;align-items:center;gap:20px;">
+    <div class="brand-badge">
+      <div class="brand-icon ltim-icon">LT</div>
+      LTIMindtree
+    </div>
+    <span class="brand-separator">×</span>
+    <div class="brand-badge">
+      <div class="brand-icon boomi-icon">B</div>
+      Boomi
+    </div>
+  </div>
+  <div style="font-size:12px;opacity:.6;letter-spacing:.5px;">INTEGRATION ACCELERATOR PROGRAM</div>
+</div>
+
+<header>
+  <div class="header-content page">
+    <div class="doc-tag">📘 Technical Architecture Document</div>
+    <h1>Order Intake API with <span>Multi-Target Fan-Out</span></h1>
+    <p class="subtitle">
+      A production-grade Boomi integration pattern demonstrating real-time API listening,
+      external data enrichment, schema transformation, and simultaneous multi-channel distribution.
+    </p>
+    <div class="meta-chips">
+      <div class="meta-chip"><span class="dot dot-green"></span> Deployed · MyMacAtom</div>
+      <div class="meta-chip"><span class="dot dot-teal"></span> WSS REST Endpoint</div>
+      <div class="meta-chip"><span class="dot dot-orange"></span> JSONPlaceholder Enrichment</div>
+      <div class="meta-chip"><span class="dot dot-teal"></span> 12 Components</div>
+      <div class="meta-chip">v1.0 · April 2026</div>
+    </div>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════════════════════════════ STICKY NAV -->
+<nav class="sticky-nav" aria-label="Page sections">
+  <div class="sticky-nav-inner">
+    <a class="nav-link" href="#overview"><span class="nav-num">01</span> Overview</a>
+    <a class="nav-link" href="#architecture"><span class="nav-num">02</span> Architecture</a>
+    <a class="nav-link" href="#components"><span class="nav-num">03</span> Components</a>
+    <a class="nav-link" href="#api-reference"><span class="nav-num">04</span> API Reference</a>
+    <a class="nav-link" href="#data-flow"><span class="nav-num">05</span> Data Flow</a>
+    <a class="nav-link" href="#deployment"><span class="nav-num">06</span> Deployment</a>
+    <a class="nav-link" href="#next-steps"><span class="nav-num">07</span> Next Steps</a>
+  </div>
+</nav>
+
+<script>
+  (function () {
+    function setHeaderBrandsHeight() {
+      var el = document.getElementById('headerBrands');
+      var h = el ? el.getBoundingClientRect().height : 0;
+      document.documentElement.style.setProperty('--header-brands-h', h + 'px');
+    }
+    setHeaderBrandsHeight();
+    window.addEventListener('resize', setHeaderBrandsHeight);
+  })();
+</script>
+
+<!-- ═══════════════════════════════════════════════════════ OVERVIEW -->
+<div class="page">
+<section id="overview" style="scroll-margin-top:48px;">
+  <div class="section-label">01 · Overview</div>
+  <div class="section-title">Solution Summary</div>
+  <p class="section-desc">
+    This integration exposes a synchronous REST API endpoint using Boomi's Web Services Server (WSS).
+    Incoming order payloads are enriched via an external API call, transformed to a canonical target schema,
+    and simultaneously dispatched to three downstream channels — all within a single, fault-tolerant execution.
+  </p>
+
+  <div class="grid-3" style="margin-bottom:24px;">
+    <div class="stat-card">
+      <div class="stat-number">12</div>
+      <div class="stat-label">Boomi Components</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">3</div>
+      <div class="stat-label">Fan-Out Targets</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number" style="color:var(--boomi-teal);">1</div>
+      <div class="stat-label">Live API Endpoint</div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-header">
+        <span>🎯</span>
+        <h3>What This Integration Does</h3>
+      </div>
+      <div class="card-body">
+        <div class="flow-steps">
+          <div class="flow-step" data-n="1">
+            <div>
+              <div class="flow-step-title">Receive Order via REST API</div>
+              <div class="flow-step-desc">WSS Listener accepts POST /ws/simple/createOrder with JSON order payload</div>
+            </div>
+          </div>
+          <div class="flow-step" data-n="2">
+            <div>
+              <div class="flow-step-title">Enrich Customer Data</div>
+              <div class="flow-step-desc">Calls JSONPlaceholder /users/{customerId} to fetch name, email, and company</div>
+            </div>
+          </div>
+          <div class="flow-step" data-n="3">
+            <div>
+              <div class="flow-step-title">Transform to Target Schema</div>
+              <div class="flow-step-desc">Map merges order data (via DPPs) + enrichment into canonical OrderIntake_Target format</div>
+            </div>
+          </div>
+          <div class="flow-step" data-n="4">
+            <div>
+              <div class="flow-step-title">Fan-Out to 3 Channels</div>
+              <div class="flow-step-desc">Branch step delivers to Warehouse DB, Event Streams topic, and returns HTTP 200 with acceptance receipt</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span>⚡</span>
+        <h3>Key Integration Patterns</h3>
+      </div>
+      <div class="card-body" style="display:flex;flex-direction:column;gap:12px;">
+        <div class="highlight-box">
+          <strong>WSS Wrapper + Subprocess</strong><br/>
+          <span style="font-size:13px;">Thin API wrapper delegates to a thick, independently testable subprocess — clean separation of concerns.</span>
+        </div>
+        <div class="highlight-box">
+          <strong>DPP-Bridged Enrichment</strong><br/>
+          <span style="font-size:13px;">Dynamic Process Properties (DPPs) preserve original order fields across the REST enrichment call boundary.</span>
+        </div>
+        <div class="highlight-box">
+          <strong>Multi-Target Branch Fan-Out</strong><br/>
+          <span style="font-size:13px;">Branch step distributes one mapped document to three channels simultaneously, with independent error isolation per path.</span>
+        </div>
+        <div class="highlight-box">
+          <strong>Try/Catch Error Envelope</strong><br/>
+          <span style="font-size:13px;">Entire business logic wrapped in try/catch — errors produce structured JSON error responses, never silent failures.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ ARCHITECTURE DIAGRAM -->
+<section id="architecture" style="scroll-margin-top:48px;">
+  <div class="section-label">02 · Architecture</div>
+  <div class="section-title">Solution Architecture Diagram</div>
+  <p class="section-desc">End-to-end view of the integration landscape — from the HTTP client through Boomi's process execution to the downstream target systems.</p>
+
+  <div class="diagram-card">
+    <div class="diagram-title">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/></svg>
+      Solution Architecture · LTIMindtree × Boomi Integration
+    </div>
+    <div class="diagram-body">
+      <div class="svg-wrap">
+      <!-- ARCHITECTURE SVG -->
+      <svg width="1060" height="460" viewBox="0 0 1060 460" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrow" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#6C757D"/>
+          </marker>
+          <marker id="arrow-teal" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#00C1D4"/>
+          </marker>
+          <marker id="arrow-orange" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#FF6B00"/>
+          </marker>
+          <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+            <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="rgba(0,0,0,0.12)"/>
+          </filter>
+        </defs>
+
+        <!-- BG -->
+        <rect width="1060" height="460" fill="#F8F9FA" rx="8"/>
+
+        <!-- BOOMI PLATFORM ZONE -->
+        <rect x="260" y="20" width="560" height="420" rx="12" fill="#EBF9FB" stroke="#00C1D4" stroke-width="1.5" stroke-dasharray="6,4"/>
+        <text x="540" y="44" text-anchor="middle" font-size="11" font-weight="700" fill="#00C1D4" letter-spacing="1">BOOMI PLATFORM</text>
+
+        <!-- WSS WRAPPER BOX -->
+        <rect x="280" y="60" width="200" height="120" rx="10" fill="#1F3A8A" filter="url(#shadow)"/>
+        <text x="380" y="90" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">WSS Wrapper</text>
+        <text x="380" y="108" text-anchor="middle" font-size="10" fill="rgba(255,255,255,.7)">OrderIntake_WSS_Wrapper</text>
+        <!-- WSS shapes icons -->
+        <rect x="296" y="120" width="46" height="32" rx="6" fill="rgba(255,255,255,.15)"/>
+        <text x="319" y="140" text-anchor="middle" font-size="9" fill="#fff">WSS</text>
+        <text x="319" y="151" text-anchor="middle" font-size="8" fill="rgba(255,255,255,.6)">Listen</text>
+        <line x1="342" y1="136" x2="358" y2="136" stroke="rgba(255,255,255,.5)" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <rect x="358" y="120" width="46" height="32" rx="6" fill="rgba(255,255,255,.15)"/>
+        <text x="381" y="140" text-anchor="middle" font-size="9" fill="#fff">Process</text>
+        <text x="381" y="151" text-anchor="middle" font-size="8" fill="rgba(255,255,255,.6)">Call</text>
+        <line x1="404" y1="136" x2="420" y2="136" stroke="rgba(255,255,255,.5)" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <rect x="420" y="120" width="44" height="32" rx="6" fill="rgba(255,255,255,.15)"/>
+        <text x="442" y="140" text-anchor="middle" font-size="9" fill="#fff">Return</text>
+        <text x="442" y="151" text-anchor="middle" font-size="8" fill="rgba(255,255,255,.6)">Docs</text>
+
+        <!-- SUBPROCESS BOX -->
+        <rect x="280" y="210" width="520" height="200" rx="10" fill="#fff" stroke="#6C2D91" stroke-width="1.5" filter="url(#shadow)"/>
+        <rect x="280" y="210" width="520" height="30" rx="10" fill="#6C2D91"/>
+        <rect x="280" y="230" width="520" height="10" fill="#6C2D91"/>
+        <text x="540" y="230" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">[SUB] OrderIntake_BusinessLogic</text>
+
+        <!-- subprocess steps -->
+        <!-- Set Props -->
+        <rect x="296" y="254" width="58" height="40" rx="6" fill="#F3E5F5" stroke="#6C2D91" stroke-width="1"/>
+        <text x="325" y="271" text-anchor="middle" font-size="8" fill="#4A148C" font-weight="700">Set</text>
+        <text x="325" y="282" text-anchor="middle" font-size="8" fill="#4A148C">Props</text>
+        <text x="325" y="292" text-anchor="middle" font-size="7" fill="#7B1FA2">(DPPs)</text>
+
+        <line x1="354" y1="274" x2="370" y2="274" stroke="#999" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+        <!-- Set Props 2 -->
+        <rect x="370" y="254" width="58" height="40" rx="6" fill="#F3E5F5" stroke="#6C2D91" stroke-width="1"/>
+        <text x="399" y="271" text-anchor="middle" font-size="8" fill="#4A148C" font-weight="700">Build</text>
+        <text x="399" y="282" text-anchor="middle" font-size="8" fill="#4A148C">Path</text>
+        <text x="399" y="292" text-anchor="middle" font-size="7" fill="#7B1FA2">/users/id</text>
+
+        <line x1="428" y1="274" x2="444" y2="274" stroke="#999" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+        <!-- Message -->
+        <rect x="444" y="254" width="50" height="40" rx="6" fill="#E3F2FD" stroke="#1565C0" stroke-width="1"/>
+        <text x="469" y="271" text-anchor="middle" font-size="8" fill="#0D47A1" font-weight="700">Empty</text>
+        <text x="469" y="282" text-anchor="middle" font-size="8" fill="#0D47A1">Msg</text>
+
+        <line x1="494" y1="274" x2="510" y2="274" stroke="#999" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+        <!-- REST GET -->
+        <rect x="510" y="254" width="58" height="40" rx="6" fill="#E8F5E9" stroke="#2E7D32" stroke-width="1"/>
+        <text x="539" y="271" text-anchor="middle" font-size="8" fill="#1B5E20" font-weight="700">REST</text>
+        <text x="539" y="282" text-anchor="middle" font-size="8" fill="#1B5E20">GET</text>
+        <text x="539" y="292" text-anchor="middle" font-size="7" fill="#388E3C">Enrich</text>
+
+        <line x1="568" y1="274" x2="584" y2="274" stroke="#999" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+        <!-- Map -->
+        <rect x="584" y="254" width="50" height="40" rx="6" fill="#FFF8E1" stroke="#F57F17" stroke-width="1"/>
+        <text x="609" y="271" text-anchor="middle" font-size="8" fill="#E65100" font-weight="700">Map</text>
+        <text x="609" y="282" text-anchor="middle" font-size="8" fill="#E65100">Trans-</text>
+        <text x="609" y="292" text-anchor="middle" font-size="7" fill="#BF360C">form</text>
+
+        <line x1="634" y1="274" x2="650" y2="274" stroke="#999" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+        <!-- Branch -->
+        <rect x="650" y="254" width="50" height="40" rx="6" fill="#FCE4EC" stroke="#C62828" stroke-width="1"/>
+        <text x="675" y="271" text-anchor="middle" font-size="8" fill="#B71C1C" font-weight="700">Branch</text>
+        <text x="675" y="282" text-anchor="middle" font-size="8" fill="#B71C1C">Fan-</text>
+        <text x="675" y="292" text-anchor="middle" font-size="7" fill="#C62828">Out</text>
+
+        <!-- Branch output lines -->
+        <line x1="700" y1="264" x2="720" y2="254" stroke="#999" stroke-width="1" stroke-dasharray="3,2"/>
+        <line x1="700" y1="274" x2="720" y2="274" stroke="#999" stroke-width="1" stroke-dasharray="3,2"/>
+        <line x1="700" y1="284" x2="720" y2="294" stroke="#999" stroke-width="1" stroke-dasharray="3,2"/>
+
+        <!-- Branch 1: DB -->
+        <rect x="720" y="248" width="60" height="20" rx="4" fill="#E3F2FD" stroke="#1565C0" stroke-width=".8"/>
+        <text x="750" y="262" text-anchor="middle" font-size="7" fill="#0D47A1">🗄 Warehouse DB</text>
+
+        <!-- Branch 2: Events -->
+        <rect x="720" y="268" width="60" height="20" rx="4" fill="#E8F5E9" stroke="#2E7D32" stroke-width=".8"/>
+        <text x="750" y="282" text-anchor="middle" font-size="7" fill="#1B5E20">⚡ Event Streams</text>
+
+        <!-- Branch 3: Response -->
+        <rect x="720" y="288" width="60" height="20" rx="4" fill="#FFF8E1" stroke="#F57F17" stroke-width=".8"/>
+        <text x="750" y="302" text-anchor="middle" font-size="7" fill="#E65100">↩ HTTP Response</text>
+
+        <!-- TRY CATCH label -->
+        <rect x="290" y="340" width="498" height="58" rx="6" fill="rgba(230,57,70,.05)" stroke="#E74C3C" stroke-width="1" stroke-dasharray="4,3"/>
+        <text x="298" y="357" font-size="9" fill="#E74C3C" font-weight="700">Try/Catch</text>
+        <rect x="296" y="360" width="74" height="30" rx="5" fill="#FFEBEE" stroke="#E74C3C" stroke-width=".8"/>
+        <text x="333" y="375" text-anchor="middle" font-size="8" fill="#C62828" font-weight="700">Error Catch</text>
+        <text x="333" y="386" text-anchor="middle" font-size="7" fill="#D32F2F">→ JSON Error</text>
+
+        <!-- HTTP Client -->
+        <rect x="30" y="90" width="160" height="80" rx="10" fill="#fff" stroke="#6C2D91" stroke-width="1.5" filter="url(#shadow)"/>
+        <text x="110" y="122" text-anchor="middle" font-size="22">🖥</text>
+        <text x="110" y="144" text-anchor="middle" font-size="12" font-weight="700" fill="#1A1A2E">HTTP Client</text>
+        <text x="110" y="160" text-anchor="middle" font-size="10" fill="#6C757D">curl / Postman / App</text>
+
+        <!-- JSONPlaceholder -->
+        <rect x="880" y="90" width="150" height="80" rx="10" fill="#fff" stroke="#2E7D32" stroke-width="1.5" filter="url(#shadow)"/>
+        <text x="955" y="122" text-anchor="middle" font-size="22">🌐</text>
+        <text x="955" y="144" text-anchor="middle" font-size="12" font-weight="700" fill="#1A1A2E">JSONPlaceholder</text>
+        <text x="955" y="160" text-anchor="middle" font-size="10" fill="#6C757D">GET /users/{id}</text>
+
+        <!-- Downstream systems -->
+        <rect x="880" y="210" width="150" height="56" rx="8" fill="#fff" stroke="#1565C0" stroke-width="1.2" filter="url(#shadow)"/>
+        <text x="955" y="240" text-anchor="middle" font-size="11" font-weight="700" fill="#0D47A1">🗄 Warehouse DB</text>
+        <text x="955" y="256" text-anchor="middle" font-size="9" fill="#6C757D">Branch 1 · Notify Log</text>
+
+        <rect x="880" y="284" width="150" height="56" rx="8" fill="#fff" stroke="#2E7D32" stroke-width="1.2" filter="url(#shadow)"/>
+        <text x="955" y="313" text-anchor="middle" font-size="11" font-weight="700" fill="#1B5E20">⚡ Event Streams</text>
+        <text x="955" y="329" text-anchor="middle" font-size="9" fill="#6C757D">Branch 2 · Notify Log</text>
+
+        <rect x="880" y="358" width="150" height="56" rx="8" fill="#fff" stroke="#F57F17" stroke-width="1.2" filter="url(#shadow)"/>
+        <text x="955" y="387" text-anchor="middle" font-size="11" font-weight="700" fill="#E65100">↩ HTTP Response</text>
+        <text x="955" y="403" text-anchor="middle" font-size="9" fill="#6C757D">Branch 3 · 200 Accepted</text>
+
+        <!-- ARROWS: Client → WSS -->
+        <line x1="190" y1="130" x2="278" y2="130" stroke="#6C2D91" stroke-width="2" marker-end="url(#arrow-teal)"/>
+        <rect x="206" y="114" width="58" height="16" rx="4" fill="#6C2D91"/>
+        <text x="235" y="126" text-anchor="middle" font-size="9" fill="#fff" font-weight="700">POST order</text>
+
+        <!-- Arrow: WSS → Subprocess -->
+        <line x1="380" y1="180" x2="380" y2="208" stroke="#6C2D91" stroke-width="1.5" stroke-dasharray="4,3"/>
+
+        <!-- Arrow: REST GET → JSONPlaceholder -->
+        <line x1="840" y1="130" x2="878" y2="130" stroke="#2E7D32" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <line x1="539" y1="130" x2="878" y2="130" stroke="#2E7D32" stroke-width="1.5" stroke-dasharray="4,3"/>
+        <line x1="539" y1="254" x2="539" y2="130" stroke="#2E7D32" stroke-width="1.5" stroke-dasharray="4,3"/>
+
+        <!-- Arrows: Fan-out to downstream -->
+        <line x1="840" y1="238" x2="878" y2="238" stroke="#1565C0" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <line x1="840" y1="312" x2="878" y2="312" stroke="#2E7D32" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <line x1="840" y1="386" x2="878" y2="386" stroke="#F57F17" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <line x1="800" y1="238" x2="840" y2="238" stroke="#1565C0" stroke-width="1" stroke-dasharray="3,2"/>
+        <line x1="800" y1="312" x2="840" y2="312" stroke="#2E7D32" stroke-width="1" stroke-dasharray="3,2"/>
+        <line x1="800" y1="386" x2="840" y2="386" stroke="#F57F17" stroke-width="1" stroke-dasharray="3,2"/>
+        <line x1="800" y1="238" x2="800" y2="386" stroke="#aaa" stroke-width="1" stroke-dasharray="3,2"/>
+
+        <!-- Arrow: HTTP Response back -->
+        <path d="M190 155 Q 230 220 280 186" stroke="#6C2D91" stroke-width="1.5" fill="none" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+        <rect x="195" y="183" width="68" height="14" rx="3" fill="rgba(108,45,145,.1)"/>
+        <text x="229" y="194" text-anchor="middle" font-size="8" fill="#6C2D91">200 Accepted</text>
+      </svg>
+      </div>
+    </div>
+  </div>
+
+<!-- ═══════════════ PROCESS FLOW DIAGRAM -->
+  <div class="diagram-card">
+    <div class="diagram-title">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Boomi Process Canvas · [SUB] OrderIntake_BusinessLogic
+    </div>
+    <div class="diagram-body">
+      <div class="svg-wrap">
+      <!-- PROCESS CANVAS SVG -->
+      <svg width="1020" height="380" viewBox="0 0 1020 380" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arr2" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#555"/>
+          </marker>
+          <marker id="arr-branch" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#C62828"/>
+          </marker>
+          <marker id="arr-catch" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#E74C3C"/>
+          </marker>
+        </defs>
+
+        <!-- canvas bg -->
+        <rect width="1020" height="380" fill="#FAFBFC" rx="6"/>
+        <!-- grid dots -->
+        <pattern id="grid" width="24" height="24" patternUnits="userSpaceOnUse">
+          <circle cx="12" cy="12" r="1" fill="#E0E0E0"/>
+        </pattern>
+        <rect width="1020" height="380" fill="url(#grid)"/>
+
+        <!-- TRY/CATCH zone background -->
+        <rect x="100" y="20" width="880" height="220" rx="8" fill="rgba(46,204,113,.04)" stroke="#2ECC71" stroke-width="1" stroke-dasharray="5,4"/>
+        <text x="112" y="38" font-size="9" fill="#27AE60" font-weight="700" letter-spacing=".5">TRY PATH</text>
+        <rect x="100" y="270" width="340" height="90" rx="8" fill="rgba(231,76,60,.04)" stroke="#E74C3C" stroke-width="1" stroke-dasharray="5,4"/>
+        <text x="112" y="288" font-size="9" fill="#E74C3C" font-weight="700" letter-spacing=".5">CATCH PATH</text>
+
+        <!-- ── SHAPE HELPER macro: rounded rect with icon row ── -->
+
+        <!-- shape1: Start (passthrough) -->
+        <ellipse cx="52" cy="120" rx="36" ry="24" fill="#1F3A8A" filter="url(#shadow)"/>
+        <text x="52" y="116" text-anchor="middle" font-size="9" fill="#fff" font-weight="700">START</text>
+        <text x="52" y="128" text-anchor="middle" font-size="7" fill="rgba(255,255,255,.7)">passthrough</text>
+        <line x1="88" y1="120" x2="108" y2="120" stroke="#555" stroke-width="1.5" marker-end="url(#arr2)"/>
+
+        <!-- shape2: Try/Catch -->
+        <rect x="108" y="104" width="64" height="32" rx="8" fill="#27AE60"/>
+        <text x="140" y="118" text-anchor="middle" font-size="9" fill="#fff" font-weight="700">Try/Catch</text>
+        <text x="140" y="129" text-anchor="middle" font-size="7" fill="rgba(255,255,255,.8)">catchAll=true</text>
+        <!-- try arrow -->
+        <line x1="172" y1="120" x2="192" y2="120" stroke="#555" stroke-width="1.5" marker-end="url(#arr2)"/>
+        <!-- catch arrow (down) -->
+        <line x1="140" y1="136" x2="140" y2="284" stroke="#E74C3C" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#arr-catch)"/>
+
+        <!-- shape3: Set Properties -->
+        <rect x="192" y="104" width="74" height="32" rx="6" fill="#6C2D91"/>
+        <text x="229" y="117" text-anchor="middle" font-size="9" fill="#fff" font-weight="700">Set Props</text>
+        <text x="229" y="128" text-anchor="middle" font-size="7" fill="rgba(255,255,255,.7)">Extract 6 DPPs</text>
+        <line x1="266" y1="120" x2="286" y2="120" stroke="#555" stroke-width="1.5" marker-end="url(#arr2)"/>
+
+        <!-- shape4: Set Props path -->
+        <rect x="286" y="104" width="74" height="32" rx="6" fill="#6C2D91"/>
+        <text x="323" y="117" text-anchor="middle" font-size="9" fill="#fff" font-weight="700">Build Path</text>
+        <text x="323" y="128" text-anchor="middle" font-size="7" fill="rgba(255,255,255,.7)">/users/+DDP</text>
+        <line x1="360" y1="120" x2="380" y2="120" stroke="#555" stroke-width="1.5" marker-end="url(#arr2)"/>
+
+        <!-- shape5: Empty Message -->
+        <rect x="380" y="104" width="60" height="32" rx="6" fill="#1565C0"/>
+        <text x="410" y="117" text-anchor="middle" font-size="9" fill="#fff" font-weight="700">Message</text>
+        <text x="410" y="128" text-anchor="middle" font-size="7" fill="rgba(255,255,255,.7)">Clear Doc</text>
+        <line x1="440" y1="120" x2="460" y2="120" stroke="#555" stroke-width="1.5" marker-end="url(#arr2)"/>
+
+        <!-- shape6: REST GET -->
+        <rect x="460" y="104" width="74" height="32" rx="6" fill="#2E7D32"/>
+        <text x="497" y="117" text-anchor="middle" font-size="9" fill="#fff" font-weight="700">REST GET</text>
+        <text x="497" y="128" text-anchor="middle" font-size="7" fill="rgba(255,255,255,.7)">JSONPlaceholder</text>
+        <line x1="534" y1="120" x2="554" y2="120" stroke="#555" stroke-width="1.5" marker-end="url(#arr2)"/>
+
+        <!-- shape7: Map -->
+        <rect x="554" y="104" width="60" height="32" rx="6" fill="#E65100"/>
+        <text x="584" y="117" text-anchor="middle" font-size="9" fill="#fff" font-weight="700">Map</text>
+        <text x="584" y="128" text-anchor="middle" font-size="7" fill="rgba(255,255,255,.7)">Enrich→Target</text>
+        <line x1="614" y1="120" x2="634" y2="120" stroke="#555" stroke-width="1.5" marker-end="url(#arr2)"/>
+
+        <!-- shape8: Branch -->
+        <rect x="634" y="104" width="60" height="32" rx="6" fill="#B71C1C"/>
+        <text x="664" y="117" text-anchor="middle" font-size="9" fill="#fff" font-weight="700">Branch</text>
+        <text x="664" y="128" text-anchor="middle" font-size="7" fill="rgba(255,255,255,.7)">numBranches=3</text>
+
+        <!-- Branch outputs -->
+        <line x1="694" y1="108" x2="730" y2="80" stroke="#B71C1C" stroke-width="1.2" marker-end="url(#arr-branch)"/>
+        <line x1="694" y1="120" x2="730" y2="120" stroke="#B71C1C" stroke-width="1.2" marker-end="url(#arr-branch)"/>
+        <line x1="694" y1="132" x2="730" y2="160" stroke="#B71C1C" stroke-width="1.2" marker-end="url(#arr-branch)"/>
+
+        <!-- Branch 1: DB Notify -->
+        <rect x="730" y="64" width="90" height="32" rx="6" fill="#1565C0"/>
+        <text x="775" y="77" text-anchor="middle" font-size="9" fill="#fff" font-weight="700">Notify</text>
+        <text x="775" y="88" text-anchor="middle" font-size="7" fill="rgba(255,255,255,.7)">🗄 DB Saved</text>
+        <line x1="820" y1="80" x2="850" y2="80" stroke="#555" stroke-width="1.2" marker-end="url(#arr2)"/>
+        <rect x="850" y="68" width="44" height="24" rx="5" fill="#546E7A"/>
+        <text x="872" y="82" text-anchor="middle" font-size="9" fill="#fff" font-weight="700">Stop</text>
+        <text x="872" y="90" text-anchor="middle" font-size="6" fill="rgba(255,255,255,.7)">continue=T</text>
+
+        <!-- Branch 2: Event Notify -->
+        <rect x="730" y="104" width="90" height="32" rx="6" fill="#2E7D32"/>
+        <text x="775" y="117" text-anchor="middle" font-size="9" fill="#fff" font-weight="700">Notify</text>
+        <text x="775" y="128" text-anchor="middle" font-size="7" fill="rgba(255,255,255,.7)">⚡ Events Pub</text>
+        <line x1="820" y1="120" x2="850" y2="120" stroke="#555" stroke-width="1.2" marker-end="url(#arr2)"/>
+        <rect x="850" y="108" width="44" height="24" rx="5" fill="#546E7A"/>
+        <text x="872" y="122" text-anchor="middle" font-size="9" fill="#fff" font-weight="700">Stop</text>
+        <text x="872" y="130" text-anchor="middle" font-size="6" fill="rgba(255,255,255,.7)">continue=T</text>
+
+        <!-- Branch 3: Success Response -->
+        <rect x="730" y="144" width="90" height="32" rx="6" fill="#E65100"/>
+        <text x="775" y="157" text-anchor="middle" font-size="9" fill="#fff" font-weight="700">Message</text>
+        <text x="775" y="168" text-anchor="middle" font-size="7" fill="rgba(255,255,255,.7)">Build Success JSON</text>
+        <line x1="820" y1="160" x2="850" y2="160" stroke="#555" stroke-width="1.2" marker-end="url(#arr2)"/>
+        <rect x="850" y="148" width="60" height="24" rx="5" fill="#00C1D4"/>
+        <text x="880" y="162" text-anchor="middle" font-size="9" fill="#fff" font-weight="700">Return Docs</text>
+        <text x="880" y="170" text-anchor="middle" font-size="6" fill="rgba(255,255,255,.8)">HTTP 200 ✓</text>
+
+        <!-- Catch: Message Error -->
+        <rect x="154" y="284" width="80" height="32" rx="6" fill="#C62828"/>
+        <text x="194" y="297" text-anchor="middle" font-size="9" fill="#fff" font-weight="700">Message</text>
+        <text x="194" y="308" text-anchor="middle" font-size="7" fill="rgba(255,255,255,.7)">Build Error JSON</text>
+        <line x1="234" y1="300" x2="260" y2="300" stroke="#555" stroke-width="1.2" marker-end="url(#arr2)"/>
+
+        <!-- Catch: Return Docs -->
+        <rect x="260" y="288" width="60" height="24" rx="5" fill="#00C1D4"/>
+        <text x="290" y="302" text-anchor="middle" font-size="9" fill="#fff" font-weight="700">Return Docs</text>
+        <text x="290" y="310" text-anchor="middle" font-size="6" fill="rgba(255,255,255,.8)">HTTP 5xx ✗</text>
+
+        <!-- Labels -->
+        <text x="229" y="97" text-anchor="middle" font-size="8" fill="#6C2D91">①</text>
+        <text x="323" y="97" text-anchor="middle" font-size="8" fill="#6C2D91">②</text>
+        <text x="410" y="97" text-anchor="middle" font-size="8" fill="#1565C0">③</text>
+        <text x="497" y="97" text-anchor="middle" font-size="8" fill="#2E7D32">④</text>
+        <text x="584" y="97" text-anchor="middle" font-size="8" fill="#E65100">⑤</text>
+        <text x="664" y="97" text-anchor="middle" font-size="8" fill="#B71C1C">⑥</text>
+
+        <!-- legend -->
+        <rect x="10" y="320" width="550" height="52" rx="6" fill="rgba(255,255,255,.9)" stroke="#ddd" stroke-width="1"/>
+        <text x="22" y="337" font-size="9" font-weight="700" fill="#555">LEGEND:</text>
+        <rect x="70" y="328" width="10" height="10" rx="2" fill="#6C2D91"/>
+        <text x="85" y="338" font-size="9" fill="#555">Set Properties</text>
+        <rect x="160" y="328" width="10" height="10" rx="2" fill="#1565C0"/>
+        <text x="175" y="338" font-size="9" fill="#555">Message</text>
+        <rect x="230" y="328" width="10" height="10" rx="2" fill="#2E7D32"/>
+        <text x="245" y="338" font-size="9" fill="#555">REST Connector</text>
+        <rect x="330" y="328" width="10" height="10" rx="2" fill="#E65100"/>
+        <text x="345" y="338" font-size="9" fill="#555">Map</text>
+        <rect x="380" y="328" width="10" height="10" rx="2" fill="#B71C1C"/>
+        <text x="395" y="338" font-size="9" fill="#555">Branch</text>
+        <rect x="440" y="328" width="10" height="10" rx="2" fill="#00C1D4"/>
+        <text x="455" y="338" font-size="9" fill="#555">Return Docs</text>
+
+        <line x1="20" y1="351" x2="30" y2="351" stroke="#27AE60" stroke-width="1.5" stroke-dasharray="4,2"/>
+        <text x="35" y="355" font-size="9" fill="#555">Try/Catch boundary</text>
+        <line x1="120" y1="351" x2="130" y2="351" stroke="#E74C3C" stroke-width="1.5" stroke-dasharray="4,2"/>
+        <text x="135" y="355" font-size="9" fill="#555">Catch path</text>
+        <line x1="200" y1="351" x2="210" y2="351" stroke="#B71C1C" stroke-width="1.5"/>
+        <text x="215" y="355" font-size="9" fill="#555">Branch output</text>
+      </svg>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ COMPONENTS -->
+<section id="components" style="scroll-margin-top:48px;">
+  <div class="section-label">03 · Components</div>
+  <div class="section-title">Component Inventory</div>
+  <p class="section-desc">All 12 Boomi components created and deployed in the <code>boomi_companion/OrderIntake-APIFanOut</code> platform folder.</p>
+
+  <div class="card">
+    <div class="card-body" style="padding:0;">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:36px;">#</th>
+            <th>Component Name</th>
+            <th>Type</th>
+            <th>Component ID</th>
+            <th>Purpose</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="color:var(--grey-600);font-weight:700;">1</td>
+            <td style="font-weight:600;">OrderIntake_Request_JSON_Profile</td>
+            <td><span class="badge badge-profile">Profile · JSON</span></td>
+            <td class="mono">fa7eebdb-ba8b-4d67</td>
+            <td style="font-size:12px;color:var(--grey-600);">Inbound order request structure (orderId, customerId, items[])</td>
+          </tr>
+          <tr>
+            <td style="color:var(--grey-600);font-weight:700;">2</td>
+            <td style="font-weight:600;">OrderIntake_Response_Success_JSON_Profile</td>
+            <td><span class="badge badge-profile">Profile · JSON</span></td>
+            <td class="mono">98ba8d70-36f1-4afb</td>
+            <td style="font-size:12px;color:var(--grey-600);">HTTP 200 acceptance receipt schema</td>
+          </tr>
+          <tr>
+            <td style="color:var(--grey-600);font-weight:700;">3</td>
+            <td style="font-weight:600;">OrderIntake_Response_Error_JSON_Profile</td>
+            <td><span class="badge badge-profile">Profile · JSON</span></td>
+            <td class="mono">4676810f-9719-4ebc</td>
+            <td style="font-size:12px;color:var(--grey-600);">HTTP error response with status, error code, message</td>
+          </tr>
+          <tr>
+            <td style="color:var(--grey-600);font-weight:700;">4</td>
+            <td style="font-weight:600;">Enrichment_User_JSON_Profile</td>
+            <td><span class="badge badge-profile">Profile · JSON</span></td>
+            <td class="mono">fac242c7-cf60-4509</td>
+            <td style="font-size:12px;color:var(--grey-600);">JSONPlaceholder /users response (id, name, email, company)</td>
+          </tr>
+          <tr>
+            <td style="color:var(--grey-600);font-weight:700;">5</td>
+            <td style="font-weight:600;">OrderIntake_Target_JSON_Profile</td>
+            <td><span class="badge badge-profile">Profile · JSON</span></td>
+            <td class="mono">d6209bf6-bffb-492f</td>
+            <td style="font-size:12px;color:var(--grey-600);">Canonical target schema with enriched customer fields</td>
+          </tr>
+          <tr>
+            <td style="color:var(--grey-600);font-weight:700;">6</td>
+            <td style="font-weight:600;">JSONPlaceholder_REST_Connection</td>
+            <td><span class="badge badge-conn">Connection · REST</span></td>
+            <td class="mono">fd3eb549-f06b-4894</td>
+            <td style="font-size:12px;color:var(--grey-600);">Base URL: jsonplaceholder.typicode.com · No auth</td>
+          </tr>
+          <tr>
+            <td style="color:var(--grey-600);font-weight:700;">7</td>
+            <td style="font-weight:600;">GET_User_Enrichment_Operation</td>
+            <td><span class="badge badge-op">Operation · REST</span></td>
+            <td class="mono">33a8d16f-5636-438a</td>
+            <td style="font-size:12px;color:var(--grey-600);">GET /users/{customerId} · Dynamic path via DDP_PATH</td>
+          </tr>
+          <tr>
+            <td style="color:var(--grey-600);font-weight:700;">8</td>
+            <td style="font-weight:600;">POST_Callback_Operation</td>
+            <td><span class="badge badge-op">Operation · REST</span></td>
+            <td class="mono">d36df408-6ad0-411e</td>
+            <td style="font-size:12px;color:var(--grey-600);">POST /posts · Callback simulation (available for use)</td>
+          </tr>
+          <tr>
+            <td style="color:var(--grey-600);font-weight:700;">9</td>
+            <td style="font-weight:600;">OrderIntake_WSS_Listen_Operation</td>
+            <td><span class="badge badge-op">Operation · WSS</span></td>
+            <td class="mono">c999b969-1a21-4473</td>
+            <td style="font-size:12px;color:var(--grey-600);">POST /ws/simple/createOrder · singlejson I/O</td>
+          </tr>
+          <tr>
+            <td style="color:var(--grey-600);font-weight:700;">10</td>
+            <td style="font-weight:600;">OrderIntake_Enrich_To_Target_Map</td>
+            <td><span class="badge badge-map">Map</span></td>
+            <td class="mono">1b9adecd-6de3-433f</td>
+            <td style="font-size:12px;color:var(--grey-600);">Enrichment_User + 6 DPP functions → OrderIntake_Target</td>
+          </tr>
+          <tr>
+            <td style="color:var(--grey-600);font-weight:700;">11</td>
+            <td style="font-weight:600;">[SUB] OrderIntake_BusinessLogic</td>
+            <td><span class="badge badge-sub">Process · Subprocess</span></td>
+            <td class="mono">580c6f23-c628-4de6</td>
+            <td style="font-size:12px;color:var(--grey-600);">Core logic: extract → enrich → map → fan-out</td>
+          </tr>
+          <tr>
+            <td style="color:var(--grey-600);font-weight:700;">12</td>
+            <td style="font-weight:600;">OrderIntake_WSS_Wrapper</td>
+            <td><span class="badge badge-process">Process · WSS</span></td>
+            <td class="mono">8810ec58-dae9-4df8</td>
+            <td style="font-size:12px;color:var(--grey-600);">Thin wrapper: WSS Listen → Process Call → Return Docs</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ API REFERENCE -->
+<section id="api-reference" style="scroll-margin-top:48px;">
+  <div class="section-label">04 · API Reference</div>
+  <div class="section-title">REST Endpoint</div>
+  <p class="section-desc">The integration exposes a single synchronous REST endpoint via Boomi's Shared Web Server on MyMacAtom.</p>
+
+  <div class="endpoint">
+    <span class="method-post">POST</span>
+    <span class="endpoint-url">http://localhost:9090/ws/simple/createOrder</span>
+  </div>
+
+  <div class="highlight-box">
+    <strong>URL Pattern</strong> — Boomi WSS path is constructed as: <code>lowercase(operationType) + SentenceCase(objectName)</code><br/>
+    <code>operationType="CREATE"</code> + <code>objectName="order"</code> → <strong>/ws/simple/createOrder</strong>
+  </div>
+
+  <div class="grid-2" style="margin-top:24px;">
+    <div>
+      <h4 style="font-size:14px;font-weight:700;color:var(--ltim-dark);margin-bottom:12px;">Request Body</h4>
+      <div class="code-block">
+        <div class="code-block-header">
+          <span>application/json</span>
+        </div>
+        <pre>{
+  <span class="key">"orderId"</span>:     <span class="str">"ORD-20260408-001"</span>,
+  <span class="key">"customerId"</span>:  <span class="str">"3"</span>,
+  <span class="key">"orderType"</span>:   <span class="str">"standard"</span>,
+  <span class="key">"callbackUrl"</span>: <span class="str">"https://example.com/callbacks"</span>,
+  <span class="key">"totalAmount"</span>: <span class="val">249.99</span>,
+  <span class="key">"currency"</span>:    <span class="str">"USD"</span>,
+  <span class="key">"items"</span>: [
+    {
+      <span class="key">"sku"</span>:      <span class="str">"SKU-A100"</span>,
+      <span class="key">"quantity"</span>: <span class="val">2</span>,
+      <span class="key">"price"</span>:    <span class="val">99.99</span>
+    }
+  ]
+}</pre>
+      </div>
+    </div>
+    <div>
+      <h4 style="font-size:14px;font-weight:700;color:var(--ltim-dark);margin-bottom:12px;">Response · HTTP 200</h4>
+      <div class="code-block">
+        <div class="code-block-header">
+          <span>application/json · 200 Accepted</span>
+        </div>
+        <pre>{
+  <span class="key">"status"</span>:  <span class="str">"accepted"</span>,
+  <span class="key">"message"</span>: <span class="str">"Order received and</span>
+<span class="str">             processing initiated"</span>,
+  <span class="key">"orderId"</span>: <span class="str">"ORD-20260408-001"</span>
+}</pre>
+      </div>
+
+      <h4 style="font-size:14px;font-weight:700;color:var(--ltim-dark);margin:16px 0 12px;">Response · HTTP 500 (Error)</h4>
+      <div class="code-block">
+        <div class="code-block-header">
+          <span>application/json · error path</span>
+        </div>
+        <pre>{
+  <span class="key">"status"</span>:  <span class="str">"error"</span>,
+  <span class="key">"error"</span>:   <span class="str">"ProcessingException"</span>,
+  <span class="key">"message"</span>: <span class="str">"&lt;boomi error detail&gt;"</span>
+}</pre>
+      </div>
+    </div>
+  </div>
+
+  <h4 style="font-size:14px;font-weight:700;color:var(--ltim-dark);margin:24px 0 12px;">Test Command</h4>
+  <div class="code-block">
+    <div class="code-block-header">
+      <span>bash · copy &amp; run from terminal</span>
+    </div>
+    <pre><span class="kw">curl</span> -s -X POST http://localhost:9090/ws/simple/createOrder \
+  -H <span class="str">"Content-Type: application/json"</span> \
+  -d <span class="str">'{
+    "orderId":     "ORD-20260408-001",
+    "customerId":  "3",
+    "orderType":   "standard",
+    "callbackUrl": "https://example.com/callbacks/orders",
+    "totalAmount": 249.99,
+    "currency":    "USD",
+    "items": [
+      {"sku": "SKU-A100", "quantity": 2, "price": 99.99},
+      {"sku": "SKU-B200", "quantity": 1, "price": 50.01}
+    ]
+  }'</span> | python3 -m json.tool</pre>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ DATA FLOW -->
+<section id="data-flow" style="scroll-margin-top:48px;">
+  <div class="section-label">05 · Data Flow</div>
+  <div class="section-title">Map Transformation Logic</div>
+  <p class="section-desc">The map component <strong>OrderIntake_Enrich_To_Target_Map</strong> combines live enrichment profile data with DPP-preserved order fields to produce the canonical target document.</p>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-header" style="background:var(--grey-50);">
+        <span>📥</span>
+        <h3>Source: Enrichment_User_JSON_Profile</h3>
+      </div>
+      <div class="card-body">
+        <table>
+          <thead>
+            <tr>
+              <th>Field</th><th>Key</th><th>Maps To</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>name</td><td class="mono">key 4</td><td style="color:var(--boomi-blue);font-weight:600;">customerName</td></tr>
+            <tr><td>email</td><td class="mono">key 5</td><td style="color:var(--boomi-blue);font-weight:600;">customerEmail</td></tr>
+            <tr><td>company.name</td><td class="mono">key 9</td><td style="color:var(--boomi-blue);font-weight:600;">companyName</td></tr>
+          </tbody>
+        </table>
+        <div style="margin-top:14px;padding:10px;background:var(--grey-50);border-radius:6px;font-size:12px;color:var(--grey-600);">
+          ℹ️ Source profile represents the current document after the REST enrichment call to JSONPlaceholder.
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header" style="background:var(--grey-50);">
+        <span>⚙️</span>
+        <h3>Map Functions: DPP Injection (7 functions)</h3>
+      </div>
+      <div class="card-body">
+        <table>
+          <thead>
+            <tr>
+              <th>Function</th><th>DPP Name</th><th>Target Field</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>fn1: PropertyGet</td><td class="mono">DPP_ORDER_ID</td><td>orderId</td></tr>
+            <tr><td>fn2: PropertyGet</td><td class="mono">DPP_CUSTOMER_ID</td><td>customerId</td></tr>
+            <tr><td>fn3: PropertyGet</td><td class="mono">DPP_ORDER_TYPE</td><td>orderType</td></tr>
+            <tr><td>fn4: PropertyGet</td><td class="mono">DPP_TOTAL_AMOUNT</td><td>totalAmount</td></tr>
+            <tr><td>fn5: PropertyGet</td><td class="mono">DPP_CURRENCY</td><td>currency</td></tr>
+            <tr><td>fn6: PropertyGet</td><td class="mono">DPP_CALLBACK_URL</td><td>callbackUrl</td></tr>
+            <tr><td>fn7: CurrentDate</td><td class="mono">—</td><td>processedAt</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="highlight-box orange" style="margin-top:20px;">
+    <strong>🔑 Why DPPs?</strong> — When the REST connector executes, it outputs a <em>new document</em> (the enrichment response), discarding DDPs attached to the original order document. Dynamic Process Properties (DPPs) are process-scoped and survive across connector boundaries, making them the correct mechanism to bridge the original order fields into the post-enrichment map.
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ DEPLOYMENT -->
+<section id="deployment" style="scroll-margin-top:48px;">
+  <div class="section-label">06 · Deployment</div>
+  <div class="section-title">Deployment Details</div>
+
+  <div class="grid-3">
+    <div class="card">
+      <div class="card-header"><span>🏗</span><h3>Platform Folder</h3></div>
+      <div class="card-body">
+        <div class="mono" style="font-size:12px;line-height:1.8;">
+          Boomi_SaurabhSingh<br/>
+          └── boomi_companion<br/>
+          &nbsp;&nbsp;&nbsp;&nbsp;└── <strong>OrderIntake-APIFanOut</strong>
+        </div>
+        <div style="margin-top:10px;font-size:12px;color:var(--grey-600);">Folder ID: Rjo4NDQ3ODAy</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span>⚛</span><h3>Runtime Atom</h3></div>
+      <div class="card-body">
+        <div style="font-size:14px;font-weight:700;color:var(--ltim-dark);">MyMacAtom</div>
+        <div class="mono" style="font-size:11px;margin-top:6px;">2c8878e0-3c4b-41f5</div>
+        <div style="display:flex;align-items:center;gap:6px;margin-top:10px;">
+          <span style="width:8px;height:8px;border-radius:50%;background:var(--success);display:inline-block;"></span>
+          <span style="font-size:12px;color:var(--success);font-weight:700;">ONLINE · RUNNING</span>
+        </div>
+        <div style="font-size:11px;color:var(--grey-600);margin-top:4px;">Version 26.03.2</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span>🌍</span><h3>Environment</h3></div>
+      <div class="card-body">
+        <div style="font-size:14px;font-weight:700;color:var(--ltim-dark);">Local Development</div>
+        <div class="mono" style="font-size:11px;margin-top:6px;">61932bac-4fc6-407c</div>
+        <div style="margin-top:10px;font-size:12px;color:var(--grey-600);">
+          Shared Web Server: <code>localhost:9090</code>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ EXTENSIBILITY -->
+<section id="next-steps" style="scroll-margin-top:48px;">
+  <div class="section-label">07 · Next Steps</div>
+  <div class="section-title">Extension Opportunities</div>
+  <p class="section-desc">This integration provides a solid foundation. The following enhancements can be layered in for production readiness.</p>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-header"><span>🔌</span><h3>Replace Placeholders with Real Systems</h3></div>
+      <div class="card-body" style="display:flex;flex-direction:column;gap:10px;font-size:13px;">
+        <div>→ <strong>Branch 1</strong>: Replace Notify with actual DB connector (JDBC, Salesforce, SAP)</div>
+        <div>→ <strong>Branch 2</strong>: Connect to Boomi Event Streams topic using the Event Streams connector</div>
+        <div>→ <strong>Enrichment</strong>: Swap JSONPlaceholder for real CRM / MDM customer lookup</div>
+        <div>→ <strong>Callback</strong>: Enable POST_Callback_Operation using DPP_CALLBACK_URL as dynamic path</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span>🛡</span><h3>Production Hardening</h3></div>
+      <div class="card-body" style="display:flex;flex-direction:column;gap:10px;font-size:13px;">
+        <div>→ Add <strong>Route step</strong> after Map to differentiate standard / express / backorder flows</div>
+        <div>→ Add <strong>JWT / API Key auth</strong> on WSS shared web server for endpoint security</div>
+        <div>→ Add <strong>Document Cache</strong> to preserve items array through enrichment boundary</div>
+        <div>→ Switch workload to <strong>bridge mode</strong> for lower latency on high-volume scenarios</div>
+      </div>
+    </div>
+  </div>
+</section>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ FOOTER -->
+<footer>
+  <div>
+    <div class="footer-brand">LTIMindtree × Boomi · Integration Accelerator Program</div>
+    <div class="footer-meta" style="margin-top:4px;">Built with Boomi Companion Agent · Claude AI · April 2026 · v1.0</div>
+  </div>
+  <div style="display:flex;gap:24px;align-items:center;">
+    <div style="text-align:center;">
+      <div style="font-size:18px;font-weight:900;color:var(--ltim-orange);">LTIMindtree</div>
+      <div style="font-size:10px;letter-spacing:1px;opacity:.6;">MAKING AN IMPACT THAT MATTERS</div>
+    </div>
+    <div style="width:1px;height:36px;background:rgba(255,255,255,.2);"></div>
+    <div style="text-align:center;">
+      <div style="font-size:18px;font-weight:900;color:var(--boomi-teal);">Boomi</div>
+      <div style="font-size:10px;letter-spacing:1px;opacity:.6;">CONNECT EVERYONE TO EVERYTHING</div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  (function () {
+    const links = Array.from(document.querySelectorAll('.nav-link'));
+    const sections = links.map(l => document.querySelector(l.getAttribute('href')));
+
+    function setActive() {
+      const scrollY = window.scrollY + 80;
+      let current = sections[0];
+      sections.forEach(s => { if (s && s.offsetTop <= scrollY) current = s; });
+      links.forEach(l => {
+        l.classList.toggle('active', l.getAttribute('href') === '#' + current.id);
+      });
+    }
+
+    window.addEventListener('scroll', setActive, { passive: true });
+    setActive();
+  })();
+</script>
+
+</body>
+</html>

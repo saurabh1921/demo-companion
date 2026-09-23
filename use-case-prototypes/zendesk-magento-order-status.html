@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Avery Products — Order Status Bot &amp; Boomi Flow Inspector</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --brand:        #03363D;   /* Zendesk deep green */
+    --brand-dark:   #012B31;
+    --brand-tint:   #E5EEEF;
+    --magento:      #E1622F;
+    --magento-tint: #FDF0EA;
+    --boomi:        #1B4DFF;
+    --boomi-tint:   #ECF1FF;
+    --ink:          #10202A;
+    --muted:        #5C7080;
+    --faint:        #8FA3B0;
+    --bg:           #F4F7F9;
+    --surface:      #FFFFFF;
+    --border:       #DCE5EB;
+    --border-soft:  #EDF2F5;
+    --success:      #1B873F;
+    --success-tint: #EBF7EF;
+    --warn:         #B7791F;
+    --warn-tint:    #FDF6E7;
+    --error:        #C42B2B;
+    --error-tint:   #FCEDED;
+    --radius:       10px;
+    --shadow:       0 1px 2px rgba(16,32,42,.06), 0 4px 12px rgba(16,32,42,.05);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  code, pre, .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+
+  /* ---------- chrome ---------- */
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+  }
+  .logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px; letter-spacing: -.01em; }
+  .logo-mark {
+    width: 28px; height: 28px; border-radius: 7px;
+    background: linear-gradient(135deg, var(--brand) 0%, var(--brand-dark) 100%);
+    color: #fff; display: grid; place-items: center; font-size: 13px; font-weight: 700;
+  }
+  .logo-sub { color: var(--muted); font-weight: 500; font-size: 13px; border-left: 1px solid var(--border); padding-left: 16px; margin-left: 6px; }
+  .spacer { flex: 1; }
+
+  .mode-toggle { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
+  .switch { display: inline-flex; background: var(--bg); border: 1px solid var(--border); border-radius: 7px; padding: 2px; }
+  .switch button {
+    border: 0; background: transparent; font: inherit; font-size: 12px; font-weight: 500;
+    color: var(--muted); padding: 5px 11px; border-radius: 5px; cursor: pointer;
+  }
+  .switch button.on { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(16,32,42,.1); }
+
+  /* ---------- layout ---------- */
+  .wrap { max-width: 1500px; margin: 0 auto; padding: 20px 24px 60px; }
+  .cols { display: grid; grid-template-columns: 390px minmax(0,1fr); gap: 20px; align-items: start; }
+  @media (max-width: 1080px) { .cols { grid-template-columns: 1fr; } }
+
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+  .panel-head {
+    padding: 13px 16px; border-bottom: 1px solid var(--border-soft);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .panel-title { font-weight: 600; font-size: 13px; }
+  .panel-body { padding: 16px; }
+  .eyebrow { font-size: 11px; color: var(--faint); font-weight: 500; text-transform: uppercase; letter-spacing: .04em; }
+
+  .alert { display: none; margin-bottom: 16px; padding: 11px 14px; border-radius: 8px; font-size: 13px; border: 1px solid; }
+  .alert.show { display: block; }
+  .alert.err { background: var(--error-tint); border-color: #F0C4C4; color: #8E1F1F; }
+  .alert.info { background: var(--boomi-tint); border-color: #C9D7FF; color: #14349E; }
+
+  /* ---------- chat ---------- */
+  .chat-shell { display: flex; flex-direction: column; height: 640px; }
+  .chat-head {
+    background: var(--brand); color: #fff; padding: 13px 16px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .avatar { width: 30px; height: 30px; border-radius: 50%; background: rgba(255,255,255,.16); display: grid; place-items: center; font-size: 14px; }
+  .chat-head-name { font-weight: 600; font-size: 13px; }
+  .chat-head-sub { font-size: 11px; opacity: .75; }
+  .chat-log { flex: 1; overflow-y: auto; padding: 16px; background: #FBFCFD; display: flex; flex-direction: column; gap: 12px; }
+
+  .msg { display: flex; gap: 8px; max-width: 92%; }
+  .msg.user { align-self: flex-end; flex-direction: row-reverse; }
+  .bubble { padding: 9px 12px; border-radius: 12px; font-size: 13px; line-height: 1.45; }
+  .msg.bot .bubble { background: var(--surface); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+  .msg.user .bubble { background: var(--brand); color: #fff; border-bottom-right-radius: 4px; }
+  .msg-mark { width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0; display: grid; place-items: center; font-size: 11px; font-weight: 600; }
+  .msg.bot .msg-mark { background: var(--brand-tint); color: var(--brand); }
+  .msg.user .msg-mark { background: var(--border); color: var(--muted); }
+
+  .typing { display: flex; gap: 3px; padding: 4px 2px; }
+  .typing i { width: 6px; height: 6px; border-radius: 50%; background: var(--faint); animation: blink 1.2s infinite; }
+  .typing i:nth-child(2) { animation-delay: .2s; }
+  .typing i:nth-child(3) { animation-delay: .4s; }
+  @keyframes blink { 0%,60%,100% { opacity:.25 } 30% { opacity:1 } }
+
+  /* order cards rendered straight from the API payload */
+  .ocard { border: 1px solid var(--border); border-radius: 10px; background: var(--surface); margin-top: 8px; overflow: hidden; }
+  .ocard-top { padding: 9px 11px; border-bottom: 1px solid var(--border-soft); display: flex; align-items: center; gap: 8px; }
+  .ocard-num { font-weight: 600; font-size: 12.5px; }
+  .ocard-date { font-size: 11px; color: var(--faint); }
+  .pill { font-size: 10.5px; font-weight: 600; padding: 2px 7px; border-radius: 20px; text-transform: capitalize; }
+  .pill.complete { background: var(--success-tint); color: var(--success); }
+  .pill.processing { background: var(--warn-tint); color: var(--warn); }
+  .pill.closed { background: var(--border-soft); color: var(--muted); }
+  .ocard-body { padding: 9px 11px; }
+  .li { display: flex; justify-content: space-between; gap: 10px; font-size: 12px; padding: 3px 0; }
+  .li-name { color: var(--ink); }
+  .li-qty { color: var(--faint); font-size: 11px; }
+  .li-amt { color: var(--muted); white-space: nowrap; }
+  .ocard-foot { border-top: 1px solid var(--border-soft); padding: 8px 11px; display: flex; flex-direction: column; gap: 4px; }
+  .kv { display: flex; justify-content: space-between; font-size: 11.5px; }
+  .kv b { font-weight: 600; }
+  .track { background: var(--brand-tint); border-radius: 6px; padding: 6px 8px; margin-top: 4px; }
+  .track-num { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 500; }
+
+  .chat-input { border-top: 1px solid var(--border); padding: 10px; background: var(--surface); }
+  .chips { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px; }
+  .chip {
+    font: inherit; font-size: 11px; padding: 4px 9px; border-radius: 20px; cursor: pointer;
+    border: 1px solid var(--border); background: var(--surface); color: var(--muted);
+  }
+  .chip:hover { border-color: var(--brand); color: var(--brand); background: var(--brand-tint); }
+  .chip.danger:hover { border-color: var(--error); color: var(--error); background: var(--error-tint); }
+  .input-row { display: flex; gap: 7px; }
+  .input-row input {
+    flex: 1; font: inherit; font-size: 13px; padding: 8px 11px;
+    border: 1px solid var(--border); border-radius: 8px; outline: none;
+  }
+  .input-row input:focus { border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-tint); }
+  .btn {
+    font: inherit; font-weight: 500; font-size: 13px; padding: 8px 15px;
+    border-radius: 8px; border: 1px solid transparent; cursor: pointer;
+  }
+  .btn-primary { background: var(--brand); color: #fff; }
+  .btn-primary:hover { background: var(--brand-dark); }
+  .btn-primary:disabled { opacity: .5; cursor: not-allowed; }
+  .btn-ghost { background: transparent; border-color: var(--border); color: var(--muted); font-size: 12px; padding: 5px 10px; border-radius: 7px; cursor: pointer; font-family: inherit; }
+  .btn-ghost:hover { border-color: var(--faint); color: var(--ink); }
+
+  /* ---------- flow diagram ---------- */
+  .lane { padding: 12px 16px; border-bottom: 1px solid var(--border-soft); }
+  .lane:last-child { border-bottom: 0; }
+  .lane-label { font-size: 10.5px; color: var(--faint); font-weight: 600; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 8px; }
+  .row { display: flex; align-items: center; flex-wrap: wrap; gap: 5px; }
+  .row + .row { margin-top: 7px; }
+  .row.sub { padding-left: 18px; border-left: 2px solid var(--border-soft); margin-left: 6px; }
+
+  .shape {
+    display: inline-flex; align-items: center; gap: 6px;
+    border: 1px solid var(--border); background: var(--surface);
+    border-radius: 7px; padding: 5px 9px; font-size: 11.5px; color: var(--muted);
+    opacity: .45; transition: all .18s; position: relative;
+  }
+  .shape .ic { font-size: 11px; width: 13px; text-align: center; }
+  .shape.hit { opacity: 1; border-color: var(--boomi); background: var(--boomi-tint); color: #14349E; font-weight: 500; }
+  .shape.hit.term-ok  { border-color: var(--success); background: var(--success-tint); color: #146030; }
+  .shape.hit.term-warn{ border-color: var(--warn); background: var(--warn-tint); color: #8A5B12; }
+  .shape.hit.term-err { border-color: var(--error); background: var(--error-tint); color: #8E1F1F; }
+  .shape.hit.magento  { border-color: var(--magento); background: var(--magento-tint); color: #A8451D; }
+  .seq {
+    background: var(--boomi); color: #fff; font-size: 9.5px; font-weight: 700;
+    min-width: 15px; height: 15px; border-radius: 4px; display: grid; place-items: center; padding: 0 3px;
+  }
+  .term-ok .seq { background: var(--success); } .term-warn .seq { background: var(--warn); }
+  .term-err .seq { background: var(--error); }  .magento .seq { background: var(--magento); }
+  .arrow { color: var(--border); font-size: 12px; }
+  .arrow.hit { color: var(--boomi); }
+  .branch-tag {
+    font-size: 9.5px; font-weight: 700; letter-spacing: .03em; padding: 1px 5px; border-radius: 3px;
+    background: var(--border-soft); color: var(--faint); text-transform: uppercase;
+  }
+  .branch-tag.hit { background: var(--boomi); color: #fff; }
+  .note-inline { font-size: 11px; color: var(--faint); font-style: italic; }
+
+  /* ---------- inspector ---------- */
+  .tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--border-soft); padding: 0 16px; overflow-x: auto; }
+  .tab {
+    font: inherit; font-size: 12px; padding: 10px 12px; border: 0; background: transparent;
+    color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap;
+  }
+  .tab.on { color: var(--boomi); border-bottom-color: var(--boomi); font-weight: 600; }
+  .tab:disabled { opacity: .35; cursor: not-allowed; }
+  pre.json {
+    background: #0F1B24; color: #D6E2EA; padding: 13px; border-radius: 8px;
+    font-size: 11.5px; line-height: 1.55; overflow: auto; max-height: 340px; white-space: pre-wrap; word-break: break-word;
+  }
+  .json .k { color: #7FD1E8; } .json .s { color: #B9E58C; }
+  .json .n { color: #F5C778; } .json .b { color: #E58CC0; }
+  .url-box {
+    background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 11px;
+    font-family: 'JetBrains Mono', monospace; font-size: 11px; line-height: 1.7; word-break: break-all; color: var(--ink);
+  }
+  .url-box .verb { color: var(--magento); font-weight: 600; }
+  .url-box .qp { color: var(--muted); }
+  .hint { font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+  .empty { padding: 34px 16px; text-align: center; color: var(--faint); font-size: 13px; }
+
+  .foot { margin-top: 18px; font-size: 11.5px; color: var(--faint); line-height: 1.8; }
+  .foot code { background: var(--surface); border: 1px solid var(--border); padding: 1px 5px; border-radius: 4px; font-size: 11px; color: var(--muted); }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 11px; color: var(--muted); align-items: center; }
+  .legend i { display: inline-block; width: 9px; height: 9px; border-radius: 3px; margin-right: 4px; vertical-align: -1px; }
+</style>
+</head>
+<body>
+<!-- SEDC-NAV:START -->
+<style>
+  .sedc-nav * { box-sizing: border-box; }
+  .sedc-nav {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    margin: 0;
+    background: #072B55;
+    color: #ffffff;
+    font-family: 'Poppins',Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    font-size: 14px;
+    line-height: 1.4;
+  }
+  .sedc-nav-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 10px 20px;
+  }
+  .sedc-nav-brand {
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+  }
+  .sedc-nav-brand:hover,
+  .sedc-nav-brand:focus {
+    text-decoration: underline;
+  }
+  .sedc-nav-jump {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .sedc-nav-label {
+    white-space: nowrap;
+    color: #ffffff;
+  }
+  .sedc-nav-select {
+    font-family: inherit;
+    font-size: 13px;
+    color: #072B55;
+    background: #ffffff;
+    border: 1px solid #ffffff;
+    border-radius: 4px;
+    padding: 5px 8px;
+    max-width: 60vw;
+  }
+  .sedc-nav-rule {
+    height: 3px;
+    width: 100%;
+    background: linear-gradient(90deg,#FF7C66 0%,#A03291 100%);
+  }
+</style>
+<div class="sedc-nav" role="navigation" aria-label="SE Demo Companion navigation">
+  <div class="sedc-nav-bar">
+    <a class="sedc-nav-brand" href="../index.html" target="_top">SE Demo Companion</a>
+    <div class="sedc-nav-jump">
+      <label class="sedc-nav-label" for="sedc-nav-select">Jump to use case</label>
+      <select class="sedc-nav-select" id="sedc-nav-select" onchange="(function(sel){try{var opt=sel.options[sel.selectedIndex];var url=opt&&opt.getAttribute('data-href');if(!url)return;try{window.top.location.href=url;}catch(e){window.location.href=url;}}catch(e){}})(this)">
+        <option value="amc-fee-change-agent" data-href="./amc-fee-change-agent.html">AMC fee-change agent — Finnomena</option>
+        <option value="bvtpa-claims-integration-demo" data-href="./bvtpa-claims-integration-demo.html">Blue Venture TPA claims integration demo — Blue Venture TPA</option>
+        <option value="bvtpa-claims-adjudication-cio-brief" data-href="./bvtpa-claims-adjudication-cio-brief.html">Claims adjudication CIO brief — Blue Venture TPA</option>
+        <option value="delivery-status-sync-demo" data-href="./delivery-status-sync-demo.html">Delivery status sync demo — TOTO</option>
+        <option value="boomi-tenant-ceo-dashboard" data-href="./boomi-tenant-ceo-dashboard.html">Boomi tenant CEO dashboard — Boomi internal tenant</option>
+        <option value="boomi-tenant-30-day-report" data-href="./boomi-tenant-30-day-report.html">Boomi tenant operations report, 30-day view — Boomi internal tenant</option>
+        <option value="json-to-xml-order-integration" data-href="./json-to-xml-order-integration.html">JSON to XML order integration, executive documentation — NTT</option>
+        <option value="edi-850-flight-deck" data-href="./edi-850-flight-deck.html">EDI 850 flight deck — Infosys</option>
+        <option value="whatsapp-to-sap-master-agent" data-href="./whatsapp-to-sap-master-agent.html">WhatsApp to SAP master agent — Boomi internal build</option>
+        <option value="student-xml-to-crm-json" data-href="./student-xml-to-crm-json.html">Student XML to CRM JSON — Attura</option>
+        <option value="sap-accounting-document-poc-outcome" data-href="./sap-accounting-document-poc-outcome.html">SAP accounting document automation, POC outcome — Abans PLC</option>
+        <option value="abans-sap-posting-poc-dashboard" data-href="./abans-sap-posting-poc-dashboard.html">Abans SAP posting, live POC dashboard — Abans PLC</option>
+        <option value="order-intake-api-fan-out" data-href="./order-intake-api-fan-out.html">Order intake API with multi-target fan-out — LTIMindtree</option>
+        <option value="electromart-track-and-reschedule" data-href="./electromart-track-and-reschedule.html">ElectroMart track order and reschedule delivery — ElectroMart (demo brand)</option>
+        <option value="enterprise-portal-ai-agent" data-href="./enterprise-portal-ai-agent.html">Enterprise portal with an embedded AI agent — ITG</option>
+        <option value="o2c-qad-build-journey" data-href="./o2c-qad-build-journey.html">O2C-QAD build journey — Boomi internal build</option>
+        <option value="boomi-accenture-trivia" data-href="./boomi-accenture-trivia.html">Boomi x Accenture trivia — Boomi internal build</option>
+        <option value="cloud-runtime-sizing-calculator" data-href="./cloud-runtime-sizing-calculator.html">Boomi public cloud runtime sizing estimator — Boomi internal build</option>
+        <option value="coupa-netsuite-vendor-bill" data-href="./coupa-netsuite-vendor-bill.html">Vendor bill pipeline, Coupa to NetSuite — Boomi internal build</option>
+        <option value="coupa-oracle-s2p-console" data-href="./coupa-oracle-s2p-console.html">Source-to-pay flow console, Coupa to Oracle Fusion — Boomi internal build</option>
+        <option value="epic-rauland-adt-nurse-call" data-href="./epic-rauland-adt-nurse-call.html">Epic ADT to Rauland Responder 5, nurse call integration — Boomi internal build</option>
+        <option value="epic-salesforce-trial-screening" data-href="./epic-salesforce-trial-screening.html">Clinical trial screening console, Epic to Salesforce — Meridian Research (demo brand)</option>
+        <option value="jc-hifi-order-tracker" data-href="./jc-hifi-order-tracker.html">JC Hi-Fi order tracker, customer self-service — JC Hi-Fi (demo brand)</option>
+        <option value="pacific-bank-onboarding" data-href="./pacific-bank-onboarding.html">Pacific onboarding console, retail bank customer onboarding — Pacific Islands Community Bank (demo brand)</option>
+        <option value="sea-data-product-assistant" data-href="./sea-data-product-assistant.html">SEA regional performance, data products and an agent over two ERPs — Boomi internal build</option>
+        <option value="servicenow-jira-incident-sync" data-href="./servicenow-jira-incident-sync.html">Incident sync prototype, ServiceNow to Jira — Boomi internal build</option>
+        <option value="zendesk-magento-order-status" data-href="./zendesk-magento-order-status.html" selected>Order status bot and flow inspector, Zendesk to Magento — Avery Products (demo brand)</option>
+        <option value="zoho-netsuite-invoice-sync" data-href="./zoho-netsuite-invoice-sync.html">Invoice sync console, Zoho CRM to NetSuite — Boomi internal build</option>
+      </select>
+    </div>
+  </div>
+  <div class="sedc-nav-rule"></div>
+</div>
+<!-- SEDC-NAV:END -->
+
+
+<header>
+  <div class="logo">
+    <div class="logo-mark">AP</div>
+    Avery Products
+  </div>
+  <div class="logo-sub">Order Status Bot &middot; Boomi Flow Inspector</div>
+  <div class="spacer"></div>
+  <div class="mode-toggle">
+    <span>Data source</span>
+    <div class="switch">
+      <button id="mSim" class="on" onclick="setMode('sim')">Simulated</button>
+      <button id="mLive" onclick="setMode('live')">Live &middot; Boomi</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="alert" id="alert"></div>
+
+  <div class="cols">
+
+    <!-- ============ LEFT: the chatbot ============ -->
+    <div class="panel">
+      <div class="chat-shell">
+        <div class="chat-head">
+          <div class="avatar">&#128172;</div>
+          <div>
+            <div class="chat-head-name">Avery Support</div>
+            <div class="chat-head-sub">Zendesk Web Widget</div>
+          </div>
+        </div>
+        <div class="chat-log" id="log"></div>
+        <div class="chat-input">
+          <div class="chips">
+            <button class="chip" onclick="quick('dana.whitfield@example.com')">Known email</button>
+            <button class="chip" onclick="quick('000000498')">Known order #</button>
+            <button class="chip" onclick="quick('000000999')">Unknown order #</button>
+            <button class="chip" onclick="quick('where is my stuff')">No details</button>
+            <button class="chip danger" onclick="outage()">Magento outage</button>
+            <button class="chip" onclick="resetChat()">Reset</button>
+          </div>
+          <div class="input-row">
+            <input id="inp" placeholder="Order number or email&hellip;" autocomplete="off"
+                   onkeydown="if(event.key==='Enter')send()"/>
+            <button class="btn btn-primary" id="sendBtn" onclick="send()">Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ RIGHT: flow + payloads ============ -->
+    <div>
+      <div class="panel" style="margin-bottom:20px">
+        <div class="panel-head">
+          <span class="panel-title">Boomi process trace</span>
+          <span class="eyebrow" id="traceLabel">idle</span>
+          <div class="spacer"></div>
+          <div class="legend">
+            <span><i style="background:var(--boomi)"></i>executed</span>
+            <span><i style="background:var(--border)"></i>not taken</span>
+          </div>
+        </div>
+        <div id="flow"></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <span class="panel-title">Payload at each hop</span>
+          <div class="spacer"></div>
+          <span class="eyebrow" id="hopHint">run a lookup to populate</span>
+        </div>
+        <div class="tabs" id="tabs"></div>
+        <div class="panel-body" id="hop"><div class="empty">Ask the bot about an order to see the payload transform at each step.</div></div>
+      </div>
+
+      <div class="foot">
+        <div><b>Boomi components</b> &mdash; folder <code>Zendesk-MagentoOrderStatus</code>:
+          <code>API - Zendesk Chatbot Order Status</code> (WSS listener) &rarr;
+          <code>[SUB] Magento Order Status Lookup</code> (logic) &rarr;
+          <code>Map Magento Orders to Chat Payload</code>.</div>
+        <div id="footMode"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* ==========================================================================
+   Simulated Magento dataset.
+   The deployed Boomi process is in demo mode, so its Message steps return
+   these same orders. Here they sit behind an email/order-number index so the
+   "no match" branch is reachable the way it would be against real Magento.
+   ========================================================================== */
+const CUSTOMER_EMAIL = 'dana.whitfield@example.com';
+
+const ORDERS = {
+  '000000512': {
+    increment_id: '000000512', created_at: '2026-08-09 09:14:52',
+    status: 'processing', state: 'processing', grand_total: 59.47,
+    order_currency_code: 'USD', customer_email: CUSTOMER_EMAIL,
+    customer_firstname: 'Dana', customer_lastname: 'Whitfield',
+    shipping_description: 'Best Way - Table Rate',
+    items: [
+      { sku: 'AVE-5160',  name: 'Easy Peel Address Labels, 1 x 2-5/8 in., 750 ct', qty_ordered: 2, price: 18.99, row_total: 37.98 },
+      { sku: 'AVE-74459', name: 'Name Badge Holder Kit, Clip Style',                qty_ordered: 1, price: 21.49, row_total: 21.49 }
+    ],
+    extension_attributes: { tracking_number: '', carrier_title: '' }
+  },
+  '000000498': {
+    increment_id: '000000498', created_at: '2026-07-28 14:32:11',
+    status: 'complete', state: 'complete', grand_total: 88.94,
+    order_currency_code: 'USD', customer_email: CUSTOMER_EMAIL,
+    customer_firstname: 'Dana', customer_lastname: 'Whitfield',
+    shipping_description: 'Flat Rate - Fixed',
+    items: [
+      { sku: 'AVE-79779', name: 'Heavy-Duty View 3-Ring Binder, 1.5 in., White', qty_ordered: 3, price: 14.99, row_total: 44.97 },
+      { sku: 'AVE-8160',  name: 'Easy Peel Address Labels, Inkjet, 1500 ct',     qty_ordered: 1, price: 26.99, row_total: 26.99 },
+      { sku: 'AVE-11901', name: 'Ultra Tabs Repositionable Tabs, 2 in., 24 ct',  qty_ordered: 2, price: 8.49,  row_total: 16.98 }
+    ],
+    extension_attributes: { tracking_number: '1Z999AA10123456784', carrier_title: 'United Parcel Service' }
+  },
+  '000000471': {
+    increment_id: '000000471', created_at: '2026-06-30 11:02:44',
+    status: 'closed', state: 'closed', grand_total: 45.00,
+    order_currency_code: 'USD', customer_email: CUSTOMER_EMAIL,
+    customer_firstname: 'Dana', customer_lastname: 'Whitfield',
+    shipping_description: 'Flat Rate - Fixed',
+    items: [{ sku: 'AVE-5395', name: 'Adhesive Name Badges, 2-1/3 x 3-3/8 in., 100 ct', qty_ordered: 4, price: 11.25, row_total: 45.00 }],
+    extension_attributes: { tracking_number: '9405511899223197428490', carrier_title: 'United States Postal Service' }
+  }
+};
+
+const MAGENTO_BASE = 'https://magento-demo.example.com/rest/V1';
+
+/* ==========================================================================
+   The Boomi canvas, as shipped. Labels match the shape userlabels exactly so
+   this diagram and the real process read the same way side by side.
+   ========================================================================== */
+const IC = { start:'&#9654;', dec:'&#9670;', prop:'&#9636;', msg:'&#9993;', rest:'&#8646;',
+             map:'&#8644;', ret:'&#9633;', notify:'&#9873;', trycatch:'&#9888;', call:'&#8690;' };
+
+const LANES = [
+  { label: 'Wrapper &mdash; API - Zendesk Chatbot Order Status', rows: [
+    [ {id:'w1', ic:IC.start, l:'Start · WSS Listen'},
+      {id:'w4', ic:IC.prop,  l:'Flag Wrapper Invocation'},
+      {id:'w2', ic:IC.call,  l:'Look Up Order Status'} ]
+  ]},
+  { label: 'Subprocess entry', rows: [
+    [ {id:'s1',  ic:IC.start, l:'Start · Data Passthrough'},
+      {id:'s60', ic:IC.dec,   l:'Called From Wrapper?', branch:true},
+      {id:'s2',  ic:IC.prop,  l:'Set Demo Mode Flag'},
+      {id:'s3',  ic:IC.trycatch, l:'Catch Magento Failures'},
+      {id:'s4',  ic:IC.prop,  l:'Extract Request Fields'} ],
+    [ {id:'s61', ic:IC.msg, l:'TEST HARNESS · Standalone Sample Request', note:'only when run outside the wrapper'} ]
+  ]},
+  { label: 'Which lookup?', rows: [
+    [ {id:'s5', ic:IC.dec, l:'Order ID Provided?', branch:true} ],
+    [ {id:'s6', ic:IC.dec, l:'Email Provided?', branch:true}, {sub:true} ]
+  ]},
+  { label: 'Retrieve from Magento', rows: [
+    [ {id:'s10', ic:IC.dec,  l:'Demo Mode? (Order ID Lookup)', branch:true},
+      {id:'s11', ic:IC.msg,  l:'Mock: Magento Order by ID'} ],
+    [ {id:'s12', ic:IC.msg,  l:'Clear Document Before GET'},
+      {id:'s13', ic:IC.rest, l:'GET Magento Order by Increment ID', magento:true} ],
+    [ {id:'s20', ic:IC.dec,  l:'Demo Mode? (Email Lookup)', branch:true},
+      {id:'s21', ic:IC.msg,  l:'Mock: Magento Orders by Email'} ],
+    [ {id:'s22', ic:IC.msg,  l:'Clear Document Before GET'},
+      {id:'s23', ic:IC.rest, l:'GET Magento Orders by Email', magento:true} ]
+  ]},
+  { label: 'Shape the answer', rows: [
+    [ {id:'s30', ic:IC.dec, l:'Orders Found?', branch:true},
+      {id:'s31', ic:IC.map, l:'Format Orders for Chat Window', ok:true} ],
+    [ {id:'s32', ic:IC.msg, l:'Not Found Response', warn:true},
+      {id:'s7',  ic:IC.msg, l:'Need More Info Response', warn:true} ],
+    [ {id:'s40', ic:IC.notify, l:'Log Magento Failure (Internal Only)', err:true},
+      {id:'s41', ic:IC.msg,    l:'Generic Unavailable Response', err:true} ]
+  ]},
+  { label: 'Return to the chat widget', rows: [
+    [ {id:'s51', ic:IC.notify, l:'Log Outgoing Chat Payload'},
+      {id:'s50', ic:IC.ret,    l:'Chat Response'},
+      {id:'w3',  ic:IC.ret,    l:'Return Chat Payload'} ]
+  ]}
+];
+
+let MODE = 'sim';
+let outageArmed = false;
+let hops = {}, activeHop = null, trace = null;
+
+/* ---------- helpers ---------- */
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const $ = id => document.getElementById(id);
+
+function hiJson(obj) {
+  return esc(JSON.stringify(obj, null, 2))
+    .replace(/&quot;([^&]+?)&quot;(\s*:)/g, '<span class="k">"$1"</span>$2')
+    .replace(/:\s&quot;(.*?)&quot;/g, ': <span class="s">"$1"</span>')
+    .replace(/:\s(-?\d+\.?\d*)/g, ': <span class="n">$1</span>')
+    .replace(/:\s(true|false|null)/g, ': <span class="b">$1</span>');
+}
+
+function showAlert(kind, html) {
+  const a = $('alert');
+  a.className = 'alert show ' + kind;
+  a.innerHTML = html;
+}
+function hideAlert(){ $('alert').className = 'alert'; }
+
+/* ==========================================================================
+   The transformation the Boomi map performs.
+   Mirrors Map Magento Orders to Chat Payload field for field, including the
+   two behaviours confirmed in the process logs: numeric Magento fields land
+   in character target fields (so they serialise as strings), and empty
+   strings produce no key at all rather than an empty one.
+   ========================================================================== */
+function applyMap(magento) {
+  const out = {
+    status: 'found',
+    message: 'Here is what I found for you.',   // Default on the map component
+    order_count: magento.total_count,
+    orders: magento.items.map(o => {
+      const row = {
+        order_number: o.increment_id,
+        order_date: o.created_at,
+        order_status: o.status,
+        order_total: o.grand_total.toFixed(2),
+        currency: o.order_currency_code,
+        shipping_method: o.shipping_description
+      };
+      const t = o.extension_attributes || {};
+      if (t.tracking_number) row.tracking_number = t.tracking_number;
+      if (t.carrier_title)   row.carrier = t.carrier_title;
+      row.line_items = o.items.map(li => ({
+        item_name: li.name,
+        sku: li.sku,
+        quantity: String(li.qty_ordered),
+        item_total: li.row_total.toFixed(2)
+      }));
+      return row;
+    })
+  };
+  return out;
+}
+
+/* Query string exactly as the REST operation components build it. */
+function magentoQuery(field, value, pageSize, sorted) {
+  const p = [
+    ['searchCriteria[filter_groups][0][filters][0][field]', field],
+    ['searchCriteria[filter_groups][0][filters][0][condition_type]', 'eq'],
+    ['searchCriteria[filter_groups][0][filters][0][value]', value]
+  ];
+  if (sorted) {
+    p.push(['searchCriteria[sortOrders][0][field]', 'created_at']);
+    p.push(['searchCriteria[sortOrders][0][direction]', 'DESC']);
+  }
+  p.push(['searchCriteria[pageSize]', String(pageSize)]);
+  p.push(['searchCriteria[currentPage]', '1']);
+  return p;
+}
+
+/* ==========================================================================
+   Simulated run of the deployed process. Returns the response plus the exact
+   ordered list of shapes it walked, which is what drives the diagram.
+   ========================================================================== */
+function simulate(req) {
+  const t = [];               // shape ids in execution order
+  const hop = {};
+  hop.request = req;
+
+  t.push('w1','w4','w2','s1');
+  t.push('s60');              // Called From Wrapper? -> true
+  t.push('s2','s3','s4');
+
+  const orderId = (req.order_id || '').trim();
+  const email   = (req.email || '').trim();
+
+  let branch, magento = null;
+
+  t.push('s5');                                   // Order ID Provided?
+  if (orderId) {
+    branch = 'order';
+    t.push('s10','s11');                          // demo mode -> mock message
+    const o = ORDERS[orderId];
+    magento = { items: o ? [o] : [], total_count: o ? 1 : 0 };
+    hop.magento_request = {
+      method: 'GET', url: MAGENTO_BASE + '/orders',
+      params: magentoQuery('increment_id', orderId, 1, false)
+    };
+  } else {
+    t.push('s6');                                 // Email Provided?
+    if (email) {
+      branch = 'email';
+      t.push('s20','s21');
+      const mine = Object.values(ORDERS)
+        .filter(o => o.customer_email.toLowerCase() === email.toLowerCase())
+        .sort((a, b) => b.created_at.localeCompare(a.created_at))
+        .slice(0, 3);
+      magento = { items: mine, total_count: mine.length };
+      hop.magento_request = {
+        method: 'GET', url: MAGENTO_BASE + '/orders',
+        params: magentoQuery('customer_email', email, 3, true)
+      };
+    } else {
+      branch = 'none';
+      t.push('s7');                               // Need More Info Response
+      const body = {
+        status: 'not_found',
+        message: 'I need either your order number or the email address used at checkout before I can look that up.',
+        order_count: 0, orders: []
+      };
+      t.push('s51','s50','w3');
+      hop.response = body;
+      return { body, trace: t, hop, outcome: 'warn' };
+    }
+  }
+
+  // The connector throws -> try/catch diverts to the generic response.
+  if (outageArmed) {
+    t.push('s40','s41','s51','s50','w3');
+    hop.magento_response = { error: 'connector failure',
+      detail: 'access denied ("java.net.SocketPermission" "magento-demo.example.com" "resolve")' };
+    const body = {
+      status: 'error',
+      message: 'I am temporarily unable to retrieve order details right now. Please try again in a few minutes, or I can connect you with a support agent.',
+      order_count: 0, orders: []
+    };
+    hop.response = body;
+    return { body, trace: t, hop, outcome: 'err', branch };
+  }
+
+  hop.magento_response = magento;
+
+  t.push('s30');                                  // Orders Found?
+  let body, outcome;
+  if (magento.total_count > 0) {
+    t.push('s31');
+    body = applyMap(magento);
+    outcome = 'ok';
+  } else {
+    t.push('s32');
+    body = {
+      status: 'not_found',
+      message: 'I could not find any orders matching that information. Please double-check the order number, or the email address used at checkout.',
+      order_count: 0, orders: []
+    };
+    outcome = 'warn';
+  }
+  t.push('s51','s50','w3');
+  hop.response = body;
+  return { body, trace: t, hop, outcome, branch };
+}
+
+/* ==========================================================================
+   Live mode. Boomi returns only the finished chat payload, so the trace is
+   inferred from it rather than observed - flagged as such in the UI.
+   ========================================================================== */
+async function callLive(req) {
+  const res = await fetch('/api/lookup', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(req)
+  });
+  const body = await res.json();
+  if (body && body.error && !body.status) throw new Error(body.message || 'Boomi call failed');
+
+  const t = ['w1','w4','w2','s1','s60','s2','s3','s4'];
+  const orderId = (req.order_id||'').trim(), email = (req.email||'').trim();
+  t.push('s5');
+  if (orderId)      t.push('s10');
+  else { t.push('s6'); if (email) t.push('s20'); }
+
+  let outcome = 'ok';
+  if (body.status === 'found')            { t.push('s30','s31'); }
+  else if (body.status === 'error')       { t.push('s40','s41'); outcome = 'err'; }
+  else if (!orderId && !email)            { t.push('s7');        outcome = 'warn'; }
+  else                                    { t.push('s30','s32'); outcome = 'warn'; }
+  t.push('s51','s50','w3');
+
+  return {
+    body, trace: t, outcome, inferred: true,
+    hop: { request: req, response: body }
+  };
+}
+
+/* ---------- flow diagram ---------- */
+function renderFlow(hit) {
+  const seq = {};
+  (hit || []).forEach((id, i) => { if (seq[id] === undefined) seq[id] = i + 1; });
+
+  $('flow').innerHTML = LANES.map(lane => `
+    <div class="lane">
+      <div class="lane-label">${lane.label}</div>
+      ${lane.rows.map(row => {
+        const cells = row.filter(c => !c.sub);
+        const isSub = row.some(c => c.sub);
+        return `<div class="row${isSub ? ' sub' : ''}">` + cells.map((c, i) => {
+          const on = seq[c.id] !== undefined;
+          const cls = ['shape', on ? 'hit' : '',
+                       on && c.ok ? 'term-ok' : '', on && c.warn ? 'term-warn' : '',
+                       on && c.err ? 'term-err' : '', on && c.magento ? 'magento' : ''].join(' ');
+          const arrow = i > 0 ? `<span class="arrow${on ? ' hit' : ''}">&rarr;</span>` : '';
+          return arrow + `<span class="${cls}">
+              ${on ? `<span class="seq">${seq[c.id]}</span>` : ''}
+              <span class="ic">${c.ic}</span>${esc(c.l)}
+            </span>` + (c.note ? ` <span class="note-inline">${esc(c.note)}</span>` : '');
+        }).join('') + `</div>`;
+      }).join('')}
+    </div>`).join('');
+}
+
+/* ---------- payload inspector ---------- */
+function renderHops() {
+  const defs = [
+    { k: 'request',          t: '1 · Chat request' },
+    { k: 'magento_request',  t: '2 · Magento query' },
+    { k: 'magento_response', t: '3 · Magento response' },
+    { k: 'response',         t: '4 · Chat payload' }
+  ];
+  $('tabs').innerHTML = defs.map(d => {
+    const has = hops[d.k] !== undefined;
+    return `<button class="tab ${activeHop === d.k ? 'on' : ''}" ${has ? '' : 'disabled'}
+             onclick="activeHop='${d.k}';renderHops()">${d.t}</button>`;
+  }).join('');
+
+  const v = hops[activeHop];
+  if (v === undefined) { $('hop').innerHTML = `<div class="empty">Nothing captured for this step.</div>`; return; }
+
+  let html = '';
+  if (activeHop === 'request') {
+    html = `<div class="hint">Posted by the Zendesk widget to the Boomi listener
+            <code>/ws/simple/queryZendeskOrderStatus</code>. Matches profile
+            <code>j.Zendesk.OrderStatus.REQ</code>.</div><pre class="json">${hiJson(v)}</pre>`;
+  } else if (activeHop === 'magento_request') {
+    html = `<div class="hint">Built by the REST operation component. The highlighted value is the only
+            part supplied at runtime &mdash; everything else is fixed configuration.</div>
+            <div class="url-box"><span class="verb">${v.method}</span> ${esc(v.url)}<br/>` +
+            v.params.map(([k, val], i) =>
+              `<span class="qp">&nbsp;&nbsp;${i === 0 ? '?' : '&amp;'}${esc(k)}=</span>${esc(val)}`
+            ).join('<br/>') + `</div>`;
+  } else if (activeHop === 'magento_response') {
+    html = `<div class="hint">Raw Magento order search result, validated against
+            <code>j.Magento.OrderSearch.RESP</code>. Note <code>total_count</code> &mdash; that is what the
+            <b>Orders Found?</b> decision tests.</div><pre class="json">${hiJson(v)}</pre>`;
+  } else {
+    html = `<div class="hint">What the widget renders. Produced by the map (or by a Message step on the
+            not-found / error branches) and shaped by <code>j.Zendesk.OrderStatus.RESP</code>.</div>
+            <pre class="json">${hiJson(v)}</pre>`;
+  }
+  $('hop').innerHTML = html;
+}
+
+/* ---------- chat rendering ---------- */
+function addMsg(who, html) {
+  const d = document.createElement('div');
+  d.className = 'msg ' + who;
+  d.innerHTML = `<div class="msg-mark">${who === 'bot' ? 'A' : 'You'}</div><div class="bubble">${html}</div>`;
+  $('log').appendChild(d);
+  $('log').scrollTop = $('log').scrollHeight;
+  return d;
+}
+
+function orderCard(o) {
+  const items = o.line_items || [];
+  return `<div class="ocard">
+    <div class="ocard-top">
+      <span class="ocard-num">#${esc(o.order_number)}</span>
+      <span class="pill ${esc(o.order_status)}">${esc(o.order_status)}</span>
+      <span class="spacer" style="flex:1"></span>
+      <span class="ocard-date">${esc((o.order_date || '').split(' ')[0])}</span>
+    </div>
+    <div class="ocard-body">
+      ${items.map(li => `<div class="li">
+          <span class="li-name">${esc(li.item_name)} <span class="li-qty">&times;${esc(li.quantity)}</span></span>
+          <span class="li-amt">${esc(o.currency === 'USD' ? '$' : '')}${esc(li.item_total)}</span>
+        </div>`).join('')}
+    </div>
+    <div class="ocard-foot">
+      <div class="kv"><span>Total</span><b>${esc(o.currency === 'USD' ? '$' : '')}${esc(o.order_total)} ${esc(o.currency)}</b></div>
+      <div class="kv"><span>Shipping</span><span>${esc(o.shipping_method || '—')}</span></div>
+      ${o.tracking_number ? `<div class="track">
+          <div class="kv"><span>${esc(o.carrier || 'Carrier')}</span></div>
+          <div class="track-num">${esc(o.tracking_number)}</div>
+        </div>` : ''}
+    </div>
+  </div>`;
+}
+
+function renderAnswer(body) {
+  let html = esc(body.message);
+  if (body.status === 'found' && body.orders && body.orders.length) {
+    html += body.orders.map(orderCard).join('');
+  }
+  addMsg('bot', html);
+}
+
+/* ---------- driving the thing ---------- */
+function buildRequest(text) {
+  const s = text.trim();
+  const isEmail = /\S+@\S+\.\S+/.test(s);
+  const orderMatch = s.match(/\b\d{4,}\b/);
+  return {
+    request_type: 'order_status',
+    email: isEmail ? s : '',
+    order_id: (!isEmail && orderMatch) ? orderMatch[0] : '',
+    conversation_id: 'zd-' + Math.floor(10000 + Math.random() * 89999)
+  };
+}
+
+async function run(text) {
+  const req = buildRequest(text);
+  $('sendBtn').disabled = true;
+  const typing = addMsg('bot', '<div class="typing"><i></i><i></i><i></i></div>');
+
+  try {
+    const r = MODE === 'sim'
+      ? await new Promise(res => setTimeout(() => res(simulate(req)), 480))
+      : await callLive(req);
+
+    typing.remove();
+    renderAnswer(r.body);
+
+    hops = r.hop || {};
+    activeHop = 'response';
+    trace = r.trace;
+    renderFlow(r.trace);
+    renderHops();
+
+    $('traceLabel').textContent = r.inferred
+      ? 'inferred from response'
+      : `${r.trace.length} shapes executed`;
+    $('hopHint').textContent = MODE === 'sim' ? 'simulated' : 'live Boomi call';
+
+    if (r.inferred) {
+      showAlert('info', '<b>Live mode.</b> Boomi returns only the finished chat payload, so the highlighted ' +
+        'path is inferred from <code>status</code> &mdash; not an observed trace. The Magento hops cannot be seen ' +
+        'from outside the process; check the Boomi process log for those. Switch to Simulated for a step-accurate walk.');
+    }
+  } catch (e) {
+    typing.remove();
+    addMsg('bot', 'Sorry &mdash; something went wrong reaching the service.');
+    showAlert('err', '<b>Request failed.</b> ' + esc(e.message) +
+      '<br/>If the Boomi shared web server is not reachable from this machine, use Simulated mode.');
+  } finally {
+    $('sendBtn').disabled = false;
+    outageArmed = false;
+  }
+}
+
+function send() {
+  const v = $('inp').value.trim();
+  if (!v) return;
+  addMsg('user', esc(v));
+  $('inp').value = '';
+  if (!outageArmed) hideAlert();   // keep the outage explainer on screen for that run
+  run(v);
+}
+function quick(v) { $('inp').value = v; send(); }
+function outage() {
+  outageArmed = true;
+  showAlert('info', '<b>Outage armed.</b> The next lookup will fail at the connector, exercising ' +
+    '<b>Catch Magento Failures</b> &rarr; the generic response. Simulated mode only.');
+  quick('000000498');
+}
+
+function resetChat() {
+  $('log').innerHTML = '';
+  hops = {}; activeHop = null; trace = null;
+  hideAlert();
+  renderFlow([]);
+  renderHops();
+  $('traceLabel').textContent = 'idle';
+  $('hopHint').textContent = 'run a lookup to populate';
+  $('hop').innerHTML = '<div class="empty">Ask the bot about an order to see the payload transform at each step.</div>';
+  addMsg('bot', 'Hi! I can check on an order for you. What is your <b>order number</b>, or the <b>email</b> you used at checkout?');
+}
+
+function setMode(m) {
+  MODE = m;
+  $('mSim').classList.toggle('on', m === 'sim');
+  $('mLive').classList.toggle('on', m === 'live');
+  hideAlert();
+  $('footMode').innerHTML = m === 'sim'
+    ? 'Running <b>simulated</b>: the Boomi logic is replayed in the browser against a small Magento dataset, so every branch is reachable and the trace is step-accurate. Verified to return byte-identical payloads to the live endpoint for the email, order-number and no-details cases. <b>One deliberate difference:</b> an unrecognised order number returns <i>not found</i> here, whereas the deployed process is in demo mode and echoes back any number you give it &mdash; that is how the not-found branch is made reachable.'
+    : 'Running <b>live</b>: requests go through <code>server.py</code> to <code>/ws/simple/queryZendeskOrderStatus</code> with Basic auth from <code>.env</code>, hitting the deployed Boomi processes and their demo-mode Magento mocks.';
+}
+
+setMode('sim');
+// Opened as a file there is no proxy behind Live, so close it off rather than
+// leave a toggle that fails. Simulated is already the default.
+if (location.protocol !== 'http:' && location.protocol !== 'https:') {
+  $('mLive').disabled = true;
+  $('mLive').title = 'Live needs server.py — run it from the original project path';
+}
+resetChat();
+</script>
+</body>
+</html>

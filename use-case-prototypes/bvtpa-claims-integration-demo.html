@@ -1,0 +1,1428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Aware | Blue Venture TPA Claims Integration Demo</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap">
+<style>
+  :root {
+    /* Blue Venture TPA demo palette - approximations of the public brand, not official standards */
+    --blue: #3974B5;
+    --blue-dark: #315B94;
+    --sky: #79BCE2;
+    --slate: #4A5678;
+    --orange: #F15A29;
+
+    --bg: #F5F6F8;
+    --card: #FFFFFF;
+    --border: #E3E7ED;
+    --border-strong: #D2D8E2;
+    --text: #333333;
+    --text-soft: #4A5678;
+    --text-muted: #6B7689;
+
+    --brand: #3974B5;
+    --brand-2: #79BCE2;
+    --brand-soft: #EAF2FA;
+
+    --good: #315B94;
+    --good-bg: #EAF2FA;
+    --info: #4A5678;
+    --info-bg: #EFF1F5;
+    --bad: #F15A29;
+    --bad-bg: #FDEEE7;
+
+    --code-bg: #1E2A3C;
+    --code-text: #D9E4F2;
+    --grid-dot: #E3E7ED;
+
+    --radius: 10px;
+    --radius-sm: 8px;
+    --shadow: 0 1px 2px rgba(49,91,148,.05), 0 2px 8px rgba(49,91,148,.05);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Inter", "Noto Sans Thai", Arial, Helvetica, sans-serif;
+    padding: 0 0 64px;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; }
+  .brandbar { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+  .logo-mark { width: 34px; height: 34px; border-radius: 8px; background: linear-gradient(135deg, var(--brand), var(--brand-2)); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; flex: none; }
+  .brandbar .name { font-weight: 700; font-size: 15px; letter-spacing: .02em; }
+  .brandbar .tag { font-size: 11px; color: var(--text-soft); }
+  .eyebrow { font-size: 11.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--brand); margin-bottom: 6px; }
+  h1 { font-size: 27px; font-weight: 700; margin: 0 0 4px; text-wrap: balance; }
+  .sub { color: var(--text-soft); font-size: 14px; margin: 0 0 6px; max-width: 76ch; line-height: 1.55; }
+  .stakeholder-note { font-size: 12.5px; color: var(--text-soft); margin: 0 0 20px; max-width: 76ch; line-height: 1.5; border-left: 3px solid var(--border); padding-left: 10px; }
+  h2 { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-soft); margin: 28px 0 10px; }
+  .toolbar { display: flex; align-items: center; gap: 10px; margin: 4px 0 18px; flex-wrap: wrap; }
+  .batch-btn, .run-btn { border: none; padding: 9px 16px; border-radius: 6px; font-size: 13.5px; font-weight: 600; cursor: pointer; font-family: inherit; }
+  .batch-btn { background: var(--card); border: 1.5px solid var(--border); color: var(--text-soft); }
+  .batch-btn.active { background: var(--brand-soft); border-color: var(--brand); color: var(--brand); }
+  .run-btn { background: var(--brand); color: #fff; }
+  .run-btn:hover { opacity: .9; }
+  #runNote { font-size: 12.5px; color: var(--text-soft); }
+
+  .canvas-wrap { overflow-x: auto; background: radial-gradient(var(--grid-dot) 1px, transparent 1px); background-size: 22px 22px; border: 1px solid var(--border); border-radius: 10px; padding: 10px; }
+  .canvas { position: relative; width: 1120px; height: 540px; }
+  .canvas svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .flowpath { fill: none; stroke: var(--border); stroke-width: 2; }
+  .flowpath.done { stroke: var(--brand); }
+  .flowpath.info-path.done { stroke: var(--info); }
+  .flowpath.bad-path.done { stroke: var(--bad); }
+  .arrow-fill-default { fill: var(--border); }
+  .arrow-fill-done { fill: var(--brand); }
+  .arrow-fill-info { fill: var(--info); }
+  .arrow-fill-bad { fill: var(--bad); }
+
+  .node { position: absolute; background: var(--card); border: 1.5px solid var(--border); border-left: 5px solid var(--border); border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 6px 10px; font-size: 11.5px; line-height: 1.35; transition: box-shadow .25s, border-color .25s; }
+  .node .kind { font-size: 9px; text-transform: uppercase; letter-spacing: .06em; color: var(--text-soft); margin-bottom: 2px; }
+  .node .label { font-weight: 600; }
+  .node .sub2 { font-size: 10px; color: var(--text-soft); margin-top: 1px; }
+  .node.k-conn { border-left-color: var(--brand); }
+  .node.k-map { border-left-color: var(--brand-2); }
+  .node.k-hub { border-left-color: var(--brand); }
+  .node.k-good { border-left-color: var(--good); }
+  .node.k-info { border-left-color: var(--info); }
+  .node.k-bad { border-left-color: var(--bad); }
+  .node.k-stop { border-radius: 50%; border-left-width: 1.5px; }
+  .node.k-stop.k-good { border-color: var(--good); }
+  .node.k-stop.k-info { border-color: var(--info); }
+  .node.k-stop.k-bad { border-color: var(--bad); }
+  .node.active { box-shadow: 0 0 0 3px rgba(11,77,162,.18); border-color: var(--brand); }
+  .node.k-bad.active { box-shadow: 0 0 0 3px rgba(192,57,43,.18); border-color: var(--bad); }
+  .node.k-info.active { box-shadow: 0 0 0 3px rgba(14,124,134,.18); border-color: var(--info); }
+
+  .badge { position: absolute; top: -10px; right: -8px; background: var(--text); color: var(--bg); font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 999px; opacity: 0; transform: translateY(4px); transition: opacity .3s, transform .3s; }
+  .badge.show { opacity: 1; transform: translateY(0); }
+  .badge.good { background: var(--good); color: #fff; }
+  .badge.info { background: var(--info); color: #fff; }
+  .badge.bad { background: var(--bad); color: #fff; }
+
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; }
+  .card h3 { margin: 0 0 2px; font-size: 15px; font-weight: 600; }
+  .fmt { font-size: 12px; color: var(--text-soft); margin: 0 0 6px; }
+  .panel-tag { display: inline-block; font-size: 10.5px; font-weight: 600; padding: 1px 8px; border-radius: 999px; margin-bottom: 8px; }
+  .panel-tag.panelled { background: var(--good-bg); color: var(--good); }
+  .panel-tag.nonpanelled { background: var(--info-bg); color: var(--info); }
+  pre { background: var(--code-bg); color: var(--code-text); font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace; font-size: 11.5px; line-height: 1.6; padding: 10px 12px; border-radius: 6px; overflow-x: auto; margin: 0; white-space: pre; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  th { color: var(--text-soft); font-weight: 600; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.04em; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .table-scroll { overflow-x: auto; background: var(--card); border: 1px solid var(--border); border-radius: 8px; }
+  .table-scroll table { min-width: 920px; }
+  .chip { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+  .chip.good { background: var(--good-bg); color: var(--good); }
+  .chip.info { background: var(--info-bg); color: var(--info); }
+  .chip.bad { background: var(--bad-bg); color: var(--bad); }
+  .chip.neutral { background: var(--brand-soft); color: var(--brand); }
+  .detail { font-size: 11px; color: var(--text-soft); margin-top: 2px; }
+  .actions { display: flex; gap: 5px; flex-wrap: wrap; }
+  .act-btn { font-family: inherit; font-size: 10.5px; font-weight: 600; padding: 3px 8px; border-radius: 5px; cursor: pointer; border: 1px solid var(--border); background: var(--card); color: var(--text-soft); }
+  .act-btn.approve { color: var(--good); border-color: var(--good); }
+  .act-btn.info-req { color: var(--brand); border-color: var(--brand); }
+  .act-btn.reject { color: var(--bad); border-color: var(--bad); }
+  .act-btn:disabled { opacity: .4; cursor: default; }
+  .summary { display: flex; gap: 10px; flex-wrap: wrap; margin: 4px 0 4px; }
+  .stat { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 10px 16px; min-width: 130px; }
+  .stat .n { font-size: 21px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .l { font-size: 11px; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.04em; }
+  footer { margin-top: 30px; font-size: 12px; color: var(--text-soft); line-height: 1.6; }
+
+  /* ---------- Enterprise healthcare restyle ---------- */
+  .wrap { padding: 0 24px; }
+  h1 { font-size: 30px; letter-spacing: -0.01em; color: var(--text); }
+  h2 { font-size: 12px; color: var(--text-muted); margin: 34px 0 12px; }
+  .sub { font-size: 15px; line-height: 1.6; color: var(--text-soft); }
+
+  .topnav { background: var(--card); border-bottom: 1px solid var(--border); margin-bottom: 28px; position: sticky; top: 0; z-index: 30; box-shadow: 0 1px 3px rgba(49,91,148,.07); }
+  h2[id], .panel[id] { scroll-margin-top: 78px; }
+  .topnav-inner { max-width: 1180px; margin: 0 auto; padding: 0 24px; height: 62px; display: flex; align-items: center; gap: 28px; }
+  .topnav .brand { display: flex; align-items: center; gap: 11px; margin-right: auto; }
+  .mark { width: 34px; height: 34px; flex: none; }
+  .topnav .brand-name { font-size: 15px; font-weight: 600; line-height: 1.2; color: var(--text); }
+  .topnav .brand-sub { font-size: 11.5px; color: var(--text-muted); line-height: 1.3; }
+  .navlinks { display: flex; gap: 22px; }
+  .navlinks a { font-size: 13.5px; font-weight: 500; color: var(--text-soft); text-decoration: none; padding: 6px 0; border-bottom: 2px solid transparent; }
+  .navlinks a.active { color: var(--blue); border-bottom-color: var(--orange); }
+  .navlinks a:hover { color: var(--blue); }
+  .env-badge { font-size: 10.5px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--orange); background: var(--bad-bg); border: 1px solid #F7C4AD; border-radius: 999px; padding: 4px 10px; }
+  .avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--brand-soft); color: var(--blue-dark); font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-strong); }
+
+  .page-head { display: flex; align-items: flex-start; gap: 14px; flex-wrap: wrap; margin-bottom: 6px; }
+  .demo-pill { font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #fff; background: var(--orange); border-radius: 4px; padding: 5px 10px; margin-top: 8px; }
+
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; margin: 22px 0 4px; }
+  .kpi { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; box-shadow: var(--shadow); }
+  .kpi .k-label { font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; }
+  .kpi .k-value { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--blue-dark); line-height: 1.1; }
+  .kpi .k-note { font-size: 11.5px; color: var(--text-muted); margin-top: 6px; }
+  .kpi.accent .k-value { color: var(--orange); }
+  .kpi.status .k-value { font-size: 18px; display: flex; align-items: center; gap: 8px; color: var(--blue-dark); }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--orange); flex: none; box-shadow: 0 0 0 3px rgba(241,90,41,.16); }
+
+  .flowstages { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; align-items: stretch; }
+  .stage { background: var(--card); border: 1px solid var(--border); border-top: 3px solid var(--blue); border-radius: var(--radius); padding: 14px 16px; box-shadow: var(--shadow); position: relative; }
+  .stage.is-aware { border-top-color: var(--orange); }
+  .stage .s-icon { width: 30px; height: 30px; border-radius: var(--radius-sm); background: var(--brand-soft); display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
+  .stage .s-name { font-size: 13.5px; font-weight: 600; margin-bottom: 3px; }
+  .stage .s-desc { font-size: 11.5px; color: var(--text-muted); line-height: 1.5; margin-bottom: 10px; }
+  .stage .s-meta { display: flex; align-items: center; justify-content: space-between; gap: 8px; border-top: 1px solid var(--border); padding-top: 9px; }
+  .stage .s-count { font-size: 11.5px; font-weight: 600; color: var(--text-soft); font-variant-numeric: tabular-nums; }
+
+  .status-pill { display: inline-block; font-size: 10.5px; font-weight: 600; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
+  .p-blue { background: var(--brand-soft); color: var(--blue-dark); }
+  .p-slate { background: var(--info-bg); color: var(--slate); }
+  .p-orange { background: var(--bad-bg); color: var(--orange); }
+  .p-outline { background: #fff; color: var(--text-soft); border: 1px solid var(--border-strong); }
+
+  .panel { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+  .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 18px; border-bottom: 1px solid var(--border); }
+  .panel-head .p-title { font-size: 14px; font-weight: 600; }
+  .panel-head .p-hint { font-size: 11.5px; color: var(--text-muted); }
+  .panel .table-scroll { border: none; border-radius: 0; box-shadow: none; }
+
+  #claimsTable tbody tr { cursor: pointer; }
+  #claimsTable tbody tr:hover { background: #F8FAFD; }
+  #claimsTable tbody tr.selected { background: var(--brand-soft); box-shadow: inset 3px 0 0 var(--orange); }
+  #claimsTable td { font-size: 12.5px; }
+  #claimsTable td.mono { font-family: "SFMono-Regular", Consolas, Menlo, monospace; font-size: 12px; }
+
+  .drawer-backdrop { position: fixed; inset: 0; background: rgba(51,51,51,.28); opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 40; }
+  .drawer-backdrop.open { opacity: 1; pointer-events: auto; }
+  .drawer { position: fixed; top: 0; right: 0; height: 100%; width: 440px; max-width: 92vw; background: var(--card); border-left: 1px solid var(--border); box-shadow: -8px 0 24px rgba(49,91,148,.10); transform: translateX(100%); transition: transform .24s ease; z-index: 50; display: flex; flex-direction: column; }
+  .drawer.open { transform: translateX(0); }
+  .drawer-head { padding: 18px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+  .drawer-head .d-id { font-size: 16px; font-weight: 600; }
+  .drawer-head .d-sub { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
+  .drawer-close { border: 1px solid var(--border-strong); background: #fff; color: var(--text-soft); border-radius: 6px; width: 28px; height: 28px; cursor: pointer; font-size: 15px; line-height: 1; font-family: inherit; }
+  .drawer-body { padding: 18px 20px 30px; overflow-y: auto; }
+  .d-section { font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--text-muted); margin: 20px 0 10px; }
+  .d-section.first { margin-top: 0; }
+  .kv { display: grid; grid-template-columns: 128px 1fr; gap: 7px 12px; font-size: 12.5px; margin: 0; }
+  .kv dt { color: var(--text-muted); }
+  .kv dd { margin: 0; font-weight: 500; }
+
+  .timeline { list-style: none; margin: 0; padding: 0 0 0 18px; border-left: 2px solid var(--border); }
+  .timeline li { position: relative; padding: 0 0 16px 16px; }
+  .timeline li:last-child { padding-bottom: 0; }
+  .timeline li::before { content: ""; position: absolute; left: -25px; top: 3px; width: 10px; height: 10px; border-radius: 50%; background: var(--blue); border: 2px solid var(--card); box-shadow: 0 0 0 2px var(--brand-soft); }
+  .timeline li.pending::before { background: #fff; border-color: var(--border-strong); box-shadow: none; }
+  .timeline li.flag::before { background: var(--orange); box-shadow: 0 0 0 2px var(--bad-bg); }
+  .timeline .t-name { font-size: 12.5px; font-weight: 500; }
+  .timeline .t-time { font-size: 11px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+
+  .health { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; }
+  .hcard { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 15px 17px; box-shadow: var(--shadow); }
+  .hcard .h-label { font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--text-muted); }
+  .hcard .h-value { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; margin: 7px 0 10px; color: var(--blue-dark); }
+  .hcard.accent .h-value { color: var(--orange); }
+  .bar { height: 6px; border-radius: 999px; background: var(--info-bg); overflow: hidden; }
+  .bar > span { display: block; height: 100%; border-radius: 999px; background: var(--blue); }
+  .bar.accent > span { background: var(--orange); }
+  .h-foot { font-size: 11px; color: var(--text-muted); margin-top: 8px; }
+  .spark { display: block; width: 100%; height: 34px; }
+
+  .exceptions { display: flex; flex-direction: column; }
+  .exc-row { display: flex; align-items: center; gap: 14px; padding: 13px 18px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+  .exc-row:last-child { border-bottom: none; }
+  .exc-row .e-id { font-family: "SFMono-Regular", Consolas, Menlo, monospace; font-size: 12px; font-weight: 600; min-width: 152px; }
+  .exc-row .e-reason { font-size: 12.5px; color: var(--text-soft); flex: 1; min-width: 200px; }
+  .exc-row .e-amt { font-size: 12.5px; font-variant-numeric: tabular-nums; font-weight: 600; }
+
+  .stat, .card, .table-scroll, .canvas-wrap { border-radius: var(--radius); box-shadow: var(--shadow); }
+  .stat .n { color: var(--blue-dark); }
+  .chip.bad { background: var(--bad-bg); color: var(--orange); }
+  .run-btn { background: var(--orange); border-radius: var(--radius-sm); }
+  .batch-btn { border-radius: var(--radius-sm); }
+  .batch-btn.active { background: var(--brand-soft); border-color: var(--blue); color: var(--blue-dark); }
+  footer { border-top: 1px solid var(--border); padding-top: 16px; }
+
+  @media (max-width: 720px) {
+    .navlinks { display: none; }
+    .topnav-inner { gap: 14px; }
+    h1 { font-size: 24px; }
+  }
+
+  /* ---------- Boomi platform build detail ---------- */
+  .subsec { font-size: 13px; font-weight: 600; color: var(--text); margin: 26px 0 10px; display: flex; align-items: center; gap: 9px; }
+  .subsec .n { width: 20px; height: 20px; border-radius: 5px; background: var(--brand-soft); color: var(--blue-dark); font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+  .mono-cell { font-family: "SFMono-Regular", Consolas, Menlo, monospace; font-size: 11.5px; color: var(--text-soft); }
+  .type-tag { display: inline-block; font-size: 10.5px; font-weight: 600; padding: 2px 8px; border-radius: 4px; background: var(--info-bg); color: var(--slate); white-space: nowrap; }
+  .type-tag.t-proc { background: var(--brand-soft); color: var(--blue-dark); }
+  .type-tag.t-map { background: #EDF6FC; color: #2F6A96; }
+  .type-tag.t-xref { background: var(--bad-bg); color: var(--orange); }
+  .twocol { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+  .ruleno { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: var(--blue); color: #fff; font-size: 11px; font-weight: 700; }
+  .shapechip { display: inline-block; font-size: 10.5px; font-weight: 600; padding: 2px 7px; border-radius: 4px; border: 1px solid var(--border-strong); color: var(--text-soft); background: #fff; white-space: nowrap; }
+  table.tight th, table.tight td { padding: 6px 10px; }
+  table.wrapcells td { white-space: normal; }
+  .ms { font-variant-numeric: tabular-nums; color: var(--text-muted); font-size: 11.5px; }
+  .legend { font-size: 11.5px; color: var(--text-muted); margin: 8px 0 0; }
+
+  /* ---------- Bilingual + simplified layout ---------- */
+  .th { font-family: "Noto Sans Thai", "Inter", sans-serif; color: var(--text-muted); font-weight: 400; }
+  h1 .th { display: block; font-size: 17px; margin-top: 6px; color: var(--slate); }
+  h2 .th { text-transform: none; letter-spacing: 0; font-size: 12px; margin-left: 8px; }
+  .sub .th { display: block; margin-top: 6px; font-size: 14px; }
+  td .th, .s-name .th, .stage .th { display: block; font-size: 11px; margin-top: 2px; }
+  summary .th { font-weight: 400; font-size: 11.5px; margin-left: 8px; }
+
+  details.acc { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 12px; }
+  details.acc > summary { list-style: none; cursor: pointer; padding: 14px 18px; display: flex; align-items: center; gap: 9px; font-size: 13.5px; font-weight: 600; color: var(--text); }
+  details.acc > summary::-webkit-details-marker { display: none; }
+  details.acc > summary::after { content: "+"; margin-left: auto; font-size: 17px; font-weight: 400; color: var(--blue); line-height: 1; }
+  details.acc[open] > summary::after { content: "\2212"; }
+  details.acc[open] > summary { border-bottom: 1px solid var(--border); }
+  details.acc > summary:hover { background: #F8FAFD; }
+  details.acc .acc-body { padding: 16px 18px 18px; }
+  details.acc .acc-body > .panel { box-shadow: none; }
+  details.acc .acc-body > .panel:first-child { margin-top: 0; }
+  details.acc .acc-body .legend:last-child { margin-bottom: 0; }
+
+  .runsteps { counter-reset: rs; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .runstep { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 15px 17px 15px 50px; position: relative; box-shadow: var(--shadow); }
+  .runstep::before { counter-increment: rs; content: counter(rs); position: absolute; left: 16px; top: 15px; width: 22px; height: 22px; border-radius: 50%; background: var(--brand-soft); color: var(--blue-dark); font-size: 11.5px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+  .runstep .r-title { font-size: 13px; font-weight: 600; margin-bottom: 3px; }
+  .runstep .r-text { font-size: 12.5px; color: var(--text-soft); line-height: 1.55; }
+  .runstep .r-th { font-family: "Noto Sans Thai", sans-serif; font-size: 12px; color: var(--text-muted); line-height: 1.6; margin-top: 5px; display: block; }
+
+  .checklist { list-style: none; margin: 0; padding: 0; }
+  .checklist li { display: flex; gap: 11px; align-items: flex-start; padding: 11px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .checklist li:last-child { border-bottom: none; }
+  .checklist .tick { flex: none; width: 19px; height: 19px; border-radius: 50%; background: var(--brand-soft); color: var(--blue-dark); font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; margin-top: 1px; }
+  .checklist .cross { background: var(--bad-bg); color: var(--orange); }
+  .checklist code { background: var(--info-bg); padding: 1px 5px; border-radius: 3px; font-size: 12px; }
+</style>
+<!-- SEDC-WIDTH:START -->
+<!-- Re-runnable width override injected by scripts/set-page-width.mjs — do not hand-edit, re-run the script instead. -->
+<style>
+  .wrap { max-width: 1360px; }
+  .topnav-inner { max-width: 1360px; }
+</style>
+<!-- SEDC-WIDTH:END -->
+</head>
+<body>
+<!-- SEDC-NAV:START -->
+<style>
+  .sedc-nav * { box-sizing: border-box; }
+  .sedc-nav {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    margin: 0;
+    background: #072B55;
+    color: #ffffff;
+    font-family: 'Poppins',Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    font-size: 14px;
+    line-height: 1.4;
+  }
+  .sedc-nav-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 10px 20px;
+  }
+  .sedc-nav-brand {
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+  }
+  .sedc-nav-brand:hover,
+  .sedc-nav-brand:focus {
+    text-decoration: underline;
+  }
+  .sedc-nav-jump {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .sedc-nav-label {
+    white-space: nowrap;
+    color: #ffffff;
+  }
+  .sedc-nav-select {
+    font-family: inherit;
+    font-size: 13px;
+    color: #072B55;
+    background: #ffffff;
+    border: 1px solid #ffffff;
+    border-radius: 4px;
+    padding: 5px 8px;
+    max-width: 60vw;
+  }
+  .sedc-nav-rule {
+    height: 3px;
+    width: 100%;
+    background: linear-gradient(90deg,#FF7C66 0%,#A03291 100%);
+  }
+</style>
+<div class="sedc-nav" role="navigation" aria-label="SE Demo Companion navigation">
+  <div class="sedc-nav-bar">
+    <a class="sedc-nav-brand" href="../index.html" target="_top">SE Demo Companion</a>
+    <div class="sedc-nav-jump">
+      <label class="sedc-nav-label" for="sedc-nav-select">Jump to use case</label>
+      <select class="sedc-nav-select" id="sedc-nav-select" onchange="(function(sel){try{var opt=sel.options[sel.selectedIndex];var url=opt&&opt.getAttribute('data-href');if(!url)return;try{window.top.location.href=url;}catch(e){window.location.href=url;}}catch(e){}})(this)">
+        <option value="amc-fee-change-agent" data-href="./amc-fee-change-agent.html">AMC fee-change agent — Finnomena</option>
+        <option value="bvtpa-claims-integration-demo" data-href="./bvtpa-claims-integration-demo.html" selected>Blue Venture TPA claims integration demo — Blue Venture TPA</option>
+        <option value="bvtpa-claims-adjudication-cio-brief" data-href="./bvtpa-claims-adjudication-cio-brief.html">Claims adjudication CIO brief — Blue Venture TPA</option>
+        <option value="delivery-status-sync-demo" data-href="./delivery-status-sync-demo.html">Delivery status sync demo — TOTO</option>
+        <option value="boomi-tenant-ceo-dashboard" data-href="./boomi-tenant-ceo-dashboard.html">Boomi tenant CEO dashboard — Boomi internal tenant</option>
+        <option value="boomi-tenant-30-day-report" data-href="./boomi-tenant-30-day-report.html">Boomi tenant operations report, 30-day view — Boomi internal tenant</option>
+        <option value="json-to-xml-order-integration" data-href="./json-to-xml-order-integration.html">JSON to XML order integration, executive documentation — NTT</option>
+        <option value="edi-850-flight-deck" data-href="./edi-850-flight-deck.html">EDI 850 flight deck — Infosys</option>
+        <option value="whatsapp-to-sap-master-agent" data-href="./whatsapp-to-sap-master-agent.html">WhatsApp to SAP master agent — Boomi internal build</option>
+        <option value="student-xml-to-crm-json" data-href="./student-xml-to-crm-json.html">Student XML to CRM JSON — Attura</option>
+        <option value="sap-accounting-document-poc-outcome" data-href="./sap-accounting-document-poc-outcome.html">SAP accounting document automation, POC outcome — Abans PLC</option>
+        <option value="abans-sap-posting-poc-dashboard" data-href="./abans-sap-posting-poc-dashboard.html">Abans SAP posting, live POC dashboard — Abans PLC</option>
+        <option value="order-intake-api-fan-out" data-href="./order-intake-api-fan-out.html">Order intake API with multi-target fan-out — LTIMindtree</option>
+        <option value="electromart-track-and-reschedule" data-href="./electromart-track-and-reschedule.html">ElectroMart track order and reschedule delivery — ElectroMart (demo brand)</option>
+        <option value="enterprise-portal-ai-agent" data-href="./enterprise-portal-ai-agent.html">Enterprise portal with an embedded AI agent — ITG</option>
+        <option value="o2c-qad-build-journey" data-href="./o2c-qad-build-journey.html">O2C-QAD build journey — Boomi internal build</option>
+        <option value="boomi-accenture-trivia" data-href="./boomi-accenture-trivia.html">Boomi x Accenture trivia — Boomi internal build</option>
+        <option value="cloud-runtime-sizing-calculator" data-href="./cloud-runtime-sizing-calculator.html">Boomi public cloud runtime sizing estimator — Boomi internal build</option>
+        <option value="coupa-netsuite-vendor-bill" data-href="./coupa-netsuite-vendor-bill.html">Vendor bill pipeline, Coupa to NetSuite — Boomi internal build</option>
+        <option value="coupa-oracle-s2p-console" data-href="./coupa-oracle-s2p-console.html">Source-to-pay flow console, Coupa to Oracle Fusion — Boomi internal build</option>
+        <option value="epic-rauland-adt-nurse-call" data-href="./epic-rauland-adt-nurse-call.html">Epic ADT to Rauland Responder 5, nurse call integration — Boomi internal build</option>
+        <option value="epic-salesforce-trial-screening" data-href="./epic-salesforce-trial-screening.html">Clinical trial screening console, Epic to Salesforce — Meridian Research (demo brand)</option>
+        <option value="jc-hifi-order-tracker" data-href="./jc-hifi-order-tracker.html">JC Hi-Fi order tracker, customer self-service — JC Hi-Fi (demo brand)</option>
+        <option value="pacific-bank-onboarding" data-href="./pacific-bank-onboarding.html">Pacific onboarding console, retail bank customer onboarding — Pacific Islands Community Bank (demo brand)</option>
+        <option value="sea-data-product-assistant" data-href="./sea-data-product-assistant.html">SEA regional performance, data products and an agent over two ERPs — Boomi internal build</option>
+        <option value="servicenow-jira-incident-sync" data-href="./servicenow-jira-incident-sync.html">Incident sync prototype, ServiceNow to Jira — Boomi internal build</option>
+        <option value="zendesk-magento-order-status" data-href="./zendesk-magento-order-status.html">Order status bot and flow inspector, Zendesk to Magento — Avery Products (demo brand)</option>
+        <option value="zoho-netsuite-invoice-sync" data-href="./zoho-netsuite-invoice-sync.html">Invoice sync console, Zoho CRM to NetSuite — Boomi internal build</option>
+      </select>
+    </div>
+  </div>
+  <div class="sedc-nav-rule"></div>
+</div>
+<!-- SEDC-NAV:END -->
+
+<header class="topnav">
+  <div class="topnav-inner">
+    <div class="brand">
+      <svg class="mark" viewBox="0 0 40 40" role="img" aria-label="Demo brand mark"><circle cx="20" cy="20" r="18" fill="#EAF2FA"/><path d="M20 4a16 16 0 0 1 0 32 11 11 0 0 0 0-32z" fill="#3974B5"/><path d="M20 11a9 9 0 0 1 0 18 6 6 0 0 0 0-18z" fill="#79BCE2"/></svg>
+      <div>
+        <div class="brand-name">Blue Venture TPA</div>
+        <div class="brand-sub">Claims Integration Demo</div>
+      </div>
+    </div>
+    <nav class="navlinks">
+      <a href="#" class="active">Dashboard</a>
+      <a href="#claims">Claims</a>
+      <a href="#integrations">Integrations</a>
+      <a href="#monitoring">Monitoring</a>
+    </nav>
+    <span class="env-badge">Demo Environment</span>
+    <div class="avatar" title="Demo operations user">OP</div>
+  </div>
+</header>
+<div class="wrap">
+  <div class="page-head">
+    <div>
+      <div class="eyebrow">Powered by Aware &middot; Boomi Integration</div>
+      <h1>Blue Venture TPA Claims Integration<span class="th">ระบบเชื่อมต่อข้อมูลการเคลมของ Blue Venture TPA</span></h1>
+    </div>
+    <span class="demo-pill">Demo Environment</span>
+  </div>
+  <p class="sub">End-to-end claims data exchange, processing, validation, and operational visibility powered by Aware.<span class="th">การแลกเปลี่ยน ประมวลผล ตรวจสอบข้อมูลการเคลมแบบครบวงจร พร้อมการมองเห็นการทำงานเชิงปฏิบัติการ ขับเคลื่อนโดย Aware</span></p>
+  <p class="stakeholder-note">Every figure, claim, member and provider identifier on this page is synthetic demo data generated for illustration. No real patient, provider or payer records are shown.</p>
+
+  <div class="kpis">
+    <div class="kpi status">
+      <div class="k-label">Integration Status</div>
+      <div class="k-value"><span class="dot"></span>Connected</div>
+      <div class="k-note">Aware &rarr; BVTPA Claims Platform</div>
+    </div>
+    <div class="kpi">
+      <div class="k-label">Claims Processed Today</div>
+      <div class="k-value">1,284</div>
+      <div class="k-note">Since 00:00 GST</div>
+    </div>
+    <div class="kpi">
+      <div class="k-label">Successful Transactions</div>
+      <div class="k-value">1,247</div>
+      <div class="k-note">97.1% of submitted volume</div>
+    </div>
+    <div class="kpi accent">
+      <div class="k-label">Exceptions</div>
+      <div class="k-value">37</div>
+      <div class="k-note">Awaiting adjudicator review</div>
+    </div>
+    <div class="kpi">
+      <div class="k-label">Avg Processing Time</div>
+      <div class="k-value">1.8 <span style="font-size:14px;font-weight:600;">sec</span></div>
+      <div class="k-note">Receipt to platform acknowledgement</div>
+    </div>
+  </div>
+
+  <h2 id="integrations">Integration flow<span class="th">ขั้นตอนการเชื่อมต่อข้อมูล</span></h2>
+  <div class="flowstages">
+    <div class="stage">
+      <div class="s-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3974B5" stroke-width="2"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M8 20h8"/></svg></div>
+      <div class="s-name">Provider / Source System<span class="th">ระบบของสถานพยาบาลต้นทาง</span></div>
+      <div class="s-desc">Hospital and clinic systems submit claim files over SFTP, portal upload and API.</div>
+      <div class="s-meta"><span class="status-pill p-blue">Receiving</span><span class="s-count">1,284 claims</span></div>
+    </div>
+    <div class="stage is-aware">
+      <div class="s-icon" style="background:#FDEEE7;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F15A29" stroke-width="2"><path d="M4 12h6l2-5 3 10 2-5h3"/></svg></div>
+      <div class="s-name">Aware Integration Layer<span class="th">ชั้นการเชื่อมต่อข้อมูลของ Aware</span></div>
+      <div class="s-desc">Boomi processes normalise every inbound format into one canonical claim structure.</div>
+      <div class="s-meta"><span class="status-pill p-orange">Active</span><span class="s-count">1.8 sec avg</span></div>
+    </div>
+    <div class="stage">
+      <div class="s-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3974B5" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg></div>
+      <div class="s-name">Validation &amp; Transformation<span class="th">การตรวจสอบและแปลงข้อมูล</span></div>
+      <div class="s-desc">Schema validation, member eligibility checks and benefit rules applied per claim.</div>
+      <div class="s-meta"><span class="status-pill p-blue">Healthy</span><span class="s-count">37 flagged</span></div>
+    </div>
+    <div class="stage">
+      <div class="s-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3974B5" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></div>
+      <div class="s-name">BVTPA Claims Platform<span class="th">ระบบเคลมของ BVTPA</span></div>
+      <div class="s-desc">Canonical claims delivered to the BVTPA book of record for settlement.</div>
+      <div class="s-meta"><span class="status-pill p-blue">Connected</span><span class="s-count">1,247 posted</span></div>
+    </div>
+    <div class="stage">
+      <div class="s-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3974B5" stroke-width="2"><path d="M12 3v18M3 12h18"/></svg></div>
+      <div class="s-name">Claims Processing / Adjudication<span class="th">การประมวลผลและพิจารณาเคลม</span></div>
+      <div class="s-desc">Cashless settlement, member reimbursement or routing to the adjudicator queue.</div>
+      <div class="s-meta"><span class="status-pill p-slate">Processing</span><span class="s-count">62 in flight</span></div>
+    </div>
+  </div>
+
+  <h2 id="successful-run">What a successful run looks like<span class="th">การรันที่สำเร็จเป็นอย่างไร</span></h2>
+  <p class="sub" style="margin-bottom:16px;">In plain words, with no Boomi jargon &mdash; this is exactly what happened on the last run of the demo process.
+    <span class="th">อธิบายแบบเข้าใจง่าย ไม่ใช้ศัพท์เทคนิค — นี่คือสิ่งที่เกิดขึ้นจริงในการรันครั้งล่าสุด</span></p>
+
+  <div class="runsteps">
+    <div class="runstep">
+      <div class="r-title">Someone presses Run</div>
+      <div class="r-text">No schedule, no waiting for a hospital to send anything. The process starts on demand.
+        <span class="r-th">กดปุ่มรัน กระบวนการเริ่มทำงานทันที ไม่ต้องรอไฟล์จากโรงพยาบาล</span></div>
+    </div>
+    <div class="runstep">
+      <div class="r-title">Three hospital files are picked up</div>
+      <div class="r-text">Each hospital sends a different layout &mdash; two spreadsheets with columns in a different order, and one plain text file.
+        <span class="r-th">รับไฟล์จากโรงพยาบาลสามแห่ง แต่ละแห่งมีรูปแบบไฟล์ต่างกัน</span></div>
+    </div>
+    <div class="runstep">
+      <div class="r-title">Every claim is rewritten the same way</div>
+      <div class="r-text">Whatever the hospital sent, it comes out as the same six fields, so the rest of the process only has to understand one shape of data.
+        <span class="r-th">แปลงทุกเคลมให้อยู่ในโครงสร้างมาตรฐานเดียวกันหกฟิลด์</span></div>
+    </div>
+    <div class="runstep">
+      <div class="r-title">Each claim is checked against the member list</div>
+      <div class="r-text">Is the policy real? Is it still active? Is there enough limit left? Was approval needed before treatment?
+        <span class="r-th">ตรวจสอบกรมธรรม์ สถานะ วงเงินคงเหลือ และการขออนุมัติล่วงหน้า</span></div>
+    </div>
+    <div class="runstep">
+      <div class="r-title">Every claim leaves by one of three doors</div>
+      <div class="r-text">Pay the hospital directly, pay the member back, or send it to a human to look at &mdash; always with a reason attached.
+        <span class="r-th">ทุกเคลมจะออกทางใดทางหนึ่งในสามทาง พร้อมระบุเหตุผลเสมอ</span></div>
+    </div>
+    <div class="runstep">
+      <div class="r-title">A count is printed at the end</div>
+      <div class="r-text">So you can see at a glance that nothing fell through a gap.
+        <span class="r-th">สรุปจำนวนทั้งหมดเมื่อจบการทำงาน เพื่อยืนยันว่าไม่มีเคลมตกหล่น</span></div>
+    </div>
+  </div>
+
+  <div class="twocol">
+    <div class="panel">
+      <div class="panel-head">
+        <div class="p-title">How you know it worked<span class="th">ดูอย่างไรว่าสำเร็จ</span></div>
+        <div class="p-hint">Last run</div>
+      </div>
+      <div style="padding: 6px 18px 14px;">
+        <ul class="checklist">
+          <li><span class="tick">&check;</span><div>The run finishes with status <code>COMPLETE</code>, not <code>ERROR</code>.
+            <span class="th">สถานะจบงานเป็น COMPLETE ไม่ใช่ ERROR</span></div></li>
+          <li><span class="tick">&check;</span><div>Zero documents errored &mdash; nothing got stuck halfway.
+            <span class="th">ไม่มีเอกสารที่ผิดพลาดหรือค้างกลางทาง</span></div></li>
+          <li><span class="tick">&check;</span><div>The numbers add up: <strong>1 + 3 + 4 = 8</strong> claims in, 8 claims out.
+            <span class="th">ยอดตรงกัน เข้า 8 รายการ ออก 8 รายการ</span></div></li>
+          <li><span class="tick">&check;</span><div>Every exception carries a reason code, not a blank.
+            <span class="th">ทุกข้อยกเว้นมีรหัสเหตุผลกำกับเสมอ</span></div></li>
+          <li><span class="tick">&check;</span><div>It took <strong>4.65 seconds</strong> end to end.
+            <span class="th">ใช้เวลาทั้งหมด 4.65 วินาที</span></div></li>
+        </ul>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-head">
+        <div class="p-title">What a failed run looks like<span class="th">การรันที่ล้มเหลวเป็นอย่างไร</span></div>
+        <div class="p-hint">For contrast</div>
+      </div>
+      <div style="padding: 6px 18px 14px;">
+        <ul class="checklist">
+          <li><span class="tick cross">!</span><div>Status comes back <code>ERROR</code> and the run stops early.
+            <span class="th">สถานะเป็น ERROR และหยุดทำงานกลางคัน</span></div></li>
+          <li><span class="tick cross">!</span><div>Claims in does not equal claims out &mdash; something vanished.
+            <span class="th">จำนวนเข้าและออกไม่ตรงกัน มีข้อมูลหายไป</span></div></li>
+          <li><span class="tick cross">!</span><div>An exception appears with no reason code, so nobody knows what to fix.
+            <span class="th">มีข้อยกเว้นที่ไม่มีรหัสเหตุผล ทำให้ไม่ทราบสาเหตุ</span></div></li>
+          <li><span class="tick cross">!</span><div>A claim lands in the wrong door &mdash; cashless when the hospital has no contract.
+            <span class="th">เคลมออกผิดทาง เช่น ไม่สำรองจ่ายทั้งที่ไม่มีสัญญา</span></div></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <h2 id="claims">Recent claims<span class="th">รายการเคลมล่าสุด</span></h2>
+  <div class="panel">
+    <div class="panel-head">
+      <div class="p-title">Inbound claims &mdash; last 30 minutes</div>
+      <div class="p-hint">Select a row to open the claim detail</div>
+    </div>
+    <div class="table-scroll">
+      <table id="claimsTable">
+        <thead>
+          <tr>
+            <th>Claim ID</th><th>Member ID</th><th>Provider</th><th>Claim Type</th>
+            <th>Submitted</th><th class="num">Amount</th>
+            <th>Integration Status</th><th>Processing Status</th><th>Last Updated</th>
+          </tr>
+        </thead>
+        <tbody id="claimsBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <h2 id="monitoring">Integration health<span class="th">สถานะการเชื่อมต่อ</span></h2>
+  <div class="health">
+    <div class="hcard">
+      <div class="h-label">API Availability</div>
+      <div class="h-value">99.98%</div>
+      <div class="bar"><span style="width:99.98%"></span></div>
+      <div class="h-foot">Rolling 24 hours</div>
+    </div>
+    <div class="hcard">
+      <div class="h-label">Success Rate</div>
+      <div class="h-value">97.1%</div>
+      <div class="bar"><span style="width:97.1%"></span></div>
+      <div class="h-foot">1,247 of 1,284 claims</div>
+    </div>
+    <div class="hcard">
+      <div class="h-label">Avg Latency</div>
+      <div class="h-value">1.8 sec</div>
+      <svg class="spark" viewBox="0 0 120 34" preserveAspectRatio="none" aria-hidden="true">
+        <polyline fill="none" stroke="#79BCE2" stroke-width="2" points="0,24 12,21 24,26 36,18 48,20 60,15 72,19 84,13 96,17 108,12 120,16"/>
+      </svg>
+      <div class="h-foot">Receipt to acknowledgement</div>
+    </div>
+    <div class="hcard accent">
+      <div class="h-label">Failed Transactions</div>
+      <div class="h-value">37</div>
+      <div class="bar accent"><span style="width:2.9%"></span></div>
+      <div class="h-foot">2.9% of today&rsquo;s volume</div>
+    </div>
+    <div class="hcard">
+      <div class="h-label">Queue Depth</div>
+      <div class="h-value">12</div>
+      <div class="bar"><span style="width:12%"></span></div>
+      <div class="h-foot">Messages awaiting pickup</div>
+    </div>
+    <div class="hcard">
+      <div class="h-label">Last Successful Sync</div>
+      <div class="h-value">08:43</div>
+      <div class="h-foot">16 Sep 2026 &middot; GST &middot; 2 minutes ago</div>
+    </div>
+  </div>
+
+  <h2>Exceptions requiring attention<span class="th">รายการที่ต้องตรวจสอบ</span></h2>
+  <div class="panel">
+    <div class="panel-head">
+      <div class="p-title">Adjudicator queue</div>
+      <div class="p-hint">37 open &middot; 3 shown</div>
+    </div>
+    <div class="exceptions">
+      <div class="exc-row">
+        <span class="e-id">CLM-2026-004817</span>
+        <span class="status-pill p-orange">Schema validation</span>
+        <span class="e-reason">Required field <code>serviceDate</code> missing from provider payload.</span>
+        <span class="e-amt">AED 740.00</span>
+        <button class="act-btn info-req" type="button">Request info</button>
+      </div>
+      <div class="exc-row">
+        <span class="e-id">CLM-2026-004815</span>
+        <span class="status-pill p-orange">Eligibility</span>
+        <span class="e-reason">Member policy inactive on the service date submitted.</span>
+        <span class="e-amt">AED 268.25</span>
+        <button class="act-btn info-req" type="button">Request info</button>
+      </div>
+      <div class="exc-row">
+        <span class="e-id">CLM-2026-004802</span>
+        <span class="status-pill p-orange">Benefit limit</span>
+        <span class="e-reason">Claim amount exceeds the remaining annual outpatient limit.</span>
+        <span class="e-amt">AED 1,980.00</span>
+        <button class="act-btn approve" type="button">Override</button>
+      </div>
+    </div>
+  </div>
+
+  <h2>Integration process &mdash; claims adjudication walkthrough<span class="th">ขั้นตอนกระบวนการพิจารณาเคลมโดยละเอียด</span></h2>
+  <p class="sub" style="margin-bottom:14px;">A step-by-step view of the Boomi process behind the numbers above: three hospital feeds in three different formats, normalised, adjudicated against the member book of record, then routed to cashless settlement, member reimbursement or the adjudicator queue.</p>
+
+  <div class="toolbar">
+    <button class="batch-btn active" id="batchDay1" data-batch="day1">Day 1 — 2026-09-15</button>
+    <button class="batch-btn" id="batchDay2" data-batch="day2">Day 2 — 2026-09-16</button>
+    <button class="run-btn" id="runBtn">▶ Run process</button>
+    <span id="runNote"></span>
+  </div>
+
+  <div class="canvas-wrap">
+    <div class="canvas" id="canvas">
+      <svg viewBox="0 0 1120 540">
+        <defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="arrow-fill-default" d="M0,0 L10,5 L0,10 z"></path></marker>
+          <marker id="arrowDone" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="arrow-fill-done" d="M0,0 L10,5 L0,10 z"></path></marker>
+          <marker id="arrowInfo" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="arrow-fill-info" d="M0,0 L10,5 L0,10 z"></path></marker>
+          <marker id="arrowBad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="arrow-fill-bad" d="M0,0 L10,5 L0,10 z"></path></marker>
+        </defs>
+        <path id="p-s1-m1" class="flowpath" data-stage="1" marker-end="url(#arrow)" d="M190,50 L230,50"></path>
+        <path id="p-s2-m2" class="flowpath" data-stage="1" marker-end="url(#arrow)" d="M190,210 L230,210"></path>
+        <path id="p-s3-m3" class="flowpath" data-stage="1" marker-end="url(#arrow)" d="M190,370 L230,370"></path>
+
+        <path id="p-m1-hub" class="flowpath" data-stage="2" marker-end="url(#arrow)" d="M380,50 C410,50 410,195 440,195"></path>
+        <path id="p-m2-hub" class="flowpath" data-stage="2" marker-end="url(#arrow)" d="M380,210 C410,210 410,230 440,230"></path>
+        <path id="p-m3-hub" class="flowpath" data-stage="2" marker-end="url(#arrow)" d="M380,370 C410,370 410,265 440,265"></path>
+        <path id="p-ref-hub" class="flowpath" data-stage="2" marker-end="url(#arrow)" d="M240,485 L320,485 L320,285 L440,285"></path>
+
+        <path id="p-hub-cashless" class="flowpath" data-stage="3" marker-end="url(#arrow)" d="M660,195 C700,195 700,70 720,70"></path>
+        <path id="p-hub-reimb" class="flowpath info-path" data-stage="3" marker-end="url(#arrow)" d="M660,230 L720,230"></path>
+        <path id="p-hub-quarantine" class="flowpath bad-path" data-stage="3" marker-end="url(#arrow)" d="M660,265 C700,265 700,390 720,390"></path>
+
+        <path id="p-cashless-stop" class="flowpath" data-stage="4" marker-end="url(#arrow)" d="M930,70 L970,70"></path>
+        <path id="p-reimb-stop" class="flowpath info-path" data-stage="4" marker-end="url(#arrow)" d="M930,230 L970,230"></path>
+        <path id="p-quarantine-stop" class="flowpath bad-path" data-stage="4" marker-end="url(#arrow)" d="M930,390 L970,390"></path>
+      </svg>
+
+      <div class="node k-conn" data-stage="0" style="left:20px;top:20px;width:170px;height:60px;">
+        <div class="kind" id="hospName1">Connector</div><div class="label" id="hospLabel1">Hospital A</div>
+        <div class="badge" id="badge-start1">–</div>
+      </div>
+      <div class="node k-map" data-stage="1" style="left:230px;top:20px;width:150px;height:60px;">
+        <div class="kind">Map</div><div class="label">→ Canonical Claim</div>
+      </div>
+
+      <div class="node k-conn" data-stage="0" style="left:20px;top:180px;width:170px;height:60px;">
+        <div class="kind" id="hospName2">Connector</div><div class="label" id="hospLabel2">Hospital B</div>
+        <div class="badge" id="badge-start2">–</div>
+      </div>
+      <div class="node k-map" data-stage="1" style="left:230px;top:180px;width:150px;height:60px;">
+        <div class="kind">Map</div><div class="label">→ Canonical Claim</div>
+      </div>
+
+      <div class="node k-conn" data-stage="0" style="left:20px;top:340px;width:170px;height:60px;">
+        <div class="kind" id="hospName3">Connector</div><div class="label" id="hospLabel3">Hospital C</div>
+        <div class="badge" id="badge-start3">–</div>
+      </div>
+      <div class="node k-map" data-stage="1" style="left:230px;top:340px;width:150px;height:60px;">
+        <div class="kind">Map</div><div class="label">→ Canonical Claim</div>
+      </div>
+
+      <div class="node" data-stage="2" style="left:20px;top:460px;width:220px;height:50px;border-left-color:var(--text-soft);">
+        <div class="kind">Data Hub</div><div class="label">Member Eligibility (golden record)</div>
+      </div>
+
+      <div class="node k-hub" data-stage="2" style="left:440px;top:160px;width:220px;height:140px;">
+        <div class="kind">Business Rules</div>
+        <div class="label">Claims Adjudication Engine</div>
+        <div class="sub2">Panel status · Limit · Pre-auth · Policy status</div>
+      </div>
+
+      <div class="node k-good" data-stage="3" style="left:720px;top:40px;width:210px;height:60px;">
+        <div class="kind">Document Generation</div><div class="label">Direct Billing (Cashless)</div>
+        <div class="badge good" id="badge-cashless">–</div>
+      </div>
+      <div class="node k-stop k-good" data-stage="4" style="left:970px;top:35px;width:70px;height:70px;"><div class="label">STOP</div></div>
+
+      <div class="node k-info" data-stage="3" style="left:720px;top:200px;width:210px;height:60px;">
+        <div class="kind">Document Generation</div><div class="label">Member Reimbursement</div>
+        <div class="badge info" id="badge-reimb">–</div>
+      </div>
+      <div class="node k-stop k-info" data-stage="4" style="left:970px;top:195px;width:70px;height:70px;"><div class="label">STOP</div></div>
+
+      <div class="node k-bad" data-stage="3" style="left:720px;top:360px;width:210px;height:60px;">
+        <div class="kind">Task</div><div class="label">Manual Adjudicator Queue</div>
+        <div class="badge bad" id="badge-quarantine">–</div>
+      </div>
+      <div class="node k-stop k-bad" data-stage="4" style="left:970px;top:355px;width:70px;height:70px;"><div class="label">STOP</div></div>
+    </div>
+  </div>
+
+  <details class="acc">
+    <summary>Raw claims, exactly as each hospital sent them<span class="th">ข้อมูลเคลมดิบตามที่แต่ละโรงพยาบาลส่งมา</span></summary>
+    <div class="acc-body">
+  <div class="cards" id="sourceCards"></div>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary>Member eligibility &amp; benefits &mdash; BVTPA golden record<span class="th">สิทธิ์และผลประโยชน์ของสมาชิก — ข้อมูลหลักของ BVTPA</span></summary>
+    <div class="acc-body">
+      <div class="card" style="box-shadow:none;"><pre id="eligPre"></pre></div>
+    </div>
+  </details>
+
+  <h2>Result — adjudicator can act directly on exceptions below<span class="th">ผลลัพธ์ — เจ้าหน้าที่พิจารณาดำเนินการได้ทันที</span></h2>
+  <div class="summary" id="summary"></div>
+  <div class="table-scroll" style="margin-top:12px;">
+    <table>
+      <thead>
+        <tr><th>Hospital</th><th>Claim</th><th>Policy</th><th>Insurer</th><th class="num">Amount (THB)</th><th>Status</th><th>Reason</th><th>Adjudicator action</th></tr>
+      </thead>
+      <tbody id="resultsBody"></tbody>
+    </table>
+  </div>
+
+
+  <h2 id="platform">Inside the Boomi platform<span class="th">ภายในแพลตฟอร์ม Boomi</span></h2>
+  <p class="sub" style="margin-bottom:16px;">Everything below is the actual build deployed on the Boomi AtomSphere platform for this demo &mdash; component inventory, canonical data model, business rule ladder and the shape-level trace of the last run. Component IDs are live platform identifiers from the demo account. Open a section below for the detail.<span class="th">ทั้งหมดนี้คือสิ่งที่ถูกสร้างไว้จริงบนแพลตฟอร์ม Boomi — กดเปิดแต่ละหัวข้อเพื่อดูรายละเอียด</span></p>
+
+  <div class="kpis" style="margin-top:0;">
+    <div class="kpi">
+      <div class="k-label">Platform Folder</div>
+      <div class="k-value" style="font-size:15px;">BVTPA-ClaimsAdjudicationDemo</div>
+      <div class="k-note">All 12 components organised here</div>
+    </div>
+    <div class="kpi">
+      <div class="k-label">Components Built</div>
+      <div class="k-value">12</div>
+      <div class="k-note">2 processes &middot; 4 profiles &middot; 3 maps &middot; 3 lookups</div>
+    </div>
+    <div class="kpi">
+      <div class="k-label">Process Shapes</div>
+      <div class="k-value">52</div>
+      <div class="k-note">18 orchestration &middot; 34 adjudication</div>
+    </div>
+    <div class="kpi">
+      <div class="k-label">Last Execution</div>
+      <div class="k-value">4.65 <span style="font-size:14px;font-weight:600;">sec</span></div>
+      <div class="k-note">Manual run &middot; status COMPLETE</div>
+    </div>
+    <div class="kpi accent">
+      <div class="k-label">External Connections</div>
+      <div class="k-value">0</div>
+      <div class="k-note">Fully self-contained demo</div>
+    </div>
+  </div>
+
+  <details class="acc">
+    <summary><span class="n">1</span>Component inventory<span class="th">รายการคอมโพเนนต์ที่สร้างไว้</span></summary>
+    <div class="acc-body">
+<div class="panel">
+    <div class="panel-head">
+      <div class="p-title">Deployed components</div>
+      <div class="p-hint">Folder: BVTPA-ClaimsAdjudicationDemo</div>
+    </div>
+    <div class="table-scroll">
+      <table class="tight">
+        <thead><tr><th>Component</th><th>Type</th><th>Role in the integration</th><th>Component ID</th></tr></thead>
+        <tbody>
+          <tr><td><strong>BVTPA Claims Adjudication Demo</strong></td><td><span class="type-tag t-proc">Process</span></td><td>Orchestration &mdash; generates the three feeds, maps each format, calls adjudication, prints outputs and the run summary</td><td class="mono-cell">7766394d-9a81-40d7-aa42-3628e76448b4</td></tr>
+          <tr><td><strong>[SUB] BVTPA Adjudicate Claim</strong></td><td><span class="type-tag t-proc">Subprocess</span></td><td>Business rules &mdash; eligibility lookup, network route, limit and pre-auth checks, output routing</td><td class="mono-cell">c04e70a9-0861-4579-b2de-40e06aff69a0</td></tr>
+          <tr><td>ff.BVTPA.HospitalA.Claims.SRC</td><td><span class="type-tag">Flat File Profile</span></td><td>Hospital A CSV &mdash; ClaimID, PolicyNo, Amount, ServiceDate, PreAuthCode</td><td class="mono-cell">ed8e8241-cd5d-49a0-b6c0-5e3889f25abf</td></tr>
+          <tr><td>ff.BVTPA.HospitalB.Claims.SRC</td><td><span class="type-tag">Flat File Profile</span></td><td>Hospital B CSV &mdash; different column order, no pre-auth column</td><td class="mono-cell">c208e942-ec2c-43c4-bba3-e5f6ce6f25b3</td></tr>
+          <tr><td>ff.BVTPA.HospitalC.Claims.SRC</td><td><span class="type-tag">Flat File Profile</span></td><td>Hospital C key-value text &mdash; semicolon delimited after label stripping</td><td class="mono-cell">8528fb27-cfe4-4a5b-bb44-5471ab196bd4</td></tr>
+          <tr><td>j.BVTPA.Claim.CANONICAL</td><td><span class="type-tag">JSON Profile</span></td><td>The one canonical claim structure every feed is normalised into</td><td class="mono-cell">a4c46869-8fa1-42db-98e4-bbf7793cb1fb</td></tr>
+          <tr><td>map.BVTPA.HospitalA.to.Canonical</td><td><span class="type-tag t-map">Map</span></td><td>Direct field mapping, hospitalName defaulted</td><td class="mono-cell">95b5f263-7861-46b1-b49e-f14170376aa5</td></tr>
+          <tr><td>map.BVTPA.HospitalB.to.Canonical</td><td><span class="type-tag t-map">Map</span></td><td>Re-orders columns, leaves preAuthCode empty by design</td><td class="mono-cell">5d78a090-77e6-4177-90e1-b1a690037631</td></tr>
+          <tr><td>map.BVTPA.HospitalC.to.Canonical</td><td><span class="type-tag t-map">Map</span></td><td>Maps the de-labelled key-value fields</td><td class="mono-cell">5adefa95-bcca-4e50-a024-1fb31e57bb4c</td></tr>
+          <tr><td>xref.BVTPA.MemberEligibility</td><td><span class="type-tag t-xref">Cross Reference</span></td><td>BVTPA book of record &mdash; insurer, remaining limit, pre-auth flag, policy status</td><td class="mono-cell">fcbc2207-ca09-4bbc-bf14-75be5ad0abc6</td></tr>
+          <tr><td>xref.BVTPA.HospitalPanelStatus</td><td><span class="type-tag t-xref">Cross Reference</span></td><td>Panelled vs Non-Panelled network status per hospital</td><td class="mono-cell">9009ad87-bbb6-4aa5-b2a5-2806cb63e162</td></tr>
+          <tr><td>xref.BVTPA.PanelContracts</td><td><span class="type-tag t-xref">Cross Reference</span></td><td>Direct billing contracts keyed on hospital|insurer</td><td class="mono-cell">36ef584d-920d-443d-9433-7f1c17f63235</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <p class="legend">The three lookup tables are Boomi Cross Reference components, so a BVTPA analyst can maintain eligibility, network status and contracts directly in the platform UI without a developer touching the process.</p>
+
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span class="n">2</span>Canonical claim model &amp; field mapping<span class="th">โครงสร้างเคลมมาตรฐานและการจับคู่ฟิลด์</span></summary>
+    <div class="acc-body">
+<div class="twocol">
+    <div class="panel">
+      <div class="panel-head"><div class="p-title">j.BVTPA.Claim.CANONICAL</div><div class="p-hint">JSON profile</div></div>
+      <div style="padding:14px 16px;">
+        <pre>{
+  "claimId":      "CLM-A-1001",
+  "policyNo":     "POL-AIA-10234",
+  "amount":       "32500",
+  "serviceDate":  "2026-08-14",
+  "preAuthCode":  "PA-AIA-88120",
+  "hospitalName": "Bangkok Metro Hospital"
+}</pre>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><div class="p-title">Source to canonical mapping</div><div class="p-hint">3 formats, 1 model</div></div>
+      <div class="table-scroll">
+        <table class="tight">
+          <thead><tr><th>Canonical field</th><th>Hospital A</th><th>Hospital B</th><th>Hospital C</th></tr></thead>
+          <tbody>
+            <tr><td><strong>claimId</strong></td><td>col 1 ClaimID</td><td>col 3 ClaimID</td><td>CLAIM=</td></tr>
+            <tr><td><strong>policyNo</strong></td><td>col 2 PolicyNo</td><td>col 2 PolicyNo</td><td>POLICY=</td></tr>
+            <tr><td><strong>amount</strong></td><td>col 3 Amount</td><td>col 4 Amount</td><td>AMT=</td></tr>
+            <tr><td><strong>serviceDate</strong></td><td>col 4 ServiceDate</td><td>col 1 ServiceDate</td><td>DATE=</td></tr>
+            <tr><td><strong>preAuthCode</strong></td><td>col 5 PreAuthCode</td><td><span class="status-pill p-orange">not supplied</span></td><td><span class="status-pill p-orange">not supplied</span></td></tr>
+            <tr><td><strong>hospitalName</strong></td><td colspan="3">Map default per feed &mdash; Bangkok Metro / Siriraj Partners / Chiang Mai Wellness</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <p class="legend">Hospital C arrives as <code>CLAIM=...;POLICY=...;AMT=...;DATE=...</code>. A Data Process step running a Search/Replace strips the <code>KEY=</code> labels, after which a semicolon-delimited flat file profile parses the remainder &mdash; no scripting involved.</p>
+
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span class="n">3</span>Business rule ladder<span class="th">ลำดับกฎเกณฑ์ทางธุรกิจ</span></summary>
+    <div class="acc-body">
+<div class="panel">
+    <div class="panel-head"><div class="p-title">[SUB] BVTPA Adjudicate Claim &mdash; evaluation order</div><div class="p-hint">First match wins</div></div>
+    <div class="table-scroll">
+      <table class="tight wrapcells">
+        <thead><tr><th>#</th><th>Shape</th><th>Type</th><th>Condition</th><th>Outcome</th></tr></thead>
+        <tbody>
+          <tr><td><span class="ruleno">1</span></td><td>Lookup Member Eligibility And Benefits</td><td><span class="shapechip">Set Properties</span></td><td>Cross reference on policyNo returns insurer, limit, pre-auth flag, status</td><td>&mdash;</td></tr>
+          <tr><td><span class="ruleno">2</span></td><td>Policy Not Found In Book Of Record</td><td><span class="shapechip">Decision</span></td><td>Lookup returned nothing</td><td><span class="status-pill p-orange">POLICY_NOT_FOUND</span></td></tr>
+          <tr><td><span class="ruleno">3</span></td><td>Policy Status Is Active</td><td><span class="shapechip">Decision</span></td><td>Status is not <code>Active</code></td><td><span class="status-pill p-orange">POLICY_INACTIVE</span></td></tr>
+          <tr><td><span class="ruleno">4</span></td><td>Hospital Is Panelled</td><td><span class="shapechip">Decision</span></td><td>Panel status lookup returns <code>Panelled</code></td><td>continue to contract check</td></tr>
+          <tr><td><span class="ruleno">5</span></td><td>Insurer Has Direct Billing Contract</td><td><span class="shapechip">Decision</span></td><td>hospital|insurer key found in contracts table</td><td><span class="status-pill p-blue">route CASHLESS</span> else <span class="status-pill p-slate">route REIMBURSEMENT</span></td></tr>
+          <tr><td><span class="ruleno">6</span></td><td>Claim Amount Exceeds Remaining Limit</td><td><span class="shapechip">Decision</span></td><td>amount &gt; remaining limit</td><td><span class="status-pill p-orange">EXCEED_LIMIT</span></td></tr>
+          <tr><td><span class="ruleno">7</span></td><td>Pre-Auth Required For This Policy</td><td><span class="shapechip">Decision</span></td><td>Cashless route and pre-auth flag is <code>Y</code></td><td>continue to code check</td></tr>
+          <tr><td><span class="ruleno">8</span></td><td>Pre-Auth Code Missing</td><td><span class="shapechip">Decision</span></td><td>No pre-auth code on the claim</td><td><span class="status-pill p-orange">MISSING_PREAUTH</span></td></tr>
+          <tr><td><span class="ruleno">9</span></td><td>Route Adjudicated Claim</td><td><span class="shapechip">Route</span></td><td>Switch on the decision property</td><td><span class="status-pill p-blue">APPROVED_CASHLESS</span> <span class="status-pill p-slate">APPROVED_REIMBURSEMENT</span> <span class="status-pill p-orange">Manual queue</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span class="n">4</span>Reference data held in the platform<span class="th">ข้อมูลอ้างอิงที่เก็บในแพลตฟอร์ม</span></summary>
+    <div class="acc-body">
+<div class="twocol">
+    <div class="panel">
+      <div class="panel-head"><div class="p-title">xref.BVTPA.MemberEligibility</div><div class="p-hint">6 rows</div></div>
+      <div class="table-scroll">
+        <table class="tight">
+          <thead><tr><th>Policy</th><th>Insurer</th><th class="num">Limit (THB)</th><th>Pre-auth</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td class="mono-cell">POL-AIA-10234</td><td>AIA</td><td class="num">250,000</td><td>N</td><td><span class="status-pill p-blue">Active</span></td></tr>
+            <tr><td class="mono-cell">POL-AIA-10877</td><td>AIA</td><td class="num">18,000</td><td>N</td><td><span class="status-pill p-blue">Active</span></td></tr>
+            <tr><td class="mono-cell">POL-BUPA-55120</td><td>BUPA</td><td class="num">300,000</td><td>Y</td><td><span class="status-pill p-blue">Active</span></td></tr>
+            <tr><td class="mono-cell">POL-BUPA-55331</td><td>BUPA</td><td class="num">150,000</td><td>N</td><td><span class="status-pill p-orange">Expired</span></td></tr>
+            <tr><td class="mono-cell">POL-AXA-77410</td><td>AXA</td><td class="num">500,000</td><td>N</td><td><span class="status-pill p-blue">Active</span></td></tr>
+            <tr><td class="mono-cell">POL-MTL-30021</td><td>MTL</td><td class="num">120,000</td><td>Y</td><td><span class="status-pill p-blue">Active</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div>
+      <div class="panel" style="margin-bottom:14px;">
+        <div class="panel-head"><div class="p-title">xref.BVTPA.HospitalPanelStatus</div><div class="p-hint">3 rows</div></div>
+        <div class="table-scroll">
+          <table class="tight">
+            <thead><tr><th>Hospital</th><th>Panel status</th></tr></thead>
+            <tbody>
+              <tr><td>Bangkok Metro Hospital</td><td><span class="status-pill p-blue">Panelled</span></td></tr>
+              <tr><td>Siriraj Partners Hospital</td><td><span class="status-pill p-blue">Panelled</span></td></tr>
+              <tr><td>Chiang Mai Wellness Clinic</td><td><span class="status-pill p-slate">Non-Panelled</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><div class="p-title">xref.BVTPA.PanelContracts</div><div class="p-hint">4 rows &middot; key = hospital|insurer</div></div>
+        <div class="table-scroll">
+          <table class="tight">
+            <thead><tr><th>Contract key</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td class="mono-cell">Bangkok Metro Hospital|AIA</td><td><span class="status-pill p-blue">CONTRACTED</span></td></tr>
+              <tr><td class="mono-cell">Bangkok Metro Hospital|BUPA</td><td><span class="status-pill p-blue">CONTRACTED</span></td></tr>
+              <tr><td class="mono-cell">Siriraj Partners Hospital|AIA</td><td><span class="status-pill p-blue">CONTRACTED</span></td></tr>
+              <tr><td class="mono-cell">Siriraj Partners Hospital|BUPA</td><td><span class="status-pill p-blue">CONTRACTED</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="legend">A missing contract row is meaningful, not an error: Siriraj Partners is panelled but has no MTL contract, so an MTL claim from that hospital correctly falls back to member reimbursement.</p>
+
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span class="n">5</span>Execution trace &mdash; last run<span class="th">บันทึกการทำงานทีละขั้นตอนของการรันล่าสุด</span></summary>
+    <div class="acc-body">
+<div class="panel">
+    <div class="panel-head">
+      <div class="p-title">Shape-level trace</div>
+      <div class="p-hint">Manual execution &middot; status COMPLETE &middot; 4,654 ms</div>
+    </div>
+    <div class="table-scroll">
+      <table class="tight">
+        <thead><tr><th>Shape</th><th>Type</th><th>Process</th><th class="num">Docs</th><th class="num">Duration</th></tr></thead>
+        <tbody>
+          <tr><td>Start</td><td><span class="shapechip">Start (No Data)</span></td><td>Orchestration</td><td class="num">1</td><td class="num ms">36 ms</td></tr>
+          <tr><td>Initialise Run Collectors</td><td><span class="shapechip">Set Properties</span></td><td>Orchestration</td><td class="num">1</td><td class="num ms">9 ms</td></tr>
+          <tr><td>Branch</td><td><span class="shapechip">Branch</span></td><td>Orchestration</td><td class="num">1</td><td class="num ms">0 ms</td></tr>
+          <tr><td>Hospital A Feed &mdash; CSV (Panelled)</td><td><span class="shapechip">Message</span></td><td>Orchestration</td><td class="num">1</td><td class="num ms">3 ms</td></tr>
+          <tr><td>Hospital A to Canonical Claim</td><td><span class="shapechip">Map</span></td><td>Orchestration</td><td class="num">1&rarr;3</td><td class="num ms">21 ms</td></tr>
+          <tr><td>Adjudicate Hospital A Claims</td><td><span class="shapechip">Process Call</span></td><td>Orchestration</td><td class="num">3</td><td class="num ms">5 ms</td></tr>
+          <tr><td>Extract Canonical Claim Fields</td><td><span class="shapechip">Set Properties</span></td><td>Adjudication</td><td class="num">3</td><td class="num ms">23 ms</td></tr>
+          <tr><td>Lookup Member Eligibility And Benefits</td><td><span class="shapechip">Set Properties</span></td><td>Adjudication</td><td class="num">3</td><td class="num ms">20 ms</td></tr>
+          <tr><td>Resolve Hospital Panel Status</td><td><span class="shapechip">Set Properties</span></td><td>Adjudication</td><td class="num">3</td><td class="num ms">6 ms</td></tr>
+          <tr><td>Lookup Direct Billing Contract</td><td><span class="shapechip">Set Properties</span></td><td>Adjudication</td><td class="num">3</td><td class="num ms">6 ms</td></tr>
+          <tr><td>Claim Amount Exceeds Remaining Limit</td><td><span class="shapechip">Decision</span></td><td>Adjudication</td><td class="num">3</td><td class="num ms">3 ms</td></tr>
+          <tr><td>Route Adjudicated Claim</td><td><span class="shapechip">Route</span></td><td>Adjudication</td><td class="num">1</td><td class="num ms">2 ms</td></tr>
+          <tr><td>Direct Billing Settlement Output</td><td><span class="shapechip">Message</span></td><td>Adjudication</td><td class="num">1</td><td class="num ms">1 ms</td></tr>
+          <tr><td>Build Adjudication Summary</td><td><span class="shapechip">Data Process</span></td><td>Orchestration</td><td class="num">1</td><td class="num ms">528 ms</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <p class="legend">Representative shapes from the full trace. The map shape turns one multi-row feed document into one canonical claim document per row, which is why the document count climbs from 1 to 3 at that step.</p>
+
+    </div>
+  </details>
+
+  <footer>Illustrative hospitals, insurers and claims only — not confirmed BVTPA network partners or real patient data. Colors and type are an inferred "Blue Venture" blue palette (the live blueventuretpa.com page is script-rendered and wasn't reachable to confirm exact brand hex values) — swap in exact brand assets any time. Node layout mimics a Boomi integration process canvas with a three-way cashless / reimbursement / exception route.</footer>
+</div>
+
+<script>
+const PREAUTH_THRESHOLD = 20000;
+
+const ELIGIBILITY = [
+ {policyNo:'POL-AIA-10234', insurer:'AIA Thailand', limit:150000, preAuthRequired:false, status:'Active'},
+ {policyNo:'POL-MTL-77410', insurer:'Muang Thai Life Assurance', limit:60000, preAuthRequired:true, status:'Expired'},
+ {policyNo:'POL-MTL-88213', insurer:'Muang Thai Life Assurance', limit:40000, preAuthRequired:true, status:'Active'},
+ {policyNo:'POL-DHIP-55021', insurer:'Dhipaya Insurance', limit:25000, preAuthRequired:false, status:'Active'},
+ {policyNo:'POL-AIA-10999', insurer:'AIA Thailand', limit:5000, preAuthRequired:false, status:'Active'},
+ {policyNo:'POL-DHIP-60040', insurer:'Dhipaya Insurance', limit:35000, preAuthRequired:true, status:'Active'},
+];
+
+const HOSPITALS = {
+  'Bangkok Grand Hospital': { fmt:'CSV · SFTP structured export', kind:'Connector · SFTP (Structured CSV)', panelStatus:'Panelled', network:['AIA Thailand','Muang Thai Life Assurance','Dhipaya Insurance'], parse:'A' },
+  'Suburban Health Hospital': { fmt:'CSV · web portal upload', kind:'Connector · Web Portal (CSV)', panelStatus:'Panelled', network:['AIA Thailand','Dhipaya Insurance'], parse:'B' },
+  'Rural Community Hospital': { fmt:'Flat text · manual front-desk entry', kind:'Connector · Disk (Manual Entry)', panelStatus:'Non-Panelled', network:[], parse:'C' },
+};
+
+const BATCHES = {
+  day1: {
+    label: 'Day 1 — 2026-09-15',
+    raw: {
+      'Bangkok Grand Hospital': `ClaimID,PolicyNo,Amount,ServiceDate,PreAuthCode
+BGH-1001,POL-AIA-10234,45000.00,2026-09-15,
+BGH-1002,POL-MTL-77410,22000.00,2026-09-15,
+BGH-1003,POL-DHIP-60040,30000.00,2026-09-15,AUTH-9981`,
+      'Suburban Health Hospital': `service_date,policy_no,claim_id,amount_thb
+2026-09-15,POL-MTL-88213,SHH-2001,18000
+2026-09-15,POL-DHIP-55021,SHH-2002,24500
+2026-09-15,POL-XXX-99999,SHH-2003,15000`,
+      'Rural Community Hospital': `CLAIM=RCH-3001; POLICY=POL-AIA-10999; AMT=12000; DATE=2026-09-15
+CLAIM=RCH-3002; POLICY=POL-MTL-88213; AMT=28000; DATE=2026-09-15`,
+    }
+  },
+  day2: {
+    label: 'Day 2 — 2026-09-16',
+    raw: {
+      'Bangkok Grand Hospital': `ClaimID,PolicyNo,Amount,ServiceDate,PreAuthCode
+BGH-2001,POL-DHIP-60040,32000.00,2026-09-16,
+BGH-2002,POL-AIA-10234,60000.00,2026-09-16,`,
+      'Suburban Health Hospital': `service_date,policy_no,claim_id,amount_thb
+2026-09-16,POL-MTL-88213,SHH-2101,9000
+2026-09-16,POL-DHIP-55021,SHH-2102,26000`,
+      'Rural Community Hospital': `CLAIM=RCH-3101; POLICY=POL-AIA-10999; AMT=4000; DATE=2026-09-16
+CLAIM=RCH-3102; POLICY=POL-MTL-77410; AMT=15000; DATE=2026-09-16`,
+    }
+  }
+};
+
+const PARSERS = {
+  A: raw => raw.trim().split('\n').slice(1).map(l => {
+    const [claimId,policyNo,amount,serviceDate,preAuthCode]=l.split(',');
+    return {claimId,policyNo,amount:parseFloat(amount),serviceDate,preAuthCode:(preAuthCode||'').trim()};
+  }),
+  B: raw => raw.trim().split('\n').slice(1).map(l => {
+    const [serviceDate,policyNo,claimId,amount]=l.split(',');
+    return {claimId,policyNo,amount:parseFloat(amount),serviceDate,preAuthCode:''};
+  }),
+  C: raw => raw.trim().split('\n').map(l => {
+    const fields = {};
+    l.split(';').forEach(kv => { const [k,v]=kv.split('=').map(s=>s.trim()); fields[k]=v; });
+    return {claimId:fields.CLAIM, policyNo:fields.POLICY, amount:parseFloat(fields.AMT), serviceDate:fields.DATE, preAuthCode:''};
+  }),
+};
+
+function escapeHtml(s){ return s.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+
+let currentBatch = 'day1';
+const resolutions = {}; // claimId -> 'OVERRIDDEN' | 'INFO_REQUESTED' | 'REJECTED'
+
+function hospitalNames(){ return Object.keys(HOSPITALS); }
+
+function renderSourceCards(){
+  const batch = BATCHES[currentBatch];
+  document.getElementById('sourceCards').innerHTML = hospitalNames().map(name => {
+    const h = HOSPITALS[name];
+    const tagClass = h.panelStatus === 'Panelled' ? 'panelled' : 'nonpanelled';
+    const tagText = h.panelStatus === 'Panelled' ? 'Panelled · cashless network' : 'Non-panelled · reimbursement only';
+    return `<div class="card">
+      <h3>${name}</h3>
+      <div class="fmt">${h.fmt}</div>
+      <div class="panel-tag ${tagClass}">${tagText}</div>
+      <pre>${escapeHtml(batch.raw[name])}</pre>
+    </div>`;
+  }).join('');
+
+  // update canvas node labels/kinds to match the 3 hospitals (stable order)
+  hospitalNames().forEach((name, i) => {
+    const idx = i + 1;
+    document.getElementById('hospName' + idx).textContent = HOSPITALS[name].kind;
+    document.getElementById('hospLabel' + idx).textContent = name;
+  });
+}
+
+function renderEligibility(){
+  const rows = ELIGIBILITY.map(e =>
+    `${e.policyNo.padEnd(16)} ${e.insurer.padEnd(26)} limit ${String(e.limit).padStart(7)}  preauth:${e.preAuthRequired?'Y':'N'}  ${e.status}`
+  ).join('\n');
+  document.getElementById('eligPre').textContent = `POLICY            INSURER                    LIMIT(THB)  PRE-AUTH  STATUS\n${rows}`;
+}
+
+function adjudicate(hospitalName, rec){
+  const h = HOSPITALS[hospitalName];
+  const elig = ELIGIBILITY.find(e => e.policyNo === rec.policyNo);
+  if(!elig) return {status:'EXCEPTION', reason:'POLICY_NOT_FOUND', path:null, insurer:'—'};
+  if(elig.status !== 'Active') return {status:'EXCEPTION', reason:'POLICY_INACTIVE', path:null, insurer:elig.insurer};
+  let path = (h.panelStatus === 'Non-Panelled' || !h.network.includes(elig.insurer)) ? 'REIMBURSEMENT' : 'CASHLESS';
+  if(rec.amount > elig.limit) return {status:'EXCEPTION', reason:'EXCEED_LIMIT', path, insurer:elig.insurer};
+  if(path === 'CASHLESS' && elig.preAuthRequired && rec.amount >= PREAUTH_THRESHOLD && !rec.preAuthCode)
+    return {status:'EXCEPTION', reason:'MISSING_PREAUTH', path, insurer:elig.insurer};
+  return {status: path === 'CASHLESS' ? 'APPROVED_CASHLESS' : 'APPROVED_REIMBURSEMENT', reason:'—', path, insurer:elig.insurer};
+}
+
+function compute(){
+  const batch = BATCHES[currentBatch];
+  const results = [];
+  hospitalNames().forEach(name => {
+    const h = HOSPITALS[name];
+    PARSERS[h.parse](batch.raw[name]).forEach(rec => {
+      const r = adjudicate(name, rec);
+      results.push({ hospital:name, ...rec, ...r });
+    });
+  });
+  const rank = {POLICY_NOT_FOUND:0, POLICY_INACTIVE:1, EXCEED_LIMIT:2, MISSING_PREAUTH:3, '—':4};
+  results.sort((a,b)=> (rank[a.reason]??4) - (rank[b.reason]??4));
+  return results;
+}
+
+function settlementNote(r){
+  if(r.status === 'APPROVED_CASHLESS') return `Direct payment of THB ${r.amount.toLocaleString()} to ${r.hospital}`;
+  if(r.status === 'APPROVED_REIMBURSEMENT') return `Reimbursement of THB ${r.amount.toLocaleString()} to member`;
+  return '';
+}
+
+function chipFor(r){
+  if(resolutions[r.claimId]) {
+    const map = {OVERRIDDEN:['good','Overridden · Approved'], INFO_REQUESTED:['neutral','Info requested'], REJECTED:['bad','Rejected']};
+    const [cls,label] = map[resolutions[r.claimId]];
+    return `<span class="chip ${cls}">${label}</span>`;
+  }
+  if(r.status === 'APPROVED_CASHLESS') return `<span class="chip good">CASHLESS</span>`;
+  if(r.status === 'APPROVED_REIMBURSEMENT') return `<span class="chip info">REIMBURSEMENT</span>`;
+  return `<span class="chip bad">EXCEPTION</span>`;
+}
+
+function actionsFor(r){
+  if(r.status !== 'EXCEPTION') {
+    return `<span class="detail">${settlementNote(r)}</span>`;
+  }
+  if(resolutions[r.claimId]) {
+    return `<span class="detail">Resolved by adjudicator</span>`;
+  }
+  return `<div class="actions">
+    <button class="act-btn approve" data-act="OVERRIDDEN" data-claim="${r.claimId}">✓ Override</button>
+    <button class="act-btn info-req" data-act="INFO_REQUESTED" data-claim="${r.claimId}">✎ Request info</button>
+    <button class="act-btn reject" data-act="REJECTED" data-claim="${r.claimId}">✕ Reject</button>
+  </div>`;
+}
+
+let lastResults = [];
+
+function renderResults(){
+  const results = compute();
+  lastResults = results;
+  document.getElementById('resultsBody').innerHTML = results.map(r => `
+    <tr>
+      <td>${r.hospital}</td><td>${r.claimId}</td><td>${r.policyNo}</td><td>${r.insurer}</td>
+      <td class="num">${r.amount.toLocaleString()}</td>
+      <td>${chipFor(r)}</td>
+      <td>${r.reason}</td>
+      <td>${actionsFor(r)}</td>
+    </tr>`).join('');
+
+  document.querySelectorAll('.act-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      resolutions[btn.dataset.claim] = btn.dataset.act;
+      renderResults();
+    });
+  });
+
+  const total = results.length;
+  const cashless = results.filter(r=>r.status==='APPROVED_CASHLESS').length;
+  const reimb = results.filter(r=>r.status==='APPROVED_REIMBURSEMENT').length;
+  const openExceptions = results.filter(r=>r.status==='EXCEPTION' && !resolutions[r.claimId]).length;
+  const resolved = results.filter(r=>r.status==='EXCEPTION' && resolutions[r.claimId]).length;
+  const straightThrough = total ? Math.round((cashless+reimb)/total*100) : 0;
+
+  document.getElementById('summary').innerHTML = `
+    <div class="stat"><div class="n">${total}</div><div class="l">Claims processed</div></div>
+    <div class="stat"><div class="n" style="color:var(--good)">${cashless}</div><div class="l">Cashless</div></div>
+    <div class="stat"><div class="n" style="color:var(--info)">${reimb}</div><div class="l">Reimbursement</div></div>
+    <div class="stat"><div class="n" style="color:var(--bad)">${openExceptions}</div><div class="l">Open exceptions</div></div>
+    <div class="stat"><div class="n" style="color:var(--brand)">${resolved}</div><div class="l">Resolved by adjudicator</div></div>
+    <div class="stat"><div class="n">${straightThrough}%</div><div class="l">Straight-through rate</div></div>
+  `;
+  return {cashless, reimb, openExceptions};
+}
+
+// ---- process canvas animation ----
+const svgPaths = Array.from(document.querySelectorAll('.flowpath'));
+const stageNodes = Array.from(document.querySelectorAll('.node[data-stage]'));
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function prepPaths(){
+  svgPaths.forEach(p => {
+    const len = p.getTotalLength();
+    p.style.strokeDasharray = len;
+    p.style.strokeDashoffset = len;
+    p.style.transition = 'none';
+  });
+}
+function resetCanvas(){
+  stageNodes.forEach(n => n.classList.remove('active'));
+  document.querySelectorAll('.badge').forEach(b => b.classList.remove('show'));
+  prepPaths();
+}
+function markerFor(p){
+  if(p.classList.contains('bad-path')) return 'url(#arrowBad)';
+  if(p.classList.contains('info-path')) return 'url(#arrowInfo)';
+  return 'url(#arrowDone)';
+}
+function activateStage(stage, instant){
+  stageNodes.filter(n => n.dataset.stage === String(stage)).forEach(n => n.classList.add('active'));
+  svgPaths.filter(p => p.dataset.stage === String(stage)).forEach(p => {
+    p.setAttribute('marker-end', markerFor(p));
+    if (instant){ p.style.transition = 'none'; p.style.strokeDashoffset = 0; }
+    else { p.style.transition = 'stroke-dashoffset .5s ease'; requestAnimationFrame(() => { p.style.strokeDashoffset = 0; }); }
+    p.classList.add('done');
+  });
+  if (stage === 0) ['badge-start1','badge-start2','badge-start3'].forEach(id => document.getElementById(id).classList.add('show'));
+  if (stage === 3) ['badge-cashless','badge-reimb','badge-quarantine'].forEach(id => document.getElementById(id).classList.add('show'));
+}
+
+function updateStartBadges(){
+  const batch = BATCHES[currentBatch];
+  hospitalNames().forEach((name,i) => {
+    const h = HOSPITALS[name];
+    const n = PARSERS[h.parse](batch.raw[name]).length;
+    document.getElementById('badge-start' + (i+1)).textContent = n + ' claims';
+  });
+}
+
+function runFlow(instant){
+  updateStartBadges();
+  const { cashless, reimb, openExceptions } = renderResults();
+  document.getElementById('badge-cashless').textContent = cashless + ' claims';
+  document.getElementById('badge-reimb').textContent = reimb + ' claims';
+  document.getElementById('badge-quarantine').textContent = openExceptions + ' claims';
+  const stages = [0,1,2,3,4];
+  if (instant || reduceMotion){
+    stages.forEach(s => activateStage(s, true));
+  } else {
+    resetCanvas();
+    stages.forEach((s, i) => setTimeout(() => activateStage(s, false), i * 450));
+  }
+}
+
+function loadBatch(id){
+  currentBatch = id;
+  document.getElementById('batchDay1').classList.toggle('active', id==='day1');
+  document.getElementById('batchDay2').classList.toggle('active', id==='day2');
+  for (const k in resolutions) delete resolutions[k];
+  renderSourceCards();
+  runFlow(false);
+}
+
+renderSourceCards();
+renderEligibility();
+prepPaths();
+runFlow(true);
+
+document.getElementById('runBtn').addEventListener('click', () => runFlow(false));
+document.getElementById('batchDay1').addEventListener('click', () => loadBatch('day1'));
+document.getElementById('batchDay2').addEventListener('click', () => loadBatch('day2'));
+</script>
+
+<div class="drawer-backdrop" id="drawerBackdrop"></div>
+<aside class="drawer" id="claimDrawer" aria-hidden="true" aria-label="Claim detail">
+  <div class="drawer-head">
+    <div>
+      <div class="d-id" id="dClaimId">&mdash;</div>
+      <div class="d-sub" id="dClaimSub">&mdash;</div>
+    </div>
+    <button class="drawer-close" id="drawerClose" type="button" aria-label="Close claim detail">&times;</button>
+  </div>
+  <div class="drawer-body">
+    <div class="d-section first">Claim summary</div>
+    <dl class="kv" id="dSummary"></dl>
+    <div class="d-section">Integration timeline</div>
+    <ul class="timeline" id="dTimeline"></ul>
+    <div class="d-section">Payload preview</div>
+    <pre id="dPayload"></pre>
+    <p class="h-foot" style="margin-top:10px;">Synthetic demo payload &mdash; not a real claim record.</p>
+  </div>
+</aside>
+
+<script>
+/* ---------- Recent claims + detail drawer (synthetic demo data) ---------- */
+const PROVIDERS = {
+  'PRV-00412': 'Al Noor Specialist Centre',
+  'PRV-00188': 'Gulf Medical Clinic',
+  'PRV-00655': 'Coastal Family Health',
+  'PRV-00901': 'Meridian Day Surgery'
+};
+
+const CLAIMS = [
+  {id:'CLM-2026-004821', member:'MBR-018452', provider:'PRV-00412', type:'OUTPATIENT', submitted:'08:41', amount:485.75,  integ:'Submitted',   proc:'Processing', updated:'08:43'},
+  {id:'CLM-2026-004820', member:'MBR-018330', provider:'PRV-00188', type:'OUTPATIENT', submitted:'08:39', amount:312.00,  integ:'Transformed', proc:'Approved',   updated:'08:41'},
+  {id:'CLM-2026-004819', member:'MBR-017904', provider:'PRV-00412', type:'INPATIENT',  submitted:'08:36', amount:12480.00,integ:'Validated',   proc:'Processing', updated:'08:40'},
+  {id:'CLM-2026-004818', member:'MBR-018771', provider:'PRV-00655', type:'PHARMACY',   submitted:'08:33', amount:96.40,   integ:'Received',    proc:'Processing', updated:'08:35'},
+  {id:'CLM-2026-004817', member:'MBR-016205', provider:'PRV-00188', type:'DENTAL',     submitted:'08:30', amount:740.00,  integ:'Exception',   proc:'Exception',  updated:'08:32', flag:'Schema validation failed - serviceDate missing'},
+  {id:'CLM-2026-004816', member:'MBR-018452', provider:'PRV-00901', type:'DAYCASE',    submitted:'08:27', amount:5260.50, integ:'Submitted',   proc:'Approved',   updated:'08:31'},
+  {id:'CLM-2026-004815', member:'MBR-015877', provider:'PRV-00655', type:'OUTPATIENT', submitted:'08:24', amount:268.25,  integ:'Exception',   proc:'Exception',  updated:'08:26', flag:'Member eligibility check failed - policy inactive'},
+  {id:'CLM-2026-004814', member:'MBR-018110', provider:'PRV-00412', type:'MATERNITY',  submitted:'08:21', amount:9145.00, integ:'Transformed', proc:'Processing', updated:'08:29'},
+  {id:'CLM-2026-004813', member:'MBR-017450', provider:'PRV-00901', type:'OUTPATIENT', submitted:'08:18', amount:410.90,  integ:'Submitted',   proc:'Approved',   updated:'08:22'}
+];
+
+const PILL = {
+  'Received':'p-outline', 'Validated':'p-blue', 'Transformed':'p-blue', 'Submitted':'p-blue',
+  'Processing':'p-slate', 'Approved':'p-blue', 'Exception':'p-orange'
+};
+
+function aed(n){ return 'AED ' + n.toLocaleString('en-AE', {minimumFractionDigits:2, maximumFractionDigits:2}); }
+
+function renderClaims(){
+  document.getElementById('claimsBody').innerHTML = CLAIMS.map((c, i) => `
+    <tr data-i="${i}" tabindex="0">
+      <td class="mono">${c.id}</td>
+      <td class="mono">${c.member}</td>
+      <td>${PROVIDERS[c.provider]}<div class="detail">${c.provider}</div></td>
+      <td>${c.type}</td>
+      <td>16 Sep ${c.submitted}</td>
+      <td class="num">${aed(c.amount)}</td>
+      <td><span class="status-pill ${PILL[c.integ]}">${c.integ}</span></td>
+      <td><span class="status-pill ${PILL[c.proc]}">${c.proc}</span></td>
+      <td>${c.updated}</td>
+    </tr>`).join('');
+}
+
+function timelineFor(c){
+  const t = c.submitted.split(':').map(Number);
+  const at = m => { const d = new Date(2026, 8, 16, t[0], t[1] + m); return '16 Sep 2026 ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0'); };
+  const isExc = c.integ === 'Exception';
+  const steps = [
+    {name:'Claim received from provider', time:at(0)},
+    {name:'Schema validation completed', time:at(1), flag: isExc && c.flag.indexOf('Schema') === 0},
+    {name:'Member eligibility validated', time:at(1), flag: isExc && c.flag.indexOf('Member') === 0},
+    {name:'Data transformed to canonical claim', time:at(2)},
+    {name:'Claim submitted to BVTPA', time:at(2)},
+    {name:'Processing response received', time:at(3)}
+  ];
+  if(isExc){
+    const stop = steps.findIndex(x => x.flag);
+    return steps.map((x, i) => ({...x, pending: i > stop}));
+  }
+  return steps;
+}
+
+function payloadFor(c){
+  return JSON.stringify({
+    claimId: c.id, memberId: c.member, providerId: c.provider,
+    claimType: c.type, currency: 'AED', amount: c.amount,
+    status: c.integ.toUpperCase()
+  }, null, 2);
+}
+
+const drawer = document.getElementById('claimDrawer');
+const backdrop = document.getElementById('drawerBackdrop');
+
+function openClaim(i){
+  const c = CLAIMS[i];
+  document.querySelectorAll('#claimsBody tr').forEach(r => r.classList.toggle('selected', +r.dataset.i === i));
+  document.getElementById('dClaimId').textContent = c.id;
+  document.getElementById('dClaimSub').textContent = PROVIDERS[c.provider] + ' \u00b7 ' + c.type;
+  document.getElementById('dSummary').innerHTML = `
+    <dt>Claim ID</dt><dd>${c.id}</dd>
+    <dt>Member ID</dt><dd>${c.member}</dd>
+    <dt>Provider ID</dt><dd>${c.provider}</dd>
+    <dt>Service date</dt><dd>16 Sep 2026</dd>
+    <dt>Claim amount</dt><dd>${aed(c.amount)}</dd>
+    <dt>Claim type</dt><dd>${c.type}</dd>
+    <dt>Status</dt><dd><span class="status-pill ${PILL[c.proc]}">${c.proc}</span></dd>`;
+  document.getElementById('dTimeline').innerHTML = timelineFor(c).map(x =>
+    `<li class="${x.flag ? 'flag' : (x.pending ? 'pending' : '')}">
+       <div class="t-name">${x.name}</div><div class="t-time">${x.pending ? 'Not reached' : x.time}</div>
+     </li>`).join('');
+  document.getElementById('dPayload').textContent = payloadFor(c);
+  drawer.classList.add('open');
+  drawer.setAttribute('aria-hidden','false');
+  backdrop.classList.add('open');
+}
+
+function closeClaim(){
+  drawer.classList.remove('open');
+  drawer.setAttribute('aria-hidden','true');
+  backdrop.classList.remove('open');
+  document.querySelectorAll('#claimsBody tr').forEach(r => r.classList.remove('selected'));
+}
+
+renderClaims();
+document.getElementById('claimsBody').addEventListener('click', e => {
+  const row = e.target.closest('tr'); if(row) openClaim(+row.dataset.i);
+});
+document.getElementById('claimsBody').addEventListener('keydown', e => {
+  if(e.key === 'Enter' || e.key === ' '){ const row = e.target.closest('tr'); if(row){ e.preventDefault(); openClaim(+row.dataset.i); } }
+});
+document.getElementById('drawerClose').addEventListener('click', closeClaim);
+backdrop.addEventListener('click', closeClaim);
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closeClaim(); });
+</script>
+
+</body>
+</html>

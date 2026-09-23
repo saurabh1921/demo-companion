@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Boomi Public Cloud Runtime Sizing Calculator</title>
+<style>
+  :root{
+    --bg:#0f1115; --card:#171a21; --card2:#1e222b; --line:#2c313c;
+    --ink:#e7eaf0; --sub:#98a2b3; --accent:#4f8cff; --ok:#33c27f;
+    --warn:#f0b429; --bad:#ef5350; --flow:#4f8cff;
+    --mono:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);line-height:1.5;
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 18px}
+  h1{font-size:24px;margin:0 0 4px;letter-spacing:-.3px}
+  .lede{color:var(--sub);font-size:13.5px;max-width:820px;margin:0 0 6px}
+  .disclaimer{background:#1b1e26;border:1px solid var(--line);border-left:3px solid var(--warn);
+    border-radius:8px;padding:10px 14px;margin:14px 0 18px;font-size:12.5px;color:var(--sub)}
+  .disclaimer b{color:var(--ink)}
+
+  .scenariobar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 18px;
+    background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px}
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;flex:1;min-width:0}
+  .tab{display:flex;align-items:center;gap:6px;background:#0c0e12;border:1px solid var(--line);
+    border-radius:9px;padding:6px 8px 6px 12px;cursor:pointer;font-size:13px;color:var(--sub);max-width:300px}
+  .tab.on{background:rgba(79,140,255,.16);border-color:var(--accent);color:var(--ink);font-weight:600}
+  .tab .tname{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px}
+  .tab .tmeta{font:600 10px/1 var(--mono);opacity:.7;white-space:nowrap}
+  .tab .x{border:none;background:transparent;color:inherit;opacity:.5;cursor:pointer;font-size:15px;line-height:1;padding:0 2px}
+  .tab .x:hover{opacity:1;color:var(--bad)}
+  .tab input.rename{background:#0c0e12;border:1px solid var(--accent);color:var(--ink);border-radius:6px;
+    font-size:13px;padding:2px 6px;font-family:inherit;width:150px}
+  .scenario-actions{display:flex;gap:6px}
+  .scenario-actions button{background:rgba(79,140,255,.12);border:1px solid rgba(79,140,255,.35);
+    color:var(--accent);border-radius:8px;padding:7px 10px;font-size:12.5px;cursor:pointer;font-family:inherit;white-space:nowrap}
+  .scenario-actions button.ghost{background:transparent;border-color:var(--line);color:var(--sub)}
+  .scenario-actions button:hover{filter:brightness(1.15)}
+
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media(max-width:900px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 16px 8px}
+  .card h2{font-size:15px;margin:0 0 12px;display:flex;align-items:center;gap:8px}
+  .card h2 .tag{font:600 11px/1 var(--mono);color:var(--accent);background:rgba(79,140,255,.12);
+    border:1px solid rgba(79,140,255,.3);border-radius:5px;padding:4px 6px}
+  label{display:block;font-size:12.5px;color:var(--sub);margin:10px 0 4px}
+  .hint{font-size:11px;color:#6b7688;margin-top:2px}
+  input[type=number],input[type=text],select{width:100%;background:#0c0e12;color:var(--ink);border:1px solid var(--line);
+    border-radius:8px;padding:8px 10px;font-size:13.5px;font-family:inherit}
+  input:focus,select:focus{outline:none;border-color:var(--accent)}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+  .seg{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+  .seg button{flex:1;min-width:64px;background:#0c0e12;color:var(--sub);border:1px solid var(--line);
+    border-radius:8px;padding:8px 6px;font-size:12px;cursor:pointer;font-family:inherit}
+  .seg button.on{background:rgba(79,140,255,.16);border-color:var(--accent);color:var(--ink);font-weight:600}
+  .seg button:disabled{opacity:.35;cursor:not-allowed}
+  .combonote{font-size:11.5px;margin-top:6px;padding:7px 10px;border-radius:8px;border:1px solid var(--line);background:#0c0e12;color:var(--sub)}
+  .combonote.warn{border-color:rgba(240,180,41,.5);color:#f4cd6b;background:rgba(240,180,41,.06)}
+  .proc-block{border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:12px;background:var(--card2)}
+  .proc-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+  .proc-head button{background:transparent;border:1px solid var(--line);color:var(--sub);border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer}
+  .empty{color:var(--sub);font-size:12.5px;border:1px dashed var(--line);border-radius:10px;padding:14px;text-align:center;margin-bottom:12px}
+  .addbtn{width:100%;background:rgba(79,140,255,.1);border:1px dashed var(--accent);color:var(--accent);
+    border-radius:8px;padding:9px;font-size:13px;cursor:pointer;font-family:inherit;margin-top:2px}
+  .chk{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ink);margin:5px 0}
+  .chk input{width:auto}
+  .verdict{border-radius:14px;padding:18px;margin:0 0 10px;border:1px solid var(--line)}
+  .verdict.ok{background:linear-gradient(180deg,rgba(51,194,127,.14),rgba(51,194,127,.04));border-color:rgba(51,194,127,.5)}
+  .verdict.warn{background:linear-gradient(180deg,rgba(240,180,41,.14),rgba(240,180,41,.04));border-color:rgba(240,180,41,.5)}
+  .verdict.bad{background:linear-gradient(180deg,rgba(239,83,80,.14),rgba(239,83,80,.04));border-color:rgba(239,83,80,.5)}
+  .verdict .big{font-size:30px;font-weight:700;letter-spacing:-.5px}
+  .verdict .sub{color:var(--sub);font-size:13px;margin-top:2px}
+  .verdict .bind{margin-top:10px;font-size:13.5px}
+  .verdict .bind b{color:var(--ink)}
+  .metrics{margin-top:6px}
+  .metric{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:10px}
+  .metric .top{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+  .metric .mname{font-weight:600;font-size:13.5px}
+  .metric .mval{font-family:var(--mono);font-size:12.5px;color:var(--sub);text-align:right}
+  .metric .mval b{color:var(--ink)}
+  .bar{height:9px;border-radius:6px;background:#0c0e12;border:1px solid var(--line);margin-top:8px;overflow:hidden;position:relative}
+  .bar>span{display:block;height:100%;border-radius:6px}
+  .bar>.limitmark{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink);opacity:.5}
+  .pill{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:20px;margin-left:8px;vertical-align:middle}
+  .pill.ok{background:rgba(51,194,127,.18);color:#7ee0b0}
+  .pill.warn{background:rgba(240,180,41,.18);color:#f4cd6b}
+  .pill.bad{background:rgba(239,83,80,.2);color:#ff9d9b}
+  .note{font-size:12px;color:var(--sub);margin-top:4px}
+  .why{font-size:12px;color:#8b93a2;margin-top:6px;padding-left:2px}
+  details{margin-top:16px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:0 14px}
+  summary{cursor:pointer;padding:12px 0;font-weight:600;font-size:13.5px}
+  details .body{font-size:12.5px;color:var(--sub);padding:0 0 14px}
+  details code{font-family:var(--mono);background:#0c0e12;border:1px solid var(--line);border-radius:4px;padding:1px 5px;color:#d6dbe5}
+  .modelcard{font-size:12px;color:var(--sub);margin-top:8px;line-height:1.7}
+  .modelcard b{color:var(--ink)}
+  footer{color:#6b7688;font-size:11.5px;margin-top:26px;border-top:1px solid var(--line);padding-top:14px}
+  .kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:10px 0 0}
+  .kpi .k{background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+  .kpi .k .v{font-size:19px;font-weight:700}
+  .kpi .k .l{font-size:11px;color:var(--sub)}
+
+  .page-header{position:sticky;top:0;z-index:40;background:var(--bg);
+    border-bottom:1px solid var(--line);box-shadow:0 2px 10px rgba(0,0,0,.28);
+    padding:20px 0 14px}
+  .page-header .wrap{padding:0 18px}
+  .page-content{padding:8px 0 90px}
+  @media(max-width:560px){
+    .page-header{padding:14px 0 10px}
+    .page-header h1{font-size:19px}
+    .page-header .lede{display:none}
+  }
+</style>
+</head>
+<body>
+<!-- SEDC-NAV:START -->
+<style>
+  .sedc-nav * { box-sizing: border-box; }
+  .sedc-nav {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    margin: 0;
+    background: #072B55;
+    color: #ffffff;
+    font-family: 'Poppins',Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    font-size: 14px;
+    line-height: 1.4;
+  }
+  .sedc-nav-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 10px 20px;
+  }
+  .sedc-nav-brand {
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+  }
+  .sedc-nav-brand:hover,
+  .sedc-nav-brand:focus {
+    text-decoration: underline;
+  }
+  .sedc-nav-jump {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .sedc-nav-label {
+    white-space: nowrap;
+    color: #ffffff;
+  }
+  .sedc-nav-select {
+    font-family: inherit;
+    font-size: 13px;
+    color: #072B55;
+    background: #ffffff;
+    border: 1px solid #ffffff;
+    border-radius: 4px;
+    padding: 5px 8px;
+    max-width: 60vw;
+  }
+  .sedc-nav-rule {
+    height: 3px;
+    width: 100%;
+    background: linear-gradient(90deg,#FF7C66 0%,#A03291 100%);
+  }
+</style>
+<div class="sedc-nav" role="navigation" aria-label="SE Demo Companion navigation">
+  <div class="sedc-nav-bar">
+    <a class="sedc-nav-brand" href="../index.html" target="_top">SE Demo Companion</a>
+    <div class="sedc-nav-jump">
+      <label class="sedc-nav-label" for="sedc-nav-select">Jump to use case</label>
+      <select class="sedc-nav-select" id="sedc-nav-select" onchange="(function(sel){try{var opt=sel.options[sel.selectedIndex];var url=opt&&opt.getAttribute('data-href');if(!url)return;try{window.top.location.href=url;}catch(e){window.location.href=url;}}catch(e){}})(this)">
+        <option value="amc-fee-change-agent" data-href="./amc-fee-change-agent.html">AMC fee-change agent — Finnomena</option>
+        <option value="bvtpa-claims-integration-demo" data-href="./bvtpa-claims-integration-demo.html">Blue Venture TPA claims integration demo — Blue Venture TPA</option>
+        <option value="bvtpa-claims-adjudication-cio-brief" data-href="./bvtpa-claims-adjudication-cio-brief.html">Claims adjudication CIO brief — Blue Venture TPA</option>
+        <option value="delivery-status-sync-demo" data-href="./delivery-status-sync-demo.html">Delivery status sync demo — TOTO</option>
+        <option value="boomi-tenant-ceo-dashboard" data-href="./boomi-tenant-ceo-dashboard.html">Boomi tenant CEO dashboard — Boomi internal tenant</option>
+        <option value="boomi-tenant-30-day-report" data-href="./boomi-tenant-30-day-report.html">Boomi tenant operations report, 30-day view — Boomi internal tenant</option>
+        <option value="json-to-xml-order-integration" data-href="./json-to-xml-order-integration.html">JSON to XML order integration, executive documentation — NTT</option>
+        <option value="edi-850-flight-deck" data-href="./edi-850-flight-deck.html">EDI 850 flight deck — Infosys</option>
+        <option value="whatsapp-to-sap-master-agent" data-href="./whatsapp-to-sap-master-agent.html">WhatsApp to SAP master agent — Boomi internal build</option>
+        <option value="student-xml-to-crm-json" data-href="./student-xml-to-crm-json.html">Student XML to CRM JSON — Attura</option>
+        <option value="sap-accounting-document-poc-outcome" data-href="./sap-accounting-document-poc-outcome.html">SAP accounting document automation, POC outcome — Abans PLC</option>
+        <option value="abans-sap-posting-poc-dashboard" data-href="./abans-sap-posting-poc-dashboard.html">Abans SAP posting, live POC dashboard — Abans PLC</option>
+        <option value="order-intake-api-fan-out" data-href="./order-intake-api-fan-out.html">Order intake API with multi-target fan-out — LTIMindtree</option>
+        <option value="electromart-track-and-reschedule" data-href="./electromart-track-and-reschedule.html">ElectroMart track order and reschedule delivery — ElectroMart (demo brand)</option>
+        <option value="enterprise-portal-ai-agent" data-href="./enterprise-portal-ai-agent.html">Enterprise portal with an embedded AI agent — ITG</option>
+        <option value="o2c-qad-build-journey" data-href="./o2c-qad-build-journey.html">O2C-QAD build journey — Boomi internal build</option>
+        <option value="boomi-accenture-trivia" data-href="./boomi-accenture-trivia.html">Boomi x Accenture trivia — Boomi internal build</option>
+        <option value="cloud-runtime-sizing-calculator" data-href="./cloud-runtime-sizing-calculator.html" selected>Boomi public cloud runtime sizing estimator — Boomi internal build</option>
+        <option value="coupa-netsuite-vendor-bill" data-href="./coupa-netsuite-vendor-bill.html">Vendor bill pipeline, Coupa to NetSuite — Boomi internal build</option>
+        <option value="coupa-oracle-s2p-console" data-href="./coupa-oracle-s2p-console.html">Source-to-pay flow console, Coupa to Oracle Fusion — Boomi internal build</option>
+        <option value="epic-rauland-adt-nurse-call" data-href="./epic-rauland-adt-nurse-call.html">Epic ADT to Rauland Responder 5, nurse call integration — Boomi internal build</option>
+        <option value="epic-salesforce-trial-screening" data-href="./epic-salesforce-trial-screening.html">Clinical trial screening console, Epic to Salesforce — Meridian Research (demo brand)</option>
+        <option value="jc-hifi-order-tracker" data-href="./jc-hifi-order-tracker.html">JC Hi-Fi order tracker, customer self-service — JC Hi-Fi (demo brand)</option>
+        <option value="pacific-bank-onboarding" data-href="./pacific-bank-onboarding.html">Pacific onboarding console, retail bank customer onboarding — Pacific Islands Community Bank (demo brand)</option>
+        <option value="sea-data-product-assistant" data-href="./sea-data-product-assistant.html">SEA regional performance, data products and an agent over two ERPs — Boomi internal build</option>
+        <option value="servicenow-jira-incident-sync" data-href="./servicenow-jira-incident-sync.html">Incident sync prototype, ServiceNow to Jira — Boomi internal build</option>
+        <option value="zendesk-magento-order-status" data-href="./zendesk-magento-order-status.html">Order status bot and flow inspector, Zendesk to Magento — Avery Products (demo brand)</option>
+        <option value="zoho-netsuite-invoice-sync" data-href="./zoho-netsuite-invoice-sync.html">Invoice sync console, Zoho CRM to NetSuite — Boomi internal build</option>
+      </select>
+    </div>
+  </div>
+  <div class="sedc-nav-rule"></div>
+</div>
+<!-- SEDC-NAV:END -->
+
+<div class="page-header">
+  <div class="wrap">
+    <h1>Boomi Public Cloud Runtime — Sizing Estimator</h1>
+    <p class="lede">Each scenario has a processing pattern (Batch / Real-time) and a process mode (General / Low Latency / Bridge) that apply to all its process groups. The estimator shows how many cloud attachments the scenario would take — and which documented ceiling breaks first.</p>
+  </div>
+</div>
+
+<div class="page-content">
+<div class="wrap">
+  <div class="disclaimer">
+    <b>Read me.</b> Boomi does not publish a formula that maps "N processes" to "Y runtime clouds." This tool estimates <b>peak concurrent executions</b> and <b>monthly data volume</b> from your inputs, then compares them to each model's <b>documented per-attachment / per-node ceilings</b> (concurrency, HTTP req/s, queue msg/min, monthly GB, low-latency limits). It reports the <b>binding constraint</b> and required attachments. Treat it as a planning aid — confirm final sizing with your Boomi account team. Scenarios live in memory for this session; use <b>Save JSON</b> to download them as a config file and <b>Restore</b> to load them back later.
+  </div>
+
+  <div class="scenariobar">
+    <div class="tabs" id="tabs"></div>
+    <div class="scenario-actions">
+      <button id="newScenario">+ New scenario</button>
+      <button class="ghost" id="dupScenario">Duplicate</button>
+      <button class="ghost" id="saveScenarios" title="Download all scenarios as a JSON config file">Save JSON</button>
+      <button class="ghost" id="restoreScenarios" title="Load scenarios from a JSON config file">Restore</button>
+      <input type="file" id="restoreFile" accept="application/json,.json" style="display:none">
+    </div>
+  </div>
+
+  <div class="grid">
+    <div>
+      <div class="card">
+        <h2><span class="tag">1</span> Scenario</h2>
+        <label>Scenario name</label>
+        <input type="text" id="scenName" placeholder="e.g. Nightly batch" maxlength="60">
+        <label style="margin-top:12px">Processing pattern</label>
+        <div class="seg" id="patternSeg"></div>
+        <label style="margin-top:12px">Process mode</label>
+        <div class="seg" id="modeSeg"></div>
+        <div class="combonote" id="comboNote"></div>
+        <div id="workerWrap"></div>
+      </div>
+
+      <div class="card" style="margin-top:18px">
+        <h2><span class="tag">2</span> Runtime model</h2>
+        <label>Hosted model (sets the ceilings)</label>
+        <select id="model"></select>
+        <div class="modelcard" id="modelCard"></div>
+      </div>
+
+      <div class="card" style="margin-top:18px">
+        <h2><span class="tag">3</span> Process groups</h2>
+        <p class="hint" style="margin-top:-6px">All groups inherit the scenario's pattern &amp; mode. Values are per group.</p>
+        <div id="procs"></div>
+        <button class="addbtn" id="addProc">+ Add process group</button>
+      </div>
+
+      <div class="card" style="margin-top:18px">
+        <h2><span class="tag">4</span> Peak &amp; volume assumptions</h2>
+        <div class="row">
+          <div>
+            <label>Peak overlap factor</label>
+            <select id="overlap">
+              <option value="1">1.0 — all peak together (worst case)</option>
+              <option value="0.7">0.7 — mostly overlapping</option>
+              <option value="0.5">0.5 — half overlap</option>
+              <option value="0.3">0.3 — well spread</option>
+            </select>
+            <div class="hint">Scales summed peak concurrency to model realistic simultaneity.</div>
+          </div>
+          <div>
+            <label>Working days / month</label>
+            <input type="number" id="days" value="22" min="1" max="31">
+            <div class="hint">Used to convert daily volume to monthly.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div id="verdict" class="verdict ok">
+        <div class="big" id="vBig">—</div>
+        <div class="sub" id="vSub"></div>
+        <div class="bind" id="vBind"></div>
+      </div>
+
+      <div class="kpi">
+        <div class="k"><div class="v" id="kConc">—</div><div class="l">peak concurrent execs (est.)</div></div>
+        <div class="k"><div class="v" id="kReq">—</div><div class="l">peak HTTP req/s (est.)</div></div>
+        <div class="k"><div class="v" id="kVol">—</div><div class="l">monthly volume GB (est.)</div></div>
+      </div>
+
+      <div class="metrics" id="metrics"></div>
+      <div class="why" id="flags"></div>
+    </div>
+  </div>
+
+  <details>
+    <summary>How the numbers are derived (assumptions &amp; sources)</summary>
+    <div class="body">
+      <p><b>Scenario type drives the model.</b> Pattern = <b>Batch</b> → General mode only; groups are scheduled and concurrency = <code>runsPerHour × avgSeconds / 3600</code>. Pattern = <b>Real-time</b> → General, Low Latency, or Bridge; concurrency = <code>peakReqPerSec × avgSeconds</code> and the groups also drive HTTP req/s. Low Latency &amp; Bridge add the 30 s worker limit and 5 MB input cap; Batch/General is bounded instead by the 24 h ceiling and 512 MB heap.</p>
+      <p><b>Per-model ceilings</b> come from Boomi's public documentation: max simultaneous executions per account (50 Runtime/Option 1, 100 Option 2, 20 Test); HTTP request rate per node (5 / 10 / 20); Atom Queue 7,000 msg/min/node; monthly throughput 1 / 15 / 30 GB. Self-hosted/DCS/MCS have no fixed shared-cloud cap.</p>
+      <p><b>Peak concurrent executions</b> = Σ over groups of <code>peakConcurrent</code> × <b>overlap factor</b>. <b>Peak HTTP req/s</b> = Σ <code>peakReqPerSec</code> (real-time scenarios) × overlap. <b>Monthly volume (GB)</b> = Σ <code>docsPerDay × avgDocKB × 2</code> × working days ÷ 1e6. <b>Queue load</b> = queue-flagged groups' <code>docsPerDay</code> → peak msg/min (×6 burst).</p>
+      <p><b>Execution worker nodes</b> apply to worker-run modes only — <b>Low Latency</b> and <b>Bridge</b> (on the public cloud, General cannot be forced onto a worker; that's a private-cloud capability). Each worker provides <code>PER_WORKER_CONC = 20</code> running executions (+10 queued) and one node's HTTP req/s. Worker-mode ceilings become <code>rateCap = perNodeRate × workers</code> and <code>concCap = min(accountCap, 20 × workers)</code>. Documented per-model provisioning is applied and enforced: base Runtime cloud and Test = provisioned on request, <b>max 2</b>; Option 1 = <b>10</b>; Option 2 = <b>25</b>; self-hosted/DCS/MCS = set by your hardware. The worker input is capped to each model's max.</p>
+      <p><b>Required attachments</b> = max of (concurrency ÷ concCap), (req/s ÷ rateCap), (queue ÷ 7,000), rounded up. Volume overage is a tier/overage flag, not extra attachments. Heap (512 MB) and low-latency 30 s / 5 MB are per-execution constraints — raised as warnings.</p>
+      <p><b>Caveats:</b> overlap and queue-burst are modelling choices, not Boomi formulas. Volume metering is approximate. Validate with Boomi before committing spend.</p>
+    </div>
+  </details>
+
+  <footer>
+    Sizing estimator based on documented Boomi public-cloud ceilings. Not an official Boomi tool. Ceilings and pricing change — verify against Boomi's "Public clouds" documentation and your account team before purchasing.
+  </footer>
+</div>
+</div>
+
+<script>
+// ---- ceilings ----
+const MODELS = {
+  runtime_am:  {label:"Public Runtime cloud (base, Americas/EU/APAC)", conc:50,  rate:5,  gb:1,  queue:7000, workersDefault:0, workersMax:2,    shared:true,  ll:true},
+  option1:     {label:"Public Option 1",                              conc:50,  rate:10, gb:15, queue:7000, workersDefault:10,workersMax:10,   shared:true,  ll:true},
+  option2:     {label:"Public Option 2",                              conc:100, rate:20, gb:30, queue:7000, workersDefault:25,workersMax:25,   shared:true,  ll:true},
+  test:        {label:"Test Runtime cloud",                           conc:20,  rate:5,  gb:1,  queue:7000, workersDefault:0, workersMax:2,    shared:true,  ll:true, test:true},
+  selfhost:    {label:"Self-hosted local runtime / cluster",          conc:null,rate:null,gb:null,queue:null,workersDefault:null,workersMax:null,shared:false, ll:false},
+  dcs:         {label:"Dedicated Cloud Service (DCS)",                conc:null,rate:null,gb:null,queue:null,workersDefault:null,workersMax:null,shared:false, ll:false},
+  mcs:         {label:"Managed Cloud Service (MCS)",                  conc:null,rate:null,gb:null,queue:null,workersDefault:null,workersMax:null,shared:false, ll:false},
+};
+const MODEL_NOTES = {
+  runtime_am:"50 concurrent execs · 5 req/s/node · 1 GB/mo · 200 GB disk · 14-day retention · 512 MB heap.",
+  option1:"50 concurrent execs · 10 req/s/node · 15 GB/mo · 250 GB disk · 10 workers.",
+  option2:"100 concurrent execs · 20 req/s/node · 30 GB/mo · 300 GB disk · 25 workers.",
+  test:"20 concurrent execs · 5 req/s/node · 1 GB/mo · data purged daily · Test-mode 10 MB/100-doc caps.",
+  selfhost:"No shared-cloud caps — sized by your hardware. Raise heap >512 MB, control disk/retention, static IP. You operate it.",
+  dcs:"Single-tenant, higher performance, VPN, additional auth. Caps set by provisioned capacity, not the shared cloud.",
+  mcs:"Single-tenant, custom scaling/sizing, VPN/VPC peering, custom DNS/vanity URLs, optional cross-region DR. Fully managed.",
+};
+
+// pattern + mode dimensions
+const PATTERNS = { batch:"Batch", realtime:"Real-time" };
+const MODES    = { general:"General", lowlatency:"Low Latency", bridge:"Bridge" };
+// valid combinations (Boomi: batch runs General; Low Latency/Bridge are for real-time APIs/listeners)
+const VALID = {
+  batch:    { general:true,  lowlatency:false, bridge:false },
+  realtime: { general:true,  lowlatency:true,  bridge:true  },
+};
+function comboText(pattern, mode){
+  if(pattern==='batch'){
+    if(mode==='general') return {cls:'', msg:"Batch scenarios run in General mode — bounded by the 24 h process ceiling and 512 MB heap, not by low-latency worker limits."};
+    return {cls:'warn', msg:`Low Latency / Bridge are for real-time APIs and listeners, not batch. Boomi runs batch in General mode. Mode reset to General.`};
+  } else {
+    if(mode==='general') return {cls:'', msg:"Real-time in General mode: full logging, no 30 s worker cap, but slower per call and forked-execution latency for listeners."};
+    if(mode==='lowlatency') return {cls:'', msg:"Low Latency: fastest, minimal logging. Subject to the 30 s worker limit and 5 MB request-input cap on the public cloud."};
+    return {cls:'', msg:"Bridge: low-latency-style execution with some logging. Subject to the 30 s worker limit on the public cloud."};
+  }
+}
+function isRequestDriven(pattern){ return pattern==='realtime'; } // real-time scenarios drive HTTP req/s
+// On a Boomi public runtime cloud, only Bridge and Low Latency processes run on execution workers.
+// (General can be forced onto a worker only on a PRIVATE cloud via Attachment Quotas — not on the public cloud.)
+function usesWorkers(pattern, mode){
+  return (mode==='lowlatency' || mode==='bridge');
+}
+const PER_WORKER_CONC = 20; // WSS max running executions per execution worker (20 running, 10 queued)
+const PER_WORKER_QUEUE = 10;
+
+// ---- state ----
+let procSeq=0, scenSeq=0;
+const scenarios=[]; let activeId=null;
+
+function blankProc(preset){
+  procSeq++;
+  return Object.assign({ id:procSeq, name:"Process group "+procSeq,
+    count:1, runsPerHour:4, reqPerSec:1, avgSeconds:8, docsPerDay:5000, avgDocKB:50,
+    atomQueue:false, localRes:false, customJarListener:false, bigPayload:false }, preset||{});
+}
+function newScenario(seed){
+  scenSeq++;
+  const s={ id:scenSeq, name:(seed&&seed.name)?seed.name:("Scenario "+scenSeq),
+    pattern:(seed&&seed.pattern)?seed.pattern:"batch",
+    mode:(seed&&seed.mode)?seed.mode:"general",
+    model:(seed&&seed.model)?seed.model:"runtime_am",
+    workers:(seed&&seed.workers!=null)?seed.workers:1,
+    overlap:(seed&&seed.overlap!=null)?seed.overlap:0.7,
+    days:(seed&&seed.days!=null)?seed.days:22, procs:[] };
+  // enforce valid combo on seed
+  if(!VALID[s.pattern][s.mode]) s.mode='general';
+  if(seed&&seed.procs){ s.procs=seed.procs.map(p=>Object.assign(blankProc(),p,{id:++procSeq})); }
+  scenarios.push(s); return s;
+}
+function activeScenario(){ return scenarios.find(s=>s.id===activeId); }
+function cloneForDuplicate(s){
+  return { name:s.name+" (copy)", pattern:s.pattern, mode:s.mode, model:s.model, workers:s.workers, overlap:s.overlap, days:s.days,
+    procs:s.procs.map(p=>{const c=Object.assign({},p); delete c.id; return c;}) };
+}
+
+// ---- render: tabs ----
+function renderTabs(){
+  const host=document.getElementById('tabs'); host.innerHTML='';
+  scenarios.forEach(s=>{
+    const el=document.createElement('div'); el.className='tab'+(s.id===activeId?' on':'');
+    const meta = PATTERNS[s.pattern]+" · "+MODES[s.mode];
+    el.innerHTML=`<span class="tname">${escapeHtml(s.name)}</span><span class="tmeta">${meta}</span>`+
+                 (scenarios.length>1?`<button class="x" title="Remove scenario">×</button>`:'');
+    el.querySelector('.tname').addEventListener('click',()=>{ activeId=s.id; renderAll(); });
+    el.querySelector('.tname').addEventListener('dblclick',(e)=>{ e.stopPropagation(); startRename(s, el); });
+    const x=el.querySelector('.x'); if(x) x.addEventListener('click',(e)=>{ e.stopPropagation(); removeScenario(s.id); });
+    host.appendChild(el);
+  });
+}
+function startRename(s, tabEl){
+  const span=tabEl.querySelector('.tname');
+  const inp=document.createElement('input'); inp.className='rename'; inp.value=s.name;
+  span.replaceWith(inp); inp.focus(); inp.select();
+  function commit(){ s.name=inp.value.trim()||s.name; renderTabs(); }
+  inp.addEventListener('keydown',e=>{ if(e.key==='Enter')commit(); if(e.key==='Escape')renderTabs(); });
+  inp.addEventListener('blur',commit);
+}
+function removeScenario(id){
+  const i=scenarios.findIndex(s=>s.id===id); if(i<0)return;
+  scenarios.splice(i,1);
+  if(activeId===id){ activeId=scenarios[Math.max(0,i-1)].id; }
+  renderAll();
+}
+
+// ---- render: scenario-type segments ----
+function renderTypeSeg(){
+  const s=activeScenario();
+  const nameInput=document.getElementById('scenName');
+  if(nameInput){
+    if(nameInput.value!==s.name) nameInput.value=s.name;
+    nameInput.oninput=()=>{ s.name = nameInput.value; renderTabs(); };
+    nameInput.onblur=()=>{ if(!s.name.trim()){ s.name = 'Scenario '+s.id; nameInput.value=s.name; renderTabs(); } };
+  }
+  const pHost=document.getElementById('patternSeg'); pHost.innerHTML='';
+  Object.entries(PATTERNS).forEach(([k,v])=>{
+    const b=document.createElement('button'); b.textContent=v; if(s.pattern===k)b.className='on';
+    b.addEventListener('click',()=>{
+      s.pattern=k;
+      if(!VALID[s.pattern][s.mode]) s.mode='general'; // auto-correct invalid combo
+      renderTypeSeg(); renderProcs(); compute();
+    });
+    pHost.appendChild(b);
+  });
+  const mHost=document.getElementById('modeSeg'); mHost.innerHTML='';
+  Object.entries(MODES).forEach(([k,v])=>{
+    const b=document.createElement('button'); b.textContent=v; if(s.mode===k)b.className='on';
+    if(!VALID[s.pattern][k]){ b.disabled=true; b.title="Not valid for "+PATTERNS[s.pattern]+" pattern"; }
+    b.addEventListener('click',()=>{
+      if(!VALID[s.pattern][k]) return;
+      const wasWorker = usesWorkers(s.pattern, s.mode);
+      s.mode=k;
+      // entering a worker mode: seed worker count from the model's provisioning
+      if(!wasWorker && usesWorkers(s.pattern, k)){
+        const md=MODELS[s.model];
+        if(md.workersMax!=null) s.workers = md.workersDefault>0 ? md.workersDefault : 1;
+        else s.workers = Math.max(1, s.workers||1);
+      }
+      renderTypeSeg(); compute();
+    });
+    mHost.appendChild(b);
+  });
+  const c=comboText(s.pattern, s.mode);
+  const note=document.getElementById('comboNote');
+  note.className='combonote'+(c.cls?(' '+c.cls):'');
+  note.innerHTML=c.msg;
+
+  // worker-nodes input — only for modes that run on execution workers (Bridge / Low Latency)
+  const wWrap=document.getElementById('workerWrap');
+  if(usesWorkers(s.pattern, s.mode)){
+    const model = MODELS[s.model];
+    const maxW = model.workersMax;              // null = self-hosted (no fixed cap)
+    const defW = model.workersDefault;
+    // clamp the scenario's stored value to this model's provisioning
+    if(maxW!=null){ s.workers = Math.min(Math.max(1, s.workers||1), maxW); }
+    else { s.workers = Math.max(1, s.workers||1); }
+
+    let provTxt, hintTxt;
+    if(maxW==null){
+      provTxt = "self-hosted — set by your hardware";
+      hintTxt = `Each worker adds ${PER_WORKER_CONC} concurrent execs (20 running, 10 queued) and one node's req/s of headroom. On ${model.label} you size workers yourself.`;
+    } else if(model.label.indexOf('base')>=0 || model.test){
+      provTxt = `provisioned on request · max ${maxW}`;
+      hintTxt = `Base/Test clouds provide execution workers only on request (max ${maxW}), depending on your Integration license. Each worker: ${PER_WORKER_CONC} running + ${PER_WORKER_QUEUE} queued.`;
+    } else {
+      provTxt = `model provides ${defW} · max ${maxW}`;
+      hintTxt = `${model.label} provides ${defW} execution worker${defW>1?'s':''} (max ${maxW}). Each worker: ${PER_WORKER_CONC} running + ${PER_WORKER_QUEUE} queued, plus one node's req/s.`;
+    }
+    wWrap.style.display='';
+    wWrap.innerHTML=`
+      <label style="margin-top:12px">Execution worker nodes
+        <span style="color:#6b7688;font-weight:400">(${MODES[s.mode]} runs on workers · ${provTxt})</span>
+      </label>
+      <input type="number" id="workers" min="1" ${maxW!=null?`max="${maxW}"`:''} step="1" value="${s.workers}">
+      <div class="hint">${hintTxt}</div>`;
+    const wi=document.getElementById('workers');
+    wi.addEventListener('input',()=>{
+      let v = parseInt(wi.value,10)||1;
+      if(maxW!=null) v = Math.min(Math.max(1,v), maxW); else v = Math.max(1,v);
+      s.workers=v;
+      if(String(v)!==wi.value) wi.value=v;  // reflect clamp
+      renderTypeSeg(); compute();           // re-render to refresh hint/flags
+    });
+  } else {
+    wWrap.style.display='none'; wWrap.innerHTML='';
+  }
+}
+
+// ---- render: model ----
+function renderModel(){
+  const s=activeScenario();
+  document.getElementById('model').value=s.model;
+  document.getElementById('modelCard').innerHTML=MODEL_NOTES[s.model];
+  document.getElementById('overlap').value=String(s.overlap);
+  document.getElementById('days').value=s.days;
+}
+
+// ---- render: process groups (no type selector; inputs depend on scenario pattern) ----
+function renderProcs(){
+  const s=activeScenario();
+  const reqDriven = isRequestDriven(s.pattern);
+  const host=document.getElementById('procs'); host.innerHTML='';
+  if(s.procs.length===0){ const e=document.createElement('div'); e.className='empty';
+    e.textContent='No process groups yet. Add one to size this scenario.'; host.appendChild(e); }
+  s.procs.forEach(p=>{
+    const b=document.createElement('div'); b.className='proc-block';
+    b.innerHTML=`
+      <div class="proc-head">
+        <input class="name" data-f="name" value="${escapeHtml(p.name)}" style="background:transparent;border:none;color:var(--ink);font-weight:600;font-size:13px;width:60%">
+        <button data-del="${p.id}">remove</button>
+      </div>
+      <div class="row3" style="margin-top:2px">
+        <div><label># of processes</label><input type="number" min="1" data-f="count" value="${p.count}"></div>
+        <div><label>Avg exec seconds</label><input type="number" min="0" step="0.5" data-f="avgSeconds" value="${p.avgSeconds}"></div>
+        <div>${reqDriven
+            ? `<label>Peak req/s (each)</label><input type="number" min="0" step="0.1" data-f="reqPerSec" value="${p.reqPerSec}">`
+            : `<label>Runs/hour (each)</label><input type="number" min="0" step="0.1" data-f="runsPerHour" value="${p.runsPerHour}">`}</div>
+      </div>
+      <div class="row3" style="margin-top:4px">
+        <div><label>Docs/day (each)</label><input type="number" min="0" data-f="docsPerDay" value="${p.docsPerDay}"></div>
+        <div><label>Avg doc size (KB)</label><input type="number" min="0" step="1" data-f="avgDocKB" value="${p.avgDocKB}"></div>
+        <div style="display:flex;align-items:flex-end"><div class="hint">Volume = docs × size × In+Out</div></div>
+      </div>
+      <div style="margin-top:8px">
+        <label style="margin-bottom:2px">Connectors / traits</label>
+        <div class="chk"><input type="checkbox" data-f="atomQueue" ${p.atomQueue?'checked':''}> Uses Atom Queue / Shared Queue Server</div>
+        <div class="chk"><input type="checkbox" data-f="localRes" ${p.localRes?'checked':''}> Needs local-resource connector (Snowflake, local JDBC, Disk)</div>
+        <div class="chk"><input type="checkbox" data-f="customJarListener" ${p.customJarListener?'checked':''}> Legacy listener needing a custom JAR (JMS, SAP, MQTT, WSS, AS2)</div>
+        <div class="chk"><input type="checkbox" data-f="bigPayload" ${p.bigPayload?'checked':''}> Any single payload &gt; 5 MB</div>
+      </div>`;
+    host.appendChild(b);
+    b.querySelectorAll('[data-f]').forEach(el=>{
+      const f=el.getAttribute('data-f'); const ev=el.type==='checkbox'?'change':'input';
+      el.addEventListener(ev,()=>{
+        if(el.type==='checkbox') p[f]=el.checked;
+        else if(el.type==='number') p[f]=parseFloat(el.value)||0;
+        else p[f]=el.value;
+        compute();
+      });
+    });
+    b.querySelector('[data-del]').addEventListener('click',()=>{
+      const i=s.procs.findIndex(x=>x.id===p.id); if(i>=0)s.procs.splice(i,1); renderProcs(); compute();
+    });
+  });
+}
+function escapeHtml(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function renderAll(){ renderTabs(); renderTypeSeg(); renderModel(); renderProcs(); compute(); }
+
+// ---- compute ----
+function compute(){
+  const s=activeScenario(); const model=MODELS[s.model]; const overlap=s.overlap; const days=s.days||22;
+  const reqDriven = isRequestDriven(s.pattern);
+  const lowLatMode = (s.mode==='lowlatency'||s.mode==='bridge');
+  const workerMode = usesWorkers(s.pattern, s.mode);
+  const W = Math.max(1, s.workers||1);
+
+  // effective, worker-adjusted ceilings for shared models
+  // concurrency: worker-run traffic is bounded by PER_WORKER_CONC × workers, capped at the account cap
+  const concCap = (model.conc==null) ? null
+                : (workerMode ? Math.min(model.conc, PER_WORKER_CONC*W) : model.conc);
+  // req/s: each worker node contributes the model per-node rate
+  const rateCap = (model.rate==null) ? null
+                : (workerMode ? model.rate*W : model.rate);
+
+  let sumConc=0,sumReq=0,volGB=0,queuePerMin=0;
+  let anyLocalRes=false,anyCustomJar=false,anyBigPayload=false,anyLLbig=false;
+  s.procs.forEach(p=>{
+    const n=Math.max(0,p.count||0);
+    let perProcConc = reqDriven ? (p.reqPerSec||0)*(p.avgSeconds||0) : (p.runsPerHour||0)*(p.avgSeconds||0)/3600;
+    sumConc += perProcConc*n;
+    if(reqDriven){ sumReq += (p.reqPerSec||0)*n; }
+    volGB += (p.docsPerDay||0)*(p.avgDocKB||0)*2*n*days/1e6;
+    if(p.atomQueue){ queuePerMin += (p.docsPerDay||0)*n/(24*60)*6; }
+    if(p.localRes)anyLocalRes=true; if(p.customJarListener)anyCustomJar=true; if(p.bigPayload)anyBigPayload=true;
+    if(lowLatMode && (p.bigPayload || (p.avgDocKB||0)>5000)) anyLLbig=true;
+  });
+  const concNeed=sumConc*overlap, reqNeed=sumReq*overlap, volNeed=volGB, queueNeed=queuePerMin;
+
+  document.getElementById('kConc').textContent=concNeed.toFixed(concNeed<10?1:0);
+  document.getElementById('kReq').textContent=reqNeed.toFixed(reqNeed<10?1:0);
+  document.getElementById('kVol').textContent=volNeed.toFixed(volNeed<10?2:1);
+
+  const metricsHost=document.getElementById('metrics'); metricsHost.innerHTML='';
+  const flags=[]; let attachNeeds=[];
+  function metricRow(name,need,cap,unit,opts={}){
+    let ratio,status,capTxt; const needTxt=(need<10?need.toFixed(1):Math.round(need).toLocaleString());
+    if(cap===null){status='ok';ratio=0.12;capTxt='no fixed cap (your hardware)';}
+    else{ratio=cap>0?need/cap:0;capTxt=cap.toLocaleString()+' '+unit;status=ratio>1?'bad':(ratio>0.8?'warn':'ok');}
+    const pct=Math.max(2,Math.min(100,ratio*100));
+    const barColor=status==='bad'?'var(--bad)':(status==='warn'?'var(--warn)':'var(--ok)');
+    const pill=cap===null?'<span class="pill ok">N/A</span>':(status==='bad'?'<span class="pill bad">OVER</span>':(status==='warn'?'<span class="pill warn">TIGHT</span>':'<span class="pill ok">OK</span>'));
+    const div=document.createElement('div'); div.className='metric';
+    div.innerHTML=`<div class="top"><div class="mname">${name} ${pill}</div><div class="mval"><b>${needTxt} ${unit}</b> / ${capTxt}</div></div>
+      <div class="bar"><span style="width:${pct}%;background:${barColor}"></span>${cap!==null?'<span class="limitmark" style="left:100%"></span>':''}</div>
+      ${opts.note?`<div class="note">${opts.note}</div>`:''}`;
+    metricsHost.appendChild(div); return {status,ratio,cap};
+  }
+
+  const concNote = model.conc===null ? 'Governed by your provisioned capacity.'
+    : (workerMode ? `Worker-bound: ${PER_WORKER_CONC}/worker × ${W} = ${PER_WORKER_CONC*W}, capped at the ${model.conc} account limit.`
+                  : 'Documented account cap per attachment.');
+  const rC=metricRow('Concurrent executions',concNeed,concCap,'execs',{note:concNote});
+  if(concCap!==null) attachNeeds.push({name:'concurrent executions',need:concCap>0?concNeed/concCap:0});
+
+  let rR={status:'ok'};
+  if(reqDriven){
+    const rateNote = model.rate===null ? 'Governed by your hardware.'
+      : (workerMode ? `${model.rate} req/s/node × ${W} worker${W>1?'s':''} = ${rateCap} req/s.`
+                    : 'Per-node limit; more nodes raise total.');
+    rR=metricRow('HTTP request rate',reqNeed,rateCap,'req/s',{note:rateNote});
+    if(rateCap!==null&&reqNeed>0) attachNeeds.push({name:'HTTP request rate',need:rateCap>0?reqNeed/rateCap:0});
+  }
+
+  const rV=metricRow('Monthly data volume',volNeed,model.gb,'GB',{note:model.gb===null?'Self-hosted volume is not metered against the cloud allowance.':'Tier allowance; overage fees may apply above this.'});
+  if(model.gb!==null&&volNeed>model.gb){ flags.push(`<b>Monthly volume</b> exceeds the ${model.gb} GB tier allowance (est. ${volNeed.toFixed(1)} GB) — expect overage fees or a higher tier/self-host. Extra attachments do not solve volume; the allowance is per account tier.`); }
+
+  if(queueNeed>0){
+    metricRow('Atom Queue rate',queueNeed,model.queue,'msg/min',{note:model.queue===null?'Governed by your nodes.':'Per-node peak (×6 burst assumption).'});
+    if(model.queue!==null) attachNeeds.push({name:'Atom Queue rate',need:model.queue>0?queueNeed/model.queue:0});
+  }
+
+  let requiredAttach=1, binding={name:'baseline',ratio:0};
+  attachNeeds.forEach(a=>{ if(a.need>binding.ratio){binding={name:a.name,ratio:a.need};} requiredAttach=Math.max(requiredAttach,Math.ceil(a.need>0?a.need:0)||1); });
+  if(!model.shared){ requiredAttach=1; binding={name:'—',ratio:0}; }
+
+  // scenario-type driven flags
+  if(model.shared){
+    if(s.pattern==='batch'){
+      flags.push(`<b>Batch / General:</b> watch the <b>24 h</b> single-execution ceiling and the <b>512 MB</b> heap for large full-load transforms — chunk or stream big jobs.`);
+    }
+    if(lowLatMode){
+      if(anyLLbig) flags.push(`<b>${MODES[s.mode]} with &gt;5 MB payload</b> hits the 5 MB low-latency input cap and 30 s worker limit — switch that traffic to General mode or decouple asynchronously.`);
+      else flags.push(`<b>${MODES[s.mode]} mode:</b> each call must finish within the <b>30 s</b> worker limit; ${PER_WORKER_CONC} run + ${PER_WORKER_CONC} queue per worker. Keep sync work short or move heavy steps async.`);
+    }
+    if(s.pattern==='realtime' && s.mode==='general'){
+      flags.push(`<b>Real-time / General:</b> no 30 s cap, but forked-execution JVM latency affects lightweight listeners. On the public cloud, General cannot run on an execution worker (worker execution needs Low Latency or Bridge) — switch to Bridge/Low Latency for worker-backed listeners, or self-host to force General onto a worker.`);
+    }
+    if(workerMode){
+      const defW = model.workersDefault, maxW = model.workersMax;
+      const capNote = (defW!=null && maxW!=null && W>defW && !model.test && model.label.indexOf('base')<0)
+        ? ` This exceeds the ${defW} workers ${model.label} provides by default (max ${maxW}); confirm availability with Boomi.` : '';
+      const provNote = (maxW!=null && (model.test || model.label.indexOf('base')>=0))
+        ? ` Base/Test clouds provide workers only on request (max ${maxW}).` : '';
+      const concRatio = concCap>0?concNeed/concCap:0;
+      const reqRatio  = (reqDriven&&rateCap>0)?reqNeed/rateCap:0;
+      if(concRatio>1 || reqRatio>1){
+        const canGrow = (maxW==null) || (W<maxW);
+        flags.push(`<b>Worker nodes:</b> at ${W} worker${W>1?'s':''} the ${concRatio>=reqRatio?'concurrency':'HTTP req/s'} ceiling is exceeded — ${canGrow?`raising workers (up to ${maxW==null?'your hardware limit':maxW}) increases headroom before adding attachments.`:`you are already at the model's max of ${maxW} — add attachments or move to a higher tier / self-host.`}${capNote}${provNote}`);
+      } else {
+        flags.push(`<b>Worker nodes:</b> ${W} worker${W>1?'s':''} set. Workers multiply ${reqDriven?'req/s and ':''}per-worker concurrency (${PER_WORKER_CONC} running + ${PER_WORKER_QUEUE} queued each) for ${MODES[s.mode]} traffic.${capNote}${provNote}`);
+      }
+    }
+    if(anyLocalRes) flags.push(`<b>Local-resource connector</b> (Snowflake / local JDBC / Disk) is <u>not supported</u> on the public cloud — those processes must move to self-hosted / Private cloud / DCS / MCS regardless of attachment count.`);
+    if(anyCustomJar) flags.push(`<b>Legacy listener needing a custom JAR</b> (JMS/SAP/MQTT/WSS/AS2) can't be hosted on the public cloud (no userlib/restart access) — host on self-hosted / Private / DCS / MCS.`);
+    else if(anyBigPayload && !lowLatMode) flags.push(`A process has payloads <b>&gt; 5 MB</b>. Fine in General mode, but watch the 512 MB heap on large full-load transforms.`);
+    if(model.test) flags.push(`<b>Test Runtime cloud</b> caps deployed test runs at 10 MB / 100 documents and purges data daily — not for production sizing.`);
+  } else {
+    flags.push(`<b>${model.label}</b> is single-tenant / self-managed: the shared-cloud caps above don't bind. Size by your provisioned CPU/RAM/nodes; local-resource connectors, custom JARs, static IP/VPN and custom retention are all available.`);
+  }
+
+  const vEl=document.getElementById('verdict'), vBig=document.getElementById('vBig'), vSub=document.getElementById('vSub'), vBind=document.getElementById('vBind');
+  const hardBlock=model.shared&&(anyLocalRes||anyCustomJar); let cls='ok';
+  const typeLabel = PATTERNS[s.pattern]+" · "+MODES[s.mode];
+
+  if(s.procs.length===0){
+    vEl.className='verdict ok'; vBig.textContent='—'; vSub.textContent='Add a process group to size this scenario.'; vBind.innerHTML='';
+    document.getElementById('flags').innerHTML=''; return;
+  }
+  if(!model.shared){
+    cls='ok'; vBig.textContent='1 runtime (self-managed)';
+    vSub.textContent=model.label+' — '+typeLabel+' — sized by your hardware, not shared-cloud caps.'; vBind.innerHTML='';
+  } else {
+    const overVol=(model.gb!==null&&volNeed>model.gb);
+    const anyOver=(rC.status==='bad'||rR.status==='bad'||overVol||(queueNeed>0&&model.queue!==null&&queueNeed>model.queue));
+    const anyTight=(rC.status==='warn'||rR.status==='warn');
+    cls=hardBlock?'bad':(anyOver?'bad':(anyTight?'warn':'ok'));
+    vBig.textContent=requiredAttach+(requiredAttach===1?' cloud attachment':' cloud attachments');
+    vSub.textContent=model.label+" — "+typeLabel;
+    let bindTxt;
+    if(hardBlock){ bindTxt=`<span style="color:var(--bad)">Blocked on the public cloud by a connector/listener constraint — see flags. Attachment count won't fix it.</span>`; }
+    else if(binding.name==='baseline'||binding.ratio<=1){ bindTxt=`Binding metric: <b>${binding.name}</b> at ${(binding.ratio*100).toFixed(0)}% of one attachment's capacity. Comfortably within a single attachment on shared-cloud metrics${overVol?', but monthly volume is over the tier allowance (see flags).':'.'}`; }
+    else { bindTxt=`Binding metric: <b>${binding.name}</b> — needs ~${binding.ratio.toFixed(1)}× one attachment's capacity, so <b>${requiredAttach}</b> attachments${overVol?'. Monthly volume also exceeds the tier allowance (see flags).':'.'}`; }
+    vBind.innerHTML=bindTxt;
+  }
+  vEl.className='verdict '+cls;
+  document.getElementById('flags').innerHTML = flags.length? ('<b style="color:var(--ink)">Sizing flags</b><ul style="margin:6px 0 0;padding-left:18px">'+flags.map(f=>`<li style="margin:5px 0">${f}</li>`).join('')+'</ul>') : '';
+}
+
+// ---- save / restore (JSON config) ----
+const CONFIG_VERSION = 1;
+function serializeScenarios(){
+  return {
+    app:"boomi-cloud-sizing-estimator",
+    version:CONFIG_VERSION,
+    savedAt:new Date().toISOString(),
+    scenarios: scenarios.map(s=>({
+      name:s.name, pattern:s.pattern, mode:s.mode, model:s.model,
+      workers:s.workers, overlap:s.overlap, days:s.days,
+      procs:s.procs.map(p=>({
+        name:p.name, count:p.count, runsPerHour:p.runsPerHour, reqPerSec:p.reqPerSec,
+        avgSeconds:p.avgSeconds, docsPerDay:p.docsPerDay, avgDocKB:p.avgDocKB,
+        atomQueue:!!p.atomQueue, localRes:!!p.localRes,
+        customJarListener:!!p.customJarListener, bigPayload:!!p.bigPayload
+      }))
+    }))
+  };
+}
+function saveScenarios(){
+  const data=serializeScenarios();
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  const stamp=new Date().toISOString().slice(0,19).replace(/[:T]/g,'-');
+  a.href=url; a.download=`boomi-sizing-scenarios-${stamp}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1500);
+}
+function validScenarioSeed(raw){
+  if(!raw || typeof raw!=='object') return null;
+  const pattern = (raw.pattern==='batch'||raw.pattern==='realtime') ? raw.pattern : 'batch';
+  let mode = (raw.mode==='general'||raw.mode==='lowlatency'||raw.mode==='bridge') ? raw.mode : 'general';
+  if(!VALID[pattern][mode]) mode='general';               // enforce valid combo
+  const model = MODELS[raw.model] ? raw.model : 'runtime_am';
+  const ov = [1,0.7,0.5,0.3].includes(raw.overlap) ? raw.overlap : 0.7;
+  const days = Number.isFinite(raw.days) ? Math.min(31,Math.max(1,Math.round(raw.days))) : 22;
+  let workers = Number.isFinite(raw.workers) ? Math.max(1,Math.round(raw.workers)) : 1;
+  const wMax = MODELS[model].workersMax;
+  if(wMax!=null) workers=Math.min(workers,wMax);          // clamp to model max
+  const procs = Array.isArray(raw.procs) ? raw.procs.map(p=>({
+    name: (typeof p.name==='string'&&p.name.trim())?p.name : 'Process group',
+    count: numOr(p.count,1,1), runsPerHour: numOr(p.runsPerHour,0,0),
+    reqPerSec: numOr(p.reqPerSec,0,0), avgSeconds: numOr(p.avgSeconds,0,0),
+    docsPerDay: numOr(p.docsPerDay,0,0), avgDocKB: numOr(p.avgDocKB,0,0),
+    atomQueue:!!p.atomQueue, localRes:!!p.localRes,
+    customJarListener:!!p.customJarListener, bigPayload:!!p.bigPayload
+  })) : [];
+  return { name:(typeof raw.name==='string'&&raw.name.trim())?raw.name:'Restored scenario',
+           pattern, mode, model, workers, overlap:ov, days, procs };
+}
+function numOr(v,def,min){ const n=parseFloat(v); if(!Number.isFinite(n)) return def; return (min!=null&&n<min)?min:n; }
+function restoreScenarios(json){
+  let parsed;
+  try{ parsed = JSON.parse(json); }catch(e){ alert("That file isn't valid JSON."); return; }
+  const list = Array.isArray(parsed) ? parsed
+             : (parsed && Array.isArray(parsed.scenarios)) ? parsed.scenarios : null;
+  if(!list){ alert("No scenarios found in that file."); return; }
+  const seeds = list.map(validScenarioSeed).filter(Boolean);
+  if(seeds.length===0){ alert("No valid scenarios could be read from that file."); return; }
+  const replace = confirm(`Load ${seeds.length} scenario(s).\n\nOK = replace all current scenarios.\nCancel = append to current scenarios.`);
+  if(replace){ scenarios.length=0; }
+  let firstNew=null;
+  seeds.forEach(seed=>{ const s=newScenario(seed); if(!firstNew) firstNew=s; });
+  activeId = firstNew.id;
+  renderAll();
+}
+
+// ---- wiring ----
+(function init(){
+  const sel=document.getElementById('model');
+  Object.entries(MODELS).forEach(([k,v])=>{ const o=document.createElement('option'); o.value=k; o.textContent=v.label; sel.appendChild(o); });
+  sel.addEventListener('change',()=>{
+    const s=activeScenario(); s.model=sel.value;
+    document.getElementById('modelCard').innerHTML=MODEL_NOTES[sel.value];
+    if(usesWorkers(s.pattern, s.mode)){
+      const md=MODELS[sel.value];
+      if(md.workersMax!=null) s.workers = md.workersDefault>0 ? md.workersDefault : 1;
+      // self-hosted keeps current value
+    }
+    renderTypeSeg(); compute();
+  });
+  document.getElementById('overlap').addEventListener('change',()=>{ activeScenario().overlap=parseFloat(document.getElementById('overlap').value); compute(); });
+  document.getElementById('days').addEventListener('input',()=>{ activeScenario().days=parseFloat(document.getElementById('days').value)||22; compute(); });
+  document.getElementById('addProc').addEventListener('click',()=>{ activeScenario().procs.push(blankProc()); renderProcs(); compute(); });
+  document.getElementById('newScenario').addEventListener('click',()=>{ const s=newScenario(); activeId=s.id; renderAll(); });
+  document.getElementById('dupScenario').addEventListener('click',()=>{ const s=newScenario(cloneForDuplicate(activeScenario())); activeId=s.id; renderAll(); });
+  document.getElementById('saveScenarios').addEventListener('click',saveScenarios);
+  const restoreFile=document.getElementById('restoreFile');
+  document.getElementById('restoreScenarios').addEventListener('click',()=>restoreFile.click());
+  restoreFile.addEventListener('change',()=>{
+    const f=restoreFile.files&&restoreFile.files[0]; if(!f) return;
+    const reader=new FileReader();
+    reader.onload=()=>{ restoreScenarios(String(reader.result)); restoreFile.value=''; };
+    reader.onerror=()=>{ alert("Couldn't read that file."); restoreFile.value=''; };
+    reader.readAsText(f);
+  });
+
+  // two starter scenarios showing both patterns/modes
+  const a=newScenario({name:'Nightly batch', pattern:'batch', mode:'general', model:'option1', overlap:0.7, days:22, procs:[
+    {name:'Order sync', count:6, runsPerHour:4, avgSeconds:12, docsPerDay:8000, avgDocKB:40},
+  ]});
+  const b=newScenario({name:'Partner API', pattern:'realtime', mode:'lowlatency', model:'option2', workers:2, overlap:0.7, days:22, procs:[
+    {name:'Inventory lookups', count:2, reqPerSec:3, avgSeconds:2, docsPerDay:20000, avgDocKB:8},
+  ]});
+  activeId=a.id; renderAll();
+})();
+</script>
+</body>
+</html>

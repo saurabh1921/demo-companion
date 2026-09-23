@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Meridian Research — Trial Screening Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --brand:        #0E7C86;
+    --brand-dark:   #0A5C64;
+    --brand-tint:   #E6F3F4;
+    --epic:         #A6192E;
+    --epic-tint:    #FBEDEF;
+    --sf:           #0176D3;
+    --sf-tint:      #EAF4FD;
+    --ink:          #10202A;
+    --muted:        #5C7080;
+    --faint:        #8FA3B0;
+    --bg:           #F4F7F9;
+    --surface:      #FFFFFF;
+    --border:       #DCE5EB;
+    --border-soft:  #EDF2F5;
+    --success:      #1B873F;
+    --success-tint: #EBF7EF;
+    --warn:         #B7791F;
+    --warn-tint:    #FDF6E7;
+    --error:        #C42B2B;
+    --error-tint:   #FCEDED;
+    --radius:       10px;
+    --shadow:       0 1px 2px rgba(16,32,42,.06), 0 4px 12px rgba(16,32,42,.05);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  code, pre, .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+
+  /* ---------- chrome ---------- */
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+  }
+  .logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px; letter-spacing: -.01em; }
+  .logo-mark {
+    width: 28px; height: 28px; border-radius: 7px;
+    background: linear-gradient(135deg, var(--brand) 0%, var(--brand-dark) 100%);
+    color: #fff; display: grid; place-items: center; font-size: 13px; font-weight: 700;
+  }
+  .logo-sub { color: var(--muted); font-weight: 500; font-size: 13px; border-left: 1px solid var(--border); padding-left: 16px; margin-left: 6px; }
+  .spacer { flex: 1; }
+
+  .mode-toggle { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
+  .switch { display: inline-flex; background: var(--bg); border: 1px solid var(--border); border-radius: 7px; padding: 2px; }
+  .switch button {
+    border: 0; background: transparent; font: inherit; font-size: 12px; font-weight: 500;
+    color: var(--muted); padding: 5px 11px; border-radius: 5px; cursor: pointer;
+  }
+  .switch button.on { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(16,32,42,.1); }
+
+  /* ---------- layout ---------- */
+  .wrap { max-width: 1400px; margin: 0 auto; padding: 22px 24px 60px; }
+  .grid { display: grid; grid-template-columns: 340px 1fr; gap: 20px; align-items: start; }
+  @media (max-width: 1080px) { .grid { grid-template-columns: 1fr; } }
+
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); }
+  .panel-head {
+    padding: 13px 16px; border-bottom: 1px solid var(--border-soft);
+    display: flex; align-items: center; gap: 9px;
+  }
+  .panel-title { font-weight: 600; font-size: 13px; letter-spacing: -.005em; }
+  .panel-body { padding: 16px; }
+
+  .eyebrow { font-size: 10.5px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--faint); }
+
+  /* ---------- roster ---------- */
+  .roster { display: flex; flex-direction: column; }
+  .pt {
+    display: block; width: 100%; text-align: left; border: 0; background: transparent;
+    font: inherit; cursor: pointer; padding: 13px 16px;
+    border-bottom: 1px solid var(--border-soft); transition: background .12s;
+  }
+  .pt:last-child { border-bottom: 0; }
+  .pt:hover { background: var(--bg); }
+  .pt.sel { background: var(--brand-tint); box-shadow: inset 3px 0 0 var(--brand); }
+  .pt-name { font-weight: 600; font-size: 13.5px; }
+  .pt-meta { color: var(--muted); font-size: 11.5px; margin-top: 2px; }
+  .pt-id { font-size: 11px; color: var(--faint); margin-top: 3px; }
+
+  /* ---------- buttons ---------- */
+  .btn {
+    border: 0; border-radius: 8px; font: inherit; font-weight: 600; font-size: 13.5px;
+    padding: 11px 18px; cursor: pointer; transition: background .12s, opacity .12s;
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .btn-primary { background: var(--brand); color: #fff; width: 100%; }
+  .btn-primary:hover:not(:disabled) { background: var(--brand-dark); }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .btn-ghost {
+    background: transparent; border: 1px solid var(--border); color: var(--muted);
+    font-size: 11.5px; font-weight: 500; padding: 5px 10px; border-radius: 6px;
+  }
+  .btn-ghost:hover { background: var(--bg); color: var(--ink); }
+
+  /* ---------- pipeline ---------- */
+  .pipe { display: flex; flex-direction: column; gap: 0; }
+  .stage { display: flex; gap: 12px; padding: 9px 0; position: relative; }
+  .stage:not(:last-child)::before {
+    content: ''; position: absolute; left: 10px; top: 30px; bottom: -6px;
+    width: 2px; background: var(--border);
+  }
+  .stage.done:not(:last-child)::before { background: var(--success); }
+  .dot {
+    width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0; z-index: 1;
+    border: 2px solid var(--border); background: var(--surface);
+    display: grid; place-items: center; font-size: 11px; font-weight: 700; color: var(--faint);
+    transition: all .25s;
+  }
+  .stage.run .dot { border-color: var(--brand); background: var(--brand); color: #fff; animation: pulse 1.1s ease-in-out infinite; }
+  .stage.done .dot { border-color: var(--success); background: var(--success); color: #fff; }
+  .stage.skip .dot { border-color: var(--warn); background: var(--warn-tint); color: var(--warn); }
+  .stage.fail .dot { border-color: var(--error); background: var(--error); color: #fff; }
+  @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(14,124,134,.4);} 50% { box-shadow: 0 0 0 6px rgba(14,124,134,0);} }
+
+  .stage-body { flex: 1; min-width: 0; padding-top: 1px; }
+  .stage-label { font-weight: 500; font-size: 13px; color: var(--muted); transition: color .2s; }
+  .stage.run .stage-label, .stage.done .stage-label, .stage.skip .stage-label, .stage.fail .stage-label { color: var(--ink); font-weight: 600; }
+  .stage-note { font-size: 11.5px; color: var(--faint); margin-top: 1px; }
+  .stage.skip .stage-note { color: var(--warn); }
+  .stage.fail .stage-note { color: var(--error); }
+
+  /* ---------- records ---------- */
+  .rec {
+    border: 1px solid var(--border); border-radius: 9px; overflow: hidden;
+    margin-bottom: 12px; background: var(--surface);
+    animation: rise .3s ease both;
+  }
+  @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  .rec-head {
+    background: var(--sf-tint); border-bottom: 1px solid var(--border);
+    padding: 9px 13px; display: flex; align-items: center; gap: 9px;
+  }
+  .rec-obj { font-weight: 600; font-size: 12.5px; color: var(--sf); }
+  .rec-op {
+    font-size: 10px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase;
+    background: var(--sf); color: #fff; padding: 2px 7px; border-radius: 4px;
+  }
+  .rec-ext { margin-left: auto; font-size: 11px; color: var(--muted); }
+  .fields { display: grid; grid-template-columns: minmax(150px, 210px) 1fr; }
+  .fk, .fv { padding: 7px 13px; border-bottom: 1px solid var(--border-soft); font-size: 12.5px; }
+  .fk { color: var(--muted); background: #FBFCFD; border-right: 1px solid var(--border-soft); }
+  .fv { font-weight: 500; word-break: break-word; }
+  .fields > :nth-last-child(-n+2) { border-bottom: 0; }
+  .pill {
+    display: inline-block; font-size: 10.5px; font-weight: 600; padding: 1px 7px;
+    border-radius: 4px; margin-left: 7px; vertical-align: 1px;
+  }
+  .pill-ext { background: var(--warn-tint); color: var(--warn); }
+  .pill-rel { background: var(--brand-tint); color: var(--brand-dark); }
+
+  /* ---------- inspector ---------- */
+  .insp { border: 1px solid var(--border); border-radius: 9px; overflow: hidden; margin-bottom: 12px; }
+  .insp-head {
+    padding: 9px 13px; background: #FBFCFD; border-bottom: 1px solid var(--border-soft);
+    font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 8px;
+  }
+  .coding { padding: 9px 13px; border-bottom: 1px solid var(--border-soft); font-size: 12px; display: flex; gap: 10px; align-items: baseline; }
+  .coding:last-child { border-bottom: 0; }
+  .coding.rejected { color: var(--faint); text-decoration: line-through; text-decoration-color: var(--error); }
+  .coding.picked { background: var(--success-tint); }
+  .coding-sys { font-size: 11px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .coding-code { font-weight: 600; }
+  .tag {
+    font-size: 9.5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
+    padding: 1px 6px; border-radius: 3px; flex-shrink: 0;
+  }
+  .tag-keep { background: var(--success); color: #fff; }
+  .tag-drop { background: var(--error-tint); color: var(--error); text-decoration: none; }
+
+  /* ---------- misc ---------- */
+  pre.json {
+    background: #10202A; color: #C8DDE8; border-radius: 8px; padding: 13px;
+    font-size: 11.5px; line-height: 1.6; overflow-x: auto; white-space: pre-wrap; word-break: break-word;
+  }
+  .k { color: #7FD4C1; } .s { color: #F0C987; } .n { color: #9FB4FF; }
+
+  .alert { border-radius: 8px; padding: 11px 13px; font-size: 12.5px; margin-bottom: 14px; display: none; }
+  .alert.show { display: block; }
+  .alert-err { background: var(--error-tint); color: var(--error); border: 1px solid #F2C9C9; }
+  .alert-warn { background: var(--warn-tint); color: var(--warn); border: 1px solid #EEDCAF; }
+
+  .empty { text-align: center; padding: 52px 20px; color: var(--faint); }
+  .empty-mark { font-size: 30px; margin-bottom: 10px; opacity: .35; }
+
+  .summary { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+  .chip {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 7px;
+    padding: 8px 12px; flex: 1; min-width: 120px;
+  }
+  .chip-n { font-size: 19px; font-weight: 700; letter-spacing: -.02em; }
+  .chip-l { font-size: 10.5px; color: var(--muted); margin-top: -1px; }
+  .chip.ok .chip-n { color: var(--success); }
+  .chip.no .chip-n { color: var(--warn); }
+
+  .foot { margin-top: 18px; font-size: 11.5px; color: var(--faint); line-height: 1.65; }
+  .foot strong { color: var(--muted); font-weight: 600; }
+
+  details.raw { margin-top: 12px; }
+  details.raw summary { cursor: pointer; font-size: 11.5px; color: var(--muted); font-weight: 500; padding: 5px 0; }
+  details.raw summary:hover { color: var(--ink); }
+</style>
+</head>
+<body>
+<!-- SEDC-NAV:START -->
+<style>
+  .sedc-nav * { box-sizing: border-box; }
+  .sedc-nav {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    margin: 0;
+    background: #072B55;
+    color: #ffffff;
+    font-family: 'Poppins',Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    font-size: 14px;
+    line-height: 1.4;
+  }
+  .sedc-nav-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 10px 20px;
+  }
+  .sedc-nav-brand {
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+  }
+  .sedc-nav-brand:hover,
+  .sedc-nav-brand:focus {
+    text-decoration: underline;
+  }
+  .sedc-nav-jump {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .sedc-nav-label {
+    white-space: nowrap;
+    color: #ffffff;
+  }
+  .sedc-nav-select {
+    font-family: inherit;
+    font-size: 13px;
+    color: #072B55;
+    background: #ffffff;
+    border: 1px solid #ffffff;
+    border-radius: 4px;
+    padding: 5px 8px;
+    max-width: 60vw;
+  }
+  .sedc-nav-rule {
+    height: 3px;
+    width: 100%;
+    background: linear-gradient(90deg,#FF7C66 0%,#A03291 100%);
+  }
+</style>
+<div class="sedc-nav" role="navigation" aria-label="SE Demo Companion navigation">
+  <div class="sedc-nav-bar">
+    <a class="sedc-nav-brand" href="../index.html" target="_top">SE Demo Companion</a>
+    <div class="sedc-nav-jump">
+      <label class="sedc-nav-label" for="sedc-nav-select">Jump to use case</label>
+      <select class="sedc-nav-select" id="sedc-nav-select" onchange="(function(sel){try{var opt=sel.options[sel.selectedIndex];var url=opt&&opt.getAttribute('data-href');if(!url)return;try{window.top.location.href=url;}catch(e){window.location.href=url;}}catch(e){}})(this)">
+        <option value="amc-fee-change-agent" data-href="./amc-fee-change-agent.html">AMC fee-change agent — Finnomena</option>
+        <option value="bvtpa-claims-integration-demo" data-href="./bvtpa-claims-integration-demo.html">Blue Venture TPA claims integration demo — Blue Venture TPA</option>
+        <option value="bvtpa-claims-adjudication-cio-brief" data-href="./bvtpa-claims-adjudication-cio-brief.html">Claims adjudication CIO brief — Blue Venture TPA</option>
+        <option value="delivery-status-sync-demo" data-href="./delivery-status-sync-demo.html">Delivery status sync demo — TOTO</option>
+        <option value="boomi-tenant-ceo-dashboard" data-href="./boomi-tenant-ceo-dashboard.html">Boomi tenant CEO dashboard — Boomi internal tenant</option>
+        <option value="boomi-tenant-30-day-report" data-href="./boomi-tenant-30-day-report.html">Boomi tenant operations report, 30-day view — Boomi internal tenant</option>
+        <option value="json-to-xml-order-integration" data-href="./json-to-xml-order-integration.html">JSON to XML order integration, executive documentation — NTT</option>
+        <option value="edi-850-flight-deck" data-href="./edi-850-flight-deck.html">EDI 850 flight deck — Infosys</option>
+        <option value="whatsapp-to-sap-master-agent" data-href="./whatsapp-to-sap-master-agent.html">WhatsApp to SAP master agent — Boomi internal build</option>
+        <option value="student-xml-to-crm-json" data-href="./student-xml-to-crm-json.html">Student XML to CRM JSON — Attura</option>
+        <option value="sap-accounting-document-poc-outcome" data-href="./sap-accounting-document-poc-outcome.html">SAP accounting document automation, POC outcome — Abans PLC</option>
+        <option value="abans-sap-posting-poc-dashboard" data-href="./abans-sap-posting-poc-dashboard.html">Abans SAP posting, live POC dashboard — Abans PLC</option>
+        <option value="order-intake-api-fan-out" data-href="./order-intake-api-fan-out.html">Order intake API with multi-target fan-out — LTIMindtree</option>
+        <option value="electromart-track-and-reschedule" data-href="./electromart-track-and-reschedule.html">ElectroMart track order and reschedule delivery — ElectroMart (demo brand)</option>
+        <option value="enterprise-portal-ai-agent" data-href="./enterprise-portal-ai-agent.html">Enterprise portal with an embedded AI agent — ITG</option>
+        <option value="o2c-qad-build-journey" data-href="./o2c-qad-build-journey.html">O2C-QAD build journey — Boomi internal build</option>
+        <option value="boomi-accenture-trivia" data-href="./boomi-accenture-trivia.html">Boomi x Accenture trivia — Boomi internal build</option>
+        <option value="cloud-runtime-sizing-calculator" data-href="./cloud-runtime-sizing-calculator.html">Boomi public cloud runtime sizing estimator — Boomi internal build</option>
+        <option value="coupa-netsuite-vendor-bill" data-href="./coupa-netsuite-vendor-bill.html">Vendor bill pipeline, Coupa to NetSuite — Boomi internal build</option>
+        <option value="coupa-oracle-s2p-console" data-href="./coupa-oracle-s2p-console.html">Source-to-pay flow console, Coupa to Oracle Fusion — Boomi internal build</option>
+        <option value="epic-rauland-adt-nurse-call" data-href="./epic-rauland-adt-nurse-call.html">Epic ADT to Rauland Responder 5, nurse call integration — Boomi internal build</option>
+        <option value="epic-salesforce-trial-screening" data-href="./epic-salesforce-trial-screening.html" selected>Clinical trial screening console, Epic to Salesforce — Meridian Research (demo brand)</option>
+        <option value="jc-hifi-order-tracker" data-href="./jc-hifi-order-tracker.html">JC Hi-Fi order tracker, customer self-service — JC Hi-Fi (demo brand)</option>
+        <option value="pacific-bank-onboarding" data-href="./pacific-bank-onboarding.html">Pacific onboarding console, retail bank customer onboarding — Pacific Islands Community Bank (demo brand)</option>
+        <option value="sea-data-product-assistant" data-href="./sea-data-product-assistant.html">SEA regional performance, data products and an agent over two ERPs — Boomi internal build</option>
+        <option value="servicenow-jira-incident-sync" data-href="./servicenow-jira-incident-sync.html">Incident sync prototype, ServiceNow to Jira — Boomi internal build</option>
+        <option value="zendesk-magento-order-status" data-href="./zendesk-magento-order-status.html">Order status bot and flow inspector, Zendesk to Magento — Avery Products (demo brand)</option>
+        <option value="zoho-netsuite-invoice-sync" data-href="./zoho-netsuite-invoice-sync.html">Invoice sync console, Zoho CRM to NetSuite — Boomi internal build</option>
+      </select>
+    </div>
+  </div>
+  <div class="sedc-nav-rule"></div>
+</div>
+<!-- SEDC-NAV:END -->
+
+
+<header>
+  <div class="logo">
+    <span class="logo-mark">M</span>
+    <span>Meridian Research</span>
+  </div>
+  <span class="logo-sub">Clinical Trial Screening Console</span>
+  <span class="spacer"></span>
+  <div class="mode-toggle">
+    <span>Source</span>
+    <div class="switch">
+      <button id="mLive" class="on" onclick="setMode('live')">Live · Boomi</button>
+      <button id="mSim" onclick="setMode('sim')">Simulated</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="alert" id="alert"></div>
+
+  <div class="grid">
+    <!-- ============ LEFT ============ -->
+    <div>
+      <div class="panel" style="margin-bottom:20px">
+        <div class="panel-head">
+          <span class="panel-title">Epic Patient Roster</span>
+        </div>
+        <div class="roster" id="roster"></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <span class="panel-title">Inbound FHIR Event</span>
+          <span class="spacer"></span>
+          <span class="eyebrow" id="fhirRes">Patient</span>
+        </div>
+        <div class="panel-body">
+          <pre class="json" id="fhirPreview" style="max-height:280px;overflow:auto"></pre>
+          <button class="btn btn-primary" id="runBtn" style="margin-top:14px" onclick="run()">
+            Run Screening
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ RIGHT ============ -->
+    <div>
+      <div class="panel" style="margin-bottom:20px">
+        <div class="panel-head">
+          <span class="panel-title">Integration Pipeline</span>
+          <span class="spacer"></span>
+          <span class="eyebrow" id="corrLabel"></span>
+        </div>
+        <div class="panel-body">
+          <div class="pipe" id="pipe"></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <span class="panel-title">Salesforce Write Results</span>
+          <span class="spacer"></span>
+          <button class="btn-ghost" id="inspBtn" onclick="toggleInsp()" style="display:none">Show code selection</button>
+        </div>
+        <div class="panel-body" id="results">
+          <div class="empty">
+            <div class="empty-mark">◎</div>
+            <div>Select a patient and run screening</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="foot" id="foot"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   Trial eligibility table — mirrors XREF_TrialEligible_ICD10
+   ============================================================ */
+const TRIALS = {
+  'C50.911': { id: 'NCT04123456', name: 'Breast Ca Stage II Adjuvant' },
+  'C34.90':  { id: 'NCT04223344', name: 'NSCLC First-Line Immunotherapy' },
+  'E11.9':   { id: 'NCT04998877', name: 'T2DM GLP-1 Comparator' },
+  'I50.22':  { id: 'NCT04771122', name: 'Chronic Systolic HF Device Trial' },
+  'G35':     { id: 'NCT04556677', name: 'Relapsing MS Oral Agent' },
+};
+
+const ICD10 = 'http://hl7.org/fhir/sid/icd-10-cm';
+const LOINC = 'http://loinc.org';
+
+/* ============================================================
+   Dummy Epic data. name[] is deliberately ordered so that a naive
+   name[0] read picks a decoy, and coding[] leads with SNOMED.
+   ============================================================ */
+const PATIENTS = [
+  {
+    patient: {
+      resourceType: 'Patient', id: 'EPIC-PAT-778812', active: true,
+      gender: 'female', birthDate: '1974-08-19',
+      name: [
+        { use: 'nickname', family: 'DECOY-NICKNAME', given: ['Bee'], text: 'decoy at index 0' },
+        { use: 'official', family: 'Hartigan', given: ['Beatrice', 'Anne'], text: 'Beatrice Anne Hartigan' },
+        { use: 'usual', family: 'DECOY-USUAL', given: ['Trixie'], text: 'decoy' }
+      ]
+    },
+    conditions: [
+      { id: 'COND-0001', recordedDate: '2026-03-14', text: 'Malignant neoplasm of left female breast', coding: [
+        { system: 'http://snomed.info/sct', code: '254837009', display: 'SNOMED decoy' },
+        { system: ICD10, code: 'C50.911', display: 'Malignant neoplasm of unspecified site of left female breast' },
+        { system: 'urn:oid:1.2.840.114350.1.13', code: 'EDG-44821', display: 'Epic grouper decoy' }
+      ]},
+      { id: 'COND-0002', recordedDate: '2025-11-02', text: 'Type 2 diabetes mellitus', coding: [
+        { system: 'http://snomed.info/sct', code: '44054006', display: 'SNOMED decoy' },
+        { system: ICD10, code: 'E11.9', display: 'Type 2 diabetes mellitus without complications' },
+        { system: 'urn:oid:1.2.840.114350.1.13', code: 'EDG-11902', display: 'Epic grouper decoy' }
+      ]}
+    ],
+    observations: [
+      { id: 'OBS-9001', when: '2026-07-21T09:14:00Z', value: 8.2, unit: '%', coding: [
+        { system: 'http://snomed.info/sct', code: '43396009', display: 'SNOMED decoy' },
+        { system: LOINC, code: '4548-4', display: 'Hemoglobin A1c/Hemoglobin.total in Blood' }
+      ]},
+      { id: 'OBS-9002', when: '2026-07-21T09:14:00Z', value: 1.9, unit: '10*3/uL', coding: [
+        { system: 'http://snomed.info/sct', code: '30630007', display: 'SNOMED decoy' },
+        { system: LOINC, code: '751-8', display: 'Neutrophils [#/volume] in Blood by Automated count' }
+      ]}
+    ]
+  },
+  {
+    patient: {
+      resourceType: 'Patient', id: 'EPIC-PAT-449301', active: true,
+      gender: 'male', birthDate: '1961-02-04',
+      name: [
+        { use: 'usual', family: 'DECOY-USUAL', given: ['Mark'], text: 'decoy at index 0' },
+        { use: 'official', family: 'Oyelaran', given: ['Marcus', 'Adebayo'], text: 'Marcus Adebayo Oyelaran' }
+      ]
+    },
+    conditions: [
+      { id: 'COND-0101', recordedDate: '2026-05-30', text: 'Malignant neoplasm of bronchus and lung', coding: [
+        { system: 'http://snomed.info/sct', code: '363358000', display: 'SNOMED decoy' },
+        { system: ICD10, code: 'C34.90', display: 'Malignant neoplasm of unspecified part of unspecified bronchus or lung' }
+      ]},
+      { id: 'COND-0102', recordedDate: '2024-09-18', text: 'Low back pain', coding: [
+        { system: 'http://snomed.info/sct', code: '279039007', display: 'SNOMED decoy' },
+        { system: ICD10, code: 'M54.50', display: 'Low back pain, unspecified' }
+      ]}
+    ],
+    observations: [
+      { id: 'OBS-9101', when: '2026-07-30T14:02:00Z', value: 11.4, unit: 'g/dL', coding: [
+        { system: LOINC, code: '718-7', display: 'Hemoglobin [Mass/volume] in Blood' }
+      ]}
+    ]
+  },
+  {
+    patient: {
+      resourceType: 'Patient', id: 'EPIC-PAT-660255', active: true,
+      gender: 'female', birthDate: '1989-12-11',
+      name: [
+        { use: 'official', family: 'Raghunathan', given: ['Priya'], text: 'Priya Raghunathan' }
+      ]
+    },
+    conditions: [
+      { id: 'COND-0201', recordedDate: '2025-06-07', text: 'Unspecified asthma, uncomplicated', coding: [
+        { system: 'http://snomed.info/sct', code: '195967001', display: 'SNOMED decoy' },
+        { system: ICD10, code: 'J45.909', display: 'Unspecified asthma, uncomplicated' }
+      ]},
+      { id: 'COND-0202', recordedDate: '2026-01-22', text: 'Fibromyalgia', coding: [
+        { system: ICD10, code: 'M79.7', display: 'Fibromyalgia' }
+      ]}
+    ],
+    observations: [
+      { id: 'OBS-9201', when: '2026-06-14T08:30:00Z', value: 5.1, unit: '%', coding: [
+        { system: LOINC, code: '4548-4', display: 'Hemoglobin A1c/Hemoglobin.total in Blood' }
+      ]}
+    ]
+  }
+];
+
+let sel = 0;
+let mode = 'live';
+let showInsp = false;
+let lastRun = null;
+
+/* ============================================================
+   Mapping rules — mirror the Boomi profile tagLists exactly
+   ============================================================ */
+function officialName(p) {
+  return p.name.find(n => n.use === 'official') || p.name[0];
+}
+function pickCoding(codings, system) {
+  return codings.find(c => c.system === system) || null;
+}
+
+function projectContact(p) {
+  const n = officialName(p);
+  return {
+    object: 'Contact',
+    externalId: 'Epic_Patient_ID__c',
+    fields: [
+      ['Epic_Patient_ID__c', p.id, 'ext'],
+      ['FirstName', n.given[0]],           // given occurrence 1, scoped to official
+      ['LastName', n.family],
+      ['Birthdate', p.birthDate],
+    ]
+  };
+}
+
+function projectConditions(rec) {
+  const out = [];
+  for (const c of rec.conditions) {
+    const icd = pickCoding(c.coding, ICD10);
+    if (!icd) continue;
+    const trial = TRIALS[icd.code];
+    out.push({
+      eligible: !!trial,
+      source: c,
+      picked: icd,
+      record: trial ? {
+        object: 'Patient_Clinical_History__c',
+        externalId: 'Epic_Condition_ID__c',
+        fields: [
+          ['Epic_Condition_ID__c', c.id, 'ext'],
+          ['Diagnosis_Code__c', icd.code],
+          ['Diagnosis_Description__c', icd.display],
+          ['Recorded_Date__c', c.recordedDate],
+          ['Trial_Protocol_ID__c', trial.id],
+          ['Contact__r.Epic_Patient_ID__c', rec.patient.id, 'rel'],
+        ]
+      } : null
+    });
+  }
+  return out;
+}
+
+function projectObservations(rec) {
+  return rec.observations.map(o => {
+    const ln = pickCoding(o.coding, LOINC);
+    return {
+      source: o,
+      picked: ln,
+      record: {
+        object: 'Lab_Results__c',
+        externalId: 'Epic_Observation_ID__c',
+        fields: [
+          ['Epic_Observation_ID__c', o.id, 'ext'],
+          ['Lab_Value__c', o.value],
+          ['Lab_Unit__c', o.unit],
+          ['LOINC_Code__c', ln ? ln.code : ''],
+          ['Lab_Test_Name__c', ln ? ln.display : ''],
+          ['Observation_DateTime__c', o.when],
+          ['Contact__r.Epic_Patient_ID__c', rec.patient.id, 'rel'],
+        ]
+      }
+    };
+  });
+}
+
+/* ============================================================
+   Rendering
+   ============================================================ */
+const $ = id => document.getElementById(id);
+
+function esc(s) {
+  return String(s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+}
+
+function hjson(obj) {
+  return esc(JSON.stringify(obj, null, 2))
+    .replace(/&quot;/g, '"')
+    .replace(/"([^"]+)":/g, '<span class="k">"$1"</span>:')
+    .replace(/: "([^"]*)"/g, ': <span class="s">"$1"</span>')
+    .replace(/: (-?\d+\.?\d*)/g, ': <span class="n">$1</span>')
+    .replace(/: (true|false)/g, ': <span class="n">$1</span>');
+}
+
+function renderRoster() {
+  $('roster').innerHTML = PATIENTS.map((r, i) => {
+    const n = officialName(r.patient);
+    const elig = projectConditions(r).filter(c => c.eligible).length;
+    return `<button class="pt ${i === sel ? 'sel' : ''}" onclick="pick(${i})">
+      <div class="pt-name">${esc(n.given[0])} ${esc(n.family)}</div>
+      <div class="pt-meta">${esc(r.patient.gender)} · DOB ${esc(r.patient.birthDate)} · ${r.conditions.length} condition${r.conditions.length === 1 ? '' : 's'}</div>
+      <div class="pt-id mono">${esc(r.patient.id)}</div>
+    </button>`;
+  }).join('');
+}
+
+function renderFhir() {
+  $('fhirPreview').innerHTML = hjson(PATIENTS[sel].patient);
+}
+
+const STAGES = [
+  { k: 'recv',    l: 'Epic webhook received',        n: 'POST /ws/simple/executeEpicpatientevent' },
+  { k: 'props',   l: 'Extract patient + correlation', n: 'DDP_EPIC_PATIENT_ID, DDP_CORRELATION_ID' },
+  { k: 'contact', l: 'Branch 1 · Contact',            n: 'Map → upsert on Epic_Patient_ID__c' },
+  { k: 'cond',    l: 'Branch 2 · Clinical History',   n: 'Fetch Conditions → ICD-10 filter → trial gate' },
+  { k: 'obs',     l: 'Branch 3 · Lab Results',        n: 'Fetch Observations → LOINC filter → upsert' },
+  { k: 'ack',     l: 'Branch 4 · Return ack',         n: 'HTTP 200' },
+];
+
+function renderPipe(state = {}) {
+  $('pipe').innerHTML = STAGES.map(s => {
+    const st = state[s.k] || {};
+    return `<div class="stage ${st.cls || ''}">
+      <div class="dot">${st.mark || ''}</div>
+      <div class="stage-body">
+        <div class="stage-label">${esc(s.l)}</div>
+        <div class="stage-note">${esc(st.note || s.n)}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function recordHtml(r) {
+  const rows = r.fields.map(([k, v, kind]) => {
+    let pill = '';
+    if (kind === 'ext') pill = '<span class="pill pill-ext">external id</span>';
+    if (kind === 'rel') pill = '<span class="pill pill-rel">by external id</span>';
+    return `<div class="fk mono">${esc(k)}</div><div class="fv">${esc(v)}${pill}</div>`;
+  }).join('');
+  return `<div class="rec">
+    <div class="rec-head">
+      <span class="rec-op">upsert</span>
+      <span class="rec-obj mono">${esc(r.object)}</span>
+      <span class="rec-ext mono">on ${esc(r.externalId)}</span>
+    </div>
+    <div class="fields">${rows}</div>
+  </div>`;
+}
+
+function inspHtml(rec) {
+  const blocks = [];
+  for (const c of rec.conditions) {
+    const rows = c.coding.map(cd => {
+      const keep = cd.system === ICD10;
+      return `<div class="coding ${keep ? 'picked' : 'rejected'}">
+        <span class="tag ${keep ? 'tag-keep' : 'tag-drop'}">${keep ? 'ICD-10' : 'drop'}</span>
+        <span class="coding-code mono">${esc(cd.code)}</span>
+        <span class="coding-sys mono" style="color:var(--faint)">${esc(cd.system)}</span>
+      </div>`;
+    }).join('');
+    blocks.push(`<div class="insp">
+      <div class="insp-head"><span class="mono">${esc(c.id)}</span><span style="color:var(--muted);font-weight:400">${esc(c.text)}</span></div>
+      ${rows}
+    </div>`);
+  }
+  const n = rec.conditions.length;
+  const total = rec.conditions.reduce((a, c) => a + c.coding.length, 0);
+  return `<div style="margin-bottom:14px;font-size:12.5px;color:var(--muted)">
+      Without the profile tagList filter, ${n} condition${n===1?'':'s'} × ${total} coding${total===1?'':'s'}
+      would produce <strong style="color:var(--error)">${total} Salesforce records</strong> carrying mixed code systems.
+      Filtering on <span class="mono">system = ICD-10-CM</span> yields <strong style="color:var(--success)">${n}</strong>.
+    </div>${blocks.join('')}`;
+}
+
+function renderResults(rec, ack) {
+  const contact = projectContact(rec.patient);
+  const conds = projectConditions(rec);
+  const obs = projectObservations(rec);
+  const eligible = conds.filter(c => c.eligible);
+  const rejected = conds.filter(c => !c.eligible);
+
+  let html = `<div class="summary">
+    <div class="chip"><div class="chip-n">1</div><div class="chip-l">Contact</div></div>
+    <div class="chip ${eligible.length ? 'ok' : 'no'}"><div class="chip-n">${eligible.length}</div><div class="chip-l">Clinical History</div></div>
+    <div class="chip"><div class="chip-n">${obs.length}</div><div class="chip-l">Lab Results</div></div>
+    <div class="chip ${rejected.length ? 'no' : ''}"><div class="chip-n">${rejected.length}</div><div class="chip-l">Gated out</div></div>
+  </div>`;
+
+  if (showInsp) html += inspHtml(rec);
+
+  html += recordHtml(contact);
+  eligible.forEach(c => { html += recordHtml(c.record); });
+
+  if (rejected.length) {
+    html += `<div class="insp" style="border-color:#EEDCAF">
+      <div class="insp-head" style="background:var(--warn-tint);color:var(--warn)">Gated out — ICD-10 code not in trial table</div>
+      ${rejected.map(c => `<div class="coding">
+        <span class="tag tag-drop">no trial</span>
+        <span class="coding-code mono">${esc(c.picked.code)}</span>
+        <span class="coding-sys">${esc(c.picked.display)}</span>
+      </div>`).join('')}
+    </div>`;
+  }
+
+  obs.forEach(o => { html += recordHtml(o.record); });
+
+  html += `<details class="raw"><summary>Boomi response payload</summary>
+    <pre class="json" style="margin-top:8px">${hjson(ack)}</pre></details>`;
+
+  $('results').innerHTML = html;
+  $('inspBtn').style.display = '';
+  $('inspBtn').textContent = showInsp ? 'Hide code selection' : 'Show code selection';
+}
+
+/* ============================================================
+   Interaction
+   ============================================================ */
+function pick(i) {
+  sel = i;
+  showInsp = false;
+  lastRun = null;
+  renderRoster();
+  renderFhir();
+  renderPipe();
+  $('corrLabel').textContent = '';
+  $('inspBtn').style.display = 'none';
+  $('results').innerHTML = '<div class="empty"><div class="empty-mark">◎</div><div>Run screening to see Salesforce writes</div></div>';
+  hideAlert();
+}
+
+function setMode(m) {
+  mode = m;
+  $('mLive').classList.toggle('on', m === 'live');
+  $('mSim').classList.toggle('on', m === 'sim');
+  hideAlert();
+}
+
+function toggleInsp() {
+  showInsp = !showInsp;
+  if (lastRun) renderResults(lastRun.rec, lastRun.ack);
+}
+
+function showAlert(cls, msg) {
+  const a = $('alert');
+  a.className = `alert show ${cls}`;
+  a.innerHTML = msg;
+}
+const SIM_NOTICE = '<strong>Simulated source.</strong> No Boomi proxy is reachable, so the console is '
+  + 'running on its own built-in sample roster. Every patient, code and Salesforce record below is demo '
+  + 'data, not a live Epic or Salesforce read. Run <span class="mono">server.py</span> from the original '
+  + 'project path for the Live walkthrough.';
+const OFFLINE = (location.protocol !== 'http:' && location.protocol !== 'https:');
+function hideAlert() {
+  // Standalone: the simulated-source notice is a disclaimer, so it stays on screen.
+  if (OFFLINE) { showAlert('alert-warn', SIM_NOTICE); return; }
+  $('alert').className = 'alert';
+}
+
+const wait = ms => new Promise(r => setTimeout(r, ms));
+
+async function run() {
+  const rec = PATIENTS[sel];
+  const btn = $('runBtn');
+  btn.disabled = true;
+  btn.textContent = 'Screening…';
+  hideAlert();
+  showInsp = false;
+  $('inspBtn').style.display = 'none';
+  $('results').innerHTML = '<div class="empty"><div class="empty-mark">◎</div><div>Processing…</div></div>';
+
+  const state = {};
+  const step = async (k, cls, note, ms) => {
+    state[k] = { cls: 'run' };
+    renderPipe(state);
+    await wait(ms);
+    state[k] = { cls, mark: cls === 'done' ? '✓' : cls === 'skip' ? '!' : cls === 'fail' ? '×' : '', note };
+    renderPipe(state);
+  };
+
+  await step('recv', 'done', mode === 'live' ? 'Sent to Boomi shared web server' : 'Simulated locally', 320);
+
+  let ack = null, failed = false;
+
+  if (mode === 'live') {
+    try {
+      const res = await fetch('/api/screen', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(rec.patient),
+      });
+      const text = await res.text();
+      try { ack = JSON.parse(text); } catch { ack = { raw: text }; }
+      if (!res.ok || ack.error) {
+        failed = true;
+        showAlert('alert-err',
+          `<strong>Boomi call failed.</strong> ${esc(ack.message || res.status + ' ' + res.statusText)}
+           <br/>Switch <em>Source</em> to <strong>Simulated</strong> to continue the walkthrough.`);
+      }
+    } catch (e) {
+      // No proxy reachable (opened as a file, or server.py not running).
+      // Fall back to Simulated rather than dead-ending the walkthrough.
+      ack = null;
+      setMode('sim');
+      await step('recv', 'done', 'Simulated locally', 120);
+      showAlert('alert-warn', SIM_NOTICE);
+    }
+  }
+
+  if (failed) {
+    state.props = { cls: 'fail', mark: '×', note: 'Not reached' };
+    ['contact', 'cond', 'obs', 'ack'].forEach(k => { state[k] = { cls: 'fail', mark: '×', note: 'Not reached' }; });
+    renderPipe(state);
+    $('results').innerHTML = '<div class="empty"><div class="empty-mark">⚠</div><div>Screening did not complete</div></div>';
+    btn.disabled = false;
+    btn.textContent = 'Run Screening';
+    return;
+  }
+
+  if (!ack) {
+    ack = {
+      status: 'ACCEPTED',
+      correlationId: 'EPICSCR-' + new Date().toISOString().replace(/\D/g, '').slice(0, 17),
+      patientId: rec.patient.id,
+      message: 'Patient screening fan-out completed',
+    };
+  }
+
+  $('corrLabel').textContent = ack.correlationId || '';
+
+  const conds = projectConditions(rec);
+  const elig = conds.filter(c => c.eligible).length;
+  const gated = conds.length - elig;
+  const obsN = rec.observations.length;
+
+  await step('props', 'done', `Patient ${rec.patient.id}`, 260);
+  await step('contact', 'done', '1 Contact upserted', 380);
+  await step('cond',
+    elig ? 'done' : 'skip',
+    elig ? `${elig} upserted, ${gated} gated out` : `All ${conds.length} gated out — no trial match`,
+    420);
+  await step('obs', 'done', `${obsN} Lab Result${obsN === 1 ? '' : 's'} upserted`, 340);
+  await step('ack', 'done', ack.status || 'ACCEPTED', 220);
+
+  lastRun = { rec, ack };
+  renderResults(rec, ack);
+
+  btn.disabled = false;
+  btn.textContent = 'Run Screening';
+}
+
+/* ============================================================
+   Boot
+   ============================================================ */
+$('foot').innerHTML = `
+  <strong>How to read this.</strong> The pipeline and the Boomi response are real when Source is
+  <em>Live</em> — the correlation ID comes back from the deployed process. The Salesforce record cards are
+  projected in the browser using the same mapping rules as the Boomi maps, because the webhook is
+  fire-and-forget and returns only an acknowledgement.<br/>
+  <strong>Demo caveat.</strong> The Boomi subprocess currently mocks the Epic Condition and Observation
+  callbacks with one fixed bundle, so the live acknowledgement is identical for every patient. Wiring the
+  real Epic FHIR REST operations makes the three patients diverge server-side.`;
+
+renderRoster();
+renderFhir();
+renderPipe();
+
+/* Standalone fallback. Opened straight from the file system there is no proxy to
+   reach, so start in Simulated rather than leaving Live to fail on first click. */
+if (location.protocol !== 'http:' && location.protocol !== 'https:') {
+  setMode('sim');
+  $('mLive').disabled = true;
+  $('mLive').title = 'Live needs server.py — run it from the original project path';
+  showAlert('alert-warn', SIM_NOTICE);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SEA Data Product Runbook</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Serif:ital,wght@0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --ground:#f4f7f8; --surface:#fff; --surface-alt:#e9f0f2;
+    --ink:#101c24; --ink-soft:#3a4f5b; --muted:#5e7583;
+    --line:#d7e2e6; --line-strong:#b6c8cf;
+    --accent:#0f6e78; --accent-ink:#0a4c53; --accent-soft:#dcf0f2;
+    --good:#0c6b47; --good-soft:#ddf1e7; --good-line:#a4d7c0;
+    --warn:#8a5100; --warn-soft:#fdf2e0; --warn-line:#e8cd9d;
+    --serif:"IBM Plex Serif",Georgia,serif;
+    --sans:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+    --ground:#0c141a; --surface:#141e26; --surface-alt:#1a2730;
+    --ink:#e3ecf0; --ink-soft:#b0c3cd; --muted:#8098a6;
+    --line:#25333c; --line-strong:#3a4d58;
+    --accent:#4fc3ce; --accent-ink:#7fd6de; --accent-soft:#0f3239;
+    --good:#5ec898; --good-soft:#0f2b20; --good-line:#245c43;
+    --warn:#e2a852; --warn-soft:#2b2112; --warn-line:#4d3a1a;
+  }}
+  :root[data-theme="dark"]{
+    --ground:#0c141a; --surface:#141e26; --surface-alt:#1a2730;
+    --ink:#e3ecf0; --ink-soft:#b0c3cd; --muted:#8098a6;
+    --line:#25333c; --line-strong:#3a4d58;
+    --accent:#4fc3ce; --accent-ink:#7fd6de; --accent-soft:#0f3239;
+    --good:#5ec898; --good-soft:#0f2b20; --good-line:#245c43;
+    --warn:#e2a852; --warn-soft:#2b2112; --warn-line:#4d3a1a;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--sans);
+    font-size:15.5px;line-height:1.6;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:920px;margin:0 auto;padding:0 24px 110px}
+  h1,h2,h3{margin:0;text-wrap:balance}
+  h1{font-family:var(--serif);font-weight:600;font-size:clamp(28px,4.2vw,42px);line-height:1.12;letter-spacing:-.017em}
+  h2{font-family:var(--serif);font-weight:600;font-size:clamp(20px,2.6vw,26px);line-height:1.22}
+  h3{font-size:16px;font-weight:600;line-height:1.32}
+  p{margin:0}
+  .note{font-size:14px;color:var(--muted);line-height:1.5}
+  .lede{font-size:18px;line-height:1.55;color:var(--ink-soft);max-width:62ch}
+  code{font-family:var(--mono);font-size:.86em;background:var(--surface-alt);
+    border:1px solid var(--line);padding:1px 5px;border-radius:4px;word-break:break-word}
+  .eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--accent)}
+  section{margin-top:56px;display:flex;flex-direction:column;gap:18px}
+  .col{max-width:66ch}
+  header.top{padding:52px 0 0;display:flex;flex-direction:column;gap:14px}
+
+  .chip{font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.08em;
+    text-transform:uppercase;padding:3px 9px;border-radius:5px;border:1px solid;white-space:nowrap}
+  .chip.t{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-ink)}
+  .chip.g{background:var(--good-soft);border-color:var(--good-line);color:var(--good)}
+
+  /* acts */
+  .act{background:var(--surface);border:1px solid var(--line);border-radius:11px;overflow:hidden}
+  .act-hd{display:flex;gap:14px;align-items:flex-start;padding:17px 21px;
+    border-bottom:1px solid var(--line);background:var(--surface-alt)}
+  .act-hd .n{font-family:var(--mono);font-size:12px;font-weight:600;color:#fff;background:var(--accent);
+    min-width:24px;height:24px;border-radius:6px;flex:none;display:inline-flex;
+    align-items:center;justify-content:center;margin-top:3px}
+  :root[data-theme="dark"] .act-hd .n{color:#08222a}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .act-hd .n{color:#08222a}}
+  .act-hd .tt{display:flex;flex-direction:column;gap:3px;flex:1}
+  .act-hd .meta{display:flex;flex-wrap:wrap;gap:7px;margin-top:5px}
+  .act-bd{padding:19px 21px;display:flex;flex-direction:column;gap:15px}
+  .beat{display:grid;grid-template-columns:84px 1fr;gap:5px 15px;align-items:baseline}
+  @media (max-width:620px){.beat{grid-template-columns:1fr;gap:2px}}
+  .beat dt{font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--muted);padding-top:4px}
+  .beat dd{margin:0;font-size:15px;line-height:1.55}
+  .beat dd.say{font-family:var(--serif);font-style:italic;font-size:16px;color:var(--accent-ink);line-height:1.5}
+  :root[data-theme="dark"] .beat dd.say{color:var(--accent-ink)}
+
+  /* mapping table */
+  .tw{overflow-x:auto;border:1px solid var(--line);border-radius:9px;background:var(--surface)}
+  table{border-collapse:collapse;width:100%;min-width:620px;font-size:14px}
+  th,td{text-align:left;padding:10px 15px;border-bottom:1px solid var(--line);vertical-align:top}
+  tr:last-child td{border-bottom:0}
+  th{font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.09em;
+    text-transform:uppercase;color:var(--muted);background:var(--surface-alt);white-space:nowrap}
+  td.m{font-family:var(--mono);font-size:12.5px;font-variant-numeric:tabular-nums;white-space:nowrap}
+  td.d{color:var(--ink-soft);font-size:13.6px;line-height:1.45}
+
+  /* timing strip */
+  .times{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  @media (max-width:760px){.times{grid-template-columns:repeat(2,1fr)}}
+  .tcard{background:var(--surface);border:1px solid var(--line);border-top:3px solid var(--good);
+    border-radius:9px;padding:15px 16px;display:flex;flex-direction:column;gap:3px}
+  .tcard .big{font-family:var(--mono);font-weight:600;font-size:24px;color:var(--good);
+    letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+  .tcard .lbl{font-size:13.4px;color:var(--ink-soft);line-height:1.4}
+
+  ul.plain{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:9px}
+  ul.plain li{display:grid;grid-template-columns:17px 1fr;gap:11px;font-size:15px;line-height:1.5;align-items:baseline}
+  ul.plain li::before{content:"";width:8px;height:8px;border-radius:2px;
+    border:1.5px solid var(--line-strong);transform:translateY(6px)}
+
+  .callout{background:var(--warn-soft);border:1px solid var(--warn-line);border-left:3px solid var(--warn);
+    border-radius:8px;padding:14px 17px;display:flex;flex-direction:column;gap:6px}
+  .callout .lbl{font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.11em;
+    text-transform:uppercase;color:var(--warn)}
+  .callout p{font-size:14.4px;line-height:1.52}
+
+  .links{display:flex;flex-wrap:wrap;gap:10px}
+  .links a{font-family:var(--mono);font-size:13px;text-decoration:none;background:var(--surface);
+    border:1px solid var(--line);border-radius:7px;padding:8px 13px;color:var(--accent-ink)}
+  .links a:hover{border-color:var(--accent)}
+
+  /* sticky control bar */
+  .runbook-bar{position:sticky;top:0;z-index:40;background:var(--ground);
+    border-bottom:1px solid var(--line);padding:12px 0}
+  .runbook-bar-in{max-width:920px;margin:0 auto;padding:0 24px;display:flex;
+    flex-wrap:wrap;align-items:center;gap:10px 14px}
+  .runbook-bar .rb-title{font-family:var(--mono);font-size:10.5px;font-weight:600;
+    letter-spacing:.11em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+  a{color:var(--accent-ink)}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+</style>
+</head>
+<body>
+
+<div class="runbook-bar">
+  <div class="runbook-bar-in">
+    <span class="rb-title">SEA data product runbook</span>
+    <div class="links">
+      <a href="./sea-data-product-assistant-why.html">1 · /why</a><a href="./sea-data-product-assistant-catalog.html">2 · /catalog</a>
+      <a href="./sea-data-product-assistant-flow.html">4 · /flow</a><a href="./sea-data-product-assistant.html">5 · chat</a>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+<header class="top">
+  <p class="eyebrow">End-to-end demo runbook · 25 minutes</p>
+  <h1>A governed data product, built in an hour</h1>
+  <p class="lede">Five acts: what a data product actually is, how that lands in Boomi, how Companion
+    compresses the build, what it produced, and the working thing at the end. Every figure and identifier
+    below is from the running system.</p>
+</header>
+
+<section>
+  <div class="col"><h2>Before you start</h2></div>
+  <ul class="plain col">
+    <li><strong>Boomi VPN connected.</strong> Non-negotiable — the Hub Cloud is behind it, and
+      <code>/flow</code> stage&nbsp;2 will fall back to a snapshot without it.</li>
+    <li><code>python3 demo/server.py</code> — check the banner says <code>data hub : LIVE</code>.</li>
+    <li>Warm the agent with one throwaway question. The first call of a session is the slowest.</li>
+    <li>Tabs ready: Data Hub model on the <strong>Source</strong> tab, the Boomi process canvas,
+      the agent in Agent Garden.</li>
+  </ul>
+</section>
+
+<!-- ACT 1 -->
+<section>
+  <div class="act">
+    <div class="act-hd"><span class="n">1</span><span class="tt">
+      <h2>What a data product actually is</h2>
+      <p class="note">Land the concept before anything technical. No Boomi yet.</p>
+      <span class="meta"><span class="chip t">4 min</span><span class="chip t">/why</span></span>
+    </span></div>
+    <div class="act-bd">
+      <dl class="beat">
+        <dt>Say first</dt>
+        <dd class="say">&ldquo;A data product isn't a pipeline and it isn't a table. It's a contract:
+          an agreed definition, a known grain, one unit of measure, an owner, and a governed way to
+          consume it. Most analytics programmes stall because they build the pipeline before anyone
+          agrees what a &lsquo;subsidiary&rsquo; is.&rdquo;</dd>
+        <dt>Do</dt>
+        <dd>Open <code>/why</code>. Let them read the two numbers before you speak.</dd>
+        <dt>They see</dt>
+        <dd><strong>$6,325,649</strong> against <strong>$8,593,524</strong> — a 26.4% gap on the same
+          month, from the same two systems, with nobody having made a mistake.</dd>
+        <dt>Say</dt>
+        <dd class="say">&ldquo;Vietnam's currency is recorded as VDN in one system. There's no such
+          currency. The conversion finds no rate, skips the row, and the report still runs. You don't
+          get an error — you get a regional total that's quietly a quarter short.&rdquo;</dd>
+        <dt>Close act</dt>
+        <dd class="say">&ldquo;That's the problem a data product solves. Not &lsquo;we need better
+          dashboards&rsquo; — we need one definition everyone draws from.&rdquo;</dd>
+      </dl>
+      <p class="note">Scroll the three causes if there's time; the Vietnam one alone is enough.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ACT 2 -->
+<section>
+  <div class="act">
+    <div class="act-hd"><span class="n">2</span><span class="tt">
+      <h2>How that translates into Boomi</h2>
+      <p class="note">Map each property of a data product onto the capability that delivers it.</p>
+      <span class="meta"><span class="chip t">4 min</span><span class="chip t">/catalog</span></span>
+    </span></div>
+    <div class="act-bd">
+      <div class="tw"><table>
+        <tr><th>A data product must be…</th><th>In Boomi that is…</th><th>What it looks like here</th></tr>
+        <tr><td><strong>Trustworthy</strong></td><td class="m">Data Hub</td>
+            <td class="d">Two ERP spokes matched on Legal Entity ID; per-field source ranking decides who wins.</td></tr>
+        <tr><td><strong>A contract</strong></td><td class="m">Integration</td>
+            <td class="d">Fixed grain (subsidiary × month), one reporting currency, named fields.</td></tr>
+        <tr><td><strong>Addressable</strong></td><td class="m">API endpoint</td>
+            <td class="d">One URL any consumer calls. No extracts, no copies.</td></tr>
+        <tr><td><strong>Governed</strong></td><td class="m">Auth &middot; API Management</td>
+            <td class="d">Anonymous callers get 401. Keys and rate limits are the next step.</td></tr>
+        <tr><td><strong>Documented &amp; owned</strong></td><td class="m">Catalogue entry</td>
+            <td class="d">Named accountable owner, per-field stewards, published limitations.</td></tr>
+        <tr><td><strong>Directly consumable</strong></td><td class="m">Data Hub query tool</td>
+            <td class="d">The agent reads the golden record natively &mdash; no API built in between.</td></tr>
+        <tr><td><strong>Consumable</strong></td><td class="m">Agentstudio</td>
+            <td class="d">Same contract serves a REST client, an agent and an exec chat window.</td></tr>
+      </table></div>
+      <div class="callout">
+        <span class="lbl">The row that pre-empts the pricing objection</span>
+        <p>Two products are published. <strong>subsidiary_performance_consolidated</strong> needs Data Hub
+          because two ERPs disagree about the same entity. <strong>open_receivables_by_subsidiary</strong>
+          needs none, because a single system owns the receivable. Say this before anyone asks whether
+          they have to buy the whole stack: <em>you need master data when your sources conflict, not
+          because you want a data product.</em></p>
+      </div>
+      <dl class="beat">
+        <dt>Do</dt>
+        <dd>Open <code>/catalog</code>. Go straight to <strong>Ownership</strong>, then the
+          <strong>Source of truth</strong> column in the contract table.</dd>
+        <dt>Say</dt>
+        <dd class="say">&ldquo;This is what makes it a product rather than a job someone runs. There's a
+          person accountable for what the numbers mean, a team accountable for delivery, and a named
+          steward per field. Finance owns currency. Operations owns trading status. Those aren't settings
+          — they're decisions, with names against them.&rdquo;</dd>
+        <dt>Then</dt>
+        <dd>Scroll to <strong>Known limitations</strong>. Don't skip it.</dd>
+        <dt>Say</dt>
+        <dd class="say">&ldquo;A product that hides its limitations burns its consumers once. Publishing
+          them is what lets someone design around a gap instead of discovering it in UAT.&rdquo;</dd>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<!-- ACT 3 -->
+<section>
+  <div class="act">
+    <div class="act-hd"><span class="n">3</span><span class="tt">
+      <h2>How Companion compresses the build</h2>
+      <p class="note">The meta-story. Every artifact was authored conversationally against the live APIs.</p>
+      <span class="meta"><span class="chip t">5 min</span><span class="chip t">terminal</span></span>
+    </span></div>
+    <div class="act-bd">
+      <div class="times">
+        <div class="tcard"><span class="big">2m 01s</span><span class="lbl">Data Hub model published &rarr; deployed &rarr; both ERPs loaded &rarr; 4 reconciled golden records</span></div>
+        <div class="tcard"><span class="big">11s</span><span class="lbl">Agent tool authored &rarr; installed &rarr; ACTIVE</span></div>
+        <div class="tcard"><span class="big">10s</span><span class="lbl">Agent defined &rarr; packaged &rarr; deployed to Agent Garden</span></div>
+        <div class="tcard"><span class="big">~1 hr</span><span class="lbl">Empty folder &rarr; exec chat window, including a 25-minute network block</span></div>
+      </div>
+      <dl class="beat">
+        <dt>Say</dt>
+        <dd class="say">&ldquo;None of this was clicked together. It was described in English, and
+          Companion wrote the model XML, the match rules, the source ranking, the process canvas, the
+          agent definition and the tool — then deployed and tested each one against the live platform.&rdquo;</dd>
+        <dt>The point</dt>
+        <dd>Not that it is fast. That the <em>slow</em> part moved. Design decisions — who owns currency,
+          what the grain is, what the contract exposes — took the time. Construction stopped being the constraint.</dd>
+        <dt>Show</dt>
+        <dd>Scroll back through this session's terminal so they see plain-English instructions producing
+          deployed platform artifacts.</dd>
+      </dl>
+      <div class="callout">
+        <span class="lbl">Optional — the strongest beat if you're confident</span>
+        <p>Take a request from the room and build it live. A safe one: <em>&ldquo;add the FX rate and its
+          as-at date to the API response&rdquo;</em> — a real gap published in the catalogue, and a small
+          change to one Groovy step, push, deploy, re-call. Have a fallback ready; a live build that
+          stalls costs more than it wins.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ACT 4 -->
+<section>
+  <div class="act">
+    <div class="act-hd"><span class="n">4</span><span class="tt">
+      <h2>What it actually built</h2>
+      <p class="note">Prove it in the platform, not in a slide. Real components, real IDs.</p>
+      <span class="meta"><span class="chip t">5 min</span><span class="chip t">Boomi UI</span></span>
+    </span></div>
+    <div class="act-bd">
+      <div class="tw"><table>
+        <tr><th>Layer</th><th>Artifact</th><th>Identifier / state</th></tr>
+        <tr><td>Master data</td><td>Model <strong>Subsidiary</strong>, v3, deployed</td><td class="m">ba3393d1-ad22-457e-b09e-67d04a5d103a</td></tr>
+        <tr><td>Master data</td><td>Repository <strong>SEA-Subsidiary-Demo</strong></td><td class="m">4 golden records &middot; 0 quarantined</td></tr>
+        <tr><td>Master data</td><td>Source spokes</td><td class="m">SAP_ERP &middot; ORACLE_EBS</td></tr>
+        <tr><td>Master data</td><td>Model <strong>Subsidiary</strong> v4 &mdash; 9 fields</td><td class="m">+ entityOwner, financeContact, taxId, fiscalYearEnd</td></tr>
+        <tr><td>Master data</td><td>Per-field source ranking (5 fields)</td><td class="m">SAP: currency, taxId, financeContact &middot; Oracle: status, entityOwner</td></tr>
+        <tr><td>Agent</td><td>Tool <strong>Subsidiary Master Lookup</strong> (Hub)</td><td class="m">native Data Hub query &middot; ACTIVE</td></tr>
+        <tr><td>Integration</td><td>Process <strong>SEA_Subsidiary_Performance_API</strong></td><td class="m">93f42ef5-07d9-4ccf-a68e-b1dce6b3218e</td></tr>
+        <tr><td>Integration</td><td>WSS listener operation</td><td class="m">POST /ws/simple/querySubsidiaryperformance</td></tr>
+        <tr><td>Agent</td><td>Tool <strong>Subsidiary Performance Lookup</strong> (OpenAPI)</td><td class="m">ACTIVE</td></tr>
+        <tr><td>Agent</td><td><strong>SEA Regional Performance Assistant</strong></td><td class="m">deployment c6f7650c-913b-4fbc-b422-4dc941ff319c</td></tr>
+        <tr><td>Integration</td><td>Process <strong>SEA_Open_Receivables_API</strong></td><td class="m">e7ac7ed5-37a6-4306-895f-55d6ad8c569d</td></tr>
+        <tr><td>Integration</td><td>3 JSON profiles + Map component</td><td class="m">ERP field names &rarr; published contract</td></tr>
+        <tr><td>Agent</td><td>Tool <strong>Open Receivables Lookup</strong> (OpenAPI)</td><td class="m">ACTIVE</td></tr>
+        <tr><td>Agent</td><td>Agent package</td><td class="m">v2.0 &middot; 4 tasks &middot; 2 tools</td></tr>
+        <tr><td>Front end</td><td>4 pages + stdlib proxy</td><td class="m">/why /catalog /flow /</td></tr>
+      </table></div>
+      <dl class="beat">
+        <dt>Do</dt>
+        <dd>Open Data Hub &rarr; <strong>Rank Sources</strong>. Then the process canvas. Then the agent
+          in Agent Garden with its tool attached.</dd>
+        <dt>Say</dt>
+        <dd class="say">&ldquo;Ordinary Boomi components. Anyone on your team can open, edit and own them
+          tomorrow. Nothing here is a black box or a side channel.&rdquo;</dd>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<!-- ACT 5 -->
+<section>
+  <div class="act">
+    <div class="act-hd"><span class="n">5</span><span class="tt">
+      <h2>The working prototype</h2>
+      <p class="note">Close on the payoff. This is the part they'll remember.</p>
+      <span class="meta"><span class="chip t">6 min</span><span class="chip t">/flow then chat</span></span>
+    </span></div>
+    <div class="act-bd">
+      <dl class="beat">
+        <dt>Do</dt>
+        <dd>Open <code>/flow</code> with <strong>Indonesia</strong> selected. Check the chip top-right
+          reads <span class="chip g">hub: live</span>. Walk stages 1&rarr;3 quickly.</dd>
+        <dt>Say</dt>
+        <dd class="say">&ldquo;Stage two is reading Data Hub right now — this isn't a screenshot.
+          Currency went to SAP, status went to Oracle, and you can see which value won.&rdquo;</dd>
+        <dt>Then</dt>
+        <dd>Stage 4 — press <strong>Call without credentials</strong>, get <strong>401</strong>.
+          Then <strong>Call the product</strong>.</dd>
+        <dt>Then</dt>
+        <dd>Stage 5 — click <strong>Thailand</strong>. Wait. Say nothing.</dd>
+        <dt>They see</dt>
+        <dd>The agent volunteers, unprompted, that Thailand is <strong>Dormant</strong> and that its
+          figures carry that caveat.</dd>
+        <dt>Say</dt>
+        <dd class="say">&ldquo;Nobody asked about status. That word came from a survivorship rule set in
+          Data Hub — Oracle outranks SAP on trading status, so &lsquo;Dormant&rsquo; beat
+          &lsquo;Inactive&rsquo;. A governance decision made by the data owners just changed what an
+          executive was told. That is the whole argument for doing this in the right order.&rdquo;</dd>
+        <dt>Governed lookup</dt>
+        <dd>Ask <em>&ldquo;Who is the entity owner for Vietnam, and who do I contact in finance?&rdquo;</em></dd>
+        <dt>They see</dt>
+        <dd>Entity owner <strong>Nguyen Thi Lan</strong>, finance contact <strong>vn.finance@example.com</strong> &mdash;
+          and the agent says it comes from the governed master record.</dd>
+        <dt>Say</dt>
+        <dd class="say">&ldquo;Those two answers came from two different systems. Operations is authoritative for
+          who runs the entity, because the finance system&rsquo;s copy goes stale when people move. Finance is
+          authoritative for the contact mailbox. One record, one query, two sources winning two fields &mdash;
+          and the agent read Data Hub directly, with no API in between.&rdquo;</dd>
+        <dt>Then</dt>
+        <dd>Ask <em>&ldquo;Can we post a new invoice to Thailand?&rdquo;</em> &mdash; it answers
+          <strong>no</strong>, from the governed trading status, and routes you to the entity owner.</dd>
+        <dt>Say</dt>
+        <dd class="say">&ldquo;That is the same Dormant flag from earlier, now stopping a transaction instead of
+          footnoting a board number. One governed attribute, two completely different kinds of decision.&rdquo;</dd>
+        <dt>Second product</dt>
+        <dd>Ask <em>&ldquo;What is outstanding in Indonesia?&rdquo;</em> &mdash; the agent switches to the
+          <strong>Open Receivables Lookup</strong> tool on its own.</dd>
+        <dt>They see</dt>
+        <dd>$501,625 open, $387,250 overdue, oldest 80 days &mdash; and it volunteers two control issues:
+          an invoice booked in USD when Indonesia reports IDR, and one with no customer name.</dd>
+        <dt>Say</dt>
+        <dd class="say">&ldquo;Second data product, different shape, no Data Hub &mdash; and it caught the
+          same class of currency error that cost us 26% at the start. One governed definition stops the
+          bad data at the door and explains the number at the board.&rdquo;</dd>
+        <dt>Finish</dt>
+        <dd>Ask <em>&ldquo;Give me a full picture of Thailand&rdquo;</em> &mdash; the agent calls
+          <strong>both</strong> products and returns one briefing. Then a pronoun follow-up for session memory.</dd>
+        <dt>Close</dt>
+        <dd class="say">&ldquo;One definition, one contract, one endpoint — serving a REST client, an
+          agent and this window. The agent was the easy part. The reason you can trust what it said is
+          the golden record.&rdquo;</dd>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="col"><h2>If it goes wrong</h2></div>
+  <div class="callout">
+    <span class="lbl">Stage 2 says &ldquo;hub: snapshot&rdquo;</span>
+    <p>VPN dropped. The page still works on the build-time snapshot — say so plainly rather than
+      pretending. &ldquo;That chip is telling you it lost the live connection and fell back; the values
+      are the ones we read earlier.&rdquo; Honesty here reads as confidence.</p>
+  </div>
+  <div class="callout">
+    <span class="lbl">The agent is slow or times out</span>
+    <p>First call of a session is slowest — always warm it beforehand. The UI aborts after 5 minutes
+      with a readable message; press <strong>Reset</strong> and ask again. If Agent Garden is
+      unavailable, stage 4's raw API call still demonstrates the product.</p>
+  </div>
+  <div class="callout">
+    <span class="lbl">Don't invite derived ratios</span>
+    <p>The agent has once stated a comparative conclusion its own printed figures contradicted
+      (revenue per employee). Retrieved figures are always correct; the editorial sentence slips.
+      Ask for underlying numbers, not ratios.</p>
+  </div>
+  <div class="callout">
+    <span class="lbl">If asked about rate limiting or the warehouse</span>
+    <p>Both are genuinely absent and both are published in <code>/catalog</code>. Say: authentication is
+      enforced, throttling and per-consumer keys are the next step; and the dataset is materialised in
+      the process rather than a warehouse table, with the swap point marked in the code. Volunteering
+      these costs nothing — being caught by them costs the room.</p>
+  </div>
+</section>
+
+<section>
+  <div class="col"><h2>Timing</h2>
+    <p class="note" style="margin-top:6px">25 minutes as written. If you have 10, run Act&nbsp;1 and
+      Act&nbsp;5 only — the gap and the Thailand moment carry the whole argument. If you have 5,
+      <code>/why</code> alone.</p></div>
+</section>
+
+</div>
+</body>
+</html>

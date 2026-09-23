@@ -1,0 +1,1021 @@
+<!-- SEDC-NAV:START -->
+<style>
+  .sedc-nav * { box-sizing: border-box; }
+  .sedc-nav {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    margin: 0;
+    background: #072B55;
+    color: #ffffff;
+    font-family: 'Poppins',Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    font-size: 14px;
+    line-height: 1.4;
+  }
+  .sedc-nav-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 10px 20px;
+  }
+  .sedc-nav-brand {
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+  }
+  .sedc-nav-brand:hover,
+  .sedc-nav-brand:focus {
+    text-decoration: underline;
+  }
+  .sedc-nav-jump {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .sedc-nav-label {
+    white-space: nowrap;
+    color: #ffffff;
+  }
+  .sedc-nav-select {
+    font-family: inherit;
+    font-size: 13px;
+    color: #072B55;
+    background: #ffffff;
+    border: 1px solid #ffffff;
+    border-radius: 4px;
+    padding: 5px 8px;
+    max-width: 60vw;
+  }
+  .sedc-nav-rule {
+    height: 3px;
+    width: 100%;
+    background: linear-gradient(90deg,#FF7C66 0%,#A03291 100%);
+  }
+</style>
+<div class="sedc-nav" role="navigation" aria-label="SE Demo Companion navigation">
+  <div class="sedc-nav-bar">
+    <a class="sedc-nav-brand" href="../index.html" target="_top">SE Demo Companion</a>
+    <div class="sedc-nav-jump">
+      <label class="sedc-nav-label" for="sedc-nav-select">Jump to use case</label>
+      <select class="sedc-nav-select" id="sedc-nav-select" onchange="(function(sel){try{var opt=sel.options[sel.selectedIndex];var url=opt&&opt.getAttribute('data-href');if(!url)return;try{window.top.location.href=url;}catch(e){window.location.href=url;}}catch(e){}})(this)">
+        <option value="amc-fee-change-agent" data-href="./amc-fee-change-agent.html">AMC fee-change agent — Finnomena</option>
+        <option value="bvtpa-claims-integration-demo" data-href="./bvtpa-claims-integration-demo.html">Blue Venture TPA claims integration demo — Blue Venture TPA</option>
+        <option value="bvtpa-claims-adjudication-cio-brief" data-href="./bvtpa-claims-adjudication-cio-brief.html">Claims adjudication CIO brief — Blue Venture TPA</option>
+        <option value="delivery-status-sync-demo" data-href="./delivery-status-sync-demo.html">Delivery status sync demo — TOTO</option>
+        <option value="boomi-tenant-ceo-dashboard" data-href="./boomi-tenant-ceo-dashboard.html">Boomi tenant CEO dashboard — Boomi internal tenant</option>
+        <option value="boomi-tenant-30-day-report" data-href="./boomi-tenant-30-day-report.html">Boomi tenant operations report, 30-day view — Boomi internal tenant</option>
+        <option value="json-to-xml-order-integration" data-href="./json-to-xml-order-integration.html">JSON to XML order integration, executive documentation — NTT</option>
+        <option value="edi-850-flight-deck" data-href="./edi-850-flight-deck.html">EDI 850 flight deck — Infosys</option>
+        <option value="whatsapp-to-sap-master-agent" data-href="./whatsapp-to-sap-master-agent.html">WhatsApp to SAP master agent — Boomi internal build</option>
+        <option value="student-xml-to-crm-json" data-href="./student-xml-to-crm-json.html">Student XML to CRM JSON — Attura</option>
+        <option value="sap-accounting-document-poc-outcome" data-href="./sap-accounting-document-poc-outcome.html">SAP accounting document automation, POC outcome — Abans PLC</option>
+        <option value="abans-sap-posting-poc-dashboard" data-href="./abans-sap-posting-poc-dashboard.html">Abans SAP posting, live POC dashboard — Abans PLC</option>
+        <option value="order-intake-api-fan-out" data-href="./order-intake-api-fan-out.html">Order intake API with multi-target fan-out — LTIMindtree</option>
+        <option value="electromart-track-and-reschedule" data-href="./electromart-track-and-reschedule.html">ElectroMart track order and reschedule delivery — ElectroMart (demo brand)</option>
+        <option value="enterprise-portal-ai-agent" data-href="./enterprise-portal-ai-agent.html">Enterprise portal with an embedded AI agent — ITG</option>
+        <option value="o2c-qad-build-journey" data-href="./o2c-qad-build-journey.html">O2C-QAD build journey — Boomi internal build</option>
+        <option value="boomi-accenture-trivia" data-href="./boomi-accenture-trivia.html">Boomi x Accenture trivia — Boomi internal build</option>
+        <option value="cloud-runtime-sizing-calculator" data-href="./cloud-runtime-sizing-calculator.html">Boomi public cloud runtime sizing estimator — Boomi internal build</option>
+        <option value="coupa-netsuite-vendor-bill" data-href="./coupa-netsuite-vendor-bill.html">Vendor bill pipeline, Coupa to NetSuite — Boomi internal build</option>
+        <option value="coupa-oracle-s2p-console" data-href="./coupa-oracle-s2p-console.html">Source-to-pay flow console, Coupa to Oracle Fusion — Boomi internal build</option>
+        <option value="epic-rauland-adt-nurse-call" data-href="./epic-rauland-adt-nurse-call.html">Epic ADT to Rauland Responder 5, nurse call integration — Boomi internal build</option>
+        <option value="epic-salesforce-trial-screening" data-href="./epic-salesforce-trial-screening.html">Clinical trial screening console, Epic to Salesforce — Meridian Research (demo brand)</option>
+        <option value="jc-hifi-order-tracker" data-href="./jc-hifi-order-tracker.html">JC Hi-Fi order tracker, customer self-service — JC Hi-Fi (demo brand)</option>
+        <option value="pacific-bank-onboarding" data-href="./pacific-bank-onboarding.html" selected>Pacific onboarding console, retail bank customer onboarding — Pacific Islands Community Bank (demo brand)</option>
+        <option value="sea-data-product-assistant" data-href="./sea-data-product-assistant.html">SEA regional performance, data products and an agent over two ERPs — Boomi internal build</option>
+        <option value="servicenow-jira-incident-sync" data-href="./servicenow-jira-incident-sync.html">Incident sync prototype, ServiceNow to Jira — Boomi internal build</option>
+        <option value="zendesk-magento-order-status" data-href="./zendesk-magento-order-status.html">Order status bot and flow inspector, Zendesk to Magento — Avery Products (demo brand)</option>
+        <option value="zoho-netsuite-invoice-sync" data-href="./zoho-netsuite-invoice-sync.html">Invoice sync console, Zoho CRM to NetSuite — Boomi internal build</option>
+      </select>
+    </div>
+  </div>
+  <div class="sedc-nav-rule"></div>
+</div>
+<!-- SEDC-NAV:END -->
+<title>Pacific Onboarding Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<style>
+:root{
+  --ground:#f4f1ec; --surface:#ffffff; --surface-sunk:#eeeae3; --code-bg:#f7f5f1;
+  --ink:#10262e; --ink-soft:#3d565e; --ink-mute:#6d848b;
+  --line:#dcd6cc; --line-strong:#c3bbae;
+  --accent:#0f6d78; --accent-soft:#e0eef0; --on-accent:#ffffff;
+  --ok:#1c6b46; --ok-soft:#e2efe8;
+  --act:#8f5c12; --act-soft:#f7ecd9;
+  --no:#992d2d; --no-soft:#f6e4e2;
+  --idle:#7d8b8f; --idle-soft:#eceae6;
+  --j-key:#3d565e; --j-str:#1c5f52; --j-punc:#9aa8ab;
+  --shadow:0 1px 2px rgba(16,38,46,.06),0 8px 24px -12px rgba(16,38,46,.18);
+  --display:"Newsreader",Georgia,"Times New Roman",serif;
+  --ui:"Public Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ground:#0b191e; --surface:#122831; --surface-sunk:#0e222a; --code-bg:#0a1d24;
+    --ink:#e8f0f1; --ink-soft:#a9c0c5; --ink-mute:#7d979e;
+    --line:#20404b; --line-strong:#2d5561;
+    --accent:#4fb3bf; --accent-soft:#123840; --on-accent:#08191d;
+    --ok:#63c294; --ok-soft:#12332a;
+    --act:#e0a955; --act-soft:#3a2c14;
+    --no:#e08b84; --no-soft:#3a1e1d;
+    --idle:#7d939a; --idle-soft:#172c34;
+    --j-key:#9fb8bf; --j-str:#7fd0b4; --j-punc:#5b757e;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -12px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0b191e; --surface:#122831; --surface-sunk:#0e222a; --code-bg:#0a1d24;
+  --ink:#e8f0f1; --ink-soft:#a9c0c5; --ink-mute:#7d979e;
+  --line:#20404b; --line-strong:#2d5561;
+  --accent:#4fb3bf; --accent-soft:#123840; --on-accent:#08191d;
+  --ok:#63c294; --ok-soft:#12332a;
+  --act:#e0a955; --act-soft:#3a2c14;
+  --no:#e08b84; --no-soft:#3a1e1d;
+  --idle:#7d939a; --idle-soft:#172c34;
+  --j-key:#9fb8bf; --j-str:#7fd0b4; --j-punc:#5b757e;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -12px rgba(0,0,0,.7);
+}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--ui);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1280px;margin:0 auto;padding:28px 24px 64px}
+
+.masthead{display:flex;flex-wrap:wrap;align-items:flex-end;gap:16px 28px;padding:14px 0 18px;border-bottom:2px solid var(--ink);position:sticky;top:0;z-index:40;background:var(--ground);box-shadow:var(--shadow)}
+.bank{display:flex;align-items:center;gap:12px}
+.crest{width:38px;height:38px;flex:none;border-radius:2px;background:var(--accent);color:var(--on-accent);display:grid;place-items:center}
+.crest svg{width:22px;height:22px;display:block}
+.bank-name{font-family:var(--display);font-size:19px;font-weight:600;letter-spacing:-.01em;line-height:1.15}
+.bank-sub{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-mute);font-weight:600}
+.masthead h1{font-family:var(--display);font-weight:400;font-size:clamp(26px,3.4vw,38px);margin:0;letter-spacing:-.015em;text-wrap:balance;flex:1 1 240px}
+.theme-btn{font:inherit;font-size:12px;font-weight:600;color:var(--ink-soft);background:transparent;border:1px solid var(--line-strong);border-radius:2px;padding:7px 12px;cursor:pointer}
+.theme-btn:hover{border-color:var(--accent);color:var(--accent)}
+.theme-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.notice{display:flex;gap:12px;align-items:flex-start;margin:18px 0 26px;padding:12px 16px;background:var(--act-soft);border-left:3px solid var(--act);border-radius:0 2px 2px 0}
+.notice-tag{font-family:var(--mono);font-size:10.5px;font-weight:500;letter-spacing:.1em;color:var(--act);text-transform:uppercase;white-space:nowrap;padding-top:2px}
+.notice p{margin:0;font-size:13.5px;color:var(--ink-soft);max-width:92ch}
+
+.console{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);gap:26px;align-items:start}
+@media (max-width:940px){.console{grid-template-columns:minmax(0,1fr)}}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:3px;box-shadow:var(--shadow)}
+.panel + .panel{margin-top:26px}
+.panel-head{padding:16px 20px 14px;border-bottom:1px solid var(--line)}
+.panel-head h2{font-family:var(--display);font-size:17px;font-weight:600;margin:0;letter-spacing:-.01em}
+.panel-head p{margin:3px 0 0;font-size:12.5px;color:var(--ink-mute);max-width:80ch}
+.panel-body{padding:18px 20px 20px}
+
+/* form */
+.preset-label{font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-mute);font-weight:600;margin-bottom:8px}
+.presets{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px}
+.preset{font:inherit;font-size:11.5px;font-weight:500;color:var(--ink-soft);cursor:pointer;background:var(--surface-sunk);border:1px solid var(--line);border-radius:2px;padding:5px 9px}
+.preset:hover{border-color:var(--accent);color:var(--accent)}
+.preset:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.field{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+.field label{font-size:11px;letter-spacing:.09em;text-transform:uppercase;font-weight:600;color:var(--ink-mute)}
+.field input,.field select{font:inherit;font-size:14px;color:var(--ink);background:var(--surface);border:1px solid var(--line-strong);border-radius:2px;padding:8px 10px;width:100%}
+.field input:focus,.field select:focus{outline:2px solid var(--accent);outline-offset:-1px;border-color:var(--accent)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.submit{font:inherit;font-size:14px;font-weight:600;color:var(--on-accent);background:var(--accent);border:none;border-radius:2px;padding:11px 18px;width:100%;cursor:pointer;margin-top:4px}
+.submit:hover{filter:brightness(1.08)}
+.submit:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.btn-row{display:flex;gap:8px;margin-top:4px}
+.btn-row .submit{margin-top:0;flex:1}
+.btn-ghost{font:inherit;font-size:14px;font-weight:600;color:var(--ink-soft);background:var(--surface);
+  border:1px solid var(--line-strong);border-radius:2px;padding:11px 16px;cursor:pointer;white-space:nowrap}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+.btn-ghost:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.blank-state{padding:26px 20px;color:var(--ink-mute);font-size:13.5px;margin:0}
+
+/* outcome */
+.outcome{padding:20px;border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;gap:18px 24px;align-items:flex-start}
+.outcome-main{flex:1 1 300px;min-width:0}
+.outcome-status{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.dot{width:9px;height:9px;border-radius:50%;flex:none}
+.outcome-title{font-family:var(--display);font-size:22px;font-weight:600;letter-spacing:-.015em;margin:0;line-height:1.2}
+.outcome-summary{margin:0;font-size:14px;color:var(--ink-soft);max-width:64ch}
+.ref{font-family:var(--mono);font-size:12px;color:var(--ink-mute);margin-top:10px;display:block}
+.acct{flex:0 0 auto;display:grid;grid-template-columns:auto auto;gap:6px 18px;align-items:baseline;background:var(--surface-sunk);border:1px solid var(--line);border-radius:2px;padding:14px 16px}
+.acct dt{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-mute);font-weight:600}
+.acct dd{margin:0;font-family:var(--mono);font-size:13.5px;font-variant-numeric:tabular-nums;color:var(--ink)}
+.acct dd.na{color:var(--ink-mute)}
+
+/* journey */
+.journey{list-style:none;margin:0;padding:0}
+.step{border-bottom:1px solid var(--line);border-left:3px solid var(--idle)}
+.step:last-child{border-bottom:none}
+.step.is-ok{border-left-color:var(--ok)}
+.step.is-act{border-left-color:var(--act)}
+.step.is-no{border-left-color:var(--no)}
+.step.is-idle{border-left-color:var(--line-strong)}
+.step summary{display:grid;grid-template-columns:24px minmax(0,1fr) auto auto;gap:2px 12px;align-items:start;padding:15px 18px 15px 15px;cursor:pointer;list-style:none}
+.step summary::-webkit-details-marker{display:none}
+.step summary:hover{background:var(--surface-sunk)}
+.step summary:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.step-num{font-family:var(--mono);font-size:11.5px;color:var(--ink-mute);padding-top:3px;font-variant-numeric:tabular-nums}
+.step-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:0 10px;grid-column:2}
+.step-name{font-weight:600;font-size:14.5px;margin:0;letter-spacing:-.005em}
+.step-detail{grid-column:2;margin:3px 0 0;font-size:13.5px;color:var(--ink-soft);max-width:62ch}
+.step-time{font-family:var(--mono);font-size:11.5px;color:var(--ink-mute);font-variant-numeric:tabular-nums;white-space:nowrap;padding-top:3px}
+.caret{width:13px;height:13px;color:var(--ink-mute);margin-top:6px;transition:transform .18s ease}
+.step details[open] .caret,details[open] > summary .caret{transform:rotate(90deg)}
+.chip{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:3px 8px;border-radius:2px;margin-top:6px}
+.chip.is-ok{background:var(--ok-soft);color:var(--ok)}
+.chip.is-act{background:var(--act-soft);color:var(--act)}
+.chip.is-no{background:var(--no-soft);color:var(--no)}
+.chip.is-idle{background:var(--idle-soft);color:var(--idle)}
+
+/* data inspector */
+.wire{padding:2px 18px 20px 15px;background:var(--surface-sunk);border-top:1px dashed var(--line-strong)}
+.wire-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-top:14px}
+.wire-block{min-width:0}
+.wire-label{display:flex;align-items:center;gap:7px;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:var(--ink-mute);margin-bottom:6px}
+.arrow{font-family:var(--mono);color:var(--accent);font-weight:500}
+pre.json{margin:0;background:var(--code-bg);border:1px solid var(--line);border-radius:2px;padding:11px 13px;overflow-x:auto;font-family:var(--mono);font-size:11.5px;line-height:1.6;color:var(--ink-soft)}
+.jk{color:var(--j-key)}
+.js{color:var(--j-str)}
+.jp{color:var(--j-punc)}
+.trace{border-bottom:1px dotted var(--accent);background:var(--accent-soft);border-radius:1px;padding:0 1px;cursor:help}
+.props{display:flex;flex-wrap:wrap;gap:5px;margin-top:2px}
+.prop{font-family:var(--mono);font-size:11px;background:var(--surface);border:1px solid var(--line);border-radius:2px;padding:3px 7px;color:var(--ink-soft)}
+.prop b{color:var(--ink);font-weight:500}
+.wire-note{margin:0;font-size:12.5px;color:var(--ink-mute);max-width:70ch}
+.legend{display:flex;flex-wrap:wrap;gap:14px;align-items:center;font-size:11.5px;color:var(--ink-mute);padding:12px 20px;border-bottom:1px solid var(--line);background:var(--surface-sunk)}
+.legend .trace{cursor:default}
+
+/* destination systems */
+.systems{display:grid;grid-template-columns:repeat(auto-fit,minmax(288px,1fr));gap:16px}
+.sys{border:1px solid var(--line);border-radius:3px;background:var(--surface-sunk);display:flex;flex-direction:column;min-width:0}
+.sys-head{display:flex;align-items:center;gap:9px;padding:11px 14px;border-bottom:1px solid var(--line)}
+.sys-icon{width:26px;height:26px;flex:none;border-radius:2px;background:var(--surface);border:1px solid var(--line);display:grid;place-items:center;color:var(--ink-mute)}
+.sys-icon svg{width:15px;height:15px;display:block}
+.sys-title{font-size:12.5px;font-weight:700;letter-spacing:-.005em;line-height:1.25}
+.sys-kind{font-size:10.5px;color:var(--ink-mute);letter-spacing:.06em;text-transform:uppercase;font-weight:600}
+.sys-body{padding:13px 14px;flex:1;display:flex;flex-direction:column;gap:9px}
+.sys-empty{color:var(--ink-mute);font-size:12.5px;font-style:italic;margin:0}
+.rec{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 12px;font-size:12px;align-items:baseline}
+.rec dt{color:var(--ink-mute);font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;font-weight:600;white-space:nowrap}
+.rec dd{margin:0;font-family:var(--mono);font-size:11.5px;color:var(--ink);overflow-wrap:anywhere}
+.bignum{font-family:var(--mono);font-size:19px;font-weight:500;letter-spacing:.02em;color:var(--ink);font-variant-numeric:tabular-nums;line-height:1.2}
+.bignum-cap{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-mute);font-weight:600;display:block;margin-bottom:2px}
+.lists{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:3px}
+.lists li{font-size:11.5px;color:var(--ink-soft);display:flex;gap:7px;align-items:center}
+.lists svg{width:11px;height:11px;flex:none;color:var(--ok)}
+/* rendered message previews */
+.email{background:var(--surface);border:1px solid var(--line);border-radius:2px;overflow:hidden}
+.email-hd{padding:9px 11px;border-bottom:1px solid var(--line);font-size:11px;color:var(--ink-mute);display:grid;grid-template-columns:auto 1fr;gap:2px 8px}
+.email-hd b{color:var(--ink-soft);font-weight:600}
+.email-subj{font-weight:700;color:var(--ink);font-size:12.5px;grid-column:1/-1;margin-top:4px}
+.email-bd{padding:11px;font-size:12.5px;color:var(--ink-soft);line-height:1.5}
+.email-bd .num{font-family:var(--mono);color:var(--ink);font-weight:500}
+.sms{background:var(--accent-soft);border:1px solid var(--line);border-radius:10px 10px 10px 2px;padding:9px 12px;font-size:12px;color:var(--ink-soft);max-width:94%}
+.sms-cap{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-mute);font-weight:600}
+
+/* audit */
+.audit-wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:600px;font-size:13px}
+thead th{text-align:left;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-mute);font-weight:700;padding:0 14px 8px;border-bottom:1px solid var(--line-strong);white-space:nowrap}
+tbody td{padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top;color:var(--ink-soft)}
+tbody tr:last-child td{border-bottom:none}
+td.t-step{color:var(--ink);font-weight:600;white-space:nowrap}
+td.t-time{font-family:var(--mono);font-size:11.5px;color:var(--ink-mute);white-space:nowrap;font-variant-numeric:tabular-nums}
+td.t-status{white-space:nowrap}
+
+.reveal{animation:rise .32s cubic-bezier(.2,.7,.3,1) both}
+@keyframes rise{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.reveal{animation:none}.caret{transition:none}}
+
+/* ---- playback ---- */
+.jhead-controls{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin-top:10px}
+.speed{display:inline-flex;border:1px solid var(--line-strong);border-radius:2px;overflow:hidden}
+.speed button{font:inherit;font-size:11.5px;font-weight:600;color:var(--ink-soft);background:var(--surface);
+  border:none;border-right:1px solid var(--line-strong);padding:5px 10px;cursor:pointer}
+.speed button:last-child{border-right:none}
+.speed button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent)}
+.speed button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.speed-cap{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-mute);font-weight:700}
+.linkbtn{font:inherit;font-size:11.5px;font-weight:600;color:var(--accent);background:none;border:none;
+  padding:4px 2px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.linkbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.progress{flex:1 1 130px;min-width:110px;display:flex;align-items:center;gap:9px}
+.progress-bar{flex:1;height:3px;background:var(--line);border-radius:2px;overflow:hidden}
+.progress-fill{display:block;height:100%;width:0;background:var(--accent);transition:width .3s linear}
+.progress-txt{font-family:var(--mono);font-size:11px;color:var(--ink-mute);white-space:nowrap;
+  font-variant-numeric:tabular-nums}
+.progress[hidden]{display:none}
+
+.step[data-phase="pending"]{display:none}
+.step[data-phase="calling"],.step[data-phase="responded"]{border-left-color:var(--accent)}
+.step[data-phase="calling"] .step-time,.step[data-phase="responded"] .step-time{visibility:hidden}
+.step[data-phase="calling"] .chip-final,.step[data-phase="responded"] .chip-final{display:none}
+.step[data-phase="settled"] .chip-work{display:none}
+.chip-work{background:var(--accent-soft);color:var(--accent);display:inline-flex;align-items:center;gap:6px}
+.chip-work::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;
+  animation:blip 1s ease-in-out infinite}
+@keyframes blip{0%,100%{opacity:.25}50%{opacity:1}}
+.step[data-phase="calling"] .wb-recv,.step[data-phase="calling"] .wire-props,
+.step[data-phase="responded"] .wire-props{display:none}
+.step[data-phase="calling"] .wb-sent,.step[data-phase="responded"] .wb-recv,
+.step[data-phase="settled"] .wire-props{animation:rise .3s cubic-bezier(.2,.7,.3,1) both}
+.step:not([data-phase="pending"]){animation:rise .34s cubic-bezier(.2,.7,.3,1) both}
+
+.sys[data-state="empty"] .sys-filled{display:none}
+.sys[data-state="filled"] .sys-blank{display:none}
+.sys[data-state="filled"] .sys-filled{animation:rise .36s cubic-bezier(.2,.7,.3,1) both}
+.outcome-final{display:contents}
+.outcome[data-state="working"] .outcome-final{display:none}
+.outcome[data-state="done"] .outcome-working{display:none}
+.outcome-working{display:flex;align-items:center;gap:10px;color:var(--ink-mute);font-size:14px}
+@media (prefers-reduced-motion:reduce){
+  .step:not([data-phase="pending"]),.sys[data-state="filled"] .sys-filled,
+  .step[data-phase="calling"] .wb-sent,.step[data-phase="responded"] .wb-recv,
+  .step[data-phase="settled"] .wire-props{animation:none}
+  .chip-work::before{animation:none;opacity:.8}
+  .progress-fill{transition:none}
+}
+footer{margin-top:26px;font-size:12px;color:var(--ink-mute);max-width:86ch}
+footer code{font-family:var(--mono);font-size:11.5px;background:var(--surface-sunk);padding:1px 5px;border-radius:2px}
+</style>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <div class="bank">
+      <div class="crest" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+          <path d="M3 18h18M5 18V10M10 18V10M14 18V10M19 18V10M12 3 3 8h18Z"/>
+        </svg>
+      </div>
+      <div>
+        <div class="bank-name">Pacific Islands Community Bank</div>
+        <div class="bank-sub">Retail onboarding &middot; Fictitious</div>
+      </div>
+    </div>
+    <h1>Onboarding Console</h1>
+    <button class="theme-btn" id="themeBtn" type="button">Switch theme</button>
+  </header>
+
+  <div class="notice">
+    <span class="notice-tag">Demo</span>
+    <p>Nothing here touches a real system. Identity checks, AML/CTF screening, core banking and customer notifications are all mocked, applicant names are invented, and account numbers are not real. This screen mirrors the decision logic and the message payloads of the Boomi process <strong>Pacific Bank Customer Onboarding &ndash; Demo</strong>.</p>
+  </div>
+
+  <div class="console">
+
+    <section class="panel" aria-labelledby="intakeH">
+      <div class="panel-head">
+        <h2 id="intakeH">New onboarding request</h2>
+        <p>Complete with the applicant in front of you.</p>
+      </div>
+      <div class="panel-body">
+        <div class="preset-label">Try a scenario</div>
+        <div class="presets" id="presets"></div>
+        <form id="form" novalidate>
+          <div class="field">
+            <label for="f-name">Applicant name</label>
+            <input id="f-name" name="applicantName" type="text" autocomplete="off" required>
+          </div>
+          <div class="row2">
+            <div class="field">
+              <label for="f-dob">Date of birth</label>
+              <input id="f-dob" name="dateOfBirth" type="date" required>
+            </div>
+            <div class="field">
+              <label for="f-ccy">Currency</label>
+              <select id="f-ccy" name="currency">
+                <option value="FJD">FJD &middot; Fiji</option>
+                <option value="PGK">PGK &middot; Papua New Guinea</option>
+                <option value="WST">WST &middot; Samoa</option>
+                <option value="TOP">TOP &middot; Tonga</option>
+                <option value="VUV">VUV &middot; Vanuatu</option>
+                <option value="SBD">SBD &middot; Solomon Islands</option>
+                <option value="USD">USD &middot; Reference currency</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <label for="f-idtype">Identity document</label>
+            <select id="f-idtype" name="idType">
+              <option value="PASSPORT">Passport</option>
+              <option value="NATIONAL_ID">National ID card</option>
+              <option value="COMMUNITY_LETTER">Village or community letter</option>
+              <option value="BIRTH_CERTIFICATE">Birth certificate</option>
+              <option value="EXPIRED_ID">Expired or unreadable document</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="f-idnum">Document number</label>
+            <input id="f-idnum" name="idNumber" type="text" autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="f-branch">Branch</label>
+            <select id="f-branch" name="branchLocation">
+              <option>Suva Central</option><option>Lautoka Branch</option>
+              <option>Lae Branch</option><option>Port Moresby Main</option>
+              <option>Apia Main</option><option>Nuku'alofa Branch</option>
+              <option>Port Vila Branch</option><option>Honiara Branch</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="f-product">Product</label>
+            <select id="f-product" name="productType">
+              <option>Everyday Savings</option><option>Basic Transaction</option>
+              <option>Term Deposit</option><option>Youth Saver</option>
+            </select>
+          </div>
+          <div class="btn-row">
+            <button class="submit" type="submit">Submit application</button>
+            <button class="btn-ghost" id="clearBtn" type="button">Clear</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <div>
+      <section class="panel" aria-labelledby="journeyH" aria-live="polite">
+        <div class="panel-head">
+          <h2 id="journeyH">Application progress</h2>
+          <p>Open any step to see the message sent to that system, what came back, and the data the process carried forward.</p>
+          <div class="jhead-controls">
+            <span class="speed-cap">Playback</span>
+            <span class="speed" id="speed" role="group" aria-label="Playback speed"></span>
+            <span class="progress" id="progress" hidden>
+              <span class="progress-bar"><span class="progress-fill" id="progressFill"></span></span>
+              <span class="progress-txt" id="progressTxt"></span>
+            </span>
+            <button class="linkbtn" id="expandBtn" type="button">Expand all</button>
+          </div>
+        </div>
+        <div class="outcome" id="outcome"></div>
+        <div class="legend">
+          <span><span class="trace">highlighted</span> values are carried from earlier in the journey &mdash; hover to see the origin</span>
+        </div>
+        <ol class="journey" id="journey"></ol>
+      </section>
+    </div>
+  </div>
+
+  <section class="panel" aria-labelledby="sysH">
+    <div class="panel-head">
+      <h2 id="sysH">What landed in each system</h2>
+      <p>The record now held by each downstream system for this application. Systems the journey never reached hold nothing &mdash; that is the point of the control.</p>
+    </div>
+    <div class="panel-body">
+      <div class="systems" id="systems"></div>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="auditH">
+    <div class="panel-head">
+      <h2 id="auditH">Audit record</h2>
+      <p>Retained for regulatory traceability. Every decision point is timestamped.</p>
+    </div>
+    <div class="panel-body audit-wrap">
+      <table>
+        <thead><tr><th>Step</th><th>Decision</th><th>Detail</th><th>Recorded</th></tr></thead>
+        <tbody id="audit"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+    <p>The live integration exposes this journey at <code>POST /ws/simple/createOnboarding</code>. The request payloads shown here are the ones the Boomi process actually builds; responses are simulated, since the mock services are represented on the canvas by the routing that follows each call.</p>
+  </footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var SETTLE={FJD:["AUD","Fiji"],PGK:["AUD","Papua New Guinea"],WST:["NZD","Samoa"],
+              TOP:["NZD","Tonga"],VUV:["AUD","Vanuatu"],SBD:["AUD","Solomon Islands"],
+              USD:["USD","Reference currency account"]};
+  var ID_LABEL={PASSPORT:"Passport",NATIONAL_ID:"National ID card",
+                COMMUNITY_LETTER:"Village or community letter",
+                BIRTH_CERTIFICATE:"Birth certificate",EXPIRED_ID:"Expired or unreadable document"};
+  var LISTS=["UN Consolidated","AU DFAT Consolidated","NZ Police Sanctions","PEP register","Adverse media"];
+
+  var PRESETS=[
+    {k:"clear", t:"Straight through", d:{applicantName:"Salote Rabuka",dateOfBirth:"1991-04-17",idType:"PASSPORT",idNumber:"FJ0483921",branchLocation:"Suva Central",productType:"Everyday Savings",currency:"FJD"}},
+    {k:"branch",t:"Branch-assisted",  d:{applicantName:"Peni Vakalala",dateOfBirth:"1988-11-02",idType:"COMMUNITY_LETTER",idNumber:"VL-2291",branchLocation:"Lae Branch",productType:"Basic Transaction",currency:"PGK"}},
+    {k:"pep",   t:"Compliance review",d:{applicantName:"Mereani Tuilevu",dateOfBirth:"1979-06-23",idType:"PASSPORT",idNumber:"WS0119384",branchLocation:"Apia Main",productType:"Everyday Savings",currency:"WST"}},
+    {k:"sanc",  t:"Sanctions match",  d:{applicantName:"Josefa Naiqama",dateOfBirth:"1985-02-14",idType:"NATIONAL_ID",idNumber:"TO771203",branchLocation:"Nuku'alofa Branch",productType:"Everyday Savings",currency:"TOP"}},
+    {k:"idfail",t:"Identity declined",d:{applicantName:"Ana Tupou",dateOfBirth:"1995-09-30",idType:"EXPIRED_ID",idNumber:"XX000111",branchLocation:"Port Vila Branch",productType:"Basic Transaction",currency:"VUV"}}
+  ];
+
+  var pad=function(n,w){n=String(n);while(n.length<w)n="0"+n;return n;};
+  function stamp(d){return d.getFullYear()+"-"+pad(d.getMonth()+1,2)+"-"+pad(d.getDate(),2)+" "+
+    pad(d.getHours(),2)+":"+pad(d.getMinutes(),2)+":"+pad(d.getSeconds(),2);}
+  function iso(d){return d.getFullYear()+"-"+pad(d.getMonth()+1,2)+"-"+pad(d.getDate(),2)+"T"+
+    pad(d.getHours(),2)+":"+pad(d.getMinutes(),2)+":"+pad(d.getSeconds(),2)+"."+pad(d.getMilliseconds(),3)+"Z";}
+  function refOf(d){return "PBO-"+d.getFullYear()+pad(d.getMonth()+1,2)+pad(d.getDate(),2)+"-"+
+    pad(d.getHours(),2)+pad(d.getMinutes(),2)+pad(d.getSeconds(),2)+pad(d.getMilliseconds(),3);}
+  function acctOf(d){return "88"+pad(d.getDate(),2)+pad(d.getHours(),2)+pad(d.getMinutes(),2)+
+    pad(d.getSeconds(),2)+pad(d.getMilliseconds(),3);}
+
+  /* ---------------- the journey ---------------- */
+  function run(a){
+    var now=new Date(), settle=SETTLE[a.currency]||["AUD","Pacific region"];
+    function at(ms){return stamp(new Date(now.getTime()+ms));}
+    function isoAt(ms){return iso(new Date(now.getTime()+ms));}
+
+    var reference=refOf(now);
+    var r={reference:reference,received:at(0),applicant:a,
+           localCurrency:a.currency,settlementCurrency:settle[0],country:settle[1],
+           accountNumber:"",accountStatus:"NOT_CREATED",steps:[],audit:[],
+           systems:{idv:null,aml:null,core:null,notify:null},
+           lineage:{}};
+
+    /* every value that travels, and where it came from */
+    r.lineage[a.applicantName]="From intake · Applicant name";
+    r.lineage[a.dateOfBirth]="From intake · Date of birth";
+    r.lineage[a.idType]="From intake · Identity document";
+    r.lineage[a.idNumber]="From intake · Document number";
+    r.lineage[a.branchLocation]="From intake · Branch";
+    r.lineage[a.productType]="From intake · Product";
+    r.lineage[a.currency]="From intake · Currency";
+    r.lineage[reference]="Created at step 1 · onboarding reference";
+    r.lineage[settle[0]]="Derived at step 1 · currency cross-reference table";
+    r.lineage[settle[1]]="Derived at step 1 · currency cross-reference table";
+
+    function push(n,name,tone,chip,detail,ms,wire){
+      r.steps.push({n:n,name:name,tone:tone,chip:chip,detail:detail,
+                    time:at(ms),wire:wire||null});
+      if(tone!=="idle") r.audit.push({step:name,status:chip,detail:detail,time:at(ms)});
+    }
+
+    /* 1 - intake, validation, enrichment */
+    push(1,"Application received","ok","Completed",
+      "Details captured and checked. Onboarding reference assigned, and "+a.currency+
+      " accounts recorded as settling in "+settle[0]+" for correspondent banking.",0,
+      {note:"No external system is called. The process reads the intake payload into properties that every later step reuses, and looks up the settlement currency from the cross-reference table.",
+       recv:{label:"Received at the intake endpoint",dir:"in",json:{
+          applicantName:a.applicantName,dateOfBirth:a.dateOfBirth,idType:a.idType,
+          idNumber:a.idNumber,branchLocation:a.branchLocation,productType:a.productType,
+          currency:a.currency}},
+       props:[["DDP_ONBOARDING_REF",reference],["DDP_RECEIVED_AT",isoAt(0)],
+              ["DDP_APPLICANT_NAME",a.applicantName],["DDP_LOCAL_CURRENCY",a.currency],
+              ["DDP_SETTLEMENT_CURRENCY",settle[0]],["DDP_COUNTRY",settle[1]],
+              ["DDP_BRANCH",a.branchLocation],["DDP_PRODUCT_TYPE",a.productType]]});
+
+    /* 2 - identity verification */
+    var idv=(a.idType==="PASSPORT"||a.idType==="NATIONAL_ID")?"VERIFIED"
+           :(a.idType==="EXPIRED_ID")?"REJECTED":"REFERRED";
+    var idvReq={service:"Pacific Islands Community Bank - Mock Identity Verification Service",
+                onboardingReference:reference,applicantName:a.applicantName,
+                dateOfBirth:a.dateOfBirth,idType:a.idType,idNumber:a.idNumber};
+    var idvRes={verificationId:"IDV-"+reference.slice(4),result:idv,
+                method:idv==="VERIFIED"?"ELECTRONIC_REGISTER":idv==="REFERRED"?"MANUAL_BRANCH_REQUIRED":"NONE",
+                registerMatched:idv==="VERIFIED",checkedAt:isoAt(420)};
+    r.systems.idv={record:idvReq,response:idvRes,
+                   tone:idv==="VERIFIED"?"ok":idv==="REFERRED"?"act":"no",
+                   badge:idv==="VERIFIED"?"Verified":idv==="REFERRED"?"Referred to branch":"Rejected"};
+
+    var idvWire={sent:{label:"Sent to identity verification service",dir:"out",json:idvReq},
+                 recv:{label:"Returned by the service",dir:"in",json:idvRes},
+                 props:[["DDP_IDV_STATUS",idv]]};
+
+    if(idv==="VERIFIED"){
+      push(2,"Identity verification","ok","Passed",
+        "Identity confirmed electronically against the national ID register using the "+
+        (ID_LABEL[a.idType]||"document").toLowerCase()+" provided.",420,idvWire);
+    }else if(idv==="REFERRED"){
+      push(2,"Identity verification","act","Requires branch action",
+        "A "+(ID_LABEL[a.idType]||"document").toLowerCase()+" cannot be checked digitally. "+
+        "A branch officer needs to verify this applicant's identity in person. This is a normal "+
+        "assisted-onboarding path, not a failure.",420,idvWire);
+    }else{
+      push(2,"Identity verification","no","Declined",
+        "The document has expired or could not be read, so identity could not be established. "+
+        "Ask the applicant to return with a current passport or national ID.",420,idvWire);
+    }
+
+    if(idv==="REJECTED"){
+      push(3,"AML/CTF and sanctions screening","idle","Not performed",
+        "Screening was not run because identity could not be established.",0,
+        {note:"No message was sent. The screening service holds nothing for this applicant."});
+      push(4,"Account creation","idle","Not performed","No account was opened.",0,
+        {note:"No message was sent to core banking."});
+      push(5,"Welcome notification","idle","Not performed","No notification was sent.",0,
+        {note:"No message was sent to the notification service."});
+      r.outcome="Application declined"; r.tone="no";
+      r.summary="Identity could not be established from the document provided, so the application "+
+                "was declined before any screening or account opening took place.";
+      return r;
+    }
+
+    /* 3 - screening */
+    var nm=(a.applicantName||"").toLowerCase();
+    var aml=nm.indexOf("naiqama")>-1?"CONFIRMED_MATCH":nm.indexOf("tuilevu")>-1?"POTENTIAL_MATCH":"CLEAR";
+    var amlReq={service:"Pacific Islands Community Bank - Mock AML/CTF and Sanctions Screening Service",
+                screeningStandard:"APG and FATF aligned - sanctions, PEP and adverse media",
+                onboardingReference:reference,applicantName:a.applicantName,
+                dateOfBirth:a.dateOfBirth,country:settle[1],identityVerificationStatus:idv};
+    var amlRes={screeningId:"SCR-"+reference.slice(4),result:aml,listsChecked:LISTS,
+                matchCount:aml==="CLEAR"?0:1,
+                matchedList:aml==="CONFIRMED_MATCH"?"UN Consolidated":aml==="POTENTIAL_MATCH"?"PEP register":null,
+                screenedAt:isoAt(900)};
+    r.systems.aml={record:amlReq,response:amlRes,
+                   tone:aml==="CLEAR"?"ok":aml==="POTENTIAL_MATCH"?"act":"no",
+                   badge:aml==="CLEAR"?"No match":aml==="POTENTIAL_MATCH"?"Possible match":"Confirmed match"};
+    var amlWire={sent:{label:"Sent to screening service",dir:"out",json:amlReq},
+                 recv:{label:"Returned by the service",dir:"in",json:amlRes},
+                 props:[["DDP_AML_STATUS",aml]]};
+
+    if(aml==="POTENTIAL_MATCH"){
+      push(3,"AML/CTF and sanctions screening","act","Requires compliance action",
+        "A possible match was found on the politically exposed person watchlist. Compliance "+
+        "must review and clear this before the account can be opened.",900,amlWire);
+      push(4,"Account creation","act","On hold",
+        "Held pending compliance review. No account has been created.",930,
+        {note:"No message was sent to core banking. The account cannot be created while a possible match is open."});
+      push(5,"Welcome notification","idle","Not performed",
+        "Nothing is sent to the applicant until the review is complete.",0,
+        {note:"No message was sent to the notification service."});
+      r.accountStatus="PENDING_COMPLIANCE_REVIEW";
+      r.outcome="Held for compliance review"; r.tone="act";
+      r.summary="Screening found a possible watchlist match. The compliance team must clear it "+
+                "before this account can be opened. No account has been created and the applicant "+
+                "has not been told a decision.";
+      return r;
+    }
+    if(aml==="CONFIRMED_MATCH"){
+      push(3,"AML/CTF and sanctions screening","no","Declined",
+        "A confirmed sanctions match was found. The application has been escalated to the "+
+        "Money Laundering Reporting Officer.",900,amlWire);
+      push(4,"Account creation","idle","Not performed","No account was opened.",0,
+        {note:"No message was sent to core banking."});
+      push(5,"Welcome notification","idle","Not performed","No notification was sent.",0,
+        {note:"No message was sent to the notification service."});
+      r.outcome="Application declined"; r.tone="no";
+      r.summary="Screening returned a confirmed sanctions match. This has been escalated to the "+
+                "Money Laundering Reporting Officer. Do not discuss the reason with the applicant.";
+      return r;
+    }
+    push(3,"AML/CTF and sanctions screening","ok","Cleared",
+      "No match against sanctions, politically exposed person or adverse media lists. "+
+      "Screened to APG and FATF standards.",900,amlWire);
+
+    /* 4 - activation gate */
+    if(idv==="REFERRED"){
+      push(4,"Account creation","act","On hold",
+        "Screening is clear, but the account cannot open until identity is verified in branch.",930,
+        {note:"No message was sent to core banking. Screening being clear is not sufficient on its own — the process holds here until a branch officer completes identity verification."});
+      push(5,"Welcome notification","idle","Not performed","Sent once the account is open.",0,
+        {note:"No message was sent to the notification service."});
+      r.accountStatus="PENDING_IDENTITY_VERIFICATION";
+      r.outcome="Awaiting branch verification"; r.tone="act";
+      r.summary="Screening is clear. Complete assisted identity verification with the applicant "+
+                "in branch, then resubmit to open the account.";
+      return r;
+    }
+
+    /* 4 - account creation */
+    var acct=acctOf(now);
+    r.accountNumber=acct; r.accountStatus="ACTIVE";
+    r.lineage[acct]="Returned at step 4 · core banking";
+    var cbReq={service:"Pacific Islands Community Bank - Mock Core Banking Account Creation",
+               onboardingReference:reference,customerName:a.applicantName,dateOfBirth:a.dateOfBirth,
+               branchLocation:a.branchLocation,productType:a.productType,
+               localCurrency:a.currency,settlementCurrency:settle[0]};
+    var cbRes={accountNumber:acct,status:"ACTIVE",product:a.productType,branch:a.branchLocation,
+               currency:a.currency,settlementCurrency:settle[0],openedAt:isoAt(930)};
+    r.systems.core={record:cbReq,response:cbRes,tone:"ok",badge:"Account active"};
+    push(4,"Account creation","ok","Completed",
+      "Account "+acct+" opened in "+a.currency+", settling in "+settle[0]+".",930,
+      {sent:{label:"Sent to core banking",dir:"out",json:cbReq},
+       recv:{label:"Returned by core banking",dir:"in",json:cbRes},
+       props:[["DDP_ACCOUNT_NUMBER",acct],["DDP_ACCOUNT_STATUS","ACTIVE"]]});
+
+    /* 5 - notification */
+    var ntReq={service:"Pacific Islands Community Bank - Mock Customer Notification Service",
+               channel:"EMAIL_AND_SMS",template:"WELCOME_ACCOUNT_OPENED",
+               onboardingReference:reference,recipientName:a.applicantName,
+               accountNumber:acct,currency:a.currency,
+               body:"Bula and welcome to Pacific Islands Community Bank. Your new account is now open and ready to use."};
+    var ntRes={notificationId:"NTF-"+reference.slice(4),channel:"EMAIL_AND_SMS",
+               status:"SENT",sentAt:isoAt(1180)};
+    r.systems.notify={record:ntReq,response:ntRes,tone:"ok",badge:"Sent"};
+    push(5,"Welcome notification","ok","Sent",
+      "Welcome email and SMS issued to the applicant.",1180,
+      {sent:{label:"Sent to notification service",dir:"out",json:ntReq},
+       recv:{label:"Returned by the service",dir:"in",json:ntRes},
+       props:[["DDP_OUTCOME","ACCOUNT_OPENED"],["DDP_REQUIRES_ACTION","false"]]});
+
+    r.outcome="Account opened"; r.tone="ok";
+    r.summary="Identity was verified, screening was clear, and the account is open and ready to use. "+
+              "A welcome notification has been sent.";
+    return r;
+  }
+
+  /* ---------------- rendering ---------------- */
+  var TONE={ok:"var(--ok)",act:"var(--act)",no:"var(--no)",idle:"var(--idle)"};
+  var $=function(id){return document.getElementById(id);};
+  function esc(s){return String(s).replace(/[&<>"]/g,function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+
+  function jsonHTML(v,lin,ind){
+    ind=ind||1;
+    var pad=new Array(ind+1).join("  "), padEnd=new Array(ind).join("  ");
+    if(v===null) return '<span class="jp">null</span>';
+    if(typeof v==="boolean"||typeof v==="number") return '<span class="js">'+v+'</span>';
+    if(typeof v==="string"){
+      var body=esc(v), origin=lin[v];
+      if(origin) body='<span class="trace" title="'+esc(origin)+'">'+body+'</span>';
+      return '<span class="js">"</span>'+body+'<span class="js">"</span>';
+    }
+    if(Array.isArray(v)){
+      if(!v.length) return '<span class="jp">[]</span>';
+      return '<span class="jp">[</span>\n'+v.map(function(x){
+        return pad+jsonHTML(x,lin,ind+1);}).join('<span class="jp">,</span>\n')+
+        '\n'+padEnd+'<span class="jp">]</span>';
+    }
+    var ks=Object.keys(v);
+    if(!ks.length) return '<span class="jp">{}</span>';
+    return '<span class="jp">{</span>\n'+ks.map(function(k){
+      return pad+'<span class="jk">"'+esc(k)+'"</span><span class="jp">: </span>'+
+             jsonHTML(v[k],lin,ind+1);}).join('<span class="jp">,</span>\n')+
+      '\n'+padEnd+'<span class="jp">}</span>';
+  }
+
+  var CARET='<svg class="caret" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 3 5 5-5 5"/></svg>';
+  var TICK='<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 8 3.5 3.5L13 5"/></svg>';
+
+  function wireHTML(w,lin){
+    if(!w) return "";
+    var out='<div class="wire">';
+    if(w.note) out+='<p class="wire-note" style="margin-top:12px">'+esc(w.note)+'</p>';
+    var blocks=[];
+    [["sent","wb-sent"],["recv","wb-recv"]].forEach(function(pair){
+      var b=w[pair[0]]; if(!b) return;
+      blocks.push('<div class="wire-block '+pair[1]+'"><div class="wire-label"><span class="arrow">'+
+        (b.dir==="out"?"&rarr;":"&larr;")+'</span>'+esc(b.label)+'</div>'+
+        '<pre class="json">'+jsonHTML(b.json,lin)+'</pre></div>');
+    });
+    if(blocks.length) out+='<div class="wire-grid">'+blocks.join("")+'</div>';
+    if(w.props&&w.props.length){
+      out+='<div class="wire-props"><div class="wire-label" style="margin-top:14px">Carried forward from this step</div>'+
+           '<div class="props">'+w.props.map(function(p){
+             return '<span class="prop"><b>'+esc(p[0])+'</b> = '+esc(p[1])+'</span>';}).join("")+'</div></div>';
+    }
+    return out+'</div>';
+  }
+
+  function recRows(pairs){
+    return '<dl class="rec">'+pairs.map(function(p){
+      return '<dt>'+esc(p[0])+'</dt><dd>'+esc(p[1])+'</dd>';}).join("")+'</dl>';
+  }
+  function sysCard(id,title,kind,icon,s,emptyMsg,extra){
+    return '<div class="sys" id="sys-'+id+'" data-state="empty">'+
+      '<div class="sys-head"><span class="sys-icon">'+icon+'</span>'+
+      '<div><div class="sys-title">'+esc(title)+'</div><div class="sys-kind">'+esc(kind)+'</div></div></div>'+
+      '<div class="sys-body sys-blank"><p class="sys-empty">'+esc(emptyMsg)+'</p></div>'+
+      (s?'<div class="sys-body sys-filled"><span class="chip is-'+s.tone+
+         '" style="align-self:flex-start;margin-top:0">'+esc(s.badge)+'</span>'+extra+'</div>':'')+
+      '</div>';
+  }
+
+  var SYS_ICONS={
+    id:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1.5" y="3" width="13" height="10" rx="1.5"/><circle cx="5.5" cy="7.5" r="1.6"/><path d="M9 6.5h3.5M9 9.5h3.5M3 11.2c.6-1 1.5-1.4 2.5-1.4s1.9.4 2.5 1.4" stroke-linecap="round"/></svg>',
+    sh:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 1.6 13.2 3.6v4c0 3.2-2.2 5.6-5.2 6.8-3-1.2-5.2-3.6-5.2-6.8v-4Z" stroke-linejoin="round"/></svg>',
+    bk:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 13h12M3.5 13V7M6.5 13V7M9.5 13V7M12.5 13V7M8 2 2 5.2h12Z" stroke-linejoin="round"/></svg>',
+    nt:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1.5" y="3.5" width="13" height="9" rx="1.5"/><path d="m2 4.5 6 4 6-4" stroke-linejoin="round"/></svg>'};
+
+  function renderSystems(r){
+    var a=r.applicant, out="";
+    out+=sysCard("idv","Identity Verification Service","KYC vendor",SYS_ICONS.id,r.systems.idv,
+      "No record. The application did not reach this service.",
+      r.systems.idv?recRows([["Applicant",a.applicantName],["Document",a.idType],
+        ["Number",a.idNumber],["Method",r.systems.idv.response.method],
+        ["Checked",r.systems.idv.response.checkedAt.slice(11,19)]]):"");
+
+    var amlExtra="";
+    if(r.systems.aml){
+      amlExtra=recRows([["Applicant",a.applicantName],["Country",r.country],
+        ["Matches",String(r.systems.aml.response.matchCount)],["Standard","APG / FATF"]])+
+        '<div><div class="sys-kind" style="margin-bottom:4px">Lists checked</div><ul class="lists">'+
+        LISTS.map(function(l){
+          var hit=r.systems.aml.response.matchedList===l;
+          return '<li>'+(hit?'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" style="color:var(--'+
+            r.systems.aml.tone+')"><path d="M8 4v5M8 11.5v.5" stroke-linecap="round"/></svg>':TICK)+
+            esc(l)+(hit?' <b style="color:var(--'+r.systems.aml.tone+')">&mdash; match</b>':'')+'</li>';
+        }).join("")+'</ul></div>';
+    }
+    out+=sysCard("aml","AML/CTF Screening Service","Screening vendor",SYS_ICONS.sh,r.systems.aml,
+      "No record. Screening was never run for this applicant.",amlExtra);
+
+    out+=sysCard("core","Core Banking","System of record",SYS_ICONS.bk,r.systems.core,
+      "No account exists. Nothing was written to core banking.",
+      r.systems.core?'<div><span class="bignum-cap">Account number</span>'+
+        '<span class="bignum">'+esc(r.systems.core.response.accountNumber)+'</span></div>'+
+        recRows([["Holder",a.applicantName],["Branch",a.branchLocation],
+          ["Product",a.productType],["Currency",r.localCurrency+" → "+r.settlementCurrency],
+          ["Opened",r.systems.core.response.openedAt.slice(11,19)]]):"");
+
+    var ntExtra="";
+    if(r.systems.notify){
+      ntExtra='<div class="email"><div class="email-hd">'+
+        '<b>From</b><span>Pacific Islands Community Bank</span>'+
+        '<b>To</b><span>'+esc(a.applicantName)+'</span>'+
+        '<div class="email-subj">Your new account is open</div></div>'+
+        '<div class="email-bd">Bula '+esc(a.applicantName.split(" ")[0])+
+        ', welcome to Pacific Islands Community Bank. Your '+esc(r.localCurrency)+
+        ' '+esc(a.productType)+' account <span class="num">'+esc(r.accountNumber)+
+        '</span> is now open and ready to use.</div></div>'+
+        '<div><span class="sms-cap">SMS</span><div class="sms" style="margin-top:4px">PICB: Your account '+
+        esc(r.accountNumber)+' is open. Ref '+esc(r.reference)+'</div></div>';
+    }
+    out+=sysCard("notify","Customer Notification","Email and SMS",SYS_ICONS.nt,r.systems.notify,
+      "Nothing sent. The applicant has not been contacted.",ntExtra);
+    $("systems").innerHTML=out;
+  }
+
+  function outcomeHTML(r){
+    return '<div class="outcome-working"><span class="chip chip-work">Running</span>'+
+      '<span>Processing application '+esc(r.reference)+'&hellip;</span></div>'+
+      '<div class="outcome-final">'+
+      '<div class="outcome-main"><div class="outcome-status">'+
+      '<span class="dot" style="background:'+TONE[r.tone]+'"></span>'+
+      '<h3 class="outcome-title">'+esc(r.outcome)+'</h3></div>'+
+      '<p class="outcome-summary">'+esc(r.summary)+'</p>'+
+      '<span class="ref">'+esc(r.reference)+' &middot; '+esc(r.applicant.applicantName)+
+      ' &middot; '+esc(r.applicant.branchLocation)+'</span></div>'+
+      '<dl class="acct"><dt>Account</dt><dd'+(r.accountNumber?'':' class="na"')+'>'+
+      (r.accountNumber?esc(r.accountNumber):"Not issued")+'</dd>'+
+      '<dt>Product</dt><dd>'+esc(r.applicant.productType)+'</dd>'+
+      '<dt>Currency</dt><dd>'+esc(r.localCurrency)+' &rarr; '+esc(r.settlementCurrency)+'</dd>'+
+      '<dt>Status</dt><dd>'+esc(r.accountStatus.replace(/_/g," ").toLowerCase())+'</dd></dl></div>';
+  }
+
+  function stepHTML(s,lin,phase){
+    return '<li class="step is-'+s.tone+'" data-phase="'+phase+'">'+
+      '<details><summary>'+
+      '<span class="step-num">'+s.n+'</span>'+
+      '<div class="step-head"><p class="step-name">'+esc(s.name)+'</p>'+
+      '<span class="chip chip-work">Calling</span>'+
+      '<span class="chip chip-final is-'+s.tone+'">'+esc(s.chip)+'</span></div>'+
+      '<span class="step-time">'+(s.tone==="idle"?"&mdash;":esc(s.time))+'</span>'+
+      CARET+
+      '<p class="step-detail">'+esc(s.detail)+'</p>'+
+      '</summary>'+wireHTML(s.wire,lin)+'</details></li>';
+  }
+
+  function paint(r,phase){
+    $("outcome").className="outcome";
+    $("outcome").setAttribute("data-state",phase==="settled"?"done":"working");
+    $("outcome").innerHTML=outcomeHTML(r);
+    $("journey").innerHTML=r.steps.map(function(s){
+      return stepHTML(s,r.lineage,phase);}).join("");
+    renderSystems(r);
+    if(phase==="settled"){
+      ["idv","aml","core","notify"].forEach(function(k){
+        if(r.systems[k]) $("sys-"+k).setAttribute("data-state","filled");
+      });
+    }
+    $("audit").innerHTML=r.audit.map(function(e){
+      return '<tr><td class="t-step">'+esc(e.step)+'</td><td class="t-status">'+esc(e.status)+
+             '</td><td>'+esc(e.detail)+'</td><td class="t-time">'+esc(e.time)+'</td></tr>';
+    }).join("");
+  }
+
+  /* ---------------- playback ---------------- */
+  var BASE=850, timers=[], SPEEDS=[["Instant",0],["1×",1],["0.5×",.5],["0.2×",.2]], speed=1;
+  var SYS_OF_STEP={2:"idv",3:"aml",4:"core",5:"notify"};
+
+  function clearTimers(){timers.forEach(clearTimeout);timers=[];}
+  function later(ms,fn){timers.push(setTimeout(fn,ms));}
+  function stepEls(){return $("journey").querySelectorAll(".step");}
+  function progress(i,total){
+    var p=$("progress");
+    if(i===null){p.hidden=true;return;}
+    p.hidden=false;
+    $("progressFill").style.width=Math.round(i/total*100)+"%";
+    $("progressTxt").textContent="Step "+i+" of "+total;
+  }
+
+  function show(r,animate){
+    clearTimers();
+    if(!animate||speed===0){
+      paint(r,"settled");
+      progress(null);
+      return;
+    }
+    paint(r,"pending");
+    var d=BASE/speed, els=stepEls(), total=r.steps.length, t=0;
+    r.steps.forEach(function(s,i){
+      var el=els[i], det=el.querySelector("details");
+      var hasCall=!!(s.wire&&s.wire.sent);
+      var work=el.querySelector(".chip-work");
+      later(t,function(){
+        el.setAttribute("data-phase",hasCall?"calling":"responded");
+        if(s.wire) det.open=true;
+        work.textContent=hasCall?"Calling":"Working";
+        progress(i+1,total);
+      });
+      if(hasCall){
+        later(t+d*0.42,function(){
+          el.setAttribute("data-phase","responded");
+          work.textContent="Response received";
+        });
+        later(t+d*0.76,function(){
+          el.setAttribute("data-phase","settled");
+          var k=SYS_OF_STEP[s.n];
+          if(k&&r.systems[k]) $("sys-"+k).setAttribute("data-state","filled");
+        });
+      }else{
+        later(t+d*0.45,function(){el.setAttribute("data-phase","settled");});
+      }
+      t+=d;
+    });
+    later(t,function(){
+      $("outcome").setAttribute("data-state","done");
+      progress(null);
+    });
+  }
+
+  /* ---------------- wiring ---------------- */
+  var form=$("form"), current=null;
+  function fill(d){Object.keys(d).forEach(function(k){var el=form.elements[k];if(el)el.value=d[k];});}
+  function read(){
+    var o={};
+    ["applicantName","dateOfBirth","idType","idNumber","branchLocation","productType","currency"]
+      .forEach(function(k){o[k]=form.elements[k].value;});
+    if(!o.applicantName) o.applicantName="Unnamed applicant";
+    return o;
+  }
+  function go(d){current=run(d);show(current,true);}
+
+  function blank(){
+    clearTimers(); current=null; progress(null);
+    $("outcome").className="outcome"; $("outcome").setAttribute("data-state","done");
+    $("outcome").innerHTML='<p class="blank-state" style="padding:0">No application submitted yet. '+
+      'Fill in the form, or pick a scenario, to run the onboarding journey.</p>';
+    $("journey").innerHTML='<li><p class="blank-state">Each step will appear here as the journey runs.</p></li>';
+    $("systems").innerHTML=
+      sysCard("idv","Identity Verification Service","KYC vendor",SYS_ICONS.id,null,
+        "No record. No application has been submitted.","")+
+      sysCard("aml","AML/CTF Screening Service","Screening vendor",SYS_ICONS.sh,null,
+        "No record. No application has been submitted.","")+
+      sysCard("core","Core Banking","System of record",SYS_ICONS.bk,null,
+        "No account exists. No application has been submitted.","")+
+      sysCard("notify","Customer Notification","Email and SMS",SYS_ICONS.nt,null,
+        "Nothing sent. No application has been submitted.","");
+    $("audit").innerHTML='<tr><td colspan="4" style="color:var(--ink-mute)">'+
+      'No decisions recorded yet.</td></tr>';
+    $("expandBtn").textContent="Expand all";
+  }
+
+  $("clearBtn").addEventListener("click",function(){
+    form.reset();
+    ["applicantName","dateOfBirth","idNumber"].forEach(function(k){form.elements[k].value="";});
+    blank();
+    form.elements.applicantName.focus();
+  });
+
+  $("speed").innerHTML=SPEEDS.map(function(sp){
+    return '<button type="button" data-v="'+sp[1]+'" aria-pressed="'+(sp[1]===speed)+'">'+sp[0]+'</button>';
+  }).join("");
+  $("speed").addEventListener("click",function(e){
+    var b=e.target.closest("button"); if(!b) return;
+    speed=parseFloat(b.dataset.v);
+    Array.prototype.forEach.call(this.querySelectorAll("button"),function(x){
+      x.setAttribute("aria-pressed",String(parseFloat(x.dataset.v)===speed));});
+  });
+
+  $("expandBtn").addEventListener("click",function(){
+    var dets=$("journey").querySelectorAll("details");
+    var anyClosed=Array.prototype.some.call(dets,function(d){return !d.open;});
+    Array.prototype.forEach.call(dets,function(d){d.open=anyClosed;});
+    this.textContent=anyClosed?"Collapse all":"Expand all";
+  });
+
+  $("presets").innerHTML=PRESETS.map(function(p){
+    return '<button class="preset" type="button" data-k="'+p.k+'">'+esc(p.t)+'</button>';}).join("");
+  $("presets").addEventListener("click",function(e){
+    var b=e.target.closest(".preset"); if(!b) return;
+    var p=PRESETS.filter(function(x){return x.k===b.dataset.k;})[0];
+    if(p){fill(p.d);go(p.d);}
+  });
+  form.addEventListener("submit",function(e){e.preventDefault();go(read());});
+  $("themeBtn").addEventListener("click",function(){
+    var el=document.documentElement,cur=el.getAttribute("data-theme");
+    var dark=cur?cur==="dark":matchMedia("(prefers-color-scheme:dark)").matches;
+    el.setAttribute("data-theme",dark?"light":"dark");
+  });
+
+  /* open at rest, fully settled */
+  fill(PRESETS[0].d);
+  current=run(PRESETS[0].d);
+  show(current,false);
+})();
+</script>

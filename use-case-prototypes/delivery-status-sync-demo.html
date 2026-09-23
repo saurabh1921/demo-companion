@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Boomi Delivery Status Sync Demo</title>
+<style>
+  :root {
+    --boomi-orange: #FF6300;
+    --boomi-orange-dark: #E0550A;
+    --ink: #1B1F23;
+    --muted: #6B7280;
+    --bg: #F4F5F7;
+    --card: #FFFFFF;
+    --border: #E5E7EB;
+    --green: #17A673;
+    --amber: #F5A623;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+  }
+  .page-header {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 32px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.06);
+  }
+  .page-content { padding: 28px 32px 40px; }
+  h1 { font-size: 20px; margin: 0 0 2px; }
+  .subtitle { color: var(--muted); font-size: 14px; margin: 0; }
+
+  .stage {
+    display: grid;
+    grid-template-columns: 1fr 140px 1fr;
+    gap: 16px;
+    align-items: stretch;
+  }
+
+  .panel {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  }
+  .panel h2 {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin: 0 0 14px;
+  }
+  .system-tag {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 5px;
+    background: #EEF1F5;
+    color: #40485A;
+    margin-bottom: 10px;
+  }
+
+  .order-card {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 16px;
+    background: #FAFAFB;
+  }
+  .order-card .row { display: flex; justify-content: space-between; font-size: 13px; padding: 3px 0; }
+  .order-card .row span:first-child { color: var(--muted); }
+
+  .status-badge {
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    color: white;
+    background: var(--muted);
+    margin-top: 4px;
+  }
+
+  .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  button.status-btn {
+    border: 1px solid var(--border);
+    background: white;
+    border-radius: 8px;
+    padding: 9px 8px;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    color: var(--ink);
+    transition: all .15s ease;
+  }
+  button.status-btn:hover { border-color: var(--boomi-orange); color: var(--boomi-orange-dark); }
+  button.status-btn.active {
+    background: var(--boomi-orange);
+    border-color: var(--boomi-orange);
+    color: white;
+  }
+  button.status-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .reset-link {
+    margin-top: 14px;
+    font-size: 12px;
+    color: var(--muted);
+    background: none;
+    border: none;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 0;
+  }
+
+  /* Center Boomi sync visual */
+  .boomi-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 10px;
+  }
+  .boomi-badge {
+    width: 68px;
+    height: 68px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #FF8A3D, var(--boomi-orange));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 800;
+    font-size: 13px;
+    letter-spacing: 0.03em;
+    box-shadow: 0 4px 14px rgba(255, 99, 0, 0.35);
+    transition: transform .3s ease;
+  }
+  .boomi-badge.syncing { animation: spin 1s linear infinite; }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+  .arrow-track {
+    position: relative;
+    width: 100%;
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .arrow-track .pulse {
+    position: absolute;
+    top: 0; left: -40%;
+    width: 40%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, var(--boomi-orange), transparent);
+    opacity: 0;
+  }
+  .arrow-track.active .pulse { opacity: 1; animation: travel 1s ease-in-out infinite; }
+  @keyframes travel { from { left: -40%; } to { left: 100%; } }
+
+  .sync-label {
+    font-size: 11.5px;
+    color: var(--muted);
+    text-align: center;
+    min-height: 14px;
+  }
+  .sync-label.on { color: var(--boomi-orange-dark); font-weight: 600; }
+
+  /* Tracker */
+  .tracker {
+    display: flex;
+    justify-content: space-between;
+    position: relative;
+    margin: 10px 0 18px;
+  }
+  .tracker::before {
+    content: "";
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    right: 15px;
+    height: 3px;
+    background: var(--border);
+    z-index: 0;
+  }
+  .tracker .progress-fill {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    height: 3px;
+    background: var(--boomi-orange);
+    z-index: 1;
+    width: 0%;
+    transition: width .6s ease;
+  }
+  .step {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 25%;
+    text-align: center;
+  }
+  .dot {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: white;
+    border: 3px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    color: var(--muted);
+    transition: all .3s ease;
+  }
+  .step.done .dot { border-color: var(--boomi-orange); background: var(--boomi-orange); color: white; }
+  .step.current .dot { border-color: var(--boomi-orange); background: white; color: var(--boomi-orange-dark); box-shadow: 0 0 0 4px rgba(255,99,0,0.15); }
+  .step-label { font-size: 11.5px; margin-top: 6px; color: var(--muted); font-weight: 600; }
+  .step.done .step-label, .step.current .step-label { color: var(--ink); }
+
+  .eta-line { font-size: 13px; color: var(--muted); text-align: center; margin-top: 4px; }
+  .eta-line b { color: var(--ink); }
+
+  /* Log */
+  .log-panel {
+    margin-top: 20px;
+    background: #14171A;
+    border-radius: 12px;
+    padding: 16px 18px;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 12.5px;
+    color: #C9D1D9;
+    max-height: 170px;
+    overflow-y: auto;
+  }
+  .log-panel h2 { color: #8B949E; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; margin: 0 0 10px; font-family: -apple-system, sans-serif; }
+  .log-line { padding: 2px 0; }
+  .log-line .t { color: #6E7681; margin-right: 8px; }
+  .log-line .tag { color: var(--boomi-orange); font-weight: 700; margin-right: 6px; }
+</style>
+</head>
+<body>
+<!-- SEDC-NAV:START -->
+<style>
+  .sedc-nav * { box-sizing: border-box; }
+  .sedc-nav {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    margin: 0;
+    background: #072B55;
+    color: #ffffff;
+    font-family: 'Poppins',Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    font-size: 14px;
+    line-height: 1.4;
+  }
+  .sedc-nav-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 10px 20px;
+  }
+  .sedc-nav-brand {
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+  }
+  .sedc-nav-brand:hover,
+  .sedc-nav-brand:focus {
+    text-decoration: underline;
+  }
+  .sedc-nav-jump {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .sedc-nav-label {
+    white-space: nowrap;
+    color: #ffffff;
+  }
+  .sedc-nav-select {
+    font-family: inherit;
+    font-size: 13px;
+    color: #072B55;
+    background: #ffffff;
+    border: 1px solid #ffffff;
+    border-radius: 4px;
+    padding: 5px 8px;
+    max-width: 60vw;
+  }
+  .sedc-nav-rule {
+    height: 3px;
+    width: 100%;
+    background: linear-gradient(90deg,#FF7C66 0%,#A03291 100%);
+  }
+</style>
+<div class="sedc-nav" role="navigation" aria-label="SE Demo Companion navigation">
+  <div class="sedc-nav-bar">
+    <a class="sedc-nav-brand" href="../index.html" target="_top">SE Demo Companion</a>
+    <div class="sedc-nav-jump">
+      <label class="sedc-nav-label" for="sedc-nav-select">Jump to use case</label>
+      <select class="sedc-nav-select" id="sedc-nav-select" onchange="(function(sel){try{var opt=sel.options[sel.selectedIndex];var url=opt&&opt.getAttribute('data-href');if(!url)return;try{window.top.location.href=url;}catch(e){window.location.href=url;}}catch(e){}})(this)">
+        <option value="amc-fee-change-agent" data-href="./amc-fee-change-agent.html">AMC fee-change agent — Finnomena</option>
+        <option value="bvtpa-claims-integration-demo" data-href="./bvtpa-claims-integration-demo.html">Blue Venture TPA claims integration demo — Blue Venture TPA</option>
+        <option value="bvtpa-claims-adjudication-cio-brief" data-href="./bvtpa-claims-adjudication-cio-brief.html">Claims adjudication CIO brief — Blue Venture TPA</option>
+        <option value="delivery-status-sync-demo" data-href="./delivery-status-sync-demo.html" selected>Delivery status sync demo — TOTO</option>
+        <option value="boomi-tenant-ceo-dashboard" data-href="./boomi-tenant-ceo-dashboard.html">Boomi tenant CEO dashboard — Boomi internal tenant</option>
+        <option value="boomi-tenant-30-day-report" data-href="./boomi-tenant-30-day-report.html">Boomi tenant operations report, 30-day view — Boomi internal tenant</option>
+        <option value="json-to-xml-order-integration" data-href="./json-to-xml-order-integration.html">JSON to XML order integration, executive documentation — NTT</option>
+        <option value="edi-850-flight-deck" data-href="./edi-850-flight-deck.html">EDI 850 flight deck — Infosys</option>
+        <option value="whatsapp-to-sap-master-agent" data-href="./whatsapp-to-sap-master-agent.html">WhatsApp to SAP master agent — Boomi internal build</option>
+        <option value="student-xml-to-crm-json" data-href="./student-xml-to-crm-json.html">Student XML to CRM JSON — Attura</option>
+        <option value="sap-accounting-document-poc-outcome" data-href="./sap-accounting-document-poc-outcome.html">SAP accounting document automation, POC outcome — Abans PLC</option>
+        <option value="abans-sap-posting-poc-dashboard" data-href="./abans-sap-posting-poc-dashboard.html">Abans SAP posting, live POC dashboard — Abans PLC</option>
+        <option value="order-intake-api-fan-out" data-href="./order-intake-api-fan-out.html">Order intake API with multi-target fan-out — LTIMindtree</option>
+        <option value="electromart-track-and-reschedule" data-href="./electromart-track-and-reschedule.html">ElectroMart track order and reschedule delivery — ElectroMart (demo brand)</option>
+        <option value="enterprise-portal-ai-agent" data-href="./enterprise-portal-ai-agent.html">Enterprise portal with an embedded AI agent — ITG</option>
+        <option value="o2c-qad-build-journey" data-href="./o2c-qad-build-journey.html">O2C-QAD build journey — Boomi internal build</option>
+        <option value="boomi-accenture-trivia" data-href="./boomi-accenture-trivia.html">Boomi x Accenture trivia — Boomi internal build</option>
+        <option value="cloud-runtime-sizing-calculator" data-href="./cloud-runtime-sizing-calculator.html">Boomi public cloud runtime sizing estimator — Boomi internal build</option>
+        <option value="coupa-netsuite-vendor-bill" data-href="./coupa-netsuite-vendor-bill.html">Vendor bill pipeline, Coupa to NetSuite — Boomi internal build</option>
+        <option value="coupa-oracle-s2p-console" data-href="./coupa-oracle-s2p-console.html">Source-to-pay flow console, Coupa to Oracle Fusion — Boomi internal build</option>
+        <option value="epic-rauland-adt-nurse-call" data-href="./epic-rauland-adt-nurse-call.html">Epic ADT to Rauland Responder 5, nurse call integration — Boomi internal build</option>
+        <option value="epic-salesforce-trial-screening" data-href="./epic-salesforce-trial-screening.html">Clinical trial screening console, Epic to Salesforce — Meridian Research (demo brand)</option>
+        <option value="jc-hifi-order-tracker" data-href="./jc-hifi-order-tracker.html">JC Hi-Fi order tracker, customer self-service — JC Hi-Fi (demo brand)</option>
+        <option value="pacific-bank-onboarding" data-href="./pacific-bank-onboarding.html">Pacific onboarding console, retail bank customer onboarding — Pacific Islands Community Bank (demo brand)</option>
+        <option value="sea-data-product-assistant" data-href="./sea-data-product-assistant.html">SEA regional performance, data products and an agent over two ERPs — Boomi internal build</option>
+        <option value="servicenow-jira-incident-sync" data-href="./servicenow-jira-incident-sync.html">Incident sync prototype, ServiceNow to Jira — Boomi internal build</option>
+        <option value="zendesk-magento-order-status" data-href="./zendesk-magento-order-status.html">Order status bot and flow inspector, Zendesk to Magento — Avery Products (demo brand)</option>
+        <option value="zoho-netsuite-invoice-sync" data-href="./zoho-netsuite-invoice-sync.html">Invoice sync console, Zoho CRM to NetSuite — Boomi internal build</option>
+      </select>
+    </div>
+  </div>
+  <div class="sedc-nav-rule"></div>
+</div>
+<!-- SEDC-NAV:END -->
+
+
+  <div class="page-header">
+    <h1>Boomi Integration Demo — Delivery Status Sync</h1>
+    <div class="subtitle">Warehouse / ERP system (System A) ↔ Boomi process ↔ Customer Tracking Portal (System B)</div>
+  </div>
+
+  <div class="page-content">
+  <div class="stage">
+    <!-- SYSTEM A -->
+    <div class="panel">
+      <span class="system-tag">SYSTEM A</span>
+      <h2>Warehouse / ERP (e.g. SAP)</h2>
+      <div class="order-card">
+        <div class="row"><span>Order ID</span><span>#ORD-48213</span></div>
+        <div class="row"><span>Product</span><span>Wireless Headset X2</span></div>
+        <div class="row"><span>Customer</span><span>A. Rahman</span></div>
+        <div class="row"><span>Internal status</span></div>
+        <div id="badgeA" class="status-badge">Ordered</div>
+      </div>
+      <div class="btn-grid">
+        <button class="status-btn" data-status="0" onclick="setStatus(0)">Order Placed</button>
+        <button class="status-btn" data-status="1" onclick="setStatus(1)">Dispatched</button>
+        <button class="status-btn" data-status="2" onclick="setStatus(2)">Out for Delivery</button>
+        <button class="status-btn" data-status="3" onclick="setStatus(3)">Delivered</button>
+      </div>
+      <button class="reset-link" onclick="resetDemo()">Reset demo</button>
+    </div>
+
+    <!-- BOOMI CENTER -->
+    <div class="boomi-center">
+      <div id="boomiBadge" class="boomi-badge">BOOMI</div>
+      <div class="arrow-track" id="arrowTrack"><div class="pulse"></div></div>
+      <div id="syncLabel" class="sync-label">Idle</div>
+    </div>
+
+    <!-- SYSTEM B -->
+    <div class="panel">
+      <span class="system-tag">SYSTEM B</span>
+      <h2>Customer Tracking Portal</h2>
+
+      <div class="tracker">
+        <div class="progress-fill" id="progressFill"></div>
+        <div class="step" id="step0"><div class="dot">1</div><div class="step-label">Ordered</div></div>
+        <div class="step" id="step1"><div class="dot">2</div><div class="step-label">Dispatched</div></div>
+        <div class="step" id="step2"><div class="dot">3</div><div class="step-label">Out for<br>Delivery</div></div>
+        <div class="step" id="step3"><div class="dot">4</div><div class="step-label">Delivered</div></div>
+      </div>
+      <div class="eta-line" id="etaLine">Track your order — status updates automatically.</div>
+    </div>
+  </div>
+
+  <div class="log-panel" id="logPanel">
+    <h2>Boomi Process Log</h2>
+  </div>
+  </div>
+
+<script>
+  const statuses = [
+    { name: "Ordered", color: "#6B7280", eta: "Order confirmed. Preparing for dispatch." },
+    { name: "Dispatched", color: "#F5A623", eta: "Package has left the warehouse." },
+    { name: "Out for Delivery", color: "#FF6300", eta: "Courier is on the way — arriving today." },
+    { name: "Delivered", color: "#17A673", eta: "Delivered successfully. Thank you!" }
+  ];
+
+  let current = 0;
+  let syncing = false;
+
+  function log(tag, msg) {
+    const panel = document.getElementById("logPanel");
+    const time = new Date().toLocaleTimeString();
+    const line = document.createElement("div");
+    line.className = "log-line";
+    line.innerHTML = `<span class="t">${time}</span><span class="tag">${tag}</span>${msg}`;
+    panel.appendChild(line);
+    panel.scrollTop = panel.scrollHeight;
+  }
+
+  function renderSystemA() {
+    const badge = document.getElementById("badgeA");
+    badge.textContent = statuses[current].name;
+    badge.style.background = statuses[current].color;
+    document.querySelectorAll(".status-btn").forEach(b => {
+      b.classList.toggle("active", parseInt(b.dataset.status) === current);
+    });
+  }
+
+  function renderSystemB() {
+    const fillPct = (current / 3) * 100;
+    document.getElementById("progressFill").style.width = fillPct + "%";
+    for (let i = 0; i < 4; i++) {
+      const el = document.getElementById("step" + i);
+      el.classList.remove("done", "current");
+      if (i < current) el.classList.add("done");
+      else if (i === current) el.classList.add("current");
+    }
+    document.getElementById("etaLine").innerHTML = "<b>" + statuses[current].name + ".</b> " + statuses[current].eta;
+  }
+
+  function setStatus(index) {
+    if (syncing || index === current && document.getElementById("badgeA").textContent === statuses[current].name) {
+      if (index === current) return;
+    }
+    if (syncing) return;
+    syncing = true;
+
+    document.querySelectorAll(".status-btn").forEach(b => b.disabled = true);
+
+    current = index;
+    renderSystemA();
+    log("SYSTEM A", `Status set to <b>${statuses[index].name}</b> in Warehouse/ERP system.`);
+
+    document.getElementById("boomiBadge").classList.add("syncing");
+    document.getElementById("arrowTrack").classList.add("active");
+    const syncLabel = document.getElementById("syncLabel");
+    syncLabel.textContent = "Syncing…";
+    syncLabel.classList.add("on");
+    log("BOOMI", `Process triggered — mapping status update and pushing to Customer Portal API.`);
+
+    setTimeout(() => {
+      renderSystemB();
+      log("SYSTEM B", `Customer Tracking Portal updated to <b>${statuses[index].name}</b>.`);
+      document.getElementById("boomiBadge").classList.remove("syncing");
+      document.getElementById("arrowTrack").classList.remove("active");
+      syncLabel.textContent = "Idle — last sync OK";
+      syncLabel.classList.remove("on");
+      document.querySelectorAll(".status-btn").forEach(b => b.disabled = false);
+      syncing = false;
+    }, 1100);
+  }
+
+  function resetDemo() {
+    current = 0;
+    renderSystemA();
+    renderSystemB();
+    document.getElementById("logPanel").innerHTML = "<h2>Boomi Process Log</h2>";
+    document.getElementById("syncLabel").textContent = "Idle";
+    log("SYSTEM A", "Demo reset. Order #ORD-48213 initialized as <b>Ordered</b>.");
+  }
+
+  // init
+  renderSystemA();
+  renderSystemB();
+  log("SYSTEM A", "Demo initialized. Order #ORD-48213 created as <b>Ordered</b>.");
+</script>
+
+</body>
+</html>

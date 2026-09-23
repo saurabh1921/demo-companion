@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ElectroMart O2C Demo — Documentation</title>
+  <style>
+    :root, [data-theme="light"] {
+      --brand: #0b5fff;
+      --brand-dark: #0846b8;
+      --bg: #f5f7fb;
+      --bg-soft: #eef2f9;
+      --card: #ffffff;
+      --text: #1d2433;
+      --muted: #6b7280;
+      --border: #e4e7ee;
+      --code-bg: #0f172a;
+      --code-text: #e2e8f0;
+      --inline-code-bg: #f1f5f9;
+      --inline-code-text: #0b5fff;
+      --shadow: 0 6px 24px rgba(11, 95, 255, 0.08);
+      --diagram-stroke: #1d2433;
+      --diagram-fill: #ffffff;
+      --diagram-accent: #0b5fff;
+      --diagram-accent-soft: #dbeafe;
+      --diagram-warn: #b45309;
+      --diagram-success: #137e3c;
+      --diagram-bg: #f5f7fb;
+    }
+    [data-theme="dark"] {
+      --brand: #5b8cff;
+      --brand-dark: #80a8ff;
+      --bg: #0b0f17;
+      --bg-soft: #131a26;
+      --card: #131a26;
+      --text: #e8ecf3;
+      --muted: #9aa6b8;
+      --border: #2a3344;
+      --code-bg: #050810;
+      --code-text: #cbd5e1;
+      --inline-code-bg: #1a2435;
+      --inline-code-text: #93c5fd;
+      --shadow: 0 6px 24px rgba(0,0,0,0.45);
+      --diagram-stroke: #e8ecf3;
+      --diagram-fill: #1a2435;
+      --diagram-accent: #5b8cff;
+      --diagram-accent-soft: #1e3a8a55;
+      --diagram-warn: #fbbf24;
+      --diagram-success: #34d399;
+      --diagram-bg: #0b0f17;
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0; background: var(--bg); color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Sarabun", "Inter", Roboto, sans-serif;
+      line-height: 1.65; transition: background 0.3s, color 0.3s;
+      scroll-behavior: smooth;
+    }
+    [lang="th"] body, body[data-lang="th"] { font-family: "Sarabun", -apple-system, "Segoe UI", sans-serif; }
+
+    a { color: var(--brand); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    code, pre {
+      font-family: "SF Mono", "Monaco", "Inconsolata", "Fira Code", monospace;
+    }
+    code.inline {
+      background: var(--inline-code-bg); color: var(--inline-code-text);
+      padding: 2px 6px; border-radius: 4px; font-size: 0.92em;
+    }
+    pre {
+      background: var(--code-bg); color: var(--code-text);
+      padding: 14px 18px; border-radius: 8px; overflow-x: auto;
+      font-size: 13px; line-height: 1.55;
+    }
+
+    /* ---------- Layout ---------- */
+    .layout { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+    }
+
+    aside.sidebar {
+      background: var(--bg-soft); border-right: 1px solid var(--border);
+      padding: 24px 18px; position: sticky; top: 0; height: 100vh; overflow-y: auto;
+    }
+    @media (max-width: 900px) {
+      aside.sidebar {
+        position: static; height: auto; border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+    }
+
+    .brand-row {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 16px;
+    }
+    .brand-mark {
+      width: 36px; height: 36px; border-radius: 8px;
+      background: linear-gradient(135deg, var(--brand) 0%, var(--brand-dark) 100%);
+      color: #fff; display: grid; place-items: center; font-weight: 800; font-size: 16px;
+    }
+    .brand-row h1 { font-size: 16px; margin: 0; }
+    .brand-row p { font-size: 11px; color: var(--muted); margin: 0; }
+
+    .controls { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0 18px; }
+    .controls select, .controls button {
+      flex: 1 1 auto; padding: 6px 10px; font-size: 12px;
+      background: var(--card); color: var(--text);
+      border: 1px solid var(--border); border-radius: 6px; cursor: pointer;
+      font-family: inherit;
+    }
+    .controls button { min-width: 36px; }
+
+    nav.toc ul { list-style: none; padding: 0; margin: 0; }
+    nav.toc li { margin: 0; }
+    nav.toc a {
+      display: block; padding: 7px 10px; border-radius: 6px;
+      font-size: 13px; color: var(--text);
+    }
+    nav.toc a:hover { background: var(--bg); text-decoration: none; }
+    nav.toc a.active { background: var(--brand); color: #fff; font-weight: 600; }
+    nav.toc .group {
+      font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--muted); margin: 14px 0 6px 10px;
+    }
+
+    main.content { padding: 32px 40px; max-width: 920px; }
+    @media (max-width: 720px) { main.content { padding: 24px 18px; } }
+
+    main.content h1 {
+      font-size: 30px; margin: 0 0 8px;
+      background: linear-gradient(135deg, var(--brand), var(--brand-dark));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    main.content h2 {
+      font-size: 22px; margin: 36px 0 12px;
+      padding-top: 12px; border-top: 1px solid var(--border);
+    }
+    main.content h2:first-of-type { border-top: none; padding-top: 0; }
+    main.content h3 { font-size: 17px; margin: 22px 0 8px; }
+    main.content p { margin: 8px 0 12px; }
+    main.content ul, main.content ol { padding-left: 22px; }
+    main.content li { margin: 4px 0; }
+
+    .lead {
+      font-size: 16px; color: var(--muted); margin-bottom: 24px;
+      padding: 14px 18px; background: var(--bg-soft);
+      border-left: 3px solid var(--brand); border-radius: 4px;
+    }
+
+    table.spec {
+      width: 100%; border-collapse: collapse; margin: 12px 0 18px;
+      font-size: 14px;
+    }
+    table.spec th, table.spec td {
+      padding: 8px 12px; border: 1px solid var(--border); text-align: left;
+      vertical-align: top;
+    }
+    table.spec th { background: var(--bg-soft); font-weight: 600; }
+
+    .pill-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 16px; }
+    .pill {
+      display: inline-block; padding: 4px 10px; border-radius: 999px;
+      font-size: 12px; font-weight: 600; background: var(--diagram-accent-soft); color: var(--brand);
+    }
+    .pill.warn { background: #fef3c7; color: #92400e; }
+    [data-theme="dark"] .pill.warn { background: #92400e55; color: #fcd34d; }
+
+    .diagram-wrap {
+      margin: 14px 0 22px; padding: 14px;
+      background: var(--diagram-bg); border: 1px dashed var(--border); border-radius: 8px;
+      overflow-x: auto;
+    }
+    .diagram-wrap svg { display: block; margin: 0 auto; max-width: 100%; height: auto; }
+    .diagram-caption { text-align: center; font-size: 12px; color: var(--muted); margin-top: 6px; }
+
+    .lang-only { display: none; }
+    [data-lang="en"] .lang-en, [data-lang="th"] .lang-th, [data-lang="fil"] .lang-fil, [data-lang="id"] .lang-id { display: block; }
+    [data-lang="en"] span.lang-en, [data-lang="th"] span.lang-th, [data-lang="fil"] span.lang-fil, [data-lang="id"] span.lang-id { display: inline; }
+
+    .footer-bar {
+      margin-top: 48px; padding: 18px 0; border-top: 1px solid var(--border);
+      color: var(--muted); font-size: 13px; text-align: center;
+    }
+
+    /* SVG color shims so diagrams adapt to theme */
+    svg.flow .box rect, svg.flow .start rect, svg.flow .term rect {
+      fill: var(--diagram-fill); stroke: var(--diagram-stroke); stroke-width: 1.5;
+    }
+    svg.flow .start rect { fill: var(--diagram-accent); stroke: var(--diagram-accent); }
+    svg.flow .start text { fill: #fff; }
+    svg.flow .term rect { fill: var(--diagram-success); stroke: var(--diagram-success); }
+    svg.flow .term text { fill: #fff; }
+    svg.flow .route rect { fill: var(--diagram-accent-soft); stroke: var(--diagram-accent); }
+    svg.flow text { fill: var(--diagram-stroke); font-family: inherit; font-size: 12px; }
+    svg.flow .small { font-size: 10px; fill: var(--muted); }
+    svg.flow .arrow { stroke: var(--diagram-stroke); stroke-width: 1.5; fill: none; marker-end: url(#arrowhead); }
+    svg.flow .arrow-soft { stroke: var(--muted); stroke-width: 1; fill: none; stroke-dasharray: 3 3; }
+    svg.flow .label { font-weight: 600; }
+  </style>
+</head>
+<body data-theme="light" data-lang="en">
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="brand-row">
+        <div class="brand-mark">EM</div>
+        <div>
+          <h1>ElectroMart O2C</h1>
+          <p>Documentation</p>
+        </div>
+      </div>
+      <div class="controls">
+        <select id="langSelect" aria-label="Language">
+          <option value="en">English</option>
+          <option value="th">ไทย (Thai)</option>
+          <option value="fil">Filipino</option>
+          <option value="id">Bahasa Indonesia</option>
+        </select>
+        <button id="themeToggle" title="Toggle theme">🌙</button>
+      </div>
+      <nav class="toc" id="toc">
+        <div class="group" data-i18n="nav-product">Product</div>
+        <ul>
+          <li><a href="#overview" data-i18n="nav-overview">Overview</a></li>
+          <li><a href="#architecture" data-i18n="nav-architecture">Architecture</a></li>
+          <li><a href="#o2c-flow" data-i18n="nav-o2c">O2C Flow</a></li>
+        </ul>
+        <div class="group" data-i18n="nav-boomi">Boomi Integration</div>
+        <ul>
+          <li><a href="#process-lookup" data-i18n="nav-lookup">Order Lookup process</a></li>
+          <li><a href="#process-update" data-i18n="nav-update">Order Update process</a></li>
+          <li><a href="#api-ref" data-i18n="nav-api">API Reference</a></li>
+        </ul>
+        <div class="group" data-i18n="nav-frontend">Frontend</div>
+        <ul>
+          <li><a href="#frontend" data-i18n="nav-spa">Single-page app</a></li>
+          <li><a href="#data-model" data-i18n="nav-data">Sample data model</a></li>
+        </ul>
+        <div class="group" data-i18n="nav-ops">Operations</div>
+        <ul>
+          <li><a href="#deployment" data-i18n="nav-deploy">Deployment</a></li>
+          <li><a href="#extensions" data-i18n="nav-extensions">Extensions &amp; SAP</a></li>
+          <li><a href="#testing" data-i18n="nav-testing">Testing &amp; Postman</a></li>
+        </ul>
+        <ul style="margin-top: 16px;">
+          <li><a href="./electromart-track-and-reschedule.html" data-i18n="nav-back">← Back to portal</a></li>
+        </ul>
+      </nav>
+    </aside>
+
+    <main class="content">
+
+      <!-- ============================ OVERVIEW ============================ -->
+      <section id="overview">
+        <h1 data-i18n="title">ElectroMart Order-to-Cash — Reference Demo</h1>
+        <div class="lead">
+          <span class="lang-only lang-en">A self-service web portal where customers look up an order, view items and status, and request a new delivery date — all backed by a Boomi iPaaS integration that simulates a real Order-to-Cash flow with a mock ERP/SAP sync.</span>
+          <span class="lang-only lang-th">พอร์ทัลแบบบริการตนเองสำหรับลูกค้าค้นหาคำสั่งซื้อ ดูสินค้าและสถานะ และขอวันส่งใหม่ — ทั้งหมดขับเคลื่อนโดย Boomi iPaaS ที่จำลองกระบวนการ Order-to-Cash จริงพร้อมการซิงค์ ERP/SAP จำลอง</span>
+          <span class="lang-only lang-fil">Isang self-service na web portal kung saan tinitingnan ng customer ang order, items, at status, at nakapag-request ng bagong delivery date — sinusuportahan ng Boomi iPaaS integration na nagmo-mock ng totoong Order-to-Cash flow kasama ang mock ERP/SAP sync.</span>
+          <span class="lang-only lang-id">Portal web swalayan tempat pelanggan mencari pesanan, melihat item dan status, serta meminta tanggal pengiriman baru — semuanya didukung oleh integrasi Boomi iPaaS yang menyimulasikan alur Order-to-Cash nyata dengan sinkronisasi ERP/SAP tiruan.</span>
+        </div>
+
+        <div class="lang-only lang-en">
+          <h2>What this demo includes</h2>
+          <ul>
+            <li><strong>Public-facing portal</strong> — responsive HTML/CSS/JS single-page app with light &amp; dark themes and an in-page calendar picker.</li>
+            <li><strong>Two REST endpoints</strong> exposed by Boomi Web Services Server: lookup &amp; update.</li>
+            <li><strong>Five realistic electronics orders</strong> (iPhone, Dell XPS, Galaxy S24, Sony headphones, LG OLED) covering every stage of the O2C pipeline.</li>
+            <li><strong>Mock ERP/SAP sync</strong> with a confirmation number and timestamped acknowledgement.</li>
+            <li><strong>Postman collection</strong> for API exercise.</li>
+          </ul>
+        </div>
+
+        <div class="lang-only lang-th">
+          <h2>สิ่งที่รวมอยู่ในเดโม</h2>
+          <ul>
+            <li><strong>พอร์ทัลสาธารณะ</strong> — เว็บแอปแบบ Single Page (HTML/CSS/JS) ตอบสนองได้ ทั้งโหมดสว่างและมืด พร้อมตัวเลือกวันที่แบบปฏิทินในหน้าเดียวกัน</li>
+            <li><strong>REST endpoint สองรายการ</strong> ที่เปิดผ่าน Boomi Web Services Server: ค้นหาและอัปเดต</li>
+            <li><strong>คำสั่งซื้อสินค้าอิเล็กทรอนิกส์ตัวอย่าง 5 รายการ</strong> (iPhone, Dell XPS, Galaxy S24, หูฟัง Sony, LG OLED) ครอบคลุมทุกขั้นตอนของไปป์ไลน์ O2C</li>
+            <li><strong>การซิงค์ ERP/SAP จำลอง</strong> พร้อมหมายเลขยืนยันและการตอบรับมีตราเวลา</li>
+            <li><strong>คอลเลกชัน Postman</strong> สำหรับทดสอบ API</li>
+          </ul>
+        </div>
+
+        <div class="lang-only lang-fil">
+          <h2>Ano ang nasa demo na ito</h2>
+          <ul>
+            <li><strong>Pampublikong portal</strong> — responsive na single-page web app (HTML/CSS/JS) na may light at dark theme at calendar picker sa loob mismo ng pahina.</li>
+            <li><strong>Dalawang REST endpoint</strong> na inilalantad ng Boomi Web Services Server: lookup at update.</li>
+            <li><strong>Limang totoong-buhay na electronics order</strong> (iPhone, Dell XPS, Galaxy S24, Sony headphones, LG OLED) na sumasaklaw sa lahat ng yugto ng O2C pipeline.</li>
+            <li><strong>Mock ERP/SAP sync</strong> na may confirmation number at acknowledgement na may timestamp.</li>
+            <li><strong>Postman collection</strong> para sa pagsubok ng API.</li>
+          </ul>
+        </div>
+
+        <div class="lang-only lang-id">
+          <h2>Yang ada di demo ini</h2>
+          <ul>
+            <li><strong>Portal publik</strong> — aplikasi web satu halaman (HTML/CSS/JS) yang responsif dengan tema terang dan gelap serta pemilih tanggal kalender dalam halaman.</li>
+            <li><strong>Dua endpoint REST</strong> yang diekspos oleh Boomi Web Services Server: pencarian dan pembaruan.</li>
+            <li><strong>Lima pesanan elektronik realistis</strong> (iPhone, Dell XPS, Galaxy S24, headphone Sony, LG OLED) yang mencakup setiap tahap pipeline O2C.</li>
+            <li><strong>Sinkronisasi ERP/SAP tiruan</strong> dengan nomor konfirmasi dan tanda terima berstempel waktu.</li>
+            <li><strong>Koleksi Postman</strong> untuk uji coba API.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- ============================ ARCHITECTURE ============================ -->
+      <section id="architecture">
+        <h2 data-i18n="arch-title">Architecture</h2>
+        <p>
+          <span class="lang-only lang-en">Three layers: a static portal in the customer's browser, two Boomi WSS-hosted REST endpoints, and a mocked ERP/SAP backend. Boomi orchestrates lookup and update, applies business rules, and returns JSON.</span>
+          <span class="lang-only lang-th">มีสามชั้น: พอร์ทัลแบบสแตติกในเบราว์เซอร์ลูกค้า, REST endpoint สองตัวที่โฮสต์โดย Boomi WSS, และระบบ ERP/SAP จำลอง Boomi เป็นตัวควบคุมการค้นหาและการอัปเดต ใช้กฎทางธุรกิจ และตอบกลับเป็น JSON</span>
+          <span class="lang-only lang-fil">Tatlong layer: static portal sa browser ng customer, dalawang REST endpoint na hino-host ng Boomi WSS, at isang mock ERP/SAP backend. Ang Boomi ang nag-o-orchestrate ng lookup at update, nag-aapply ng business rules, at nagbabalik ng JSON.</span>
+          <span class="lang-only lang-id">Tiga lapisan: portal statis di browser pelanggan, dua endpoint REST yang di-host oleh Boomi WSS, dan backend ERP/SAP tiruan. Boomi mengatur pencarian dan pembaruan, menerapkan aturan bisnis, dan mengembalikan JSON.</span>
+        </p>
+
+        <div class="diagram-wrap">
+          <svg class="flow" viewBox="0 0 760 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="System architecture">
+            <defs>
+              <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                <path d="M0,0 L0,6 L9,3 z" fill="currentColor"></path>
+              </marker>
+            </defs>
+            <!-- Customer -->
+            <g class="box">
+              <rect x="20" y="120" width="160" height="80" rx="10"/>
+              <text x="100" y="150" text-anchor="middle" class="label">Customer Portal</text>
+              <text x="100" y="170" text-anchor="middle" class="small">index.html (SPA)</text>
+              <text x="100" y="184" text-anchor="middle" class="small">localhost:8000</text>
+            </g>
+            <!-- Boomi -->
+            <g class="route">
+              <rect x="260" y="60" width="220" height="200" rx="10"/>
+              <text x="370" y="90" text-anchor="middle" class="label">Boomi iPaaS Atom</text>
+              <text x="370" y="106" text-anchor="middle" class="small">c03-usa-east.integrate.boomi.com</text>
+            </g>
+            <!-- Lookup process -->
+            <g class="box">
+              <rect x="280" y="120" width="180" height="50" rx="6"/>
+              <text x="370" y="142" text-anchor="middle">Order Lookup process</text>
+              <text x="370" y="158" text-anchor="middle" class="small">/ws/simple/queryElectroMartOrder</text>
+            </g>
+            <!-- Update process -->
+            <g class="box">
+              <rect x="280" y="190" width="180" height="50" rx="6"/>
+              <text x="370" y="212" text-anchor="middle">Order Update process</text>
+              <text x="370" y="228" text-anchor="middle" class="small">/ws/simple/updateElectroMartOrder</text>
+            </g>
+            <!-- ERP / SAP -->
+            <g class="box">
+              <rect x="560" y="120" width="180" height="80" rx="10"/>
+              <text x="650" y="150" text-anchor="middle" class="label">ERP / SAP S/4HANA</text>
+              <text x="650" y="170" text-anchor="middle" class="small">(mocked in demo)</text>
+              <text x="650" y="184" text-anchor="middle" class="small">order, fulfillment, invoice</text>
+            </g>
+            <!-- Arrows -->
+            <path class="arrow" d="M180 145 L280 145"/>
+            <path class="arrow" d="M180 215 L280 215"/>
+            <path class="arrow" d="M460 215 L560 175"/>
+            <path class="arrow-soft" d="M560 145 L460 145"/>
+            <text x="225" y="138" class="small">HTTPS POST</text>
+            <text x="510" y="206" class="small">SAP Connector*</text>
+            <text x="500" y="280" class="small">* Real connector available; demo uses Boomi Message step.</text>
+          </svg>
+          <div class="diagram-caption" data-i18n="diag1">Figure 1 — End-to-end system topology.</div>
+        </div>
+      </section>
+
+      <!-- ============================ O2C FLOW ============================ -->
+      <section id="o2c-flow">
+        <h2 data-i18n="o2c-title">The Order-to-Cash flow</h2>
+        <p>
+          <span class="lang-only lang-en">A retail order moves through five stages from confirmation to delivered. Reschedule is allowed only while the order is at <code class="inline">CONFIRMED</code>, <code class="inline">PROCESSING</code>, or <code class="inline">PICKED_PACKED</code> — once it ships, the carrier owns the route.</span>
+          <span class="lang-only lang-th">คำสั่งซื้อเดินทางผ่าน 5 ขั้นจากการยืนยันถึงการส่งมอบ การเปลี่ยนวันส่งทำได้เฉพาะระยะ <code class="inline">CONFIRMED</code>, <code class="inline">PROCESSING</code> หรือ <code class="inline">PICKED_PACKED</code> เท่านั้น — หลังจากจัดส่งแล้ว เส้นทางจะอยู่กับผู้ขนส่ง</span>
+          <span class="lang-only lang-fil">Dumadaan ang isang retail order sa limang yugto mula confirmation hanggang delivered. Pinapayagan ang reschedule lamang habang ang order ay <code class="inline">CONFIRMED</code>, <code class="inline">PROCESSING</code>, o <code class="inline">PICKED_PACKED</code> — kapag naipadala na, hawak na ng carrier ang ruta.</span>
+          <span class="lang-only lang-id">Pesanan retail melewati lima tahap dari konfirmasi hingga terkirim. Penjadwalan ulang hanya diizinkan saat status <code class="inline">CONFIRMED</code>, <code class="inline">PROCESSING</code>, atau <code class="inline">PICKED_PACKED</code> — setelah dikirim, rute sudah dipegang oleh kurir.</span>
+        </p>
+
+        <div class="diagram-wrap">
+          <svg class="flow" viewBox="0 0 760 140" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="O2C pipeline">
+            <defs>
+              <marker id="arrowhead2" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                <path d="M0,0 L0,6 L9,3 z" fill="currentColor"></path>
+              </marker>
+            </defs>
+            <g class="start"><rect x="10" y="48" width="120" height="44" rx="8"/><text x="70" y="74" text-anchor="middle" class="label">CONFIRMED</text></g>
+            <g class="box"><rect x="160" y="48" width="120" height="44" rx="8"/><text x="220" y="74" text-anchor="middle">PROCESSING</text></g>
+            <g class="box"><rect x="310" y="48" width="120" height="44" rx="8"/><text x="370" y="74" text-anchor="middle">PICKED_PACKED</text></g>
+            <g class="box"><rect x="460" y="48" width="120" height="44" rx="8"/><text x="520" y="74" text-anchor="middle">SHIPPED</text></g>
+            <g class="term"><rect x="610" y="48" width="120" height="44" rx="8"/><text x="670" y="74" text-anchor="middle" class="label">DELIVERED</text></g>
+            <path stroke="currentColor" stroke-width="1.5" fill="none" marker-end="url(#arrowhead2)" d="M130 70 L160 70"/>
+            <path stroke="currentColor" stroke-width="1.5" fill="none" marker-end="url(#arrowhead2)" d="M280 70 L310 70"/>
+            <path stroke="currentColor" stroke-width="1.5" fill="none" marker-end="url(#arrowhead2)" d="M430 70 L460 70"/>
+            <path stroke="currentColor" stroke-width="1.5" fill="none" marker-end="url(#arrowhead2)" d="M580 70 L610 70"/>
+            <text x="220" y="120" text-anchor="middle" class="small">— reschedule allowed —</text>
+            <line x1="10" y1="110" x2="430" y2="110" stroke="var(--diagram-success)" stroke-width="2"/>
+            <line x1="460" y1="110" x2="730" y2="110" stroke="var(--diagram-warn)" stroke-width="2" stroke-dasharray="4 3"/>
+            <text x="595" y="120" text-anchor="middle" class="small">— reschedule blocked —</text>
+          </svg>
+          <div class="diagram-caption" data-i18n="diag2">Figure 2 — O2C pipeline with reschedule eligibility windows.</div>
+        </div>
+
+        <p>
+          <span class="lang-only lang-en">A real retailer would also run inventory checks, fraud screening, payment capture, and carrier handoff at the boundaries. Those are extension points — see <a href="#extensions">Extensions</a>.</span>
+          <span class="lang-only lang-th">ผู้ค้าปลีกจริงจะตรวจสอบสต็อก ป้องกันการฉ้อโกง รับชำระเงิน และส่งต่อให้ผู้ขนส่งที่ขอบเขตเหล่านี้ ทุกอย่างเป็นจุดขยาย — ดู <a href="#extensions">ส่วนขยาย</a></span>
+          <span class="lang-only lang-fil">Ang totoong retailer ay magpapatakbo rin ng inventory check, fraud screening, payment capture, at carrier handoff sa mga boundary. Mga extension point yun — tingnan ang <a href="#extensions">Extensions</a>.</span>
+          <span class="lang-only lang-id">Pengecer sungguhan juga akan menjalankan pemeriksaan stok, deteksi penipuan, penangkapan pembayaran, dan serah-terima kurir pada batas-batas ini. Itu titik perluasan — lihat <a href="#extensions">Ekstensi</a>.</span>
+        </p>
+      </section>
+
+      <!-- ============================ ORDER LOOKUP PROCESS ============================ -->
+      <section id="process-lookup">
+        <h2 data-i18n="proc-lookup-title">Boomi Process — Order Lookup</h2>
+        <div class="pill-row">
+          <span class="pill">type: process</span>
+          <span class="pill">listener: WSS</span>
+          <span class="pill">10 shapes</span>
+          <span class="pill">allowSimultaneous=true</span>
+        </div>
+        <p>
+          <span class="lang-only lang-en">A Web Services Server listener accepts a JSON body <code class="inline">{"orderId":"…"}</code>, captures the ID into a Dynamic Document Property, then a Route step branches on the value to one of five known orders or a default 404 response. Each branch builds the order JSON via a Message shape, then converges at a single Return Documents shape that emits the response.</span>
+          <span class="lang-only lang-th">Listener Web Services Server รับ JSON body <code class="inline">{"orderId":"…"}</code> เก็บ ID ลงใน Dynamic Document Property จากนั้น Route step แยกตามค่าไปยังคำสั่งซื้อที่รู้จัก 5 รายการ หรือเส้นทาง default 404 แต่ละสาขาสร้าง JSON ผ่าน Message shape แล้วมารวมที่ Return Documents เพื่อส่งคำตอบ</span>
+          <span class="lang-only lang-fil">Tinatanggap ng Web Services Server listener ang JSON body <code class="inline">{"orderId":"…"}</code>, kinukuha ang ID sa isang Dynamic Document Property, tapos ang Route step ay sumasanga ayon sa value patungo sa isa sa limang kilalang order o sa default 404. Bawat sangay ay nagbu-build ng order JSON gamit ang Message shape, tapos nagtatagpo sa isang Return Documents shape para ipadala ang response.</span>
+          <span class="lang-only lang-id">Pendengar Web Services Server menerima body JSON <code class="inline">{"orderId":"…"}</code>, menangkap ID ke Dynamic Document Property, lalu Route step bercabang berdasarkan nilai ke salah satu dari lima pesanan dikenal atau respons default 404. Setiap cabang membangun JSON pesanan melalui Message shape, lalu bertemu di satu Return Documents shape yang memancarkan respons.</span>
+        </p>
+
+        <div class="diagram-wrap">
+          <svg class="flow" viewBox="0 0 800 460" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Order Lookup process flow">
+            <defs>
+              <marker id="ah3" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                <path d="M0,0 L0,6 L9,3 z" fill="currentColor"></path>
+              </marker>
+            </defs>
+            <!-- Start -->
+            <g class="start"><rect x="10" y="208" width="130" height="44" rx="8"/><text x="75" y="230" text-anchor="middle" class="label">WSS Start</text><text x="75" y="244" text-anchor="middle" class="small" fill="#fff">Listen</text></g>
+            <!-- Set Props -->
+            <g class="box"><rect x="170" y="208" width="160" height="44" rx="8"/><text x="250" y="230" text-anchor="middle">Set Properties</text><text x="250" y="244" text-anchor="middle" class="small">DDP_ORDER_ID</text></g>
+            <!-- Route -->
+            <g class="route"><rect x="360" y="208" width="120" height="44" rx="8"/><text x="420" y="230" text-anchor="middle" class="label">Route</text><text x="420" y="244" text-anchor="middle" class="small">by orderId</text></g>
+            <!-- Messages -->
+            <g class="box"><rect x="510" y="20" width="180" height="36" rx="6"/><text x="600" y="42" text-anchor="middle">Msg: ORD-12345 (iPhone)</text></g>
+            <g class="box"><rect x="510" y="80" width="180" height="36" rx="6"/><text x="600" y="102" text-anchor="middle">Msg: ORD-67890 (XPS)</text></g>
+            <g class="box"><rect x="510" y="140" width="180" height="36" rx="6"/><text x="600" y="162" text-anchor="middle">Msg: ORD-24680 (S24U)</text></g>
+            <g class="box"><rect x="510" y="200" width="180" height="36" rx="6"/><text x="600" y="222" text-anchor="middle">Msg: ORD-13579 (XM5)</text></g>
+            <g class="box"><rect x="510" y="260" width="180" height="36" rx="6"/><text x="600" y="282" text-anchor="middle">Msg: ORD-99001 (OLED)</text></g>
+            <g class="box"><rect x="510" y="320" width="180" height="36" rx="6"/><text x="600" y="338" text-anchor="middle">Msg: 404 NOT_FOUND</text><text x="600" y="350" text-anchor="middle" class="small">Default route</text></g>
+            <!-- Return -->
+            <g class="term"><rect x="710" y="408" width="80" height="36" rx="8"/><text x="750" y="430" text-anchor="middle" class="label">Return</text></g>
+            <!-- Arrows: linear -->
+            <path stroke="currentColor" stroke-width="1.5" fill="none" marker-end="url(#ah3)" d="M140 230 L170 230"/>
+            <path stroke="currentColor" stroke-width="1.5" fill="none" marker-end="url(#ah3)" d="M330 230 L360 230"/>
+            <!-- Route fan-out -->
+            <path stroke="currentColor" stroke-width="1.2" fill="none" marker-end="url(#ah3)" d="M480 224 C500 224 500 38 510 38"/>
+            <path stroke="currentColor" stroke-width="1.2" fill="none" marker-end="url(#ah3)" d="M480 226 C500 226 500 98 510 98"/>
+            <path stroke="currentColor" stroke-width="1.2" fill="none" marker-end="url(#ah3)" d="M480 228 C500 228 500 158 510 158"/>
+            <path stroke="currentColor" stroke-width="1.2" fill="none" marker-end="url(#ah3)" d="M480 232 L510 218"/>
+            <path stroke="currentColor" stroke-width="1.2" fill="none" marker-end="url(#ah3)" d="M480 234 C500 234 500 278 510 278"/>
+            <path stroke="currentColor" stroke-width="1.2" fill="none" marker-end="url(#ah3)" d="M480 238 C500 238 500 338 510 338"/>
+            <!-- Convergence to Return -->
+            <path stroke="currentColor" stroke-width="1" fill="none" stroke-dasharray="3 3" d="M690 38 L750 408"/>
+            <path stroke="currentColor" stroke-width="1" fill="none" stroke-dasharray="3 3" d="M690 98 L750 408"/>
+            <path stroke="currentColor" stroke-width="1" fill="none" stroke-dasharray="3 3" d="M690 158 L750 408"/>
+            <path stroke="currentColor" stroke-width="1" fill="none" stroke-dasharray="3 3" d="M690 218 L750 408"/>
+            <path stroke="currentColor" stroke-width="1" fill="none" stroke-dasharray="3 3" d="M690 278 L750 408"/>
+            <path stroke="currentColor" stroke-width="1" fill="none" stroke-dasharray="3 3" d="M690 338 L750 408"/>
+          </svg>
+          <div class="diagram-caption" data-i18n="diag3">Figure 3 — Order Lookup process canvas (10 shapes).</div>
+        </div>
+
+        <h3 data-i18n="components-title">Components used</h3>
+        <table class="spec">
+          <thead><tr><th>Type</th><th>Name</th><th>ID</th></tr></thead>
+          <tbody>
+            <tr><td>Folder</td><td>ElectroMart-OrderToCash</td><td><code class="inline">Rjo4NTI5NDg3</code></td></tr>
+            <tr><td>JSON profile (request)</td><td>j.ElectroMart.OrderLookup.REQ</td><td><code class="inline">49e431f6-…</code></td></tr>
+            <tr><td>JSON profile (response)</td><td>j.ElectroMart.OrderLookup.RESP</td><td><code class="inline">ff255d03-…</code></td></tr>
+            <tr><td>WSS operation</td><td>WSS_GetElectroMartOrder_Op (QUERY)</td><td><code class="inline">668cc03d-…</code></td></tr>
+            <tr><td>Process</td><td>ElectroMart_OrderLookup_API</td><td><code class="inline">99a71e43-…</code></td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- ============================ ORDER UPDATE PROCESS ============================ -->
+      <section id="process-update">
+        <h2 data-i18n="proc-update-title">Boomi Process — Order Update</h2>
+        <div class="pill-row">
+          <span class="pill">type: process</span>
+          <span class="pill">listener: WSS</span>
+          <span class="pill">5 shapes</span>
+          <span class="pill warn">mock SAP sync</span>
+        </div>
+        <p>
+          <span class="lang-only lang-en">A linear pipeline. The WSS listener receives the JSON body, Set Properties extracts <code class="inline">orderId</code> and <code class="inline">newDeliveryDate</code> from the request profile and synthesises a confirmation number plus an <code class="inline">updatedAt</code> ISO timestamp. A Notify step writes a structured log entry. A Message step composes the response JSON and Return Documents emits it.</span>
+          <span class="lang-only lang-th">ไปป์ไลน์เชิงเส้น Listener WSS รับ JSON body, Set Properties ดึง <code class="inline">orderId</code> และ <code class="inline">newDeliveryDate</code> จาก request profile และสร้างหมายเลขยืนยันพร้อม <code class="inline">updatedAt</code> ISO timestamp ขั้น Notify เขียนล็อกแบบมีโครงสร้าง ขั้น Message ประกอบ JSON ตอบกลับ และ Return Documents ส่งออก</span>
+          <span class="lang-only lang-fil">Linear na pipeline. Tinatanggap ng WSS listener ang JSON body, ang Set Properties ay kumukuha ng <code class="inline">orderId</code> at <code class="inline">newDeliveryDate</code> mula sa request profile at gumagawa ng confirmation number at <code class="inline">updatedAt</code> ISO timestamp. Ang Notify step ay nagsusulat ng structured log entry. Bumubuo ng response JSON ang Message step at ipinapadala ito ng Return Documents.</span>
+          <span class="lang-only lang-id">Pipa linier. Pendengar WSS menerima body JSON, Set Properties mengekstrak <code class="inline">orderId</code> dan <code class="inline">newDeliveryDate</code> dari profil permintaan dan menyintesis nomor konfirmasi serta tanda waktu ISO <code class="inline">updatedAt</code>. Langkah Notify menulis entri log terstruktur. Langkah Message menyusun JSON respons dan Return Documents memancarkannya.</span>
+        </p>
+
+        <div class="diagram-wrap">
+          <svg class="flow" viewBox="0 0 880 140" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Order Update process flow">
+            <defs>
+              <marker id="ah4" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                <path d="M0,0 L0,6 L9,3 z" fill="currentColor"></path>
+              </marker>
+            </defs>
+            <g class="start"><rect x="10" y="48" width="120" height="44" rx="8"/><text x="70" y="70" text-anchor="middle" class="label">WSS Start</text><text x="70" y="84" text-anchor="middle" class="small" fill="#fff">Listen (POST)</text></g>
+            <g class="box"><rect x="160" y="48" width="170" height="44" rx="8"/><text x="245" y="68" text-anchor="middle">Set Properties</text><text x="245" y="84" text-anchor="middle" class="small">+confirmation, +updatedAt</text></g>
+            <g class="box"><rect x="360" y="48" width="120" height="44" rx="8"/><text x="420" y="70" text-anchor="middle">Notify</text><text x="420" y="84" text-anchor="middle" class="small">audit log</text></g>
+            <g class="box"><rect x="510" y="48" width="200" height="44" rx="8"/><text x="610" y="68" text-anchor="middle">Message</text><text x="610" y="84" text-anchor="middle" class="small">build response JSON + ERP ACK</text></g>
+            <g class="term"><rect x="740" y="48" width="120" height="44" rx="8"/><text x="800" y="74" text-anchor="middle" class="label">Return Documents</text></g>
+            <path stroke="currentColor" stroke-width="1.5" fill="none" marker-end="url(#ah4)" d="M130 70 L160 70"/>
+            <path stroke="currentColor" stroke-width="1.5" fill="none" marker-end="url(#ah4)" d="M330 70 L360 70"/>
+            <path stroke="currentColor" stroke-width="1.5" fill="none" marker-end="url(#ah4)" d="M480 70 L510 70"/>
+            <path stroke="currentColor" stroke-width="1.5" fill="none" marker-end="url(#ah4)" d="M710 70 L740 70"/>
+          </svg>
+          <div class="diagram-caption" data-i18n="diag4">Figure 4 — Order Update process canvas (5 shapes).</div>
+        </div>
+
+        <h3 data-i18n="confnum-title">Confirmation number formula</h3>
+        <p>
+          <span class="lang-only lang-en">Built deterministically by Set Properties as <code class="inline">"RSC-" + DDP_ORDER_ID + "-" + currentDate("yyyyMMddHHmmss")</code>. Real systems would generate a UUID or a sequence from the ERP — this format is human-friendly and traceable for the demo.</span>
+          <span class="lang-only lang-th">สร้างอย่างเป็นระบบโดย Set Properties: <code class="inline">"RSC-" + DDP_ORDER_ID + "-" + currentDate("yyyyMMddHHmmss")</code> ระบบจริงจะใช้ UUID หรือลำดับจาก ERP รูปแบบนี้อ่านง่ายและตรวจสอบได้สำหรับเดโม</span>
+          <span class="lang-only lang-fil">Ginawa nang deterministic ng Set Properties bilang <code class="inline">"RSC-" + DDP_ORDER_ID + "-" + currentDate("yyyyMMddHHmmss")</code>. Sa totoong sistema, gagawa ng UUID o sequence mula sa ERP — friendly at traceable ang format na ito para sa demo.</span>
+          <span class="lang-only lang-id">Dibangun secara deterministik oleh Set Properties sebagai <code class="inline">"RSC-" + DDP_ORDER_ID + "-" + currentDate("yyyyMMddHHmmss")</code>. Sistem nyata akan menghasilkan UUID atau urutan dari ERP — format ini ramah pengguna dan dapat dilacak untuk demo.</span>
+        </p>
+
+        <h3 data-i18n="components-title2">Components used</h3>
+        <table class="spec">
+          <thead><tr><th>Type</th><th>Name</th><th>ID</th></tr></thead>
+          <tbody>
+            <tr><td>JSON profile (request)</td><td>j.ElectroMart.UpdateOrder.REQ</td><td><code class="inline">ac03f0ae-…</code></td></tr>
+            <tr><td>JSON profile (response)</td><td>j.ElectroMart.UpdateOrder.RESP</td><td><code class="inline">df2ffeab-…</code></td></tr>
+            <tr><td>WSS operation</td><td>WSS_UpdateElectroMartOrder_Op (UPDATE)</td><td><code class="inline">ce8ff95c-…</code></td></tr>
+            <tr><td>Process</td><td>ElectroMart_OrderUpdate_API</td><td><code class="inline">49a8630e-…</code></td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- ============================ API REFERENCE ============================ -->
+      <section id="api-ref">
+        <h2 data-i18n="api-title">API Reference</h2>
+
+        <h3>POST <code class="inline">/ws/simple/queryElectroMartOrder</code></h3>
+        <p>
+          <span class="lang-only lang-en">Returns full order details for a given order ID, or a 404-style payload if not found.</span>
+          <span class="lang-only lang-th">ส่งคืนรายละเอียดคำสั่งซื้อสำหรับ ID ที่ระบุ หรือเพย์โหลดแบบ 404 หากไม่พบ</span>
+          <span class="lang-only lang-fil">Ibinabalik ang buong detalye ng order para sa isang order ID, o 404-style na payload kapag wala.</span>
+          <span class="lang-only lang-id">Mengembalikan detail pesanan lengkap untuk ID pesanan yang diberikan, atau muatan gaya-404 jika tidak ditemukan.</span>
+        </p>
+<pre>POST /ws/simple/queryElectroMartOrder
+Content-Type: application/json
+Authorization: Basic &lt;atom-user:atom-password&gt;
+
+{
+  "orderId": "ORD-12345"
+}</pre>
+<pre>200 OK
+Content-Type: application/json
+
+{
+  "orderId": "ORD-12345",
+  "customerName": "Aarav Sharma",
+  "customerEmail": "aarav.sharma@example.in",
+  "customerPhone": "+91-98401-23456",
+  "shippingAddress": "12, Anna Salai, T. Nagar, Chennai, TN 600017",
+  "orderDate": "2026-05-02",
+  "items": [{ "sku": "APL-IPH15-256", "name": "Apple iPhone 15 (256GB, Blue)",
+              "qty": 1, "price": 79999 }],
+  "subtotal": 79999, "tax": 14400, "total": 94399, "currency": "INR",
+  "status": "CONFIRMED", "paymentStatus": "PAID",
+  "deliveryDate": "2026-05-15",
+  "warehouse": "Chennai-CHN01", "trackingNumber": null
+}</pre>
+
+        <h3>POST <code class="inline">/ws/simple/updateElectroMartOrder</code></h3>
+        <p>
+          <span class="lang-only lang-en">Reschedules the delivery date for an order. Returns a confirmation number and ERP/SAP sync status.</span>
+          <span class="lang-only lang-th">เปลี่ยนวันส่งสำหรับคำสั่งซื้อ ส่งคืนหมายเลขยืนยันและสถานะการซิงค์ ERP/SAP</span>
+          <span class="lang-only lang-fil">Ire-reschedule ang delivery date ng order. Ibinabalik ang confirmation number at status ng ERP/SAP sync.</span>
+          <span class="lang-only lang-id">Menjadwalkan ulang tanggal pengiriman untuk pesanan. Mengembalikan nomor konfirmasi dan status sinkronisasi ERP/SAP.</span>
+        </p>
+<pre>POST /ws/simple/updateElectroMartOrder
+Content-Type: application/json
+Authorization: Basic &lt;atom-user:atom-password&gt;
+
+{
+  "orderId": "ORD-12345",
+  "newDeliveryDate": "2026-05-25"
+}</pre>
+<pre>200 OK
+Content-Type: application/json
+
+{
+  "status": "SUCCESS",
+  "orderId": "ORD-12345",
+  "newDeliveryDate": "2026-05-25",
+  "confirmationNumber": "RSC-ORD-12345-20260507143012",
+  "erpSyncStatus": "ACK",
+  "message": "Delivery date updated and synced to ERP (mock SAP S/4HANA endpoint).",
+  "updatedAt": "2026-05-07T14:30:12+05:30"
+}</pre>
+      </section>
+
+      <!-- ============================ FRONTEND ============================ -->
+      <section id="frontend">
+        <h2 data-i18n="fe-title">Frontend — single-page app</h2>
+        <p>
+          <span class="lang-only lang-en">Pure HTML/CSS/JS, no frameworks. Two backend modes:</span>
+          <span class="lang-only lang-th">HTML/CSS/JS ล้วน ไม่มีเฟรมเวิร์ก สองโหมด backend:</span>
+          <span class="lang-only lang-fil">Purong HTML/CSS/JS, walang framework. Dalawang backend mode:</span>
+          <span class="lang-only lang-id">HTML/CSS/JS murni, tanpa framework. Dua mode backend:</span>
+        </p>
+        <ul>
+          <li>
+            <span class="lang-only lang-en"><strong>Mock</strong> — orders embedded in <code class="inline">index.html</code>; works offline; mutations are kept in memory until refresh. Default mode.</span>
+            <span class="lang-only lang-th"><strong>Mock</strong> — คำสั่งซื้อฝังใน <code class="inline">index.html</code> ทำงานออฟไลน์ การเปลี่ยนแปลงเก็บในหน่วยความจำจนกว่าจะรีเฟรช (โหมดเริ่มต้น)</span>
+            <span class="lang-only lang-fil"><strong>Mock</strong> — naka-embed ang mga order sa <code class="inline">index.html</code>, gumagana offline, in-memory ang mutations hanggang sa magrefresh. Default mode.</span>
+            <span class="lang-only lang-id"><strong>Mock</strong> — pesanan tertanam dalam <code class="inline">index.html</code>, bekerja offline, perubahan disimpan di memori sampai refresh. Mode default.</span>
+          </li>
+          <li>
+            <span class="lang-only lang-en"><strong>Boomi API</strong> — calls the deployed WSS endpoints over HTTPS with Basic auth.</span>
+            <span class="lang-only lang-th"><strong>Boomi API</strong> — เรียก WSS endpoint ที่ deploy ผ่าน HTTPS พร้อม Basic auth</span>
+            <span class="lang-only lang-fil"><strong>Boomi API</strong> — tinatawag ang naka-deploy na WSS endpoint sa HTTPS gamit ang Basic auth.</span>
+            <span class="lang-only lang-id"><strong>Boomi API</strong> — memanggil endpoint WSS yang ter-deploy melalui HTTPS dengan Basic auth.</span>
+          </li>
+        </ul>
+        <p>
+          <span class="lang-only lang-en">Theme and language preferences are persisted in <code class="inline">localStorage</code>.</span>
+          <span class="lang-only lang-th">การตั้งค่าธีมและภาษาถูกบันทึกใน <code class="inline">localStorage</code></span>
+          <span class="lang-only lang-fil">Naka-save sa <code class="inline">localStorage</code> ang theme at language preferences.</span>
+          <span class="lang-only lang-id">Preferensi tema dan bahasa disimpan di <code class="inline">localStorage</code>.</span>
+        </p>
+      </section>
+
+      <!-- ============================ DATA MODEL ============================ -->
+      <section id="data-model">
+        <h2 data-i18n="data-title">Sample data model</h2>
+        <p>
+          <span class="lang-only lang-en">Five orders ship with the demo (file: <code class="inline">sample-data/orders.json</code>):</span>
+          <span class="lang-only lang-th">มาพร้อมเดโม 5 คำสั่งซื้อ (ไฟล์: <code class="inline">sample-data/orders.json</code>):</span>
+          <span class="lang-only lang-fil">Limang order ang kasama sa demo (file: <code class="inline">sample-data/orders.json</code>):</span>
+          <span class="lang-only lang-id">Lima pesanan disertakan dalam demo (file: <code class="inline">sample-data/orders.json</code>):</span>
+        </p>
+        <table class="spec">
+          <thead><tr><th>Order ID</th><th>Customer</th><th>Product</th><th>Total (₹)</th><th>Status</th><th>Delivery</th></tr></thead>
+          <tbody>
+            <tr><td>ORD-12345</td><td>Aarav Sharma</td><td>iPhone 15 256GB</td><td>94,399</td><td>CONFIRMED</td><td>2026-05-15</td></tr>
+            <tr><td>ORD-67890</td><td>Priya Iyer</td><td>Dell XPS 15 + MX Master</td><td>1,16,818</td><td>SHIPPED</td><td>2026-05-09</td></tr>
+            <tr><td>ORD-24680</td><td>Rahul Krishnan</td><td>Galaxy S24 Ultra + Buds3 Pro</td><td>1,88,798</td><td>PICKED_PACKED</td><td>2026-05-18</td></tr>
+            <tr><td>ORD-13579</td><td>Meera Venkatesh</td><td>Sony WH-1000XM5 + Anker PB</td><td>57,808</td><td>DELIVERED</td><td>2026-04-22</td></tr>
+            <tr><td>ORD-99001</td><td>Karthik Subramanian</td><td>LG OLED55C4 + Sony A7000</td><td>3,30,376</td><td>PROCESSING</td><td>2026-05-20</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- ============================ DEPLOYMENT ============================ -->
+      <section id="deployment">
+        <h2 data-i18n="deploy-title">Deployment</h2>
+        <ol>
+          <li>
+            <span class="lang-only lang-en">Create Boomi folder <code class="inline">ElectroMart-OrderToCash</code>.</span>
+            <span class="lang-only lang-th">สร้างโฟลเดอร์ Boomi <code class="inline">ElectroMart-OrderToCash</code></span>
+            <span class="lang-only lang-fil">Gumawa ng Boomi folder na <code class="inline">ElectroMart-OrderToCash</code>.</span>
+            <span class="lang-only lang-id">Buat folder Boomi <code class="inline">ElectroMart-OrderToCash</code>.</span>
+          </li>
+          <li>
+            <span class="lang-only lang-en">Push profiles → operations → processes (in dependency order).</span>
+            <span class="lang-only lang-th">Push profiles → operations → processes (ตามลำดับ dependency)</span>
+            <span class="lang-only lang-fil">I-push ang profiles → operations → processes (ayon sa dependency order).</span>
+            <span class="lang-only lang-id">Dorong profil → operasi → proses (sesuai urutan dependensi).</span>
+          </li>
+          <li>
+            <span class="lang-only lang-en">Deploy each process to your runtime environment.</span>
+            <span class="lang-only lang-th">Deploy แต่ละ process ไปยัง environment ที่ใช้งาน</span>
+            <span class="lang-only lang-fil">I-deploy ang bawat process sa runtime environment.</span>
+            <span class="lang-only lang-id">Deploy setiap proses ke lingkungan runtime Anda.</span>
+          </li>
+          <li>
+            <span class="lang-only lang-en">For public exposure, front the atom with <strong>Boomi API Management</strong>: define an API component, attach the WSS operations, set OAuth2/API key policies, rate limits, and CORS headers.</span>
+            <span class="lang-only lang-th">หากต้องการเปิดสู่สาธารณะ ให้นำ <strong>Boomi API Management</strong> มาคลุม atom: กำหนด API component, แนบ WSS operations, ตั้งนโยบาย OAuth2/API key, rate limit และ CORS headers</span>
+            <span class="lang-only lang-fil">Para sa pampublikong exposure, dapat ilagay ang <strong>Boomi API Management</strong> sa harap ng atom: gumawa ng API component, i-attach ang WSS operations, mag-set ng OAuth2/API key policies, rate limits, at CORS headers.</span>
+            <span class="lang-only lang-id">Untuk publikasi publik, taruh <strong>Boomi API Management</strong> di depan atom: tentukan komponen API, lampirkan operasi WSS, atur kebijakan OAuth2/API key, batas laju, dan header CORS.</span>
+          </li>
+        </ol>
+        <pre># From the workspace root:
+bash scripts/boomi-folder-create.sh "ElectroMart-OrderToCash" --parent-folder-id &lt;parent&gt;
+bash scripts/boomi-component-create.sh active-development/profiles/j.ElectroMart.OrderLookup.REQ.xml
+bash scripts/boomi-component-create.sh active-development/profiles/j.ElectroMart.OrderLookup.RESP.xml
+bash scripts/boomi-component-create.sh active-development/profiles/j.ElectroMart.UpdateOrder.REQ.xml
+bash scripts/boomi-component-create.sh active-development/profiles/j.ElectroMart.UpdateOrder.RESP.xml
+bash scripts/boomi-component-create.sh active-development/operations/WSS_GetElectroMartOrder_Op.xml
+bash scripts/boomi-component-create.sh active-development/operations/WSS_UpdateElectroMartOrder_Op.xml
+bash scripts/boomi-component-create.sh active-development/processes/ElectroMart_OrderLookup_API.xml
+bash scripts/boomi-component-create.sh active-development/processes/ElectroMart_OrderUpdate_API.xml
+bash scripts/boomi-deploy.sh active-development/processes/ElectroMart_OrderLookup_API.xml
+bash scripts/boomi-deploy.sh active-development/processes/ElectroMart_OrderUpdate_API.xml</pre>
+      </section>
+
+      <!-- ============================ EXTENSIONS ============================ -->
+      <section id="extensions">
+        <h2 data-i18n="ext-title">Extensions &amp; SAP integration</h2>
+        <p>
+          <span class="lang-only lang-en">The Boomi platform ships connectors for production-grade retail backends. Common upgrades from this demo:</span>
+          <span class="lang-only lang-th">Boomi platform มี connector สำหรับ retail backend ระดับโปรดักชัน การยกระดับทั่วไปจากเดโมนี้:</span>
+          <span class="lang-only lang-fil">May mga connector ang Boomi platform para sa production-grade na retail backend. Mga karaniwang upgrade mula sa demo na ito:</span>
+          <span class="lang-only lang-id">Platform Boomi menyediakan konektor untuk backend retail kelas produksi. Peningkatan umum dari demo ini:</span>
+        </p>
+        <ul>
+          <li>
+            <span class="lang-only lang-en"><strong>Boomi for SAP</strong> — replace the Message-step "mock SAP" with a real SAP connector call to <code class="inline">SalesOrder</code>/<code class="inline">DeliveryDocument</code> BAPIs or RFCs. Map our JSON to <code class="inline">VBAK/VBAP</code> structures.</span>
+            <span class="lang-only lang-th"><strong>Boomi for SAP</strong> — เปลี่ยน Message step "mock SAP" เป็นการเรียก SAP connector จริงไปยัง <code class="inline">SalesOrder</code>/<code class="inline">DeliveryDocument</code> BAPI หรือ RFC แมป JSON ของเราไปยัง <code class="inline">VBAK/VBAP</code></span>
+            <span class="lang-only lang-fil"><strong>Boomi for SAP</strong> — palitan ang Message-step na "mock SAP" ng tunay na SAP connector call patungo sa <code class="inline">SalesOrder</code>/<code class="inline">DeliveryDocument</code> BAPIs o RFCs. I-map ang JSON natin sa <code class="inline">VBAK/VBAP</code> structures.</span>
+            <span class="lang-only lang-id"><strong>Boomi for SAP</strong> — ganti langkah Message "mock SAP" dengan panggilan konektor SAP nyata ke BAPI/RFC <code class="inline">SalesOrder</code>/<code class="inline">DeliveryDocument</code>. Petakan JSON kami ke struktur <code class="inline">VBAK/VBAP</code>.</span>
+          </li>
+          <li>
+            <span class="lang-only lang-en"><strong>Real-time inventory</strong> — add a Database V2 step (or REST call to a stock service) before the Route step to verify stock at the customer's pincode and reject the reschedule if a SLA can't be honoured.</span>
+            <span class="lang-only lang-th"><strong>สต็อกเรียลไทม์</strong> — เพิ่ม Database V2 step (หรือเรียก REST ไปยัง stock service) ก่อน Route step เพื่อตรวจสอบสต็อกตามรหัสไปรษณีย์ของลูกค้า และปฏิเสธการเปลี่ยนกำหนดส่งหากไม่สามารถรับประกัน SLA ได้</span>
+            <span class="lang-only lang-fil"><strong>Real-time inventory</strong> — magdagdag ng Database V2 step (o REST call sa stock service) bago ang Route step para mai-verify ang stock sa pincode ng customer at i-reject ang reschedule kung hindi makakamit ang SLA.</span>
+            <span class="lang-only lang-id"><strong>Inventaris real-time</strong> — tambahkan langkah Database V2 (atau panggilan REST ke layanan stok) sebelum Route step untuk memverifikasi stok di pincode pelanggan dan menolak penjadwalan ulang jika SLA tidak dapat dipenuhi.</span>
+          </li>
+          <li>
+            <span class="lang-only lang-en"><strong>Notifications</strong> — wire a Mail or Slack/MS Teams connector after Return Documents to notify customer (email) and operations (Slack) on every reschedule.</span>
+            <span class="lang-only lang-th"><strong>การแจ้งเตือน</strong> — เชื่อม Mail หรือ Slack/MS Teams connector หลัง Return Documents เพื่อแจ้งลูกค้า (อีเมล) และทีมปฏิบัติการ (Slack) ทุกครั้งที่มีการเปลี่ยนกำหนด</span>
+            <span class="lang-only lang-fil"><strong>Notifications</strong> — kabitin ang Mail o Slack/MS Teams connector pagkatapos ng Return Documents para mag-abiso sa customer (email) at operations (Slack) sa bawat reschedule.</span>
+            <span class="lang-only lang-id"><strong>Notifikasi</strong> — sambungkan konektor Mail atau Slack/MS Teams setelah Return Documents untuk memberi tahu pelanggan (email) dan operasi (Slack) pada setiap penjadwalan ulang.</span>
+          </li>
+          <li>
+            <span class="lang-only lang-en"><strong>Boomi DataHub</strong> — promote customer + order to master records so Salesforce, SAP, and the carrier system stay aligned.</span>
+            <span class="lang-only lang-th"><strong>Boomi DataHub</strong> — ส่งเสริมข้อมูลลูกค้าและคำสั่งซื้อเป็นข้อมูลแม่บท เพื่อให้ Salesforce, SAP และระบบขนส่งสอดคล้องกัน</span>
+            <span class="lang-only lang-fil"><strong>Boomi DataHub</strong> — i-promote ang customer + order bilang master records para magkapareho ang Salesforce, SAP, at carrier system.</span>
+            <span class="lang-only lang-id"><strong>Boomi DataHub</strong> — promosikan pelanggan + pesanan ke record master agar Salesforce, SAP, dan sistem kurir tetap selaras.</span>
+          </li>
+          <li>
+            <span class="lang-only lang-en"><strong>Boomi API Management</strong> — for public-facing scenarios, attach OAuth2 client credentials, throttling, and CORS via the API Gateway.</span>
+            <span class="lang-only lang-th"><strong>Boomi API Management</strong> — สำหรับการใช้งานสาธารณะ แนบ OAuth2 client credentials, throttling และ CORS ผ่าน API Gateway</span>
+            <span class="lang-only lang-fil"><strong>Boomi API Management</strong> — para sa pampublikong scenario, mag-attach ng OAuth2 client credentials, throttling, at CORS sa API Gateway.</span>
+            <span class="lang-only lang-id"><strong>Boomi API Management</strong> — untuk skenario publik, lampirkan OAuth2 client credentials, throttling, dan CORS melalui API Gateway.</span>
+          </li>
+        </ul>
+      </section>
+
+      <!-- ============================ TESTING ============================ -->
+      <section id="testing">
+        <h2 data-i18n="test-title">Testing &amp; Postman</h2>
+        <p>
+          <span class="lang-only lang-en">A Postman v2.1 collection ships at <code class="inline">postman/ElectroMart-O2C.postman_collection.json</code>. Set three collection variables: <code class="inline">baseUrl</code>, <code class="inline">boomiUser</code>, and <code class="inline">boomiPass</code>.</span>
+          <span class="lang-only lang-th">มี Postman collection v2.1 ที่ <code class="inline">postman/ElectroMart-O2C.postman_collection.json</code> ตั้งค่าตัวแปร: <code class="inline">baseUrl</code>, <code class="inline">boomiUser</code>, <code class="inline">boomiPass</code></span>
+          <span class="lang-only lang-fil">May Postman v2.1 collection sa <code class="inline">postman/ElectroMart-O2C.postman_collection.json</code>. Mag-set ng tatlong variable: <code class="inline">baseUrl</code>, <code class="inline">boomiUser</code>, at <code class="inline">boomiPass</code>.</span>
+          <span class="lang-only lang-id">Tersedia koleksi Postman v2.1 di <code class="inline">postman/ElectroMart-O2C.postman_collection.json</code>. Atur tiga variabel: <code class="inline">baseUrl</code>, <code class="inline">boomiUser</code>, dan <code class="inline">boomiPass</code>.</span>
+        </p>
+<pre># Quick curl smoke test
+curl -u "$BOOMI_USER:$BOOMI_PASS" \
+  -H "Content-Type: application/json" \
+  -d '{"orderId":"ORD-12345"}' \
+  https://c03-usa-east.integrate.boomi.com/ws/simple/queryElectroMartOrder
+
+curl -u "$BOOMI_USER:$BOOMI_PASS" \
+  -H "Content-Type: application/json" \
+  -d '{"orderId":"ORD-12345","newDeliveryDate":"2026-05-25"}' \
+  https://c03-usa-east.integrate.boomi.com/ws/simple/updateElectroMartOrder</pre>
+      </section>
+
+      <div class="footer-bar">
+        <span class="lang-only lang-en">Built with Boomi iPaaS · Asia/Kolkata IST · 2026</span>
+        <span class="lang-only lang-th">สร้างด้วย Boomi iPaaS · เวลาอินเดีย IST · 2026</span>
+        <span class="lang-only lang-fil">Gawa gamit ang Boomi iPaaS · Asia/Kolkata IST · 2026</span>
+        <span class="lang-only lang-id">Dibangun dengan Boomi iPaaS · Asia/Kolkata IST · 2026</span>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    /* ===== i18n labels for sidebar nav and section headings ===== */
+    const I18N = {
+      en: {
+        "nav-product": "Product",
+        "nav-overview": "Overview",
+        "nav-architecture": "Architecture",
+        "nav-o2c": "O2C Flow",
+        "nav-boomi": "Boomi Integration",
+        "nav-lookup": "Order Lookup process",
+        "nav-update": "Order Update process",
+        "nav-api": "API Reference",
+        "nav-frontend": "Frontend",
+        "nav-spa": "Single-page app",
+        "nav-data": "Sample data model",
+        "nav-ops": "Operations",
+        "nav-deploy": "Deployment",
+        "nav-extensions": "Extensions & SAP",
+        "nav-testing": "Testing & Postman",
+        "nav-back": "← Back to portal",
+        "title": "ElectroMart Order-to-Cash — Reference Demo",
+        "arch-title": "Architecture",
+        "o2c-title": "The Order-to-Cash flow",
+        "proc-lookup-title": "Boomi Process — Order Lookup",
+        "proc-update-title": "Boomi Process — Order Update",
+        "components-title": "Components used",
+        "components-title2": "Components used",
+        "confnum-title": "Confirmation number formula",
+        "api-title": "API Reference",
+        "fe-title": "Frontend — single-page app",
+        "data-title": "Sample data model",
+        "deploy-title": "Deployment",
+        "ext-title": "Extensions & SAP integration",
+        "test-title": "Testing & Postman",
+        "diag1": "Figure 1 — End-to-end system topology.",
+        "diag2": "Figure 2 — O2C pipeline with reschedule eligibility windows.",
+        "diag3": "Figure 3 — Order Lookup process canvas (10 shapes).",
+        "diag4": "Figure 4 — Order Update process canvas (5 shapes)."
+      },
+      th: {
+        "nav-product": "ผลิตภัณฑ์",
+        "nav-overview": "ภาพรวม",
+        "nav-architecture": "สถาปัตยกรรม",
+        "nav-o2c": "การไหล O2C",
+        "nav-boomi": "การผสานกับ Boomi",
+        "nav-lookup": "กระบวนการค้นหาคำสั่งซื้อ",
+        "nav-update": "กระบวนการอัปเดตคำสั่งซื้อ",
+        "nav-api": "API Reference",
+        "nav-frontend": "Frontend",
+        "nav-spa": "แอปแบบ Single Page",
+        "nav-data": "โมเดลข้อมูลตัวอย่าง",
+        "nav-ops": "การดำเนินงาน",
+        "nav-deploy": "การ Deploy",
+        "nav-extensions": "ส่วนขยายและ SAP",
+        "nav-testing": "การทดสอบและ Postman",
+        "nav-back": "← กลับไปยังพอร์ทัล",
+        "title": "ElectroMart Order-to-Cash — เดโมอ้างอิง",
+        "arch-title": "สถาปัตยกรรม",
+        "o2c-title": "การไหล Order-to-Cash",
+        "proc-lookup-title": "Boomi Process — ค้นหาคำสั่งซื้อ",
+        "proc-update-title": "Boomi Process — อัปเดตคำสั่งซื้อ",
+        "components-title": "ส่วนประกอบที่ใช้",
+        "components-title2": "ส่วนประกอบที่ใช้",
+        "confnum-title": "สูตรหมายเลขยืนยัน",
+        "api-title": "API Reference",
+        "fe-title": "Frontend — แอปแบบ Single Page",
+        "data-title": "โมเดลข้อมูลตัวอย่าง",
+        "deploy-title": "การ Deploy",
+        "ext-title": "ส่วนขยายและการเชื่อมต่อ SAP",
+        "test-title": "การทดสอบและ Postman",
+        "diag1": "ภาพ 1 — โครงสร้างระบบแบบครบวงจร",
+        "diag2": "ภาพ 2 — ไปป์ไลน์ O2C พร้อมหน้าต่างที่อนุญาตให้เปลี่ยนกำหนดส่ง",
+        "diag3": "ภาพ 3 — แคนวาส Order Lookup (10 รูปทรง)",
+        "diag4": "ภาพ 4 — แคนวาส Order Update (5 รูปทรง)"
+      },
+      fil: {
+        "nav-product": "Produkto",
+        "nav-overview": "Pangkalahatan",
+        "nav-architecture": "Arkitektura",
+        "nav-o2c": "Daloy ng O2C",
+        "nav-boomi": "Boomi Integration",
+        "nav-lookup": "Proseso ng Order Lookup",
+        "nav-update": "Proseso ng Order Update",
+        "nav-api": "API Reference",
+        "nav-frontend": "Frontend",
+        "nav-spa": "Single-page app",
+        "nav-data": "Sample data model",
+        "nav-ops": "Operasyon",
+        "nav-deploy": "Deployment",
+        "nav-extensions": "Extensions at SAP",
+        "nav-testing": "Pagsubok at Postman",
+        "nav-back": "← Bumalik sa portal",
+        "title": "ElectroMart Order-to-Cash — Reference Demo",
+        "arch-title": "Arkitektura",
+        "o2c-title": "Ang daloy ng Order-to-Cash",
+        "proc-lookup-title": "Boomi Process — Order Lookup",
+        "proc-update-title": "Boomi Process — Order Update",
+        "components-title": "Mga ginamit na component",
+        "components-title2": "Mga ginamit na component",
+        "confnum-title": "Pormula ng confirmation number",
+        "api-title": "API Reference",
+        "fe-title": "Frontend — single-page app",
+        "data-title": "Sample data model",
+        "deploy-title": "Deployment",
+        "ext-title": "Extensions at SAP integration",
+        "test-title": "Pagsubok at Postman",
+        "diag1": "Larawan 1 — End-to-end na system topology.",
+        "diag2": "Larawan 2 — Pipeline ng O2C na may reschedule eligibility windows.",
+        "diag3": "Larawan 3 — Canvas ng Order Lookup process (10 shape).",
+        "diag4": "Larawan 4 — Canvas ng Order Update process (5 shape)."
+      },
+      id: {
+        "nav-product": "Produk",
+        "nav-overview": "Ringkasan",
+        "nav-architecture": "Arsitektur",
+        "nav-o2c": "Alur O2C",
+        "nav-boomi": "Integrasi Boomi",
+        "nav-lookup": "Proses Order Lookup",
+        "nav-update": "Proses Order Update",
+        "nav-api": "API Reference",
+        "nav-frontend": "Frontend",
+        "nav-spa": "Aplikasi satu halaman",
+        "nav-data": "Model data sampel",
+        "nav-ops": "Operasi",
+        "nav-deploy": "Deployment",
+        "nav-extensions": "Ekstensi & SAP",
+        "nav-testing": "Pengujian & Postman",
+        "nav-back": "← Kembali ke portal",
+        "title": "ElectroMart Order-to-Cash — Demo Referensi",
+        "arch-title": "Arsitektur",
+        "o2c-title": "Alur Order-to-Cash",
+        "proc-lookup-title": "Boomi Process — Order Lookup",
+        "proc-update-title": "Boomi Process — Order Update",
+        "components-title": "Komponen yang digunakan",
+        "components-title2": "Komponen yang digunakan",
+        "confnum-title": "Formula nomor konfirmasi",
+        "api-title": "API Reference",
+        "fe-title": "Frontend — aplikasi satu halaman",
+        "data-title": "Model data sampel",
+        "deploy-title": "Deployment",
+        "ext-title": "Ekstensi & integrasi SAP",
+        "test-title": "Pengujian & Postman",
+        "diag1": "Gambar 1 — Topologi sistem ujung-ke-ujung.",
+        "diag2": "Gambar 2 — Pipeline O2C dengan jendela kelayakan penjadwalan ulang.",
+        "diag3": "Gambar 3 — Kanvas proses Order Lookup (10 shape).",
+        "diag4": "Gambar 4 — Kanvas proses Order Update (5 shape)."
+      }
+    };
+
+    function applyLang(lang) {
+      document.body.dataset.lang = lang;
+      document.documentElement.lang = lang;
+      const dict = I18N[lang] || I18N.en;
+      document.querySelectorAll("[data-i18n]").forEach(el => {
+        const key = el.getAttribute("data-i18n");
+        if (dict[key]) el.textContent = dict[key];
+      });
+      localStorage.setItem("electromart.docs.lang", lang);
+    }
+
+    function applyTheme(theme) {
+      document.body.dataset.theme = theme;
+      document.getElementById("themeToggle").textContent = theme === "dark" ? "☀️" : "🌙";
+      localStorage.setItem("electromart.docs.theme", theme);
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const savedLang = localStorage.getItem("electromart.docs.lang") || "en";
+      const savedTheme = localStorage.getItem("electromart.docs.theme") ||
+        (matchMedia && matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      document.getElementById("langSelect").value = savedLang;
+      applyLang(savedLang);
+      applyTheme(savedTheme);
+
+      document.getElementById("langSelect").addEventListener("change", (e) => applyLang(e.target.value));
+      document.getElementById("themeToggle").addEventListener("click", () => {
+        applyTheme(document.body.dataset.theme === "dark" ? "light" : "dark");
+      });
+
+      // TOC active link highlight via IntersectionObserver
+      const obs = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            document.querySelectorAll("nav.toc a").forEach(a => a.classList.remove("active"));
+            const link = document.querySelector(`nav.toc a[href="#${entry.target.id}"]`);
+            if (link) link.classList.add("active");
+          }
+        });
+      }, { rootMargin: "-30% 0% -60% 0%" });
+      document.querySelectorAll("main.content section").forEach(s => obs.observe(s));
+    });
+  </script>
+</body>
+</html>

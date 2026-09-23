@@ -1,0 +1,158 @@
+<mxfile host="app.diagrams.net" modified="2026-05-18T00:00:00.000Z" agent="Boomi Companion" version="22.1.0" type="device">
+  <diagram id="map1" name="Data Mapping">
+    <mxGraphModel dx="1422" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="900" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <!-- Title -->
+        <mxCell id="title" value="Data Transformation Map — JSON Order → ERP XML" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;fontStyle=1;fontColor=#1e40af;" vertex="1" parent="1">
+          <mxGeometry x="200" y="20" width="1000" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="subtitle" value="Each line is a single drag-and-drop connection in the Boomi map editor · No code · No loops" style="text;html=1;align=center;fontSize=12;fontStyle=2;fontColor=#4a5568;" vertex="1" parent="1">
+          <mxGeometry x="200" y="60" width="1000" height="20" as="geometry"/>
+        </mxCell>
+
+        <!-- SOURCE - JSON Profile -->
+        <mxCell id="srcHeader" value="SOURCE · JSON Profile&#10;j.NTTDemo.Order.REQ" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fde68a;strokeColor=#b45309;fontSize=14;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="80" y="100" width="280" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- Source fields - flat -->
+        <mxCell id="src_orderId" value="🔑 orderId  (string)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fffbeb;strokeColor=#f59e0b;fontSize=12;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="80" y="170" width="280" height="36" as="geometry"/>
+        </mxCell>
+        <mxCell id="src_customerName" value="👤 customerName  (string)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fffbeb;strokeColor=#f59e0b;fontSize=12;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="80" y="216" width="280" height="36" as="geometry"/>
+        </mxCell>
+        <mxCell id="src_email" value="📧 email  (string)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fffbeb;strokeColor=#f59e0b;fontSize=12;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="80" y="262" width="280" height="36" as="geometry"/>
+        </mxCell>
+        <mxCell id="src_orderDate" value="📅 orderDate  (string)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fffbeb;strokeColor=#f59e0b;fontSize=12;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="80" y="308" width="280" height="36" as="geometry"/>
+        </mxCell>
+
+        <!-- Source array container -->
+        <mxCell id="src_itemsContainer" value="🔁 items  [REPEATING ARRAY]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fef3c7;strokeColor=#b45309;fontSize=12;align=left;spacingLeft=10;fontStyle=1;verticalAlign=top;spacingTop=10;" vertex="1" parent="1">
+          <mxGeometry x="80" y="360" width="280" height="200" as="geometry"/>
+        </mxCell>
+        <mxCell id="src_sku" value="• sku  (string)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#f59e0b;fontSize=12;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="100" y="395" width="240" height="32" as="geometry"/>
+        </mxCell>
+        <mxCell id="src_desc" value="• description  (string)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#f59e0b;fontSize=12;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="100" y="435" width="240" height="32" as="geometry"/>
+        </mxCell>
+        <mxCell id="src_qty" value="• quantity  (number)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#f59e0b;fontSize=12;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="100" y="475" width="240" height="32" as="geometry"/>
+        </mxCell>
+        <mxCell id="src_price" value="• price  (number)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#f59e0b;fontSize=12;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="100" y="515" width="240" height="32" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="src_total" value="💰 totalAmount  (number)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fffbeb;strokeColor=#f59e0b;fontSize=12;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="80" y="580" width="280" height="36" as="geometry"/>
+        </mxCell>
+        <mxCell id="src_pay" value="💳 paymentMethod  (string)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fffbeb;strokeColor=#f59e0b;fontSize=12;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="80" y="626" width="280" height="36" as="geometry"/>
+        </mxCell>
+
+        <!-- TARGET - XML Profile -->
+        <mxCell id="tgtHeader" value="TARGET · XML Profile&#10;x.NTTDemo.Order.ERP" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#bbf7d0;strokeColor=#15803d;fontSize=14;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="100" width="280" height="50" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="tgt_orderId" value="&lt;OrderId&gt;  (string)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f0fdf4;strokeColor=#16a34a;fontSize=12;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="170" width="280" height="36" as="geometry"/>
+        </mxCell>
+        <mxCell id="tgt_orderDate" value="&lt;OrderDate&gt;  (string)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f0fdf4;strokeColor=#16a34a;fontSize=12;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="216" width="280" height="36" as="geometry"/>
+        </mxCell>
+
+        <!-- Customer container -->
+        <mxCell id="tgt_custContainer" value="&lt;Customer&gt;  [NESTED]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dcfce7;strokeColor=#15803d;fontSize=12;align=left;spacingLeft=10;fontStyle=1;verticalAlign=top;spacingTop=10;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="265" width="280" height="100" as="geometry"/>
+        </mxCell>
+        <mxCell id="tgt_name" value="&lt;Name&gt;  (string)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#16a34a;fontSize=12;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="1020" y="295" width="240" height="32" as="geometry"/>
+        </mxCell>
+        <mxCell id="tgt_email" value="&lt;Email&gt;  (string)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#16a34a;fontSize=12;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="1020" y="332" width="240" height="32" as="geometry"/>
+        </mxCell>
+
+        <!-- Items container -->
+        <mxCell id="tgt_itemsContainer" value="&lt;Items&gt; → &lt;Item&gt; [REPEATING]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fef3c7;strokeColor=#b45309;fontSize=12;align=left;spacingLeft=10;fontStyle=1;verticalAlign=top;spacingTop=10;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="380" width="280" height="200" as="geometry"/>
+        </mxCell>
+        <mxCell id="tgt_sku" value="• &lt;SKU&gt;  (string)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#16a34a;fontSize=12;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="1020" y="415" width="240" height="32" as="geometry"/>
+        </mxCell>
+        <mxCell id="tgt_desc" value="• &lt;Description&gt;  (string)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#16a34a;fontSize=12;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="1020" y="455" width="240" height="32" as="geometry"/>
+        </mxCell>
+        <mxCell id="tgt_qty" value="• &lt;Quantity&gt;  (number)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#16a34a;fontSize=12;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="1020" y="495" width="240" height="32" as="geometry"/>
+        </mxCell>
+        <mxCell id="tgt_price" value="• &lt;Price&gt;  (number)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#16a34a;fontSize=12;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="1020" y="535" width="240" height="32" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="tgt_total" value="&lt;TotalAmount&gt;  (number)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f0fdf4;strokeColor=#16a34a;fontSize=12;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="600" width="280" height="36" as="geometry"/>
+        </mxCell>
+        <mxCell id="tgt_pay" value="&lt;PaymentMethod&gt;  (string)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f0fdf4;strokeColor=#16a34a;fontSize=12;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="646" width="280" height="36" as="geometry"/>
+        </mxCell>
+
+        <!-- MAPPING ARROWS -->
+        <mxCell id="m1" style="endArrow=classic;html=1;rounded=0;strokeWidth=2;strokeColor=#1e40af;" edge="1" parent="1" source="src_orderId" target="tgt_orderId">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="m2" style="endArrow=classic;html=1;rounded=0;strokeWidth=2;strokeColor=#1e40af;" edge="1" parent="1" source="src_customerName" target="tgt_name">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="m3" style="endArrow=classic;html=1;rounded=0;strokeWidth=2;strokeColor=#1e40af;" edge="1" parent="1" source="src_email" target="tgt_email">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="m4" style="endArrow=classic;html=1;rounded=0;strokeWidth=2;strokeColor=#1e40af;" edge="1" parent="1" source="src_orderDate" target="tgt_orderDate">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="m5" style="endArrow=classic;html=1;rounded=0;strokeWidth=3;strokeColor=#dc2626;" edge="1" parent="1" source="src_sku" target="tgt_sku">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="m6" style="endArrow=classic;html=1;rounded=0;strokeWidth=3;strokeColor=#dc2626;" edge="1" parent="1" source="src_desc" target="tgt_desc">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="m7" style="endArrow=classic;html=1;rounded=0;strokeWidth=3;strokeColor=#dc2626;" edge="1" parent="1" source="src_qty" target="tgt_qty">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="m8" style="endArrow=classic;html=1;rounded=0;strokeWidth=3;strokeColor=#dc2626;" edge="1" parent="1" source="src_price" target="tgt_price">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="m9" style="endArrow=classic;html=1;rounded=0;strokeWidth=2;strokeColor=#1e40af;" edge="1" parent="1" source="src_total" target="tgt_total">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="m10" style="endArrow=classic;html=1;rounded=0;strokeWidth=2;strokeColor=#1e40af;" edge="1" parent="1" source="src_pay" target="tgt_pay">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Center annotation - the magic -->
+        <mxCell id="magicBox" value="✨ THE MAGIC ✨&#10;&#10;Both sides marked&#10;'repeating'.&#10;Boomi auto-iterates.&#10;&#10;Map drawn ONCE.&#10;Engine emits N&#10;&lt;Item&gt; blocks for&#10;N input items." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fef2f2;strokeColor=#dc2626;fontSize=11;fontStyle=1;fontColor=#991b1b;align=center;verticalAlign=middle;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="500" y="430" width="380" height="120" as="geometry"/>
+        </mxCell>
+
+        <!-- Color legend -->
+        <mxCell id="legend1" value="🔵 Standard field-to-field mapping (drawn once, applied once)" style="text;html=1;align=center;fontSize=11;fontStyle=2;fontColor=#1e40af;" vertex="1" parent="1">
+          <mxGeometry x="80" y="710" width="600" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="legend2" value="🔴 Repeating-element mapping (drawn once, applied N times — one per array item)" style="text;html=1;align=center;fontSize=11;fontStyle=2;fontColor=#dc2626;" vertex="1" parent="1">
+          <mxGeometry x="80" y="730" width="600" height="20" as="geometry"/>
+        </mxCell>
+
+        <!-- Bottom callout -->
+        <mxCell id="callout" value="⚡ KEY INSIGHT FOR THE CEO:&#10;If the customer adds a 3rd line item, no code change is needed.&#10;Boomi sees the array and emits a 3rd &lt;Item&gt; block automatically.&#10;Same for 100 items, or 1000." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dbeafe;strokeColor=#1e40af;fontSize=12;align=left;verticalAlign=top;spacingLeft=15;spacingTop=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="80" y="770" width="1200" height="100" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

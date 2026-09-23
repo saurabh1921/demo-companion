@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ElectroMart — Track Order &amp; Reschedule Delivery</title>
+  <style>
+    /* ============== Theme Tokens ============== */
+    :root, [data-theme="light"] {
+      --brand: #0b5fff;
+      --brand-dark: #0846b8;
+      --bg: #f5f7fb;
+      --bg-grad-1: #0b5fff;
+      --bg-grad-2: #0846b8;
+      --card: #ffffff;
+      --text: #1d2433;
+      --text-on-brand: #ffffff;
+      --muted: #6b7280;
+      --border: #e4e7ee;
+      --input-bg: #ffffff;
+      --input-border: #e4e7ee;
+      --hint-bg: #fafbfd;
+      --table-head-bg: #fafbfd;
+      --success: #137e3c;
+      --warn: #b45309;
+      --error: #b42318;
+      --shadow: 0 6px 24px rgba(11, 95, 255, 0.08);
+      --calendar-day-hover: #eef3ff;
+      --radius: 12px;
+    }
+    [data-theme="dark"] {
+      --brand: #5b8cff;
+      --brand-dark: #80a8ff;
+      --bg: #0b0f17;
+      --bg-grad-1: #1a2b56;
+      --bg-grad-2: #0e1626;
+      --card: #131a26;
+      --text: #e8ecf3;
+      --text-on-brand: #ffffff;
+      --muted: #9aa6b8;
+      --border: #2a3344;
+      --input-bg: #0f1623;
+      --input-border: #2a3344;
+      --hint-bg: #182232;
+      --table-head-bg: #182232;
+      --success: #34d399;
+      --warn: #fbbf24;
+      --error: #f87171;
+      --shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
+      --calendar-day-hover: #1d2a44;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+
+    header {
+      background: linear-gradient(135deg, var(--bg-grad-1) 0%, var(--bg-grad-2) 100%);
+      color: #fff;
+      padding: 28px 24px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.18);
+      position: sticky;
+      top: 0;
+      z-index: 40;
+    }
+
+    header .wrap {
+      max-width: 1080px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .brand { display: flex; align-items: center; gap: 12px; }
+
+    .brand-mark {
+      width: 40px; height: 40px;
+      background: rgba(255,255,255,0.18);
+      border-radius: 10px;
+      display: grid; place-items: center;
+      font-size: 22px; font-weight: 800;
+    }
+
+    .brand h1 { margin: 0; font-size: 22px; font-weight: 700; letter-spacing: 0.2px; }
+    .brand p { margin: 0; font-size: 13px; opacity: 0.9; }
+
+    .header-controls {
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    }
+
+    .pill {
+      background: rgba(255,255,255,0.14);
+      border: 1px solid rgba(255,255,255,0.25);
+      padding: 0 14px;
+      height: 36px;
+      border-radius: 999px;
+      font-size: 13px;
+      display: inline-flex; align-items: center; gap: 8px;
+      color: #fff;
+      line-height: 1;
+    }
+
+    .pill select, .pill input {
+      background: rgba(255,255,255,0.96);
+      color: #1d2433;
+      border: none;
+      border-radius: 6px;
+      padding: 5px 8px;
+      font-size: 13px;
+      height: 26px;
+      line-height: 1;
+    }
+
+    .icon-btn {
+      width: 36px; height: 36px;
+      flex: 0 0 36px;
+      padding: 0;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.16);
+      border: 1px solid rgba(255,255,255,0.28);
+      color: #fff;
+      cursor: pointer;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 16px;
+      line-height: 1;
+      transition: background 0.15s, transform 0.1s;
+    }
+    .icon-btn:hover { background: rgba(255,255,255,0.28); }
+    .icon-btn:active { transform: scale(0.95); }
+
+    main {
+      max-width: 1080px;
+      margin: -16px auto 64px;
+      padding: 0 24px;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 28px;
+      margin-bottom: 22px;
+      border: 1px solid var(--border);
+      transition: background 0.3s ease, border-color 0.3s ease;
+    }
+
+    .card h2 { margin: 0 0 18px 0; font-size: 18px; }
+
+    .lookup-form { display: flex; gap: 12px; flex-wrap: wrap; }
+
+    .lookup-form input[type="text"] {
+      flex: 1 1 280px;
+      padding: 12px 14px;
+      font-size: 15px;
+      background: var(--input-bg);
+      color: var(--text);
+      border: 1px solid var(--input-border);
+      border-radius: 8px;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .lookup-form input[type="text"]:focus {
+      outline: none;
+      border-color: var(--brand);
+      box-shadow: 0 0 0 3px rgba(11,95,255,0.18);
+    }
+
+    button {
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 22px;
+      font-size: 15px;
+      transition: background 0.15s, transform 0.05s, opacity 0.15s;
+    }
+    button.primary { background: var(--brand); color: var(--text-on-brand); }
+    button.primary:hover { background: var(--brand-dark); }
+    button.primary:active { transform: translateY(1px); }
+    button.primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .quick-picks { margin-top: 14px; font-size: 13px; color: var(--muted); }
+    .quick-picks span { margin-right: 8px; }
+    .quick-picks a {
+      display: inline-block;
+      margin: 4px 6px 0 0;
+      padding: 4px 10px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: var(--hint-bg);
+      color: var(--brand);
+      text-decoration: none;
+      font-size: 12px;
+    }
+    .quick-picks a:hover { background: var(--calendar-day-hover); }
+
+    .order-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+    }
+    @media (max-width: 720px) {
+      .order-grid { grid-template-columns: 1fr; }
+      header .wrap { flex-direction: column; align-items: flex-start; }
+    }
+
+    .field-label {
+      font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--muted); margin-bottom: 4px;
+    }
+    .field-value { font-size: 15px; font-weight: 500; margin-bottom: 14px; word-break: break-word; }
+
+    .badge {
+      display: inline-block; padding: 3px 10px;
+      border-radius: 999px; font-size: 12px; font-weight: 600; letter-spacing: 0.02em;
+    }
+    .badge.confirmed   { background: #dbeafe; color: #1e3a8a; }
+    .badge.processing  { background: #fef3c7; color: #92400e; }
+    .badge.picked_packed { background: #ede9fe; color: #5b21b6; }
+    .badge.shipped     { background: #cffafe; color: #155e75; }
+    .badge.delivered   { background: #d1fae5; color: #065f46; }
+    .badge.cancelled   { background: #fee2e2; color: #991b1b; }
+    .badge.paid        { background: #d1fae5; color: #065f46; }
+    .badge.pending     { background: #fef3c7; color: #92400e; }
+    [data-theme="dark"] .badge.confirmed     { background: #1e3a8a55; color: #93c5fd; }
+    [data-theme="dark"] .badge.processing    { background: #92400e55; color: #fcd34d; }
+    [data-theme="dark"] .badge.picked_packed { background: #5b21b655; color: #c4b5fd; }
+    [data-theme="dark"] .badge.shipped       { background: #155e7555; color: #67e8f9; }
+    [data-theme="dark"] .badge.delivered     { background: #06544155; color: #6ee7b7; }
+    [data-theme="dark"] .badge.cancelled     { background: #991b1b55; color: #fca5a5; }
+    [data-theme="dark"] .badge.paid          { background: #06544155; color: #6ee7b7; }
+    [data-theme="dark"] .badge.pending       { background: #92400e55; color: #fcd34d; }
+
+    table.items { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    table.items th, table.items td {
+      text-align: left; padding: 10px 12px;
+      border-bottom: 1px solid var(--border); font-size: 14px;
+    }
+    table.items th {
+      background: var(--table-head-bg); font-weight: 600; color: var(--muted);
+      font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em;
+    }
+    table.items td.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+    .totals { margin-top: 16px; display: flex; justify-content: flex-end; }
+    .totals dl { margin: 0; min-width: 240px; }
+    .totals .row {
+      display: flex; justify-content: space-between; padding: 4px 0; font-size: 14px;
+    }
+    .totals .row.grand {
+      font-size: 17px; font-weight: 700;
+      border-top: 2px solid var(--text); padding-top: 8px; margin-top: 6px;
+    }
+
+    .timeline { display: flex; gap: 0; margin: 12px 0 4px; flex-wrap: wrap; }
+    .timeline .step {
+      flex: 1 1 0; min-width: 110px; padding: 12px 8px; text-align: center;
+      border-bottom: 4px solid var(--border); color: var(--muted);
+      font-size: 12px; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase;
+    }
+    .timeline .step.done    { border-bottom-color: var(--brand); color: var(--brand); }
+    .timeline .step.current { border-bottom-color: var(--brand); color: var(--brand-dark); }
+
+    /* ============== Reschedule (calendar) ============== */
+    .reschedule-wrap {
+      display: grid; grid-template-columns: minmax(280px, 1fr) 1fr; gap: 24px;
+    }
+    @media (max-width: 720px) { .reschedule-wrap { grid-template-columns: 1fr; } }
+
+    .calendar {
+      border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 14px 14px 18px; background: var(--hint-bg);
+    }
+    .cal-head {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;
+    }
+    .cal-head .month-label { font-weight: 700; font-size: 15px; }
+    .cal-head button {
+      width: 30px; height: 30px; padding: 0; border-radius: 50%;
+      background: transparent; color: var(--text); border: 1px solid var(--border);
+    }
+    .cal-head button:hover { background: var(--calendar-day-hover); }
+
+    .cal-grid {
+      display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;
+    }
+    .cal-grid .dow {
+      font-size: 11px; text-align: center; color: var(--muted);
+      font-weight: 600; padding: 4px 0; text-transform: uppercase;
+    }
+    .cal-grid .day {
+      aspect-ratio: 1 / 1; display: grid; place-items: center;
+      font-size: 13px; border-radius: 6px; cursor: pointer;
+      color: var(--text); user-select: none; transition: background 0.1s;
+    }
+    .cal-grid .day:hover:not(.disabled):not(.selected) { background: var(--calendar-day-hover); }
+    .cal-grid .day.muted { color: var(--muted); opacity: 0.4; }
+    .cal-grid .day.disabled { cursor: not-allowed; color: var(--muted); opacity: 0.35; }
+    .cal-grid .day.today { outline: 2px solid var(--brand); outline-offset: -2px; }
+    .cal-grid .day.selected { background: var(--brand); color: #fff; font-weight: 700; }
+    .cal-grid .day.current-delivery { box-shadow: inset 0 0 0 2px var(--warn); }
+
+    .cal-legend {
+      display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px;
+      font-size: 11px; color: var(--muted);
+    }
+    .cal-legend .swatch {
+      display: inline-block; width: 12px; height: 12px; border-radius: 3px;
+      vertical-align: middle; margin-right: 4px;
+    }
+    .swatch.brand { background: var(--brand); }
+    .swatch.warn  { background: transparent; box-shadow: inset 0 0 0 2px var(--warn); }
+
+    .reschedule-side .selected-display {
+      font-size: 24px; font-weight: 700; margin: 6px 0 16px;
+    }
+    .reschedule-side .helper {
+      color: var(--muted); font-size: 13px; margin-bottom: 18px; min-height: 18px;
+    }
+
+    .alert {
+      padding: 12px 16px; border-radius: 8px; margin-top: 14px; font-size: 14px;
+    }
+    .alert.success { background: #ecfdf5; border: 1px solid #a7f3d0; color: var(--success); }
+    .alert.error   { background: #fef2f2; border: 1px solid #fecaca; color: var(--error); }
+    .alert.info    { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; }
+    [data-theme="dark"] .alert.success { background: #04341d; border-color: #14532d; }
+    [data-theme="dark"] .alert.error   { background: #3f0d0d; border-color: #7f1d1d; }
+    [data-theme="dark"] .alert.info    { background: #0c1d3f; border-color: #1e3a8a; color: #93c5fd; }
+
+    .spinner {
+      display: inline-block; width: 16px; height: 16px;
+      border: 2px solid currentColor; border-top-color: transparent;
+      border-radius: 50%; animation: spin 0.8s linear infinite;
+      vertical-align: middle; margin-right: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .hidden { display: none !important; }
+
+    footer {
+      max-width: 1080px;
+      margin: 0 auto 32px;
+      padding: 0 24px;
+      color: var(--muted);
+      font-size: 13px;
+      text-align: center;
+    }
+    footer a { color: var(--brand); text-decoration: none; font-weight: 600; }
+    footer a:hover { text-decoration: underline; }
+
+    .meta-row {
+      display: flex; gap: 16px; flex-wrap: wrap;
+      font-size: 13px; color: var(--muted); margin-bottom: 16px;
+    }
+    .meta-row span strong { color: var(--text); font-weight: 600; }
+
+    .auth-row {
+      display: none;
+    }
+    .auth-row.show { display: inline-flex; }
+    .auth-row input { width: 130px; }
+  </style>
+</head>
+<body data-theme="light">
+<!-- SEDC-NAV:START -->
+<style>
+  .sedc-nav * { box-sizing: border-box; }
+  .sedc-nav {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    margin: 0;
+    background: #072B55;
+    color: #ffffff;
+    font-family: 'Poppins',Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    font-size: 14px;
+    line-height: 1.4;
+  }
+  .sedc-nav-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 10px 20px;
+  }
+  .sedc-nav-brand {
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+  }
+  .sedc-nav-brand:hover,
+  .sedc-nav-brand:focus {
+    text-decoration: underline;
+  }
+  .sedc-nav-jump {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .sedc-nav-label {
+    white-space: nowrap;
+    color: #ffffff;
+  }
+  .sedc-nav-select {
+    font-family: inherit;
+    font-size: 13px;
+    color: #072B55;
+    background: #ffffff;
+    border: 1px solid #ffffff;
+    border-radius: 4px;
+    padding: 5px 8px;
+    max-width: 60vw;
+  }
+  .sedc-nav-rule {
+    height: 3px;
+    width: 100%;
+    background: linear-gradient(90deg,#FF7C66 0%,#A03291 100%);
+  }
+</style>
+<div class="sedc-nav" role="navigation" aria-label="SE Demo Companion navigation">
+  <div class="sedc-nav-bar">
+    <a class="sedc-nav-brand" href="../index.html" target="_top">SE Demo Companion</a>
+    <div class="sedc-nav-jump">
+      <label class="sedc-nav-label" for="sedc-nav-select">Jump to use case</label>
+      <select class="sedc-nav-select" id="sedc-nav-select" onchange="(function(sel){try{var opt=sel.options[sel.selectedIndex];var url=opt&&opt.getAttribute('data-href');if(!url)return;try{window.top.location.href=url;}catch(e){window.location.href=url;}}catch(e){}})(this)">
+        <option value="amc-fee-change-agent" data-href="./amc-fee-change-agent.html">AMC fee-change agent — Finnomena</option>
+        <option value="bvtpa-claims-integration-demo" data-href="./bvtpa-claims-integration-demo.html">Blue Venture TPA claims integration demo — Blue Venture TPA</option>
+        <option value="bvtpa-claims-adjudication-cio-brief" data-href="./bvtpa-claims-adjudication-cio-brief.html">Claims adjudication CIO brief — Blue Venture TPA</option>
+        <option value="delivery-status-sync-demo" data-href="./delivery-status-sync-demo.html">Delivery status sync demo — TOTO</option>
+        <option value="boomi-tenant-ceo-dashboard" data-href="./boomi-tenant-ceo-dashboard.html">Boomi tenant CEO dashboard — Boomi internal tenant</option>
+        <option value="boomi-tenant-30-day-report" data-href="./boomi-tenant-30-day-report.html">Boomi tenant operations report, 30-day view — Boomi internal tenant</option>
+        <option value="json-to-xml-order-integration" data-href="./json-to-xml-order-integration.html">JSON to XML order integration, executive documentation — NTT</option>
+        <option value="edi-850-flight-deck" data-href="./edi-850-flight-deck.html">EDI 850 flight deck — Infosys</option>
+        <option value="whatsapp-to-sap-master-agent" data-href="./whatsapp-to-sap-master-agent.html">WhatsApp to SAP master agent — Boomi internal build</option>
+        <option value="student-xml-to-crm-json" data-href="./student-xml-to-crm-json.html">Student XML to CRM JSON — Attura</option>
+        <option value="sap-accounting-document-poc-outcome" data-href="./sap-accounting-document-poc-outcome.html">SAP accounting document automation, POC outcome — Abans PLC</option>
+        <option value="abans-sap-posting-poc-dashboard" data-href="./abans-sap-posting-poc-dashboard.html">Abans SAP posting, live POC dashboard — Abans PLC</option>
+        <option value="order-intake-api-fan-out" data-href="./order-intake-api-fan-out.html">Order intake API with multi-target fan-out — LTIMindtree</option>
+        <option value="electromart-track-and-reschedule" data-href="./electromart-track-and-reschedule.html" selected>ElectroMart track order and reschedule delivery — ElectroMart (demo brand)</option>
+        <option value="enterprise-portal-ai-agent" data-href="./enterprise-portal-ai-agent.html">Enterprise portal with an embedded AI agent — ITG</option>
+        <option value="o2c-qad-build-journey" data-href="./o2c-qad-build-journey.html">O2C-QAD build journey — Boomi internal build</option>
+        <option value="boomi-accenture-trivia" data-href="./boomi-accenture-trivia.html">Boomi x Accenture trivia — Boomi internal build</option>
+        <option value="cloud-runtime-sizing-calculator" data-href="./cloud-runtime-sizing-calculator.html">Boomi public cloud runtime sizing estimator — Boomi internal build</option>
+        <option value="coupa-netsuite-vendor-bill" data-href="./coupa-netsuite-vendor-bill.html">Vendor bill pipeline, Coupa to NetSuite — Boomi internal build</option>
+        <option value="coupa-oracle-s2p-console" data-href="./coupa-oracle-s2p-console.html">Source-to-pay flow console, Coupa to Oracle Fusion — Boomi internal build</option>
+        <option value="epic-rauland-adt-nurse-call" data-href="./epic-rauland-adt-nurse-call.html">Epic ADT to Rauland Responder 5, nurse call integration — Boomi internal build</option>
+        <option value="epic-salesforce-trial-screening" data-href="./epic-salesforce-trial-screening.html">Clinical trial screening console, Epic to Salesforce — Meridian Research (demo brand)</option>
+        <option value="jc-hifi-order-tracker" data-href="./jc-hifi-order-tracker.html">JC Hi-Fi order tracker, customer self-service — JC Hi-Fi (demo brand)</option>
+        <option value="pacific-bank-onboarding" data-href="./pacific-bank-onboarding.html">Pacific onboarding console, retail bank customer onboarding — Pacific Islands Community Bank (demo brand)</option>
+        <option value="sea-data-product-assistant" data-href="./sea-data-product-assistant.html">SEA regional performance, data products and an agent over two ERPs — Boomi internal build</option>
+        <option value="servicenow-jira-incident-sync" data-href="./servicenow-jira-incident-sync.html">Incident sync prototype, ServiceNow to Jira — Boomi internal build</option>
+        <option value="zendesk-magento-order-status" data-href="./zendesk-magento-order-status.html">Order status bot and flow inspector, Zendesk to Magento — Avery Products (demo brand)</option>
+        <option value="zoho-netsuite-invoice-sync" data-href="./zoho-netsuite-invoice-sync.html">Invoice sync console, Zoho CRM to NetSuite — Boomi internal build</option>
+      </select>
+    </div>
+  </div>
+  <div class="sedc-nav-rule"></div>
+</div>
+<!-- SEDC-NAV:END -->
+
+  <header>
+    <div class="wrap">
+      <div class="brand">
+        <div class="brand-mark">EM</div>
+        <div>
+          <h1>ElectroMart</h1>
+          <p>Order Tracking &amp; Delivery Reschedule Self-Service</p>
+        </div>
+      </div>
+      <div class="header-controls">
+        <div class="pill" title="Switch between local mock data and live Boomi API">
+          <label for="backendMode">Backend</label>
+          <select id="backendMode">
+            <option value="mock">Mock (local)</option>
+            <option value="boomi">Boomi API</option>
+          </select>
+        </div>
+        <div class="pill auth-row" id="boomiUrlPill">
+          <input type="text" id="apiBase" placeholder="https://c03-usa-east.integrate.boomi.com" />
+        </div>
+        <div class="pill auth-row" id="boomiAuthPill">
+          <label for="basicUser">Basic auth</label>
+          <input type="text" id="basicUser" placeholder="user" />
+          <input type="password" id="basicPass" placeholder="password" />
+        </div>
+        <button class="icon-btn" id="themeToggle" title="Toggle dark/light theme" aria-label="Toggle theme">🌙</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>Track your order</h2>
+      <p style="margin-top:0;color:var(--muted);font-size:14px;">
+        Enter your Order ID to view current status, items, and delivery details. You can request a new delivery date if your order has not yet shipped.
+      </p>
+      <form id="lookupForm" class="lookup-form" autocomplete="off">
+        <input type="text" id="orderIdInput" placeholder="e.g. ORD-12345" required />
+        <button type="submit" class="primary" id="lookupBtn">Look up order</button>
+      </form>
+      <div class="quick-picks">
+        <span>Try a sample:</span>
+        <a href="#" data-id="ORD-12345">ORD-12345</a>
+        <a href="#" data-id="ORD-67890">ORD-67890</a>
+        <a href="#" data-id="ORD-24680">ORD-24680</a>
+        <a href="#" data-id="ORD-13579">ORD-13579</a>
+        <a href="#" data-id="ORD-99001">ORD-99001</a>
+      </div>
+      <div id="lookupAlert" class="alert hidden"></div>
+    </section>
+
+    <section id="orderCard" class="card hidden">
+      <div class="meta-row">
+        <span>Order <strong id="ord_id"></strong></span>
+        <span>Placed on <strong id="ord_date"></strong></span>
+        <span>Status <span id="ord_status_badge" class="badge"></span></span>
+        <span>Payment <span id="ord_payment_badge" class="badge"></span></span>
+      </div>
+
+      <div class="timeline" id="ord_timeline" aria-label="Order pipeline">
+        <div class="step" data-key="CONFIRMED">Confirmed</div>
+        <div class="step" data-key="PROCESSING">Processing</div>
+        <div class="step" data-key="PICKED_PACKED">Pick &amp; Pack</div>
+        <div class="step" data-key="SHIPPED">Shipped</div>
+        <div class="step" data-key="DELIVERED">Delivered</div>
+      </div>
+
+      <div class="order-grid" style="margin-top:18px;">
+        <div>
+          <div class="field-label">Customer</div>
+          <div class="field-value" id="ord_customer"></div>
+          <div class="field-label">Contact</div>
+          <div class="field-value" id="ord_contact"></div>
+        </div>
+        <div>
+          <div class="field-label">Shipping Address</div>
+          <div class="field-value" id="ord_address"></div>
+          <div class="field-label">Warehouse / Tracking</div>
+          <div class="field-value" id="ord_logistics"></div>
+        </div>
+      </div>
+
+      <table class="items">
+        <thead>
+          <tr><th>SKU</th><th>Item</th><th class="num">Qty</th><th class="num">Price (₹)</th><th class="num">Line Total (₹)</th></tr>
+        </thead>
+        <tbody id="ord_items"></tbody>
+      </table>
+
+      <div class="totals">
+        <dl>
+          <div class="row"><span>Subtotal</span><span id="ord_subtotal">—</span></div>
+          <div class="row"><span>GST</span><span id="ord_tax">—</span></div>
+          <div class="row grand"><span>Total</span><span id="ord_total">—</span></div>
+        </dl>
+      </div>
+    </section>
+
+    <section id="rescheduleCard" class="card hidden">
+      <h2>Reschedule delivery</h2>
+      <p style="margin-top:0;color:var(--muted);font-size:14px;">
+        Current delivery: <strong id="curr_delivery">—</strong>. Tap a date on the calendar to choose a new delivery day. Rescheduling is unavailable once the order has shipped or been delivered.
+      </p>
+      <div class="reschedule-wrap">
+        <div class="calendar" id="calendar" aria-label="Date picker">
+          <div class="cal-head">
+            <button type="button" id="calPrev" aria-label="Previous month">‹</button>
+            <div class="month-label" id="calMonth"></div>
+            <button type="button" id="calNext" aria-label="Next month">›</button>
+          </div>
+          <div class="cal-grid" id="calGrid"></div>
+          <div class="cal-legend">
+            <span><span class="swatch brand"></span> Selected</span>
+            <span><span class="swatch warn"></span> Current delivery</span>
+            <span>Past dates are disabled</span>
+          </div>
+        </div>
+        <div class="reschedule-side">
+          <div class="field-label">New delivery date</div>
+          <div class="selected-display" id="selectedDateDisplay">— Pick a date —</div>
+          <div class="helper" id="rescheduleHelper">Choose any future weekday or weekend.</div>
+          <button type="button" class="primary" id="rescheduleBtn" disabled>Submit reschedule request</button>
+        </div>
+      </div>
+      <div id="rescheduleAlert" class="alert hidden"></div>
+    </section>
+  </main>
+
+  <footer>
+    ElectroMart Order-to-Cash Demo · Powered by Boomi iPaaS · All times Asia/Kolkata (IST) · © 2026<br/>
+    <a href="docs.html" target="_blank" rel="noopener">📖 Full process documentation (EN / TH / FIL / ID)</a>
+  </footer>
+
+  <script>
+    /* =========================================================================
+       SAMPLE ORDER STORE (Mock mode; mirrors Boomi sample-data/orders.json)
+       ========================================================================= */
+    const SAMPLE_ORDERS = {
+      "ORD-12345": {
+        orderId: "ORD-12345", customerName: "Aarav Sharma",
+        customerEmail: "aarav.sharma@example.in", customerPhone: "+91-98401-23456",
+        shippingAddress: "12, Anna Salai, T. Nagar, Chennai, TN 600017",
+        orderDate: "2026-05-02",
+        items: [{ sku: "APL-IPH15-256", name: "Apple iPhone 15 (256GB, Blue)", qty: 1, price: 79999 }],
+        subtotal: 79999, tax: 14400, total: 94399, currency: "INR",
+        status: "CONFIRMED", paymentStatus: "PAID",
+        deliveryDate: "2026-05-15", warehouse: "Chennai-CHN01", trackingNumber: null
+      },
+      "ORD-67890": {
+        orderId: "ORD-67890", customerName: "Priya Iyer",
+        customerEmail: "priya.iyer@example.in", customerPhone: "+91-98765-43210",
+        shippingAddress: "45, Mount Road, Anna Nagar, Chennai, TN 600040",
+        orderDate: "2026-04-28",
+        items: [
+          { sku: "DEL-XPS15-9530", name: "Dell XPS 15 9530 (i7, 16GB, 512GB)", qty: 1, price: 89999 },
+          { sku: "LOG-MX3S",       name: "Logitech MX Master 3S Mouse",         qty: 1, price: 8999  }
+        ],
+        subtotal: 98998, tax: 17820, total: 116818, currency: "INR",
+        status: "SHIPPED", paymentStatus: "PAID",
+        deliveryDate: "2026-05-09", warehouse: "Bengaluru-BLR02", trackingNumber: "BLDX-998877-IN"
+      },
+      "ORD-24680": {
+        orderId: "ORD-24680", customerName: "Rahul Krishnan",
+        customerEmail: "rahul.k@example.in", customerPhone: "+91-99412-87654",
+        shippingAddress: "78, OMR, Sholinganallur, Chennai, TN 600119",
+        orderDate: "2026-05-05",
+        items: [
+          { sku: "SAM-S24U-512", name: "Samsung Galaxy S24 Ultra (512GB, Titanium Black)", qty: 1, price: 134999 },
+          { sku: "SAM-BUDS-PRO", name: "Samsung Galaxy Buds3 Pro",                          qty: 1, price: 24999  }
+        ],
+        subtotal: 159998, tax: 28800, total: 188798, currency: "INR",
+        status: "PICKED_PACKED", paymentStatus: "PAID",
+        deliveryDate: "2026-05-18", warehouse: "Chennai-CHN01", trackingNumber: null
+      },
+      "ORD-13579": {
+        orderId: "ORD-13579", customerName: "Meera Venkatesh",
+        customerEmail: "meera.v@example.in", customerPhone: "+91-90030-11111",
+        shippingAddress: "23, Kamarajar Salai, Mylapore, Chennai, TN 600004",
+        orderDate: "2026-04-15",
+        items: [
+          { sku: "SNY-WH1000XM5", name: "Sony WH-1000XM5 Headphones", qty: 1, price: 29990 },
+          { sku: "ANK-737-PB",    name: "Anker 737 Power Bank 24000mAh", qty: 2, price: 9499 }
+        ],
+        subtotal: 48988, tax: 8820, total: 57808, currency: "INR",
+        status: "DELIVERED", paymentStatus: "PAID",
+        deliveryDate: "2026-04-22", warehouse: "Chennai-CHN01", trackingNumber: "BLDX-123456-IN"
+      },
+      "ORD-99001": {
+        orderId: "ORD-99001", customerName: "Karthik Subramanian",
+        customerEmail: "karthik.s@example.in", customerPhone: "+91-98412-77889",
+        shippingAddress: "9, ECR, Thiruvanmiyur, Chennai, TN 600041",
+        orderDate: "2026-05-06",
+        items: [
+          { sku: "LG-OLED55C4",  name: "LG OLED55C4 55-inch 4K Smart TV", qty: 1, price: 159990 },
+          { sku: "SNY-HT-A7000", name: "Sony HT-A7000 7.1.2ch Soundbar",  qty: 1, price: 119990 }
+        ],
+        subtotal: 279980, tax: 50396, total: 330376, currency: "INR",
+        status: "PROCESSING", paymentStatus: "PENDING",
+        deliveryDate: "2026-05-20", warehouse: "Hyderabad-HYD03", trackingNumber: null
+      }
+    };
+
+    const STATUS_PIPELINE = ["CONFIRMED","PROCESSING","PICKED_PACKED","SHIPPED","DELIVERED"];
+    const NON_RESCHEDULABLE = new Set(["SHIPPED","DELIVERED","CANCELLED"]);
+
+    /* ---------- DOM helpers ---------- */
+    const $ = (id) => document.getElementById(id);
+    const fmtINR  = (n) => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(n);
+    const fmtDate = (iso) => new Intl.DateTimeFormat("en-IN", { day: "2-digit", month: "short", year: "numeric", timeZone: "Asia/Kolkata" }).format(new Date(iso + "T00:00:00+05:30"));
+    const isoDate = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+
+    function showAlert(elId, kind, msg) {
+      const el = $(elId); el.className = "alert " + kind; el.textContent = msg; el.classList.remove("hidden");
+    }
+    function hideAlert(elId) { $(elId).classList.add("hidden"); }
+
+    /* ---------- Theme ---------- */
+    function applyTheme(theme) {
+      document.body.dataset.theme = theme;
+      $("themeToggle").textContent = theme === "dark" ? "☀️" : "🌙";
+      $("themeToggle").title = theme === "dark" ? "Switch to light theme" : "Switch to dark theme";
+      localStorage.setItem("electromart.theme", theme);
+    }
+
+    function setBackendMode(mode) {
+      $("boomiUrlPill").classList.toggle("show", mode === "boomi");
+      $("boomiAuthPill").classList.toggle("show", mode === "boomi");
+      localStorage.setItem("electromart.backendMode", mode);
+    }
+
+    /* ---------- API layer ---------- */
+    function authHeader() {
+      const u = $("basicUser").value, p = $("basicPass").value;
+      if (u || p) return "Basic " + btoa(`${u}:${p}`);
+      return null;
+    }
+
+    async function mockLookup(orderId, simulated) {
+      await new Promise(r => setTimeout(r, 220));
+      const o = SAMPLE_ORDERS[orderId];
+      if (!o) { const err = new Error("Order not found"); err.status = 404; throw err; }
+      const clone = JSON.parse(JSON.stringify(o)); // clone
+      if (simulated) clone.__simulated = true;
+      return clone;
+    }
+
+    async function mockUpdate(orderId, newDeliveryDate, simulated) {
+      await new Promise(r => setTimeout(r, 350));
+      const o = SAMPLE_ORDERS[orderId];
+      if (!o) { const err = new Error("Order not found"); err.status = 404; throw err; }
+      if (NON_RESCHEDULABLE.has(o.status)) throw new Error(`Order is already ${o.status.toLowerCase().replace("_"," ")}; reschedule not allowed.`);
+      o.deliveryDate = newDeliveryDate;
+      return {
+        status: "SUCCESS", orderId,
+        newDeliveryDate,
+        confirmationNumber: "RSC-" + orderId + "-" + new Date().toISOString().replace(/[-:T]/g,"").slice(0,14),
+        erpSyncStatus: "ACK",
+        message: "Delivery date updated and synced to ERP (mock SAP S/4HANA endpoint).",
+        updatedAt: new Date().toISOString(),
+        __simulated: !!simulated
+      };
+    }
+
+    async function apiLookup(orderId) {
+      const mode = $("backendMode").value;
+      if (mode === "mock") return mockLookup(orderId, false);
+
+      const base = ($("apiBase").value || "").trim().replace(/\/$/, "");
+      try {
+        if (!base) throw new Error("Boomi API base URL not configured.");
+        const headers = { "Content-Type": "application/json", "Accept": "application/json" };
+        const ah = authHeader(); if (ah) headers["Authorization"] = ah;
+        const res = await fetch(`${base}/ws/simple/queryElectroMartOrder`, {
+          method: "POST", headers, body: JSON.stringify({ orderId })
+        });
+        if (!res.ok) throw new Error("Lookup failed: HTTP " + res.status);
+        const json = await res.json();
+        if (json && json.error === "NOT_FOUND") { const err = new Error(json.message || "Order not found"); err.status = 404; throw err; }
+        return json;
+      } catch (e) {
+        if (e.status === 404) throw e; // a reachable backend genuinely has no such order
+        // AUTOMATIC FALLBACK: Boomi endpoint unreachable (no backend in this environment) —
+        // drop back to the local sample order set so the walkthrough can continue.
+        console.warn("Boomi API unreachable, falling back to simulated data:", e.message);
+        return mockLookup(orderId, true);
+      }
+    }
+
+    async function apiUpdate(orderId, newDeliveryDate) {
+      const mode = $("backendMode").value;
+      if (mode === "mock") return mockUpdate(orderId, newDeliveryDate, false);
+
+      const base = ($("apiBase").value || "").trim().replace(/\/$/, "");
+      try {
+        if (!base) throw new Error("Boomi API base URL not configured.");
+        const headers = { "Content-Type": "application/json", "Accept": "application/json" };
+        const ah = authHeader(); if (ah) headers["Authorization"] = ah;
+        const res = await fetch(`${base}/ws/simple/updateElectroMartOrder`, {
+          method: "POST", headers, body: JSON.stringify({ orderId, newDeliveryDate })
+        });
+        if (!res.ok) {
+          let detail = ""; try { detail = (await res.json()).message || ""; } catch(_){}
+          throw new Error(detail || ("Update failed: HTTP " + res.status));
+        }
+        return await res.json();
+      } catch (e) {
+        // AUTOMATIC FALLBACK: same reasoning as apiLookup — no backend in this environment.
+        console.warn("Boomi API unreachable, falling back to simulated update:", e.message);
+        return mockUpdate(orderId, newDeliveryDate, true);
+      }
+    }
+
+    /* ---------- Calendar ---------- */
+    const CalState = {
+      view: new Date(),    // first of month being viewed
+      selected: null,      // ISO date string
+      currentDelivery: null,
+      minDate: null,       // tomorrow
+      enabled: true
+    };
+
+    function setMinDate() {
+      const t = new Date(); t.setHours(0,0,0,0); t.setDate(t.getDate() + 1);
+      CalState.minDate = t;
+    }
+
+    function renderCalendar() {
+      const v = CalState.view;
+      const monthLabel = new Intl.DateTimeFormat("en-IN", { month: "long", year: "numeric", timeZone: "Asia/Kolkata" }).format(v);
+      $("calMonth").textContent = monthLabel;
+
+      const grid = $("calGrid"); grid.innerHTML = "";
+      ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].forEach(d => {
+        const cell = document.createElement("div"); cell.className = "dow"; cell.textContent = d; grid.appendChild(cell);
+      });
+
+      const firstDow = new Date(v.getFullYear(), v.getMonth(), 1).getDay();
+      const daysInMonth = new Date(v.getFullYear(), v.getMonth() + 1, 0).getDate();
+      const daysInPrev  = new Date(v.getFullYear(), v.getMonth(), 0).getDate();
+
+      const today = new Date(); today.setHours(0,0,0,0);
+
+      for (let i = 0; i < firstDow; i++) {
+        const dayNum = daysInPrev - firstDow + 1 + i;
+        const cell = document.createElement("div"); cell.className = "day muted disabled";
+        cell.textContent = dayNum; grid.appendChild(cell);
+      }
+
+      for (let d = 1; d <= daysInMonth; d++) {
+        const date = new Date(v.getFullYear(), v.getMonth(), d);
+        const iso = isoDate(date);
+        const cell = document.createElement("div");
+        cell.className = "day";
+        cell.textContent = d;
+
+        if (date < CalState.minDate) cell.classList.add("disabled");
+        if (iso === isoDate(today)) cell.classList.add("today");
+        if (CalState.selected === iso) cell.classList.add("selected");
+        if (CalState.currentDelivery === iso) cell.classList.add("current-delivery");
+
+        if (!cell.classList.contains("disabled") && CalState.enabled) {
+          cell.addEventListener("click", () => {
+            CalState.selected = iso;
+            renderCalendar();
+            updateRescheduleSide();
+          });
+        } else if (!CalState.enabled) {
+          cell.classList.add("disabled");
+        }
+        grid.appendChild(cell);
+      }
+
+      // trailing days from next month to fill grid
+      const totalCells = firstDow + daysInMonth;
+      const trailing = (7 - (totalCells % 7)) % 7;
+      for (let i = 1; i <= trailing; i++) {
+        const cell = document.createElement("div"); cell.className = "day muted disabled";
+        cell.textContent = i; grid.appendChild(cell);
+      }
+    }
+
+    function updateRescheduleSide() {
+      const display = $("selectedDateDisplay");
+      const helper = $("rescheduleHelper");
+      const btn = $("rescheduleBtn");
+      if (!CalState.enabled) {
+        display.textContent = "—";
+        btn.disabled = true;
+        return;
+      }
+      if (!CalState.selected) {
+        display.textContent = "— Pick a date —";
+        btn.disabled = true;
+        helper.textContent = "Choose any future weekday or weekend.";
+        return;
+      }
+      display.textContent = fmtDate(CalState.selected);
+      const days = Math.round((new Date(CalState.selected) - new Date(CalState.currentDelivery)) / (1000*60*60*24));
+      if (Number.isFinite(days)) {
+        const verb = days >= 0 ? "later than" : "earlier than";
+        helper.textContent = `${Math.abs(days)} day${Math.abs(days)===1?"":"s"} ${verb} the current delivery date.`;
+      } else {
+        helper.textContent = "";
+      }
+      btn.disabled = false;
+    }
+
+    /* ---------- Rendering ---------- */
+    function renderOrder(o) {
+      $("orderCard").classList.remove("hidden");
+      $("rescheduleCard").classList.remove("hidden");
+      hideAlert("rescheduleAlert");
+
+      $("ord_id").textContent = o.orderId;
+      $("ord_date").textContent = fmtDate(o.orderDate);
+
+      const sb = $("ord_status_badge");
+      sb.textContent = o.status.replace("_"," ");
+      sb.className = "badge " + o.status.toLowerCase();
+
+      const pb = $("ord_payment_badge");
+      pb.textContent = o.paymentStatus;
+      pb.className = "badge " + o.paymentStatus.toLowerCase();
+
+      $("ord_customer").textContent = o.customerName;
+      $("ord_contact").textContent  = `${o.customerEmail} · ${o.customerPhone}`;
+      $("ord_address").textContent  = o.shippingAddress;
+      $("ord_logistics").textContent = `${o.warehouse}${o.trackingNumber ? " · " + o.trackingNumber : " · tracking pending"}`;
+
+      const tbody = $("ord_items"); tbody.innerHTML = "";
+      o.items.forEach(it => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${it.sku}</td><td>${it.name}</td><td class="num">${it.qty}</td><td class="num">${fmtINR(it.price)}</td><td class="num">${fmtINR(it.qty * it.price)}</td>`;
+        tbody.appendChild(tr);
+      });
+
+      $("ord_subtotal").textContent = fmtINR(o.subtotal);
+      $("ord_tax").textContent      = fmtINR(o.tax);
+      $("ord_total").textContent    = fmtINR(o.total);
+
+      const idx = STATUS_PIPELINE.indexOf(o.status);
+      document.querySelectorAll("#ord_timeline .step").forEach((el, i) => {
+        el.classList.remove("done","current");
+        if (idx === -1) return;
+        if (i < idx) el.classList.add("done");
+        else if (i === idx) el.classList.add("current");
+      });
+
+      $("curr_delivery").textContent = fmtDate(o.deliveryDate);
+
+      // Setup calendar
+      setMinDate();
+      CalState.currentDelivery = o.deliveryDate;
+      CalState.selected = null;
+      // Show the delivery month, unless the sample delivery date has already passed
+      // (the fixed sample dates predate "today" on whatever machine is running this
+      // demo) — in that case open on the current month instead, so the calendar
+      // that first renders always has at least one clickable day.
+      const deliveryMonth = new Date(o.deliveryDate + "T00:00:00"); deliveryMonth.setDate(1);
+      const todayMonth = new Date(); todayMonth.setHours(0,0,0,0); todayMonth.setDate(1);
+      CalState.view = deliveryMonth > todayMonth ? deliveryMonth : todayMonth;
+      CalState.enabled = !NON_RESCHEDULABLE.has(o.status);
+
+      renderCalendar();
+      updateRescheduleSide();
+
+      if (NON_RESCHEDULABLE.has(o.status)) {
+        showAlert("rescheduleAlert", "info",
+          `Order is ${o.status.replace("_"," ").toLowerCase()} — delivery date can no longer be changed. Please contact support for assistance.`);
+      }
+
+      if (o.__simulated) {
+        showAlert("lookupAlert", "info",
+          "Boomi API endpoint unreachable — showing simulated data from the local sample order set instead.");
+      }
+
+      $("orderCard").scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    /* ---------- Wiring ---------- */
+    let CURRENT_ORDER = null;
+
+    document.addEventListener("DOMContentLoaded", () => {
+      // Theme + backend prefs
+      const savedTheme = localStorage.getItem("electromart.theme") || (matchMedia && matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      applyTheme(savedTheme);
+      $("themeToggle").addEventListener("click", () => {
+        applyTheme(document.body.dataset.theme === "dark" ? "light" : "dark");
+      });
+
+      // No backend is reachable from a standalone copy of this page, so it starts in
+      // Mock (local) mode and renders entirely from the sample order set below.
+      // "Boomi API" stays selectable for demos with a real atom to point at; if that
+      // call fails, apiLookup/apiUpdate fall back to the same local sample data.
+      const savedMode = localStorage.getItem("electromart.backendMode") || "mock";
+      $("backendMode").value = savedMode;
+      $("apiBase").value   = localStorage.getItem("electromart.apiBase") || "";
+      $("basicUser").value = localStorage.getItem("electromart.basicUser") || "";
+      setBackendMode(savedMode);
+
+      $("backendMode").addEventListener("change", (e) => setBackendMode(e.target.value));
+      $("apiBase").addEventListener("change",   (e) => localStorage.setItem("electromart.apiBase", e.target.value.trim()));
+      $("basicUser").addEventListener("change", (e) => localStorage.setItem("electromart.basicUser", e.target.value.trim()));
+
+      // Calendar nav
+      $("calPrev").addEventListener("click", () => {
+        CalState.view = new Date(CalState.view.getFullYear(), CalState.view.getMonth() - 1, 1);
+        renderCalendar();
+      });
+      $("calNext").addEventListener("click", () => {
+        CalState.view = new Date(CalState.view.getFullYear(), CalState.view.getMonth() + 1, 1);
+        renderCalendar();
+      });
+
+      // Quick-pick samples
+      document.querySelectorAll(".quick-picks a").forEach(a => {
+        a.addEventListener("click", (e) => {
+          e.preventDefault();
+          $("orderIdInput").value = a.dataset.id;
+          $("lookupForm").requestSubmit();
+        });
+      });
+
+      // Lookup
+      $("lookupForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        hideAlert("lookupAlert");
+        const id = $("orderIdInput").value.trim();
+        if (!id) return;
+        const btn = $("lookupBtn");
+        const original = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner"></span>Looking up…';
+        try {
+          const order = await apiLookup(id);
+          CURRENT_ORDER = order;
+          renderOrder(order);
+        } catch (err) {
+          $("orderCard").classList.add("hidden");
+          $("rescheduleCard").classList.add("hidden");
+          if (err.status === 404) {
+            showAlert("lookupAlert", "error", `No order found with ID "${id}". Try one of the sample IDs below.`);
+          } else {
+            showAlert("lookupAlert", "error", err.message || "Lookup failed.");
+          }
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = original;
+        }
+      });
+
+      // Reschedule
+      $("rescheduleBtn").addEventListener("click", async () => {
+        hideAlert("rescheduleAlert");
+        if (!CURRENT_ORDER || !CalState.selected) return;
+        const btn = $("rescheduleBtn");
+        const original = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner"></span>Submitting…';
+        try {
+          const result = await apiUpdate(CURRENT_ORDER.orderId, CalState.selected);
+          CURRENT_ORDER.deliveryDate = CalState.selected;
+          if (result.__simulated) CURRENT_ORDER.__simulated = true;
+          renderOrder(CURRENT_ORDER);
+          // renderOrder() hides #rescheduleAlert as part of its reset, so the
+          // confirmation is shown after, not before, that reset.
+          showAlert("rescheduleAlert", "success",
+            `${result.message || "Delivery date updated."} Confirmation: ${result.confirmationNumber}. ERP sync: ${result.erpSyncStatus}.`
+            + (result.__simulated ? " (Simulated — Boomi endpoint unreachable.)" : ""));
+        } catch (err) {
+          showAlert("rescheduleAlert", "error", err.message || "Update failed.");
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = original;
+        }
+      });
+    });
+  </script>
+</body>
+</html>

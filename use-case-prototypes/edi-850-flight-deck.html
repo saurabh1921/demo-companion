@@ -1,0 +1,1118 @@
+<!-- SEDC-NAV:START -->
+<style>
+  .sedc-nav * { box-sizing: border-box; }
+  .sedc-nav {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    margin: 0;
+    background: #072B55;
+    color: #ffffff;
+    font-family: 'Poppins',Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    font-size: 14px;
+    line-height: 1.4;
+  }
+  .sedc-nav-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 10px 20px;
+  }
+  .sedc-nav-brand {
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+  }
+  .sedc-nav-brand:hover,
+  .sedc-nav-brand:focus {
+    text-decoration: underline;
+  }
+  .sedc-nav-jump {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .sedc-nav-label {
+    white-space: nowrap;
+    color: #ffffff;
+  }
+  .sedc-nav-select {
+    font-family: inherit;
+    font-size: 13px;
+    color: #072B55;
+    background: #ffffff;
+    border: 1px solid #ffffff;
+    border-radius: 4px;
+    padding: 5px 8px;
+    max-width: 60vw;
+  }
+  .sedc-nav-rule {
+    height: 3px;
+    width: 100%;
+    background: linear-gradient(90deg,#FF7C66 0%,#A03291 100%);
+  }
+</style>
+<div class="sedc-nav" role="navigation" aria-label="SE Demo Companion navigation">
+  <div class="sedc-nav-bar">
+    <a class="sedc-nav-brand" href="../index.html" target="_top">SE Demo Companion</a>
+    <div class="sedc-nav-jump">
+      <label class="sedc-nav-label" for="sedc-nav-select">Jump to use case</label>
+      <select class="sedc-nav-select" id="sedc-nav-select" onchange="(function(sel){try{var opt=sel.options[sel.selectedIndex];var url=opt&&opt.getAttribute('data-href');if(!url)return;try{window.top.location.href=url;}catch(e){window.location.href=url;}}catch(e){}})(this)">
+        <option value="amc-fee-change-agent" data-href="./amc-fee-change-agent.html">AMC fee-change agent — Finnomena</option>
+        <option value="bvtpa-claims-integration-demo" data-href="./bvtpa-claims-integration-demo.html">Blue Venture TPA claims integration demo — Blue Venture TPA</option>
+        <option value="bvtpa-claims-adjudication-cio-brief" data-href="./bvtpa-claims-adjudication-cio-brief.html">Claims adjudication CIO brief — Blue Venture TPA</option>
+        <option value="delivery-status-sync-demo" data-href="./delivery-status-sync-demo.html">Delivery status sync demo — TOTO</option>
+        <option value="boomi-tenant-ceo-dashboard" data-href="./boomi-tenant-ceo-dashboard.html">Boomi tenant CEO dashboard — Boomi internal tenant</option>
+        <option value="boomi-tenant-30-day-report" data-href="./boomi-tenant-30-day-report.html">Boomi tenant operations report, 30-day view — Boomi internal tenant</option>
+        <option value="json-to-xml-order-integration" data-href="./json-to-xml-order-integration.html">JSON to XML order integration, executive documentation — NTT</option>
+        <option value="edi-850-flight-deck" data-href="./edi-850-flight-deck.html" selected>EDI 850 flight deck — Infosys</option>
+        <option value="whatsapp-to-sap-master-agent" data-href="./whatsapp-to-sap-master-agent.html">WhatsApp to SAP master agent — Boomi internal build</option>
+        <option value="student-xml-to-crm-json" data-href="./student-xml-to-crm-json.html">Student XML to CRM JSON — Attura</option>
+        <option value="sap-accounting-document-poc-outcome" data-href="./sap-accounting-document-poc-outcome.html">SAP accounting document automation, POC outcome — Abans PLC</option>
+        <option value="abans-sap-posting-poc-dashboard" data-href="./abans-sap-posting-poc-dashboard.html">Abans SAP posting, live POC dashboard — Abans PLC</option>
+        <option value="order-intake-api-fan-out" data-href="./order-intake-api-fan-out.html">Order intake API with multi-target fan-out — LTIMindtree</option>
+        <option value="electromart-track-and-reschedule" data-href="./electromart-track-and-reschedule.html">ElectroMart track order and reschedule delivery — ElectroMart (demo brand)</option>
+        <option value="enterprise-portal-ai-agent" data-href="./enterprise-portal-ai-agent.html">Enterprise portal with an embedded AI agent — ITG</option>
+        <option value="o2c-qad-build-journey" data-href="./o2c-qad-build-journey.html">O2C-QAD build journey — Boomi internal build</option>
+        <option value="boomi-accenture-trivia" data-href="./boomi-accenture-trivia.html">Boomi x Accenture trivia — Boomi internal build</option>
+        <option value="cloud-runtime-sizing-calculator" data-href="./cloud-runtime-sizing-calculator.html">Boomi public cloud runtime sizing estimator — Boomi internal build</option>
+        <option value="coupa-netsuite-vendor-bill" data-href="./coupa-netsuite-vendor-bill.html">Vendor bill pipeline, Coupa to NetSuite — Boomi internal build</option>
+        <option value="coupa-oracle-s2p-console" data-href="./coupa-oracle-s2p-console.html">Source-to-pay flow console, Coupa to Oracle Fusion — Boomi internal build</option>
+        <option value="epic-rauland-adt-nurse-call" data-href="./epic-rauland-adt-nurse-call.html">Epic ADT to Rauland Responder 5, nurse call integration — Boomi internal build</option>
+        <option value="epic-salesforce-trial-screening" data-href="./epic-salesforce-trial-screening.html">Clinical trial screening console, Epic to Salesforce — Meridian Research (demo brand)</option>
+        <option value="jc-hifi-order-tracker" data-href="./jc-hifi-order-tracker.html">JC Hi-Fi order tracker, customer self-service — JC Hi-Fi (demo brand)</option>
+        <option value="pacific-bank-onboarding" data-href="./pacific-bank-onboarding.html">Pacific onboarding console, retail bank customer onboarding — Pacific Islands Community Bank (demo brand)</option>
+        <option value="sea-data-product-assistant" data-href="./sea-data-product-assistant.html">SEA regional performance, data products and an agent over two ERPs — Boomi internal build</option>
+        <option value="servicenow-jira-incident-sync" data-href="./servicenow-jira-incident-sync.html">Incident sync prototype, ServiceNow to Jira — Boomi internal build</option>
+        <option value="zendesk-magento-order-status" data-href="./zendesk-magento-order-status.html">Order status bot and flow inspector, Zendesk to Magento — Avery Products (demo brand)</option>
+        <option value="zoho-netsuite-invoice-sync" data-href="./zoho-netsuite-invoice-sync.html">Invoice sync console, Zoho CRM to NetSuite — Boomi internal build</option>
+      </select>
+    </div>
+  </div>
+  <div class="sedc-nav-rule"></div>
+</div>
+<!-- SEDC-NAV:END -->
+<title>EDI 850 Flight Deck</title>
+<style>
+  :root {
+    /* ground + surfaces — navy, painted explicitly (single-theme ops screen) */
+    --ground:        #080C24;
+    --surface:       #0E1433;
+    --surface-2:     #141A3D;
+    --surface-3:     #1B2350;
+    --hairline:      #232C5C;
+    --hairline-soft: #1A2149;
+
+    /* ink — cool neutrals biased toward the purple accent, not pure grey */
+    --ink:        #EEF0FF;
+    --ink-2:      #A9B0DC;
+    --ink-3:      #6F78A8;
+
+    /* brand */
+    --coral:      #E8542F;
+    --coral-lift: #FF7A57;
+    --purple:     #7B5CFF;
+    --purple-dim: #4B3BA8;
+
+    /* status — validated palette, reserved, never reused as decoration */
+    --ok:      #22A277;
+    --ok-ink:  #5FD9AC;
+    --run:     #3E8FD9;
+    --run-ink: #79BDF2;
+    --bad:     #DC3D45;
+    --bad-ink: #FF8086;
+
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, "JetBrains Mono", Menlo, Consolas, monospace;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+
+    --r: 10px;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 14px;
+    line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .deck {
+    display: grid;
+    grid-template-rows: auto auto 1fr;
+    gap: 14px;
+    padding: 14px;
+    min-height: 100vh;
+    max-width: 1680px;
+    margin: 0 auto;
+  }
+
+  /* ---------- top bar ---------- */
+  .bar {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    flex-wrap: wrap;
+    padding: 12px 16px;
+    background: linear-gradient(90deg, var(--surface-2), var(--surface));
+    border: 1px solid var(--hairline);
+    border-radius: var(--r);
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    overflow: hidden;
+  }
+  .bar::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 3px;
+    background: linear-gradient(180deg, var(--coral), var(--purple));
+  }
+  .brand { display: flex; flex-direction: column; gap: 2px; padding-left: 8px; }
+  .brand h1 {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+  .brand .sub {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  .live {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--ok-ink);
+    padding: 5px 10px;
+    border: 1px solid rgba(34,162,119,0.4);
+    border-radius: 999px;
+    background: rgba(34,162,119,0.08);
+  }
+  .live[data-paused="true"] { color: var(--ink-3); border-color: var(--hairline); background: transparent; }
+  .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--ok-ink);
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+  .live[data-paused="true"] .dot { background: var(--ink-3); animation: none; }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(95,217,172,0.45); }
+    50%      { opacity: 0.5; box-shadow: 0 0 0 5px rgba(95,217,172,0); }
+  }
+
+  .bar-spacer { margin-left: auto; }
+
+  .clock {
+    font-family: var(--mono);
+    font-size: 20px;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+  }
+  .clock small { display: block; font-size: 10px; letter-spacing: 0.14em; color: var(--ink-3); text-transform: uppercase; }
+
+  button {
+    font: inherit;
+    color: var(--ink-2);
+    background: var(--surface-3);
+    border: 1px solid var(--hairline);
+    border-radius: 7px;
+    padding: 7px 13px;
+    cursor: pointer;
+    transition: border-color .15s, color .15s, background .15s;
+  }
+  button:hover { color: var(--ink); border-color: var(--purple-dim); background: #202a5e; }
+  button:focus-visible { outline: 2px solid var(--coral-lift); outline-offset: 2px; }
+
+  /* ---------- pipeline rail ---------- */
+  .rail {
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r);
+    padding: 16px 18px 14px;
+    overflow-x: auto;
+  }
+  .rail-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .rail-now { font-family: var(--mono); font-size: 12px; color: var(--ink-2); }
+  .rail-now b { color: var(--coral-lift); font-weight: 600; }
+
+  .stages {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(150px, 1fr));
+    align-items: start;
+    gap: 0;
+    min-width: 840px;
+  }
+  .stage { position: relative; padding: 0 10px; }
+  .stage + .stage::before {
+    content: "";
+    position: absolute;
+    top: 21px;
+    left: -50%;
+    width: 100%;
+    height: 2px;
+    background: var(--hairline);
+  }
+  .stage.lit + .stage::before,
+  .stage.lit::after { background: var(--coral); }
+  .stage-node {
+    position: relative;
+    z-index: 1;
+    width: 42px; height: 42px;
+    margin: 0 auto 10px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    background: var(--surface-2);
+    border: 1px solid var(--hairline);
+    font-family: var(--mono);
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-3);
+    transition: border-color .25s, color .25s, box-shadow .25s, background .25s;
+  }
+  .stage.lit .stage-node {
+    background: rgba(232,84,47,0.14);
+    border-color: var(--coral);
+    color: var(--coral-lift);
+    box-shadow: 0 0 0 4px rgba(232,84,47,0.13);
+  }
+  .stage.busy .stage-node { color: var(--ink); border-color: var(--purple-dim); }
+  .stage-name {
+    text-align: center;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+    color: var(--ink-2);
+  }
+  .stage.lit .stage-name { color: var(--ink); }
+  .stage-meta {
+    text-align: center;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--ink-3);
+    margin-top: 3px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---------- main grid ---------- */
+  .cols {
+    display: grid;
+    grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+    gap: 14px;
+    align-items: start;
+  }
+  @media (max-width: 1080px) { .cols { grid-template-columns: minmax(0, 1fr); } }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r);
+    overflow: hidden;
+  }
+  .card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--hairline-soft);
+  }
+
+  /* ---------- live feed ---------- */
+  .feed { max-height: 62vh; overflow-y: auto; }
+  .feed::-webkit-scrollbar { width: 9px; }
+  .feed::-webkit-scrollbar-thumb { background: var(--surface-3); border-radius: 9px; }
+
+  .row {
+    display: grid;
+    grid-template-columns: 3px minmax(0,1fr) auto;
+    align-items: center;
+    gap: 0 14px;
+    width: 100%;
+    text-align: left;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--hairline-soft);
+    border-radius: 0;
+    cursor: pointer;
+    animation: slide-in .38s cubic-bezier(.2,.7,.3,1);
+  }
+  .row:hover { background: var(--surface-2); }
+  .row[aria-current="true"] { background: rgba(123,92,255,0.09); }
+  .row:focus-visible { outline: 2px solid var(--coral-lift); outline-offset: -2px; }
+  @keyframes slide-in {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  .row-stripe { align-self: stretch; background: var(--hairline); }
+  .row.s-run .row-stripe { background: var(--run); }
+  .row.s-ok  .row-stripe { background: var(--ok); }
+  .row.s-bad .row-stripe { background: var(--bad); }
+
+  .row-body { padding: 11px 0; min-width: 0; }
+  .row-top {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    min-width: 0;
+  }
+  .partner {
+    font-weight: 600;
+    font-size: 13.5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .po {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--coral-lift);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .row-sub {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+    margin-top: 2px;
+    display: flex;
+    gap: 10px;
+  }
+  .row-right { padding: 11px 16px 11px 0; }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    padding: 4px 9px;
+    border-radius: 999px;
+    border: 1px solid;
+  }
+  .badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .b-wait { color: var(--ink-2);  border-color: var(--hairline);            background: var(--surface-2); }
+  .b-run  { color: var(--run-ink); border-color: rgba(62,143,217,0.42);     background: rgba(62,143,217,0.11); }
+  .b-ok   { color: var(--ok-ink);  border-color: rgba(34,162,119,0.42);     background: rgba(34,162,119,0.11); }
+  .b-bad  { color: var(--bad-ink); border-color: rgba(220,61,69,0.45);      background: rgba(220,61,69,0.13); }
+  .b-run::before { animation: pulse 1.3s ease-in-out infinite; }
+
+  /* ---------- summary tiles ---------- */
+  .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--hairline-soft); }
+  .tile { background: var(--surface); padding: 14px 16px 15px; }
+  .tile .label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .tile .value {
+    font-family: var(--mono);
+    font-size: 30px;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+    margin-top: 4px;
+    line-height: 1.05;
+  }
+  .tile .value small { font-size: 14px; color: var(--ink-3); margin-left: 3px; letter-spacing: 0; }
+  .tile.t-ok  .value { color: var(--ok-ink); }
+  .tile.t-bad .value { color: var(--bad-ink); }
+  .tile .foot { font-family: var(--mono); font-size: 10.5px; color: var(--ink-3); margin-top: 5px; font-variant-numeric: tabular-nums; }
+
+  .spark-wrap { padding: 14px 16px 16px; border-top: 1px solid var(--hairline-soft); }
+  .spark-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+  svg.spark { display: block; width: 100%; height: 62px; overflow: visible; }
+
+  /* ---------- detail split ---------- */
+  .detail { margin-top: 0; }
+  .detail[hidden] { display: none; }
+  .split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--hairline-soft);
+  }
+  @media (max-width: 900px) { .split { grid-template-columns: 1fr; } }
+  .pane { background: var(--surface); padding: 0 0 12px; min-width: 0; }
+  .pane-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--hairline-soft);
+  }
+  .pane pre {
+    margin: 0;
+    padding: 12px 14px;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    line-height: 1.65;
+    color: var(--ink-2);
+    overflow-x: auto;
+    max-height: 340px;
+    tab-size: 2;
+  }
+  .seg { color: var(--coral-lift); font-weight: 600; }
+  .env { color: var(--purple); }
+  .j-key { color: var(--run-ink); }
+  .j-str { color: var(--ok-ink); }
+  .j-num { color: var(--coral-lift); }
+  .j-punc { color: var(--ink-3); }
+
+  .empty {
+    padding: 34px 16px;
+    text-align: center;
+    color: var(--ink-3);
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    padding: 10px 16px;
+    border-top: 1px solid var(--hairline-soft);
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--ink-3);
+  }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .legend i { width: 8px; height: 8px; border-radius: 2px; display: inline-block; }
+
+  .note {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--ink-3);
+    text-align: center;
+    padding: 2px 0 6px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+</style>
+
+<div class="deck">
+
+  <header class="bar">
+    <div class="brand">
+      <h1>EDI 850 Flight Deck</h1>
+      <div class="sub">X12 4010 · Inbound Purchase Orders</div>
+    </div>
+
+    <div class="live" id="liveChip" data-paused="false">
+      <span class="dot"></span><span id="liveLabel">Simulated</span>
+    </div>
+
+    <div class="bar-spacer"></div>
+
+    <div class="clock">
+      <span id="clock">--:--:--</span>
+      <small id="clockDate">—</small>
+    </div>
+
+    <button id="pauseBtn" aria-pressed="false">Pause feed</button>
+  </header>
+
+  <section class="rail" aria-label="Processing pipeline">
+    <div class="rail-head">
+      <div class="eyebrow">Pipeline</div>
+      <div class="rail-now" id="railNow">Waiting for first transaction…</div>
+    </div>
+    <div class="stages" id="stages"></div>
+  </section>
+
+  <div class="cols">
+
+    <section class="card" aria-label="Live transaction feed">
+      <div class="card-head">
+        <div class="eyebrow">Live feed</div>
+        <div class="rail-now"><span id="feedCount">0</span> in view</div>
+      </div>
+      <div class="feed" id="feed">
+        <div class="empty" id="feedEmpty">Listening for inbound 850s…</div>
+      </div>
+      <div class="legend" aria-hidden="true">
+        <span><i style="background:var(--ink-3)"></i>Received</span>
+        <span><i style="background:var(--run)"></i>Validating</span>
+        <span><i style="background:var(--ok)"></i>Validated / Ack / Mapped</span>
+        <span><i style="background:var(--bad)"></i>Failed validation</span>
+      </div>
+    </section>
+
+    <section class="card" aria-label="Today's summary">
+      <div class="card-head">
+        <div class="eyebrow">Today</div>
+        <div class="rail-now" id="sinceLabel">since 00:00</div>
+      </div>
+      <div class="tiles">
+        <div class="tile">
+          <div class="label">Received</div>
+          <div class="value" id="mReceived">0</div>
+          <div class="foot" id="mRate">0.0 / min</div>
+        </div>
+        <div class="tile t-ok">
+          <div class="label">Validated</div>
+          <div class="value" id="mValid">0</div>
+          <div class="foot" id="mValidPct">—</div>
+        </div>
+        <div class="tile t-bad">
+          <div class="label">Failed validation</div>
+          <div class="value" id="mFailed">0</div>
+          <div class="foot" id="mFailedPct">—</div>
+        </div>
+        <div class="tile">
+          <div class="label">Avg processing</div>
+          <div class="value" id="mAvg">—</div>
+          <div class="foot" id="mAvgN">no completions yet</div>
+        </div>
+      </div>
+      <div class="spark-wrap">
+        <div class="spark-head">
+          <div class="eyebrow">Receipts · last 3 min</div>
+          <div class="rail-now" id="sparkNow">—</div>
+        </div>
+        <svg class="spark" id="spark" viewBox="0 0 300 62" preserveAspectRatio="none" role="img" aria-label="Purchase orders received per 10-second bucket over the last three minutes"></svg>
+      </div>
+    </section>
+  </div>
+
+  <section class="card detail" id="detail" hidden aria-label="Transaction detail">
+    <div class="card-head">
+      <div class="eyebrow">Transaction detail · <span id="detailPo" style="color:var(--coral-lift)"></span></div>
+      <button id="closeDetail">Close</button>
+    </div>
+    <div class="split">
+      <div class="pane">
+        <div class="pane-head">
+          <div class="eyebrow">Raw X12 850</div>
+          <div class="rail-now" id="segCount"></div>
+        </div>
+        <pre id="ediPane"></pre>
+      </div>
+      <div class="pane">
+        <div class="pane-head">
+          <div class="eyebrow">Internal order JSON</div>
+          <div class="rail-now" id="jsonMeta"></div>
+        </div>
+        <pre id="jsonPane"></pre>
+      </div>
+    </div>
+  </section>
+
+  <p class="note">Simulated traffic for demonstration — transactions are generated locally, not read from a Boomi runtime.</p>
+</div>
+
+<script>
+(() => {
+  "use strict";
+
+  /* ============ sample data generation ============ */
+
+  const BUYERS = [
+    ["Northwind Trading Company", "Hyderabad", "TG", "500081", "IN", "NWT-001"],
+    ["Meridian Retail Group",     "Columbus",  "OH", "43215",  "US", "MRG-4417"],
+    ["Cascade Grocers Co-op",     "Portland",  "OR", "97209",  "US", "CGC-2280"],
+    ["Halberd Industrial Supply", "Dallas",    "TX", "75201",  "US", "HIS-6710"],
+    ["Blue Harbor Foods",         "Boston",    "MA", "02210",  "US", "BHF-3390"],
+    ["Trident Auto Parts",        "Detroit",   "MI", "48226",  "US", "TAP-8845"],
+    ["Sunbelt Home Centers",      "Phoenix",   "AZ", "85004",  "US", "SHC-5521"],
+    ["Kestrel Pharma Distribution","Raleigh",  "NC", "27601",  "US", "KPD-9034"],
+    ["Ironvale Manufacturing",    "Pittsburgh","PA", "15222",  "US", "IVM-1177"],
+    ["Lakeshore Beverage Partners","Chicago",  "IL", "60607",  "US", "LBP-7702"]
+  ];
+
+  const STREETS = ["Industrial Parkway", "Commerce Drive", "Harbor Boulevard", "Foundry Road",
+                   "Cassatt Road", "Meridian Way", "Distribution Center Loop", "Warehouse Row"];
+
+  const PRODUCTS = [
+    ["WDG-1001", "Stainless Widget 10mm",     "EA", 14.75],
+    ["GSK-2210", "Industrial Gasket Kit",     "CA", 89.50],
+    ["BLT-7745", "Hex Bolt M8x40 Zinc",       "EA",  2.35],
+    ["PMP-3320", "Centrifugal Pump Seal",     "EA", 128.00],
+    ["FLT-5540", "Inline Filter Cartridge",   "BX", 42.90],
+    ["CBL-8890", "Shielded Cable 12AWG 50ft", "RL", 76.25],
+    ["VLV-6612", "Brass Ball Valve 1in",      "EA", 31.40],
+    ["BRG-4408", "Sealed Roller Bearing",     "EA", 58.10],
+    ["ADH-2255", "Industrial Epoxy 500ml",    "CS", 23.80],
+    ["SNS-9911", "Proximity Sensor NPN",      "EA", 67.55]
+  ];
+
+  const rnd  = (n) => Math.floor(Math.random() * n);
+  const pick = (a) => a[rnd(a.length)];
+  const pad  = (n, w) => String(n).padStart(w, "0");
+
+  let poSeq = 4000 + rnd(2000);
+
+  function makeTxn() {
+    const [name, city, state, zip, country, code] = pick(BUYERS);
+    const now = new Date();
+    const po  = "PO-" + now.getFullYear() + "-" + pad(++poSeq, 6);
+
+    const lineCount = 3 + rnd(4);
+    const chosen = [];
+    while (chosen.length < lineCount) {
+      const p = pick(PRODUCTS);
+      if (!chosen.some((c) => c[0] === p[0])) chosen.push(p);
+    }
+    const items = chosen.map(([sku, desc, uom, base], i) => ({
+      line: i + 1,
+      productCode: sku,
+      description: desc,
+      uom,
+      quantity: uom === "EA" ? 20 + rnd(680) : 4 + rnd(90),
+      unitPrice: +(base * (0.9 + Math.random() * 0.25)).toFixed(2)
+    }));
+
+    const addr = {
+      line1: (100 + rnd(1900)) + " " + pick(STREETS),
+      line2: Math.random() < 0.55 ? "Suite " + (100 + rnd(400)) : "",
+      city, state, postalCode: zip, country
+    };
+
+    return {
+      id: "t" + now.getTime() + "-" + rnd(9999),
+      partner: name, partnerCode: code, po,
+      received: now,
+      stage: 0,
+      status: "Received",
+      failed: false,
+      failReason: null,
+      items, addr,
+      ctrl: pad(1 + rnd(998), 4),
+      ackCtrl: null,
+      elapsedMs: null
+    };
+  }
+
+  /* ============ EDI + JSON rendering for one transaction ============ */
+
+  const yyyymmdd = (d) => d.getFullYear() + pad(d.getMonth() + 1, 2) + pad(d.getDate(), 2);
+  const hhmm     = (d) => pad(d.getHours(), 2) + pad(d.getMinutes(), 2);
+  const clockStr = (d) => pad(d.getHours(), 2) + ":" + pad(d.getMinutes(), 2) + ":" + pad(d.getSeconds(), 2);
+
+  function ediFor(t) {
+    const d = t.received;
+    const body = [];
+    body.push(`ST*850*${t.ctrl}`);
+    body.push(`BEG*00*SA*${t.po}**${yyyymmdd(d)}`);
+    body.push(`REF*DP*DEPT-${10 + rndStable(t, 80)}`);
+    body.push(`N1*BT*${t.partner.toUpperCase()}*92*${t.partnerCode}`);
+    body.push(`N3*${t.addr.line1.toUpperCase()}${t.addr.line2 ? "*" + t.addr.line2.toUpperCase() : ""}`);
+    body.push(`N4*${t.addr.city.toUpperCase()}*${t.addr.state}*${t.addr.postalCode}*${t.addr.country}`);
+    t.items.forEach((it) => {
+      body.push(`PO1*${it.line}*${it.quantity}*${it.uom}*${it.unitPrice.toFixed(2)}**BP*${it.productCode}`);
+    });
+    body.push(`CTT*${t.items.length}`);
+    const count = body.length + 1;
+    body.push(`SE*${count}*${t.ctrl}`);
+
+    const isa = `ISA*00*          *00*          *ZZ*ACMESUPPLY     *ZZ*${(t.partnerCode + "               ").slice(0, 15)}*${yyyymmdd(d).slice(2)}*${hhmm(d)}*U*00401*${pad(100000 + rndStable(t, 899999), 9)}*0*T*>`;
+    const gs  = `GS*PO*ACMESUPPLY*${t.partnerCode}*${yyyymmdd(d)}*${hhmm(d)}*${t.ctrl}*X*004010`;
+
+    return { envelope: [isa, gs], body, trailer: [`GE*1*${t.ctrl}`, `IEA*1*${pad(100000 + rndStable(t, 899999), 9)}`] };
+  }
+
+  // deterministic pseudo-random per transaction, so a detail view never reshuffles
+  function rndStable(t, range) {
+    let h = 0;
+    for (let i = 0; i < t.id.length; i++) h = (h * 31 + t.id.charCodeAt(i)) >>> 0;
+    return h % range;
+  }
+
+  function jsonFor(t) {
+    return {
+      orderNumber: t.po,
+      poDate: yyyymmdd(t.received),
+      buyerName: t.partner,
+      buyerAddress: {
+        line1: t.addr.line1,
+        line2: t.addr.line2,
+        city: t.addr.city,
+        state: t.addr.state,
+        postalCode: t.addr.postalCode,
+        country: t.addr.country
+      },
+      lineItems: t.items.map((it) => ({
+        productCode: it.productCode,
+        quantity: it.quantity,
+        unitPrice: it.unitPrice
+      }))
+    };
+  }
+
+  const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+
+  function paintEdi(t) {
+    const e = ediFor(t);
+    const line = (l, cls) => {
+      const i = l.indexOf("*");
+      const id = i < 0 ? l : l.slice(0, i);
+      const rest = i < 0 ? "" : l.slice(i);
+      return `<span class="${cls}">${esc(id)}</span>${esc(rest)}`;
+    };
+    return [
+      ...e.envelope.map((l) => line(l, "env")),
+      ...e.body.map((l) => line(l, "seg")),
+      ...e.trailer.map((l) => line(l, "env"))
+    ].join("\n");
+  }
+
+  function paintJson(obj) {
+    // one pass: strings are consumed first, so digits inside a string are never
+    // repainted as numbers, and a key is only a key when a colon follows it
+    const raw = esc(JSON.stringify(obj, null, 2));
+    return raw.replace(
+      /("(?:\\.|[^"\\])*")(\s*:)?|(-?\d+(?:\.\d+)?)/g,
+      (m, str, colon, num) => {
+        if (str !== undefined) {
+          return colon
+            ? `<span class="j-key">${str}</span><span class="j-punc">${colon}</span>`
+            : `<span class="j-str">${str}</span>`;
+        }
+        return `<span class="j-num">${num}</span>`;
+      }
+    );
+  }
+
+  /* ============ pipeline model ============ */
+
+  const STAGES = [
+    { key: "receipt",  name: "Trading Partner Receipt", note: "AS2 / X12 in" },
+    { key: "validate", name: "EDI Validation",          note: "X12 4010 profile" },
+    { key: "ack",      name: "997 Acknowledgment",      note: "functional ack" },
+    { key: "map",      name: "Mapping to Internal Order", note: "850 → JSON" },
+    { key: "output",   name: "Output",                  note: "disk / downstream" }
+  ];
+
+  // status shown while a transaction sits in each stage
+  const STAGE_STATUS = ["Received", "Validating", "Acknowledged", "Mapped", "Mapped"];
+
+  const state = {
+    txns: [],
+    completed: 0,
+    received: 0,
+    validated: 0,
+    failed: 0,
+    totalMs: 0,
+    buckets: new Array(18).fill(0),   // 10s buckets over 3 minutes
+    bucketStart: Date.now(),
+    selected: null,
+    paused: false,
+    startedAt: new Date()
+  };
+
+  /* ============ DOM ============ */
+
+  const $ = (id) => document.getElementById(id);
+  const stagesEl = $("stages");
+  const feedEl   = $("feed");
+
+  stagesEl.innerHTML = STAGES.map((s, i) => `
+    <div class="stage" data-i="${i}">
+      <div class="stage-node" id="node-${i}">${i + 1}</div>
+      <div class="stage-name">${s.name}</div>
+      <div class="stage-meta" id="meta-${i}">${s.note}</div>
+    </div>`).join("");
+
+  function statusClass(t) {
+    if (t.failed) return { row: "s-bad", badge: "b-bad" };
+    if (t.status === "Received") return { row: "", badge: "b-wait" };
+    if (t.status === "Validating") return { row: "s-run", badge: "b-run" };
+    return { row: "s-ok", badge: "b-ok" };
+  }
+
+  function rowHtml(t) {
+    const c = statusClass(t);
+    const total = t.items.reduce((s, i) => s + i.quantity * i.unitPrice, 0);
+    const el = t.elapsedMs != null ? (t.elapsedMs / 1000).toFixed(1) + "s" : "in flight";
+    return `
+      <div class="row-stripe"></div>
+      <div class="row-body">
+        <div class="row-top">
+          <span class="partner">${esc(t.partner)}</span>
+          <span class="po">${t.po}</span>
+        </div>
+        <div class="row-sub">
+          <span>${clockStr(t.received)}</span>
+          <span>${t.items.length} lines</span>
+          <span>$${total.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+          <span>${el}</span>
+        </div>
+      </div>
+      <div class="row-right">
+        <span class="badge ${c.badge}">${t.failed ? "Failed Validation" : t.status}</span>
+      </div>`;
+  }
+
+  function renderRow(t) {
+    let el = document.getElementById("row-" + t.id);
+    if (!el) {
+      el = document.createElement("button");
+      el.type = "button";
+      el.id = "row-" + t.id;
+      el.className = "row";
+      el.addEventListener("click", () => select(t.id));
+      feedEl.prepend(el);
+      $("feedEmpty").hidden = true;
+      while (feedEl.querySelectorAll(".row").length > 40) feedEl.querySelector(".row:last-of-type").remove();
+    }
+    const c = statusClass(t);
+    el.className = "row " + c.row;
+    el.setAttribute("aria-current", state.selected === t.id ? "true" : "false");
+    el.innerHTML = rowHtml(t);
+    $("feedCount").textContent = feedEl.querySelectorAll(".row").length;
+  }
+
+  function select(id) {
+    state.selected = id;
+    const t = state.txns.find((x) => x.id === id);
+    if (!t) return;
+    $("detail").hidden = false;
+    $("detailPo").textContent = t.po;
+    $("ediPane").innerHTML = paintEdi(t);
+    $("jsonPane").innerHTML = paintJson(jsonFor(t));
+    const segs = ediFor(t);
+    $("segCount").textContent = (segs.envelope.length + segs.body.length + segs.trailer.length) + " segments";
+    $("jsonMeta").textContent = t.failed ? "not produced — validation failed" : t.items.length + " line items";
+    state.txns.forEach(renderRow);
+    $("detail").scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+
+  $("closeDetail").addEventListener("click", () => {
+    $("detail").hidden = true;
+    state.selected = null;
+    state.txns.forEach(renderRow);
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !$("detail").hidden) $("closeDetail").click();
+  });
+
+  /* ============ metrics ============ */
+
+  function renderMetrics() {
+    $("mReceived").textContent = state.received;
+    $("mValid").textContent    = state.validated;
+    $("mFailed").textContent   = state.failed;
+
+    const mins = Math.max(0.2, (Date.now() - state.startedAt.getTime()) / 60000);
+    $("mRate").textContent = (state.received / mins).toFixed(1) + " / min";
+
+    const done = state.validated + state.failed;
+    $("mValidPct").textContent  = done ? ((state.validated / done) * 100).toFixed(1) + "% of decided" : "—";
+    $("mFailedPct").textContent = done ? ((state.failed / done) * 100).toFixed(1) + "% of decided" : "—";
+
+    if (state.completed) {
+      const avg = state.totalMs / state.completed;
+      $("mAvg").innerHTML = (avg / 1000).toFixed(2) + "<small>s</small>";
+      $("mAvgN").textContent = "over " + state.completed + " completed";
+    }
+    $("sinceLabel").textContent = "since " + clockStr(state.startedAt);
+  }
+
+  function bucketPush() {
+    const elapsed = Date.now() - state.bucketStart;
+    const shift = Math.floor(elapsed / 10000);
+    if (shift > 0) {
+      for (let i = 0; i < Math.min(shift, state.buckets.length); i++) {
+        state.buckets.shift();
+        state.buckets.push(0);
+      }
+      state.bucketStart += shift * 10000;
+    }
+  }
+
+  function renderSpark() {
+    bucketPush();
+    const b = state.buckets;
+    const max = Math.max(2, ...b);
+    const W = 300, H = 62, n = b.length;
+    const x = (i) => (i / (n - 1)) * W;
+    const y = (v) => H - (v / max) * (H - 8) - 2;
+
+    const pts = b.map((v, i) => [x(i), y(v)]);
+    const line = pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+    const area = line + ` L${W} ${H} L0 ${H} Z`;
+    const last = pts[pts.length - 1];
+
+    let grid = "";
+    for (let g = 1; g <= 2; g++) {
+      const gy = (H / 3) * g;
+      grid += `<line x1="0" y1="${gy}" x2="${W}" y2="${gy}" stroke="var(--hairline-soft)" stroke-width="1"/>`;
+    }
+
+    $("spark").innerHTML = `
+      <defs>
+        <linearGradient id="sg" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stop-color="#7B5CFF" stop-opacity="0.42"/>
+          <stop offset="100%" stop-color="#7B5CFF" stop-opacity="0.02"/>
+        </linearGradient>
+      </defs>
+      ${grid}
+      <path d="${area}" fill="url(#sg)"/>
+      <path d="${line}" fill="none" stroke="#7B5CFF" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+      <circle cx="${last[0].toFixed(1)}" cy="${last[1].toFixed(1)}" r="3.5" fill="#7B5CFF" stroke="var(--surface)" stroke-width="2"/>`;
+    $("sparkNow").textContent = "peak " + max + " / 10s";
+  }
+
+  /* ============ pipeline render ============ */
+
+  function renderRail() {
+    const inFlight = state.txns.filter((t) => !t.done);
+    const lead = inFlight[0];
+
+    STAGES.forEach((s, i) => {
+      const here = inFlight.filter((t) => t.stage === i).length;
+      const stage = stagesEl.querySelector(`.stage[data-i="${i}"]`);
+      stage.classList.toggle("lit", !!lead && lead.stage === i);
+      stage.classList.toggle("busy", here > 0);
+      $("node-" + i).textContent = here > 0 ? here : (i + 1);
+      $("meta-" + i).textContent = here > 0 ? here + " in stage" : s.note;
+    });
+
+    $("railNow").innerHTML = lead
+      ? `<b>${lead.po}</b> · ${esc(lead.partner)} · ${STAGES[lead.stage].name}`
+      : (state.received ? "Pipeline idle — all transactions settled" : "Waiting for first transaction…");
+  }
+
+  /* ============ simulation ============ */
+
+  function spawn() {
+    const t = makeTxn();
+    t.nextAt = Date.now() + 700 + rnd(700);
+    state.txns.unshift(t);
+    state.received++;
+    state.buckets[state.buckets.length - 1]++;
+    if (state.txns.length > 60) state.txns.length = 60;
+    renderRow(t);
+    renderRail();
+    renderMetrics();
+    scheduleNextSpawn();
+  }
+
+  let spawnTimer = null;
+  function scheduleNextSpawn() {
+    clearTimeout(spawnTimer);
+    spawnTimer = setTimeout(() => { if (!state.paused) spawn(); }, 1500 + rnd(2200));
+  }
+
+  const FAIL_REASONS = [
+    "N4 segment: element N403 below minimum length (3)",
+    "PO1 loop line 2: mandatory element PO102 missing",
+    "BEG segment: BEG05 is not a valid CCYYMMDD date",
+    "N1 loop: qualifier N101 value 'XX' not in code list 98",
+    "CTT01 count does not match PO1 loop occurrences"
+  ];
+
+  function advance(t) {
+    // stage 1 is where validation resolves
+    if (t.stage === 1 && !t.decided) {
+      t.decided = true;
+      if (Math.random() < 0.11) {
+        t.failed = true;
+        t.failReason = pick(FAIL_REASONS);
+        t.status = "Failed Validation";
+        t.done = true;
+        t.elapsedMs = Date.now() - t.received.getTime();
+        state.failed++;
+        renderRow(t); renderRail(); renderMetrics();
+        return;
+      }
+      t.status = "Validated";
+      state.validated++;
+      renderRow(t);
+      t.nextAt = Date.now() + 500 + rnd(600);
+      return;
+    }
+
+    t.stage++;
+    if (t.stage >= STAGES.length) {
+      t.done = true;
+      t.status = "Mapped";
+      t.elapsedMs = Date.now() - t.received.getTime();
+      state.completed++;
+      state.totalMs += t.elapsedMs;
+      renderRow(t); renderRail(); renderMetrics();
+      return;
+    }
+    if (t.stage === 2) t.ackCtrl = pad(1 + rnd(9998), 4);
+    t.status = STAGE_STATUS[t.stage];
+    t.nextAt = Date.now() + 550 + rnd(900);
+    renderRow(t); renderRail();
+  }
+
+  function tick() {
+    if (!state.paused) {
+      const now = Date.now();
+      state.txns.forEach((t) => {
+        if (!t.done && t.nextAt && now >= t.nextAt) {
+          if (t.stage === 0) { t.stage = 1; t.status = "Validating"; t.nextAt = now + 700 + rnd(900); renderRow(t); renderRail(); }
+          else advance(t);
+        }
+      });
+    }
+    const d = new Date();
+    $("clock").textContent = clockStr(d);
+    $("clockDate").textContent = d.toDateString();
+    renderSpark();
+    renderMetrics();
+  }
+
+  $("pauseBtn").addEventListener("click", (e) => {
+    state.paused = !state.paused;
+    e.target.textContent = state.paused ? "Resume feed" : "Pause feed";
+    e.target.setAttribute("aria-pressed", String(state.paused));
+    $("liveChip").dataset.paused = String(state.paused);
+    $("liveLabel").textContent = state.paused ? "Paused" : "Simulated";
+    if (!state.paused) scheduleNextSpawn();
+  });
+
+  renderRail();
+  renderMetrics();
+  renderSpark();
+  setInterval(tick, 250);
+  setTimeout(spawn, 400);
+  setTimeout(spawn, 1400);
+})();
+</script>

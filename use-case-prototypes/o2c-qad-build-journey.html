@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>O2C-QAD — Build Journey</title>
+<style>
+  :root{
+    --bg:#0f1115;
+    --panel:#171a21;
+    --user:#2563eb;
+    --asst:#1f2937;
+    --asst-2:#11151c;
+    --ok:#10b981;
+    --warn:#f59e0b;
+    --err:#ef4444;
+    --line:#2a2f3a;
+    --txt:#e5e7eb;
+    --muted:#9ca3af;
+    --accent:#60a5fa;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    background:var(--bg);
+    color:var(--txt);
+    line-height:1.55;
+  }
+  header{
+    padding:32px 24px 24px;
+    border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg,#1a1f2b,#0f1115);
+    text-align:center;
+    position:sticky;
+    top:0;
+    z-index:40;
+  }
+  header h1{margin:0 0 8px;font-size:26px}
+  header p{margin:0;color:var(--muted);font-size:14px}
+  .legend{display:flex;gap:14px;justify-content:center;margin-top:14px;font-size:12px;color:var(--muted);flex-wrap:wrap}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+  .dot.user{background:var(--user)}
+  .dot.asst{background:var(--asst)}
+  .dot.err{background:var(--err)}
+  .dot.ok{background:var(--ok)}
+  .dot.note{background:var(--warn)}
+
+  main{
+    max-width:none;
+    margin:0;
+    padding:32px 40px 80px;
+    position:relative;
+  }
+  main::before{
+    content:"";
+    position:absolute;
+    top:32px;
+    bottom:80px;
+    left:50%;
+    width:2px;
+    background:var(--line);
+    transform:translateX(-1px);
+  }
+  .phase{
+    position:relative;
+    text-align:center;
+    margin:42px 0 22px;
+  }
+  .phase span{
+    background:var(--bg);
+    padding:6px 16px;
+    border:1px solid var(--line);
+    border-radius:20px;
+    font-size:12px;
+    color:var(--accent);
+    letter-spacing:1px;
+    text-transform:uppercase;
+    position:relative;
+    z-index:1;
+  }
+  .msg{
+    position:relative;
+    margin:14px 0;
+    display:flex;
+    width:100%;
+  }
+  .msg.user{justify-content:flex-end}
+  .msg.asst{justify-content:flex-start}
+  .bubble{
+    max-width:48%;
+    min-width:380px;
+    padding:16px 20px;
+    border-radius:14px;
+    border:1px solid var(--line);
+    font-size:14px;
+    position:relative;
+  }
+  .msg.user .bubble{
+    background:var(--user);
+    color:#fff;
+    border-color:#1d4ed8;
+    border-bottom-right-radius:4px;
+    max-width:42%;
+  }
+  .msg.asst .bubble{
+    background:var(--asst);
+    border-bottom-left-radius:4px;
+  }
+  .bubble .who{
+    font-size:11px;
+    color:var(--muted);
+    margin-bottom:6px;
+    letter-spacing:0.5px;
+    text-transform:uppercase;
+    font-weight:600;
+  }
+  .msg.user .bubble .who{color:#dbeafe}
+  .bubble code{
+    background:rgba(0,0,0,0.35);
+    padding:1px 5px;
+    border-radius:4px;
+    font-size:12.5px;
+    font-family:"SF Mono",Menlo,monospace;
+  }
+  .bubble pre{
+    background:#0b0d12;
+    border:1px solid var(--line);
+    padding:10px 12px;
+    border-radius:6px;
+    overflow-x:auto;
+    font-size:12px;
+    font-family:"SF Mono",Menlo,monospace;
+    margin:8px 0 0;
+    color:#cbd5e1;
+    line-height:1.5;
+  }
+  .bubble pre.xml .tag{color:#7dd3fc}
+  .bubble pre.xml .attr{color:#fbbf24}
+  .bubble pre.xml .val{color:#a7f3d0}
+  .bubble pre.xml .com{color:#6b7280;font-style:italic}
+  .bubble.error{
+    border-color:var(--err);
+    background:rgba(239,68,68,0.08);
+  }
+  .bubble.fix{
+    border-color:var(--ok);
+    background:rgba(16,185,129,0.08);
+  }
+  .bubble.note{
+    border-color:var(--warn);
+    background:rgba(245,158,11,0.07);
+  }
+  .badge{
+    display:inline-block;
+    font-size:10px;
+    padding:2px 7px;
+    border-radius:10px;
+    margin-left:6px;
+    vertical-align:middle;
+    font-weight:600;
+  }
+  .badge.err{background:var(--err);color:#fff}
+  .badge.fix{background:var(--ok);color:#fff}
+  .badge.note{background:var(--warn);color:#0f1115}
+  .badge.info{background:var(--user);color:#fff}
+  .time{
+    font-size:11px;
+    color:var(--muted);
+    margin-top:8px;
+    text-align:right;
+  }
+  .msg.asst .time{text-align:left}
+  h4{
+    margin:10px 0 4px;
+    font-size:13px;
+    color:var(--accent);
+    text-transform:uppercase;
+    letter-spacing:0.5px;
+  }
+  ul.compact{margin:6px 0 0 18px;padding:0;font-size:13.5px}
+  ul.compact li{margin:3px 0}
+  .kv{
+    display:grid;
+    grid-template-columns:140px 1fr;
+    gap:4px 12px;
+    font-size:13px;
+    margin-top:6px;
+  }
+  .kv .k{color:var(--muted)}
+  .kv .v{font-family:"SF Mono",Menlo,monospace;font-size:12px}
+  footer{
+    text-align:center;
+    color:var(--muted);
+    font-size:12px;
+    padding:24px;
+    border-top:1px solid var(--line);
+  }
+  hr.in-bubble{
+    border:none;
+    border-top:1px dashed var(--line);
+    margin:10px 0;
+  }
+  /* Bubbles that contain wide XML/code should be allowed to stretch */
+  .bubble.wide{max-width:62% !important}
+  .msg.user .bubble.wide{max-width:48% !important}
+
+  @media(max-width:1100px){
+    .bubble{max-width:60%}
+    .msg.user .bubble{max-width:55%}
+  }
+  @media(max-width:760px){
+    main{padding:32px 16px 80px}
+    main::before{left:14px}
+    .bubble{max-width:92% !important;min-width:0}
+    .msg.user,.msg.asst{justify-content:flex-start;padding-left:28px}
+  }
+</style>
+</head>
+<body>
+<!-- SEDC-NAV:START -->
+<style>
+  .sedc-nav * { box-sizing: border-box; }
+  .sedc-nav {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    margin: 0;
+    background: #072B55;
+    color: #ffffff;
+    font-family: 'Poppins',Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    font-size: 14px;
+    line-height: 1.4;
+  }
+  .sedc-nav-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 10px 20px;
+  }
+  .sedc-nav-brand {
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+  }
+  .sedc-nav-brand:hover,
+  .sedc-nav-brand:focus {
+    text-decoration: underline;
+  }
+  .sedc-nav-jump {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .sedc-nav-label {
+    white-space: nowrap;
+    color: #ffffff;
+  }
+  .sedc-nav-select {
+    font-family: inherit;
+    font-size: 13px;
+    color: #072B55;
+    background: #ffffff;
+    border: 1px solid #ffffff;
+    border-radius: 4px;
+    padding: 5px 8px;
+    max-width: 60vw;
+  }
+  .sedc-nav-rule {
+    height: 3px;
+    width: 100%;
+    background: linear-gradient(90deg,#FF7C66 0%,#A03291 100%);
+  }
+</style>
+<div class="sedc-nav" role="navigation" aria-label="SE Demo Companion navigation">
+  <div class="sedc-nav-bar">
+    <a class="sedc-nav-brand" href="../index.html" target="_top">SE Demo Companion</a>
+    <div class="sedc-nav-jump">
+      <label class="sedc-nav-label" for="sedc-nav-select">Jump to use case</label>
+      <select class="sedc-nav-select" id="sedc-nav-select" onchange="(function(sel){try{var opt=sel.options[sel.selectedIndex];var url=opt&&opt.getAttribute('data-href');if(!url)return;try{window.top.location.href=url;}catch(e){window.location.href=url;}}catch(e){}})(this)">
+        <option value="amc-fee-change-agent" data-href="./amc-fee-change-agent.html">AMC fee-change agent — Finnomena</option>
+        <option value="bvtpa-claims-integration-demo" data-href="./bvtpa-claims-integration-demo.html">Blue Venture TPA claims integration demo — Blue Venture TPA</option>
+        <option value="bvtpa-claims-adjudication-cio-brief" data-href="./bvtpa-claims-adjudication-cio-brief.html">Claims adjudication CIO brief — Blue Venture TPA</option>
+        <option value="delivery-status-sync-demo" data-href="./delivery-status-sync-demo.html">Delivery status sync demo — TOTO</option>
+        <option value="boomi-tenant-ceo-dashboard" data-href="./boomi-tenant-ceo-dashboard.html">Boomi tenant CEO dashboard — Boomi internal tenant</option>
+        <option value="boomi-tenant-30-day-report" data-href="./boomi-tenant-30-day-report.html">Boomi tenant operations report, 30-day view — Boomi internal tenant</option>
+        <option value="json-to-xml-order-integration" data-href="./json-to-xml-order-integration.html">JSON to XML order integration, executive documentation — NTT</option>
+        <option value="edi-850-flight-deck" data-href="./edi-850-flight-deck.html">EDI 850 flight deck — Infosys</option>
+        <option value="whatsapp-to-sap-master-agent" data-href="./whatsapp-to-sap-master-agent.html">WhatsApp to SAP master agent — Boomi internal build</option>
+        <option value="student-xml-to-crm-json" data-href="./student-xml-to-crm-json.html">Student XML to CRM JSON — Attura</option>
+        <option value="sap-accounting-document-poc-outcome" data-href="./sap-accounting-document-poc-outcome.html">SAP accounting document automation, POC outcome — Abans PLC</option>
+        <option value="abans-sap-posting-poc-dashboard" data-href="./abans-sap-posting-poc-dashboard.html">Abans SAP posting, live POC dashboard — Abans PLC</option>
+        <option value="order-intake-api-fan-out" data-href="./order-intake-api-fan-out.html">Order intake API with multi-target fan-out — LTIMindtree</option>
+        <option value="electromart-track-and-reschedule" data-href="./electromart-track-and-reschedule.html">ElectroMart track order and reschedule delivery — ElectroMart (demo brand)</option>
+        <option value="enterprise-portal-ai-agent" data-href="./enterprise-portal-ai-agent.html">Enterprise portal with an embedded AI agent — ITG</option>
+        <option value="o2c-qad-build-journey" data-href="./o2c-qad-build-journey.html" selected>O2C-QAD build journey — Boomi internal build</option>
+        <option value="boomi-accenture-trivia" data-href="./boomi-accenture-trivia.html">Boomi x Accenture trivia — Boomi internal build</option>
+        <option value="cloud-runtime-sizing-calculator" data-href="./cloud-runtime-sizing-calculator.html">Boomi public cloud runtime sizing estimator — Boomi internal build</option>
+        <option value="coupa-netsuite-vendor-bill" data-href="./coupa-netsuite-vendor-bill.html">Vendor bill pipeline, Coupa to NetSuite — Boomi internal build</option>
+        <option value="coupa-oracle-s2p-console" data-href="./coupa-oracle-s2p-console.html">Source-to-pay flow console, Coupa to Oracle Fusion — Boomi internal build</option>
+        <option value="epic-rauland-adt-nurse-call" data-href="./epic-rauland-adt-nurse-call.html">Epic ADT to Rauland Responder 5, nurse call integration — Boomi internal build</option>
+        <option value="epic-salesforce-trial-screening" data-href="./epic-salesforce-trial-screening.html">Clinical trial screening console, Epic to Salesforce — Meridian Research (demo brand)</option>
+        <option value="jc-hifi-order-tracker" data-href="./jc-hifi-order-tracker.html">JC Hi-Fi order tracker, customer self-service — JC Hi-Fi (demo brand)</option>
+        <option value="pacific-bank-onboarding" data-href="./pacific-bank-onboarding.html">Pacific onboarding console, retail bank customer onboarding — Pacific Islands Community Bank (demo brand)</option>
+        <option value="sea-data-product-assistant" data-href="./sea-data-product-assistant.html">SEA regional performance, data products and an agent over two ERPs — Boomi internal build</option>
+        <option value="servicenow-jira-incident-sync" data-href="./servicenow-jira-incident-sync.html">Incident sync prototype, ServiceNow to Jira — Boomi internal build</option>
+        <option value="zendesk-magento-order-status" data-href="./zendesk-magento-order-status.html">Order status bot and flow inspector, Zendesk to Magento — Avery Products (demo brand)</option>
+        <option value="zoho-netsuite-invoice-sync" data-href="./zoho-netsuite-invoice-sync.html">Invoice sync console, Zoho CRM to NetSuite — Boomi internal build</option>
+      </select>
+    </div>
+  </div>
+  <div class="sedc-nav-rule"></div>
+</div>
+<!-- SEDC-NAV:END -->
+
+
+<header>
+  <h1>O2C-QAD Integration — Build Journey</h1>
+  <p>WhatsApp → Twilio → Boomi → QAD QdocWebService SOAP. Every prompt, every gotcha, every fix — with the actual XML.</p>
+  <div class="legend">
+    <span><i class="dot user"></i>User prompt</span>
+    <span><i class="dot asst"></i>Agent response</span>
+    <span><i class="dot err"></i>Error encountered</span>
+    <span><i class="dot ok"></i>Fix applied</span>
+    <span><i class="dot note"></i>Note / lesson</span>
+  </div>
+</header>
+
+<main>
+
+<!-- ============================================ -->
+<!-- PHASE 1 · KICKOFF                            -->
+<!-- ============================================ -->
+<div class="phase"><span>Phase 1 · Kickoff &amp; Architecture</span></div>
+
+<div class="msg user">
+  <div class="bubble">
+    <div class="who">You</div>
+    Build an end-to-end integration. WhatsApp messages come in as sales orders, post to QAD ERP via its QdocWebService SOAP endpoint at <code>https://demoqad-adaptive.ptimi.co.id/qxi/services/QdocWebService</code>. Needs audit trail, retry, validation, per-environment config. Customer is on QAD domain 10USA, ERP3_3.
+    <div class="time">Day 1 · 09:14</div>
+  </div>
+</div>
+
+<div class="msg asst">
+  <div class="bubble">
+    <div class="who">Agent <span class="badge info">Plan</span></div>
+    Proposed integration shape:
+    <pre>Twilio (WhatsApp webhook)
+   │  HTTP POST form-encoded
+   ▼
+WSS Listener  ──►  Validate SP
+   │
+   ▼
+Map (WhatsApp → QAD MaintainSO)
+   │
+   ▼
+Invoke-QAD SP  (SOAP POST + retry x3)
+   │
+   ▼
+Audit SP (write JSON to disk)
+   │
+   ▼
+Return TwiML reply to Twilio</pre>
+    <h4>Component plan — folder <code>O2C-QAD</code></h4>
+    <ul class="compact">
+      <li><b>Profiles (7):</b> <code>j.WhatsApp.Order.Inbound.REQ</code>, <code>j.O2C.Response.RESP</code>, <code>x.QAD.MaintainSalesOrder.REQ/RESP</code>, <code>x.QAD.QuerySalesOrder.REQ/RESP</code></li>
+      <li><b>Connections (2):</b> <code>WSS O2C Listener Connection</code>, <code>QAD QdocWebService Connection</code></li>
+      <li><b>Operations (3):</b> WSS Listen, QAD MaintainSO POST, QAD QuerySO POST</li>
+      <li><b>Map:</b> <code>M WhatsApp to QAD MaintainSO</code></li>
+      <li><b>Process Property:</b> <code>PP O2C QAD Config</code> (Domain, Version, Retry, Email, AuditPath, SO_Prefix)</li>
+      <li><b>Main process + 5 subprocesses:</b> Main, Validate, Invoke-with-Retry, Audit (non-blocking), Error-Notifier, Query-Reuse</li>
+    </ul>
+    <div class="time">Day 1 · 09:16</div>
+  </div>
+</div>
+
+<div class="msg user">
+  <div class="bubble">
+    <div class="who">You</div>
+    Approved. Build it locally first under <code>active-development/</code> so we can review before pushing.
+    <div class="time">Day 1 · 09:18</div>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- PHASE 2 · PROFILES & MAP                     -->
+<!-- ============================================ -->
+<div class="phase"><span>Phase 2 · Profiles, Connections, Map</span></div>
+
+<div class="msg asst">
+  <div class="bubble wide">
+    <div class="who">Agent <span class="badge info">Profile shapes</span></div>
+    Inbound JSON profile (Twilio form-decoded into JSON in a Groovy preprocessor):
+    <pre>{
+  "From"     : "whatsapp:+66812345678",
+  "To"       : "whatsapp:+14155238886",
+  "Body"     : "ORDER\nCust: ACME-TH\nSKU-100 x 2\nSKU-200 x 1",
+  "MessageSid": "SM..."
+}</pre>
+    Outbound QAD MaintainSO request (XML profile, abbreviated):
+    <pre class="xml">&lt;maintainSalesOrder xmlns="urn:schemas-qad-com:xml-services"&gt;
+  &lt;dsSessionContext&gt;
+    &lt;ttContext&gt;
+      &lt;propertyQualifier&gt;QAD_DOMAIN&lt;/propertyQualifier&gt;
+      &lt;propertyName&gt;domain&lt;/propertyName&gt;
+      &lt;propertyValue&gt;10USA&lt;/propertyValue&gt;
+    &lt;/ttContext&gt;
+    &lt;ttContext&gt;
+      &lt;propertyName&gt;version&lt;/propertyName&gt;
+      &lt;propertyValue&gt;ERP3_3&lt;/propertyValue&gt;
+    &lt;/ttContext&gt;
+    &lt;ttContext&gt;
+      &lt;propertyName&gt;scopeTransaction&lt;/propertyName&gt;
+      &lt;propertyValue&gt;false&lt;/propertyValue&gt;
+    &lt;/ttContext&gt;
+  &lt;/dsSessionContext&gt;
+  &lt;dsSalesOrder&gt;
+    &lt;salesOrder&gt;
+      &lt;soNbr&gt;BO780953&lt;/soNbr&gt;
+      &lt;soCust&gt;ACME-TH&lt;/soCust&gt;
+      &lt;soOrd_Date&gt;2026-05-18&lt;/soOrd_Date&gt;
+    &lt;/salesOrder&gt;
+    &lt;salesOrderDetail&gt;
+      &lt;sodPart&gt;SKU-100&lt;/sodPart&gt;
+      &lt;sodQty_Ord&gt;2&lt;/sodQty_Ord&gt;
+    &lt;/salesOrderDetail&gt;
+    &lt;salesOrderDetail&gt;
+      &lt;sodPart&gt;SKU-200&lt;/sodPart&gt;
+      &lt;sodQty_Ord&gt;1&lt;/sodQty_Ord&gt;
+    &lt;/salesOrderDetail&gt;
+  &lt;/dsSalesOrder&gt;
+&lt;/maintainSalesOrder&gt;</pre>
+    <div class="time">Day 1 · 10:18</div>
+  </div>
+</div>
+
+<div class="msg asst">
+  <div class="bubble">
+    <div class="who">Agent <span class="badge info">Map design</span></div>
+    Important call-out on the map: the <code>ttContext</code> repeating block is built in a <b>Message step</b> using process-property values, NOT inside the map. Reason — Map can't drive a repeating XML node off scalar properties cleanly; Message step gives clean control over the three context rows.
+    <pre>Map outputs:  &lt;salesOrder&gt; + &lt;salesOrderDetail&gt;* only
+Message step prepends:  &lt;dsSessionContext&gt; with 3x &lt;ttContext&gt;
+Final SOAP body assembled by another Message step that wraps:
+  &lt;soapenv:Envelope&gt;
+    &lt;soapenv:Body&gt;
+      {message-from-map}
+    &lt;/soapenv:Body&gt;
+  &lt;/soapenv:Envelope&gt;</pre>
+    <div class="time">Day 1 · 11:02</div>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- PHASE 3 · FIRST DEPLOY                       -->
+<!-- ============================================ -->
+<div class="phase"><span>Phase 3 · First Deploy &amp; Listener Failure</span></div>
+
+<div class="msg user">
+  <div class="bubble">
+    <div class="who">You</div>
+    Push and deploy to the atom. Smoke-test the listener with curl.
+    <div class="time">Day 2 · 10:30</div>
+  </div>
+</div>
+
+<div class="msg asst">
+  <div class="bubble">
+    <div class="who">Agent</div>
+    Deployed cleanly. Pushing a sample WhatsApp form-post now:
+    <pre>curl -X POST https://atom.example/ws/simple/whatsapporder \
+  -u boomi_user:****** \
+  -d "From=whatsapp:%2B66812345678&Body=ORDER..."</pre>
+    <div class="time">Day 2 · 10:34</div>
+  </div>
+</div>
+
+<div class="msg asst">
+  <div class="bubble error">
+    <div class="who">Agent <span class="badge err">Error #1</span></div>
+    Atom authenticates the request, but the response is:
+    <pre>HTTP/1.1 404
+&lt;error&gt;Unknown operation for the given URL path&lt;/error&gt;</pre>
+    Listener Status view on the atom shows the operation missing. Operation deployed fine — something about its registration is wrong. Investigating the WSS Start step XML…
+    <div class="time">Day 2 · 10:36</div>
+  </div>
+</div>
+
+<div class="msg asst">
+  <div class="bubble wide">
+    <div class="who">Agent <span class="badge info">Diagnosis</span></div>
+    Compared the locally-generated Start step against a GUI-built reference process. Difference found:
+    <h4>What we generated (broken)</h4>
+    <pre class="xml">&lt;shape image="start" name="shape1" shapetype="start"
+       userlabel="WSS Listener" x="0" y="0"&gt;
+  &lt;configuration&gt;
+    &lt;connectoraction
+      actionType="Listen"
+      allowDynamicCredentials="NONE"
+      connectionId="aabbccdd-..."   &lt;-- THE PROBLEM
+      connectorType="wss"
+      operationId="11223344-..."/&gt;
+    &lt;parameters/&gt;
+    &lt;dynamicProperties/&gt;
+  &lt;/configuration&gt;
+&lt;/shape&gt;</pre>
+    <h4>What the GUI generates (works)</h4>
+    <pre class="xml">&lt;shape image="start" name="shape1" shapetype="start"
+       userlabel="WSS Listener" x="0" y="0"&gt;
+  &lt;configuration&gt;
+    &lt;connectoraction
+      actionType="Listen"
+      allowDynamicCredentials="NONE"
+      connectorType="wss"
+      hideSettings="true"
+      operationId="11223344-..."/&gt;
+    &lt;parameters/&gt;
+    &lt;dynamicProperties/&gt;
+  &lt;/configuration&gt;
+&lt;/shape&gt;</pre>
+    <div class="time">Day 2 · 10:55</div>
+  </div>
+</div>
+
+<div class="msg asst">
+  <div class="bubble fix">
+    <div class="who">Agent <span class="badge fix">Fix #1 — WSS Listener Gotcha</span></div>
+    Root cause: Boomi's WSS Server is the atom's shared web server. There's no remote endpoint to "connect to" — the listener URL is derived from <code>objectName + operationType</code>. Including <code>connectionId</code> on the <code>&lt;connectoraction&gt;</code> silently prevents the listener from registering on the atom's web server. Deploy reports success; runtime returns 404.
+    <hr class="in-bubble">
+    Removed <code>connectionId</code> from the Start step, added <code>hideSettings="true"</code> to match the GUI pattern, redeployed. The WSS connection component itself isn't even strictly needed for the listener — kept it minimal.
+    <pre>Listener Status (atom UI):
+  /ws/simple/whatsapporder   ACTIVE   shared-account
+curl now returns: 200 OK + TwiML body ✅</pre>
+    <div class="time">Day 2 · 11:05</div>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- PHASE 4 · CLOUDFLARE                         -->
+<!-- ============================================ -->
+<div class="phase"><span>Phase 4 · Reaching QAD Through Cloudflare</span></div>
+
+<div class="msg user">
+  <div class="bubble">
+    <div class="who">You</div>
+    Listener live. Now wire the QAD POST and try a real order end-to-end.
+    <div class="time">Day 2 · 14:00</div>
+  </div>
+</div>
+
+<div class="msg asst">
+  <div class="bubble">
+    <div class="who">Agent</div>
+    QAD operation config — POST with SOAP-style headers but content type quirks (QAD's QXI accepts <code>text/html</code> not <code>text/xml</code>):
+    <pre class="xml">&lt;operation&gt;
+  &lt;HTTPSettings methodType="POST" requestProfileType="XML"
+                responseProfileType="XML"&gt;
+    &lt;path value="/qxi/services/QdocWebService"/&gt;
+    &lt;headers&gt;
+      &lt;properties key="SOAPAction"   value=""/&gt;
+      &lt;properties key="Accept"       value="text/html"/&gt;
+      &lt;properties key="Content-Type" value="text/html"/&gt;
+    &lt;/headers&gt;
+  &lt;/HTTPSettings&gt;
+&lt;/operation&gt;</pre>
+    Firing the first end-to-end request now…
+    <div class="time">Day 2 · 14:10</div>
+  </div>
+</div>
+
+<div class="msg asst">
+  <div class="bubble error">
+    <div class="who">Agent <span class="badge err">Error #2</span></div>
+    HTTP 200 — but the response body is not SOAP:
+    <pre class="xml">&lt;!DOCTYPE html&gt;
+&lt;html&gt;&lt;head&gt;
+  &lt;title&gt;Just a moment...&lt;/title&gt;
+  &lt;meta http-equiv="refresh"
+        content="35;URL='/?__cf_chl_rt_tk=...'"/&gt;
+&lt;/head&gt;&lt;body&gt;
+  ... /cdn-cgi/challenge-platform/h/g/orchestrate/chl_page/v1 ...
+&lt;/body&gt;&lt;/html&gt;</pre>
+    That's Cloudflare's bot challenge — not QAD. The atom's egress IP isn't allowlisted and Cloudflare sees no <code>User-Agent</code> header on the outbound request.
+    <div class="time">Day 2 · 14:22</div>
+  </div>
+</div>
+
+<div class="msg asst">
+  <div class="bubble fix">
+    <div class="who">Agent <span class="badge fix">Fix #2 — User-Agent header</span></div>
+    Boomi's REST/HTTP connectors don't send a <code>User-Agent</code> by default. Cloudflare's bot heuristic flags that as non-browser traffic and serves the challenge page instead of forwarding to origin. Added an explicit header to the QAD operation:
+    <pre class="xml">&lt;properties key="User-Agent"
+  value="Mozilla/5.0 (compatible; Boomi-O2C-Integration/1.0)"/&gt;</pre>
+    Diagnostic tip we baked in for the future: a <b>Notify step</b> right after the connector that logs the response. If body starts with <code>&lt;!DOCTYPE html&gt;</code> or contains <code>cdn-cgi/challenge-platform</code>, it's Cloudflare — not the API.
+    <hr class="in-bubble">
+    Also flagged for production: ask the QAD network admin to allowlist the atom's egress IP in their Cloudflare config. The header workaround is sufficient for demo but a hardened Cloudflare rule can still block it.
+    <div class="time">Day 2 · 14:40</div>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- PHASE 5 · SO NUMBER LIMIT                    -->
+<!-- ============================================ -->
+<div class="phase"><span>Phase 5 · QAD Rejecting Orders</span></div>
+
+<div class="msg asst">
+  <div class="bubble error wide">
+    <div class="who">Agent <span class="badge err">Error #3</span></div>
+    Now reaching QAD — but it returns a SOAP fault:
+    <pre class="xml">&lt;soapenv:Fault&gt;
+  &lt;faultcode&gt;soapenv:Server&lt;/faultcode&gt;
+  &lt;faultstring&gt;maintainSalesOrder failed&lt;/faultstring&gt;
+  &lt;detail&gt;
+    &lt;qcom:dsExceptions&gt;
+      &lt;qcom:temp_err_msg&gt;
+        &lt;qcom:err_msgnbr&gt;1129&lt;/qcom:err_msgnbr&gt;
+        &lt;qcom:err_msg&gt;Field exceeds defined length.&lt;/qcom:err_msg&gt;
+      &lt;/qcom:temp_err_msg&gt;
+    &lt;/qcom:dsExceptions&gt;
+  &lt;/detail&gt;
+&lt;/soapenv:Fault&gt;</pre>
+    Our generator produced <code>&lt;soNbr&gt;O2C-WA-1747293&lt;/soNbr&gt;</code> — that's 15 characters. QAD's <code>soNbr</code> column is <b>X(8)</b>.
+    <div class="time">Day 2 · 15:10</div>
+  </div>
+</div>
+
+<div class="msg asst">
+  <div class="bubble fix">
+    <div class="who">Agent <span class="badge fix">Fix #3 — soNbr 8-char cap</span></div>
+    Replaced the SO-number generator in <code>SP_Invoke_QAD_with_Retry</code> with an 8-char-safe pattern: 2-char prefix + 6-digit zero-padded modulus of <code>currentTimeMillis</code>:
+    <pre>// Groovy data process shape
+String prefix = props.get('SO_Number_Prefix') ?: 'BO'
+String tail   = String.format('%06d',
+                  System.currentTimeMillis() % 1000000)
+String soNbr  = (prefix + tail).take(8)   // safety cap
+// e.g. → "BO780953"
+dynProps.put('DDP_SoNbr', soNbr)</pre>
+    Order accepted by QAD. Logged that any prefix coming from <code>PP O2C QAD Config</code> must be 2 chars max.
+    <div class="time">Day 2 · 15:32</div>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- PHASE 6 · RESPONSE PARSING                   -->
+<!-- ============================================ -->
+<div class="phase"><span>Phase 6 · The "Half of Them Failed" Mirage</span></div>
+
+<div class="msg user">
+  <div class="bubble">
+    <div class="who">You</div>
+    Audit dashboard says ~50% of orders are failing — but you said QAD accepts them. Which is right?
+    <div class="time">Day 3 · 09:15</div>
+  </div>
+</div>
+
+<div class="msg asst">
+  <div class="bubble error wide">
+    <div class="who">Agent <span class="badge err">Error #4</span></div>
+    QAD is accepting them. The classifier in <code>SP_Invoke_QAD_with_Retry</code> is producing false positives. The bug:
+    <pre>// Groovy — naive classification
+def isError = response.toLowerCase().contains('error')</pre>
+    Problem: even on a successful <code>maintainSalesOrder</code>, QAD returns warning blocks inside <code>&lt;qcom:dsExceptions&gt;</code> that look like this:
+    <pre class="xml">&lt;qcom:dsExceptions&gt;
+  &lt;qcom:temp_err_msg&gt;
+    &lt;qcom:err_msgnbr&gt;42&lt;/qcom:err_msgnbr&gt;
+    &lt;qcom:err_msg&gt;WARNING: Type set to (M)emo&lt;/qcom:err_msg&gt;
+  &lt;/qcom:temp_err_msg&gt;
+&lt;/qcom:dsExceptions&gt;
+&lt;qcom:result&gt;warning&lt;/qcom:result&gt;</pre>
+    The element name <code>temp_err_msg</code> contains the literal substring <code>err</code> — substring check matches.
+    <div class="time">Day 3 · 09:30</div>
+  </div>
+</div>
+
+<div class="msg asst">
+  <div class="bubble fix wide">
+    <div class="who">Agent <span class="badge fix">Fix #4 — authoritative signal parsing</span></div>
+    Switched to a decision matrix based on QAD's actual contract:
+    <pre>SIGNAL                                            CLASSIFY AS
+─────────────────────────────────────────────────────────────
+&lt;faultstring&gt;…&lt;/faultstring&gt;                       → HARD FAULT
+&lt;…:result&gt;error&lt;/…:result&gt;                          → ERROR
+&lt;…:result&gt;warning&lt;/…:result&gt;                        → SUCCESS w/warn
+&lt;qcom:temp_err_msg&gt; only (no result tag)            → IGNORE
+no fault, no result element                          → SUCCESS</pre>
+    Groovy implementation:
+    <pre>def faultMatch  = response =~ /&lt;faultstring[^&gt;]*&gt;([^&lt;]+)/
+def resultMatch = response =~ /&lt;[^&gt;:]*:?result&gt;(\w+)&lt;/
+
+String classification
+if      (faultMatch)                       classification = 'FAULT'
+else if (resultMatch &amp;&amp;
+         resultMatch[0][1] == 'error')     classification = 'ERROR'
+else                                       classification = 'SUCCESS'
+// 'warning' result and bare temp_err_msg both fall to SUCCESS</pre>
+    Audit success-rate immediately corrected to ~98%. Misclassified historical records re-flagged via a one-off Groovy that re-parsed the stored response bodies in <code>Audit_Disk_Path</code>.
+    <div class="time">Day 3 · 10:05</div>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- PHASE 7 · TWIML SILENT DROP                  -->
+<!-- ============================================ -->
+<div class="phase"><span>Phase 7 · The Silent TwiML Bug</span></div>
+
+<div class="msg user">
+  <div class="bubble">
+    <div class="who">You</div>
+    QAD's happy. Audit's right. But customers say they don't get the WhatsApp confirmation on success — only the error-path replies arrive. Boomi log shows HTTP 200 in every case.
+    <div class="time">Day 4 · 11:00</div>
+  </div>
+</div>
+
+<div class="msg asst">
+  <div class="bubble error">
+    <div class="who">Agent <span class="badge err">Error #5</span></div>
+    Reproduced. The success-path TwiML differs from the error paths in one important way — it uses a template that includes a placeholder rendered with angle brackets:
+    <h4>Success-path TwiML (broken)</h4>
+    <pre class="xml">&lt;Response&gt;
+  &lt;Message&gt;Order &lt;customer-id&gt; (&lt;so-nbr&gt;) created OK&lt;/Message&gt;
+&lt;/Response&gt;</pre>
+    <h4>Error-path TwiML (works)</h4>
+    <pre class="xml">&lt;Response&gt;
+  &lt;Message&gt;Sorry, we could not process your order.&lt;/Message&gt;
+&lt;/Response&gt;</pre>
+    Twilio parses the response body as XML before relaying it to WhatsApp. The literal <code>&lt;customer-id&gt;</code> looks like nested-tag syntax — Twilio's parser fails — Twilio silently drops the response. Boomi sees the 200 from Twilio's webhook acknowledgement and is none the wiser.
+    <div class="time">Day 4 · 11:24</div>
+  </div>
+</div>
+
+<div class="msg asst">
+  <div class="bubble fix">
+    <div class="who">Agent <span class="badge fix">Fix #5 — TwiML escaping</span></div>
+    Three valid options to substitute the angle brackets. Picked square brackets because it reads cleanest in WhatsApp:
+    <pre>OPTION A · Square brackets   →  Order [customer-id] OK
+OPTION B · Curly braces      →  Order {customer-id} OK
+OPTION C · HTML entities     →  Order &amp;lt;customer-id&amp;gt; OK
+   (Note: in Message-step msgTxt, must be &amp;amp;lt; / &amp;amp;gt;
+    due to double-decoding by Boomi)</pre>
+    Final success-path Message step:
+    <pre class="xml">&lt;Response&gt;
+  &lt;Message&gt;Order [{1}] ({2}) created OK. Thank you!&lt;/Message&gt;
+&lt;/Response&gt;
+&lt;!-- {1} = customer-id, {2} = soNbr --&gt;</pre>
+    WhatsApp confirmations now arrive on every success path. Added the diagnostic note to the project memory so future TwiML-emitting processes don't repeat this.
+    <div class="time">Day 4 · 11:35</div>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- PHASE 8 · QUERY REUSE                        -->
+<!-- ============================================ -->
+<div class="phase"><span>Phase 8 · Reusable Query Subprocess</span></div>
+
+<div class="msg user">
+  <div class="bubble">
+    <div class="who">You</div>
+    Customer support team wants a way to look up an order back from QAD by SO number — same endpoint, different operation. Build it reusable.
+    <div class="time">Day 4 · 14:00</div>
+  </div>
+</div>
+
+<div class="msg asst">
+  <div class="bubble wide">
+    <div class="who">Agent</div>
+    Added <code>SP_Query_Order_From_QAD</code> — same connection, different operation. The querySalesOrderIMI body uses version <code>ERP3_1</code> (different from the maintain version!), with a filter expression:
+    <pre class="xml">&lt;querySalesOrderIMI xmlns="urn:..."&gt;
+  &lt;dsSessionContext&gt;
+    &lt;ttContext&gt;
+      &lt;propertyName&gt;version&lt;/propertyName&gt;
+      &lt;propertyValue&gt;ERP3_1&lt;/propertyValue&gt;
+    &lt;/ttContext&gt;
+  &lt;/dsSessionContext&gt;
+  &lt;dsQueryServiceRequest&gt;
+    &lt;ttQueryServiceRequest&gt;
+      &lt;SourceApplication&gt;QADERP&lt;/SourceApplication&gt;
+      &lt;Profile&gt;salesOrderIMI&lt;/Profile&gt;
+      &lt;Filter&gt;soNbr = "BO780953"&lt;/Filter&gt;
+      &lt;MaxRows&gt;10&lt;/MaxRows&gt;
+      &lt;IgnoreBOEnabled&gt;true&lt;/IgnoreBOEnabled&gt;
+    &lt;/ttQueryServiceRequest&gt;
+  &lt;/dsQueryServiceRequest&gt;
+&lt;/querySalesOrderIMI&gt;</pre>
+    Process Property <code>QAD_Query_Version</code> added so support tools can override per-environment without redeploying.
+    <div class="time">Day 4 · 14:35</div>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- PHASE 9 · POLISH                             -->
+<!-- ============================================ -->
+<div class="phase"><span>Phase 9 · Polish, Audit, Docs</span></div>
+
+<div class="msg user">
+  <div class="bubble">
+    <div class="who">You</div>
+    Ship-ready. I need: solution docs in English and Thai, architecture diagrams, and a monitoring dashboard the ops team can open without any tooling.
+    <div class="time">Day 5 · 09:00</div>
+  </div>
+</div>
+
+<div class="msg asst">
+  <div class="bubble">
+    <div class="who">Agent <span class="badge info">Audit format</span></div>
+    Each call writes a JSON record to <code>${Audit_Disk_Path}/YYYY-MM-DD.jsonl</code>. Append-only, one record per line. Audit step lives inside its own Try/Catch so a disk failure cannot kill the customer reply path:
+    <pre>{
+  "ts"        : "2026-05-18T11:23:41Z",
+  "messageSid": "SM...",
+  "customer"  : "ACME-TH",
+  "soNbr"     : "BO780953",
+  "items"     : 2,
+  "outcome"   : "SUCCESS",
+  "qad_result": "warning",
+  "warnings"  : ["Type set to (M)emo"],
+  "retry"     : 0,
+  "latency_ms": 612
+}</pre>
+    <div class="time">Day 5 · 10:42</div>
+  </div>
+</div>
+
+<div class="msg asst">
+  <div class="bubble">
+    <div class="who">Agent <span class="badge info">Deliverables</span></div>
+    Under <code>o2c-docs/</code>:
+    <pre>O2C_Solution_Overview_EN.md     // English narrative
+O2C_Solution_Overview_TH.md     // Thai translation
+diagrams/O2C_Architecture.drawio
+diagrams/O2C_Process_Flow.drawio
+monitoring/o2c-dashboard.html   // standalone — loads .jsonl
+                                //   + "Load sample data" button</pre>
+    Dashboard counts success / warning / error per day, lists last 50 orders, highlights any record with a Cloudflare-looking response body (defensive — should never appear, but it would tell us instantly if Cloudflare config changes).
+    <div class="time">Day 5 · 12:10</div>
+  </div>
+</div>
+
+<div class="msg asst">
+  <div class="bubble note">
+    <div class="who">Agent <span class="badge note">Lessons logged to memory</span></div>
+    Five silent-failure traps saved so the next QAD or WhatsApp project doesn't relive them:
+    <div class="kv">
+      <div class="k">WSS Listener</div>
+      <div class="v">No <code>connectionId</code> on Start step. Add <code>hideSettings="true"</code>.</div>
+      <div class="k">QAD via Cloudflare</div>
+      <div class="v">Always set <code>User-Agent</code>. Whitelist atom egress IP in prod.</div>
+      <div class="k">QAD soNbr</div>
+      <div class="v">X(8) — cap at 8 chars. Prefix max 2 chars.</div>
+      <div class="k">QAD response</div>
+      <div class="v">Parse <code>&lt;result&gt;</code>, not substrings. <code>temp_err_msg</code> appears in successes.</div>
+      <div class="k">TwiML body</div>
+      <div class="v">Must be well-formed XML. No literal <code>&lt;</code>/<code>&gt;</code> inside <code>&lt;Message&gt;</code>.</div>
+    </div>
+    <div class="time">Day 5 · 12:14</div>
+  </div>
+</div>
+
+<div class="msg user">
+  <div class="bubble">
+    <div class="who">You</div>
+    Nice. Ship it.
+    <div class="time">Day 5 · 12:15</div>
+  </div>
+</div>
+
+</main>
+
+<footer>
+  Folder: <code>O2C-QAD</code> · Main process: <code>P_O2C_WhatsApp_to_QAD_Main</code> · Docs: <code>o2c-docs/</code><br>
+  Built locally in <code>active-development/</code> · Synced via <code>boomi-integration</code> skill.
+</footer>
+
+</body>
+</html>

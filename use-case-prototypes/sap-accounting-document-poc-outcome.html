@@ -1,0 +1,558 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SAP Accounting Document Automation — POC Outcome</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  /* Deliberately a single light visual world: a deck is projected and printed,
+     and must not invert under a viewer's dark mode. */
+  :root{
+    color-scheme: light;
+    --paper:#F6F8F7;
+    --card:#FFFFFF;
+    --ink:#12201F;
+    --ink-2:#3B4C4A;
+    --ink-3:#6E807D;
+    --rule:#D7DFDC;
+    --rule-2:#BCC8C5;
+    --good:#0F6B5C;
+    --good-bg:#E4F0ED;
+    --warn:#8A6111;
+    --warn-bg:#FAF1DD;
+    --bad:#96382C;
+    --bad-bg:#F8E8E4;
+    --f-head:"Newsreader",Georgia,serif;
+    --f-body:"Public Sans",system-ui,sans-serif;
+    --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--f-body);
+    font-size:16px;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .deck{display:flex;flex-direction:column;align-items:center;gap:26px;padding:26px 20px 90px}
+
+  .slide{
+    position:relative;
+    width:min(1180px,96vw);
+    aspect-ratio:16/9;
+    background:var(--card);
+    border:1px solid var(--rule);
+    padding:56px 64px 60px;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+  }
+  .slide__num{
+    position:absolute;right:26px;bottom:20px;
+    font-family:var(--f-mono);font-size:12px;color:var(--ink-3);
+    font-variant-numeric:tabular-nums;
+  }
+  .eyebrow{
+    font-family:var(--f-mono);
+    font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--good);margin:0 0 18px;font-weight:500;
+  }
+  h1{
+    font-family:var(--f-head);
+    font-weight:500;font-size:clamp(30px,3.5vw,50px);
+    line-height:1.1;letter-spacing:-.015em;margin:0 0 18px;
+    text-wrap:balance;max-width:24ch;
+  }
+  h2{
+    font-family:var(--f-head);
+    font-weight:500;font-size:clamp(24px,2.5vw,36px);
+    line-height:1.15;letter-spacing:-.012em;margin:0 0 22px;
+    text-wrap:balance;max-width:34ch;
+  }
+  .sub{font-size:clamp(15px,1.35vw,19px);color:var(--ink-2);max-width:62ch;margin:0 0 26px}
+  .fill{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center}
+
+  /* ---------- figure row ---------- */
+  .figs{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--rule);border:1px solid var(--rule)}
+  .fig{background:var(--card);padding:22px 22px 20px}
+  .fig b{
+    display:block;font-family:var(--f-mono);font-weight:600;
+    font-size:clamp(26px,3.4vw,44px);line-height:1;color:var(--good);
+    font-variant-numeric:tabular-nums;margin-bottom:9px;
+  }
+  .fig span{display:block;font-size:13.5px;color:var(--ink-2);line-height:1.35}
+  .fig.warn b{color:var(--warn)}
+  .fig.bad b{color:var(--bad)}
+
+  /* ---------- pipeline ---------- */
+  .pipe{display:flex;align-items:stretch;gap:0;flex-wrap:nowrap}
+  .stage{
+    flex:1;border:1px solid var(--rule);background:var(--card);
+    padding:15px 14px;display:flex;flex-direction:column;gap:6px;min-width:0;
+  }
+  .stage + .stage{border-left:none}
+  .stage.hl{background:var(--good-bg);border-color:var(--good)}
+  .stage em{
+    font-style:normal;font-family:var(--f-mono);font-size:10.5px;
+    letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);
+  }
+  .stage.hl em{color:var(--good)}
+  .stage strong{font-size:14.5px;font-weight:600;line-height:1.25}
+  .stage p{margin:0;font-size:12.5px;color:var(--ink-2);line-height:1.35}
+
+  /* ---------- tables ---------- */
+  table{border-collapse:collapse;width:100%;font-size:14.5px}
+  th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--rule);vertical-align:top}
+  th{
+    font-family:var(--f-mono);font-size:10.5px;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--ink-3);font-weight:500;
+  }
+  tr:last-child td{border-bottom:none}
+  td.mono,.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:13px}
+  .tick{color:var(--good);font-weight:700}
+  .part{color:var(--warn);font-weight:700}
+
+  .pill{
+    display:inline-block;font-family:var(--f-mono);font-size:10.5px;
+    letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;
+    border:1px solid currentColor;white-space:nowrap;
+  }
+  .pill.good{color:var(--good);background:var(--good-bg)}
+  .pill.warn{color:var(--warn);background:var(--warn-bg)}
+
+  ul.clean{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:11px}
+  ul.clean li{display:flex;gap:12px;font-size:15px;color:var(--ink-2);line-height:1.4}
+  ul.clean li b{color:var(--ink);font-weight:600}
+  ul.clean .m{
+    flex:none;font-family:var(--f-mono);font-size:11px;color:var(--good);
+    padding-top:3px;min-width:20px;
+  }
+
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:34px;align-items:start}
+  .note{
+    border-left:3px solid var(--warn);background:var(--warn-bg);
+    padding:13px 16px;font-size:13.5px;color:var(--ink);line-height:1.45;
+  }
+  .note b{display:block;font-family:var(--f-mono);font-size:10.5px;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--warn);margin-bottom:4px}
+
+  /* title slide */
+  .slide--title{justify-content:center;background:var(--ink);border-color:var(--ink)}
+  .slide--title h1{color:#F4F8F6;max-width:30ch;font-size:clamp(34px,4.2vw,60px)}
+  .slide--title .eyebrow{color:#7FC9B8}
+  .slide--title .sub{color:#B9C9C5}
+  .slide--title .meta{
+    margin-top:30px;padding-top:20px;border-top:1px solid #2C3E3B;
+    display:flex;gap:44px;flex-wrap:wrap;
+    font-family:var(--f-mono);font-size:12.5px;color:#9DB2AD;
+  }
+  .slide--title .meta b{display:block;color:#F4F8F6;font-weight:500;margin-top:3px}
+  .slide--title .slide__num{color:#6C807C}
+
+  /* nav */
+  .nav{
+    position:fixed;left:0;right:0;bottom:0;z-index:20;
+    background:rgba(246,248,247,.94);border-top:1px solid var(--rule);
+    padding:9px 18px;display:flex;align-items:center;gap:14px;justify-content:center;
+    font-family:var(--f-mono);font-size:12px;color:var(--ink-2);
+    backdrop-filter:saturate(140%) blur(6px);
+  }
+  .nav button{
+    font-family:var(--f-mono);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;
+    background:var(--card);color:var(--ink);border:1px solid var(--rule-2);
+    padding:5px 12px;cursor:pointer;
+  }
+  .nav button:hover{border-color:var(--good);color:var(--good)}
+  .nav button:focus-visible{outline:2px solid var(--good);outline-offset:2px}
+  .nav .count{font-variant-numeric:tabular-nums;min-width:62px;text-align:center}
+  .nav .hint{color:var(--ink-3)}
+
+  /* persistent title strip */
+  .page-header{
+    position:sticky;top:0;z-index:40;
+    background:rgba(246,248,247,.94);border-bottom:1px solid var(--rule);
+    padding:11px 22px;display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;
+    backdrop-filter:saturate(140%) blur(6px);
+  }
+  .page-header .ph-eyebrow{
+    font-family:var(--f-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--good);white-space:nowrap;
+  }
+  .page-header .ph-title{
+    font-family:var(--f-head);font-weight:500;font-size:15px;color:var(--ink);
+    letter-spacing:-.01em;
+  }
+
+  @media print{
+    .nav{display:none}
+    .page-header{display:none}
+    body{background:#fff}
+    .deck{gap:0;padding:0}
+    .slide{
+      width:100%;border:none;page-break-after:always;break-after:page;
+      aspect-ratio:auto;height:100vh;padding:8vh 7vw;
+    }
+    @page{size:landscape;margin:0}
+  }
+  @media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+  html{scroll-behavior:smooth}
+</style>
+</head>
+<body>
+<!-- SEDC-NAV:START -->
+<style>
+  .sedc-nav * { box-sizing: border-box; }
+  .sedc-nav {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    margin: 0;
+    background: #072B55;
+    color: #ffffff;
+    font-family: 'Poppins',Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    font-size: 14px;
+    line-height: 1.4;
+  }
+  .sedc-nav-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 10px 20px;
+  }
+  .sedc-nav-brand {
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+  }
+  .sedc-nav-brand:hover,
+  .sedc-nav-brand:focus {
+    text-decoration: underline;
+  }
+  .sedc-nav-jump {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .sedc-nav-label {
+    white-space: nowrap;
+    color: #ffffff;
+  }
+  .sedc-nav-select {
+    font-family: inherit;
+    font-size: 13px;
+    color: #072B55;
+    background: #ffffff;
+    border: 1px solid #ffffff;
+    border-radius: 4px;
+    padding: 5px 8px;
+    max-width: 60vw;
+  }
+  .sedc-nav-rule {
+    height: 3px;
+    width: 100%;
+    background: linear-gradient(90deg,#FF7C66 0%,#A03291 100%);
+  }
+</style>
+<div class="sedc-nav" role="navigation" aria-label="SE Demo Companion navigation">
+  <div class="sedc-nav-bar">
+    <a class="sedc-nav-brand" href="../index.html" target="_top">SE Demo Companion</a>
+    <div class="sedc-nav-jump">
+      <label class="sedc-nav-label" for="sedc-nav-select">Jump to use case</label>
+      <select class="sedc-nav-select" id="sedc-nav-select" onchange="(function(sel){try{var opt=sel.options[sel.selectedIndex];var url=opt&&opt.getAttribute('data-href');if(!url)return;try{window.top.location.href=url;}catch(e){window.location.href=url;}}catch(e){}})(this)">
+        <option value="amc-fee-change-agent" data-href="./amc-fee-change-agent.html">AMC fee-change agent — Finnomena</option>
+        <option value="bvtpa-claims-integration-demo" data-href="./bvtpa-claims-integration-demo.html">Blue Venture TPA claims integration demo — Blue Venture TPA</option>
+        <option value="bvtpa-claims-adjudication-cio-brief" data-href="./bvtpa-claims-adjudication-cio-brief.html">Claims adjudication CIO brief — Blue Venture TPA</option>
+        <option value="delivery-status-sync-demo" data-href="./delivery-status-sync-demo.html">Delivery status sync demo — TOTO</option>
+        <option value="boomi-tenant-ceo-dashboard" data-href="./boomi-tenant-ceo-dashboard.html">Boomi tenant CEO dashboard — Boomi internal tenant</option>
+        <option value="boomi-tenant-30-day-report" data-href="./boomi-tenant-30-day-report.html">Boomi tenant operations report, 30-day view — Boomi internal tenant</option>
+        <option value="json-to-xml-order-integration" data-href="./json-to-xml-order-integration.html">JSON to XML order integration, executive documentation — NTT</option>
+        <option value="edi-850-flight-deck" data-href="./edi-850-flight-deck.html">EDI 850 flight deck — Infosys</option>
+        <option value="whatsapp-to-sap-master-agent" data-href="./whatsapp-to-sap-master-agent.html">WhatsApp to SAP master agent — Boomi internal build</option>
+        <option value="student-xml-to-crm-json" data-href="./student-xml-to-crm-json.html">Student XML to CRM JSON — Attura</option>
+        <option value="sap-accounting-document-poc-outcome" data-href="./sap-accounting-document-poc-outcome.html" selected>SAP accounting document automation, POC outcome — Abans PLC</option>
+        <option value="abans-sap-posting-poc-dashboard" data-href="./abans-sap-posting-poc-dashboard.html">Abans SAP posting, live POC dashboard — Abans PLC</option>
+        <option value="order-intake-api-fan-out" data-href="./order-intake-api-fan-out.html">Order intake API with multi-target fan-out — LTIMindtree</option>
+        <option value="electromart-track-and-reschedule" data-href="./electromart-track-and-reschedule.html">ElectroMart track order and reschedule delivery — ElectroMart (demo brand)</option>
+        <option value="enterprise-portal-ai-agent" data-href="./enterprise-portal-ai-agent.html">Enterprise portal with an embedded AI agent — ITG</option>
+        <option value="o2c-qad-build-journey" data-href="./o2c-qad-build-journey.html">O2C-QAD build journey — Boomi internal build</option>
+        <option value="boomi-accenture-trivia" data-href="./boomi-accenture-trivia.html">Boomi x Accenture trivia — Boomi internal build</option>
+        <option value="cloud-runtime-sizing-calculator" data-href="./cloud-runtime-sizing-calculator.html">Boomi public cloud runtime sizing estimator — Boomi internal build</option>
+        <option value="coupa-netsuite-vendor-bill" data-href="./coupa-netsuite-vendor-bill.html">Vendor bill pipeline, Coupa to NetSuite — Boomi internal build</option>
+        <option value="coupa-oracle-s2p-console" data-href="./coupa-oracle-s2p-console.html">Source-to-pay flow console, Coupa to Oracle Fusion — Boomi internal build</option>
+        <option value="epic-rauland-adt-nurse-call" data-href="./epic-rauland-adt-nurse-call.html">Epic ADT to Rauland Responder 5, nurse call integration — Boomi internal build</option>
+        <option value="epic-salesforce-trial-screening" data-href="./epic-salesforce-trial-screening.html">Clinical trial screening console, Epic to Salesforce — Meridian Research (demo brand)</option>
+        <option value="jc-hifi-order-tracker" data-href="./jc-hifi-order-tracker.html">JC Hi-Fi order tracker, customer self-service — JC Hi-Fi (demo brand)</option>
+        <option value="pacific-bank-onboarding" data-href="./pacific-bank-onboarding.html">Pacific onboarding console, retail bank customer onboarding — Pacific Islands Community Bank (demo brand)</option>
+        <option value="sea-data-product-assistant" data-href="./sea-data-product-assistant.html">SEA regional performance, data products and an agent over two ERPs — Boomi internal build</option>
+        <option value="servicenow-jira-incident-sync" data-href="./servicenow-jira-incident-sync.html">Incident sync prototype, ServiceNow to Jira — Boomi internal build</option>
+        <option value="zendesk-magento-order-status" data-href="./zendesk-magento-order-status.html">Order status bot and flow inspector, Zendesk to Magento — Avery Products (demo brand)</option>
+        <option value="zoho-netsuite-invoice-sync" data-href="./zoho-netsuite-invoice-sync.html">Invoice sync console, Zoho CRM to NetSuite — Boomi internal build</option>
+      </select>
+    </div>
+  </div>
+  <div class="sedc-nav-rule"></div>
+</div>
+<!-- SEDC-NAV:END -->
+
+<div class="page-header">
+  <span class="ph-eyebrow">POC outcome</span>
+  <span class="ph-title">Boomi now posts Abans accounting documents directly into SAP</span>
+</div>
+
+<div class="deck">
+
+<!-- 1 ───────────────────────────────────────────── -->
+<section class="slide slide--title">
+  <p class="eyebrow">Proof of concept · Outcome report</p>
+  <h1>Boomi now posts Abans accounting documents directly into SAP</h1>
+  <p class="sub">Replacing the manual JSON&nbsp;→&nbsp;Excel&nbsp;→&nbsp;directory&nbsp;→&nbsp;ABAP hand-off with an
+  automated, de-duplicated integration.</p>
+  <div class="meta">
+    <div>Prepared for <b>Abans PLC</b></div>
+    <div>Prepared by <b>Altria Boomi Integration Team</b></div>
+    <div>Date <b>10 September 2026</b></div>
+    <div>Source data <b>API_API0017, 8–10 Jul 2025</b></div>
+  </div>
+  <span class="slide__num">01</span>
+</section>
+
+<!-- 2 ───────────────────────────────────────────── -->
+<section class="slide">
+  <p class="eyebrow">The outcome</p>
+  <h2>Documents posted into SAP, and re-running the same file posted nothing twice</h2>
+  <div class="fill">
+    <div class="figs">
+      <div class="fig"><b>7</b><span>accounting documents created in SAP, each confirmed by SAP's own success message</span></div>
+      <div class="fig"><b>0</b><span>duplicate postings when the identical file was processed a second time</span></div>
+      <div class="fig"><b>1</b><span>corrupt record quarantined for review while its siblings posted normally</span></div>
+    </div>
+    <p class="sub" style="margin:26px 0 0">SAP document numbers <span class="mono">0100000023</span>–<span class="mono">0100000029</span>,
+    company code <span class="mono">1010</span>, fiscal year <span class="mono">2026</span> — verifiable in transaction
+    <span class="mono">FB03</span>.</p>
+  </div>
+  <span class="slide__num">02</span>
+</section>
+
+<!-- 3 ───────────────────────────────────────────── -->
+<section class="slide">
+  <p class="eyebrow">Where we started</p>
+  <h2>Four manual steps stood between the extract and SAP</h2>
+  <div class="fill">
+    <div class="pipe">
+      <div class="stage"><em>Step 1</em><strong>Extract lands</strong><p>JSON file arrives on a VM</p></div>
+      <div class="stage"><em>Step 2 · manual</em><strong>Convert to Excel</strong><p>A person reformats each extract by hand</p></div>
+      <div class="stage"><em>Step 3 · manual</em><strong>Move the file</strong><p>Relocated to a watched directory</p></div>
+      <div class="stage"><em>Step 4</em><strong>ABAP uploads</strong><p>Custom program posts into SAP</p></div>
+    </div>
+    <ul class="clean" style="margin-top:30px">
+      <li><span class="m">→</span><span>Described by Abans as costly and slow — <b>"takes hours"</b>.</span></li>
+      <li><span class="m">→</span><span>Every run depends on a person being available and getting the conversion right.</span></li>
+      <li><span class="m">→</span><span>No systematic protection against the same document being posted twice.</span></li>
+    </ul>
+  </div>
+  <span class="slide__num">03</span>
+</section>
+
+<!-- 4 ───────────────────────────────────────────── -->
+<section class="slide">
+  <p class="eyebrow">What the data told us</p>
+  <h2>The extracts repeat themselves — most records are documents we have already seen</h2>
+  <div class="fill">
+    <div class="figs">
+      <div class="fig bad"><b>10,353</b><span>records in API_API0017 (11.6&nbsp;MB, 8–10 Jul 2025)</span></div>
+      <div class="fig"><b>2,223</b><span>genuinely distinct accounting documents</span></div>
+      <div class="fig bad"><b>4.7&times;</b><span>average repetition — the same document re-appears in later extracts</span></div>
+    </div>
+    <div class="note" style="margin-top:26px">
+      <b>Why this drove the design</b>
+      Posting every record as it arrives would have created roughly <strong>8,130 duplicate financial documents</strong>.
+      Deduplication is therefore not a refinement — it is the core of the solution, and it is what the POC was built to prove.
+    </div>
+  </div>
+  <span class="slide__num">04</span>
+</section>
+
+<!-- 5 ───────────────────────────────────────────── -->
+<section class="slide">
+  <p class="eyebrow">What we built</p>
+  <h2>One Boomi process, from extract to posted SAP document</h2>
+  <div class="fill">
+    <div class="pipe">
+      <div class="stage"><em>1 · read</em><strong>Collect extract</strong><p>Picks up the file with no manual step</p></div>
+      <div class="stage"><em>2 · parse</em><strong>Split records</strong><p>Separates the run-together JSON into individual documents</p></div>
+      <div class="stage hl"><em>3 · protect</em><strong>Check if posted</strong><p>Compares against a durable ledger of everything posted before</p></div>
+      <div class="stage"><em>4 · transform</em><strong>Map to SAP</strong><p>Builds the accounting-document structure SAP expects</p></div>
+      <div class="stage hl"><em>5 · post</em><strong>Post &amp; confirm</strong><p>Writes to SAP and reads back its confirmation</p></div>
+      <div class="stage"><em>6 · report</em><strong>Summarise run</strong><p>Posted, skipped and errored, per run</p></div>
+    </div>
+    <p class="sub" style="margin:28px 0 0">The ledger is only updated <b>after</b> SAP confirms a document was created — so a
+    failed posting is never recorded as done, and is retried on the next run rather than being lost.</p>
+  </div>
+  <span class="slide__num">05</span>
+</section>
+
+<!-- 6 ───────────────────────────────────────────── -->
+<section class="slide">
+  <p class="eyebrow">Against the agreed criteria</p>
+  <h2>Five of six success criteria met, the sixth in progress</h2>
+  <div class="fill">
+    <table>
+      <thead><tr><th style="width:34px"></th><th>Success criterion</th><th style="width:210px">Evidence</th></tr></thead>
+      <tbody>
+        <tr><td class="tick">✓</td><td>Extract read and parsed into individual documents without manual intervention</td><td class="mono">10 records, 3 files</td></tr>
+        <tr><td class="tick">✓</td><td>Documents post to SAP with header and line items correctly mapped</td><td class="mono">7 documents, RW/605</td></tr>
+        <tr><td class="tick">✓</td><td>Re-running the same extract creates no duplicate postings</td><td class="mono">2nd run: 0 posted</td></tr>
+        <tr><td class="tick">✓</td><td>Malformed records quarantined with a reason, not silently dropped or mis-posted</td><td class="mono">1 quarantined</td></tr>
+        <tr><td class="tick">✓</td><td>Per run, visibility of how many posted, skipped as duplicate, or errored</td><td class="mono">Run summary</td></tr>
+        <tr><td class="part">◐</td><td>Documented path to extend to remaining file types and production volumes</td><td class="mono">Drafted, see slide 10</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <span class="slide__num">06</span>
+</section>
+
+<!-- 7 ───────────────────────────────────────────── -->
+<section class="slide">
+  <p class="eyebrow">Cases handled</p>
+  <h2>Four failure modes are handled explicitly, not left to chance</h2>
+  <div class="fill">
+    <div class="two">
+      <ul class="clean">
+        <li><span class="m">01</span><span><b>Document already posted in a previous run.</b> Recognised against the ledger and skipped. No SAP call is made.</span></li>
+        <li><span class="m">02</span><span><b>Document repeated twice inside the same file.</b> Caught within the batch — the second occurrence is skipped even though the first only posted moments earlier.</span></li>
+      </ul>
+      <ul class="clean">
+        <li><span class="m">03</span><span><b>SAP rejects a posting.</b> The rejection reason is captured, the document is quarantined, and it is deliberately <em>not</em> written to the ledger so the next run retries it.</span></li>
+        <li><span class="m">04</span><span><b>A record is corrupt.</b> Quarantined individually with its reason. The remaining records in the same file continue to post normally.</span></li>
+      </ul>
+    </div>
+    <p class="sub" style="margin:28px 0 0">Each of the four was demonstrated in a live run against SAP, not designed on paper.</p>
+  </div>
+  <span class="slide__num">07</span>
+</section>
+
+<!-- 8 ───────────────────────────────────────────── -->
+<section class="slide">
+  <p class="eyebrow">Throughput</p>
+  <h2>The full 10,353-record extract completes in roughly 12 to 20 minutes</h2>
+  <div class="fill">
+    <table>
+      <thead><tr><th>Work</th><th style="width:150px">Volume</th><th style="width:150px">Measured rate</th><th style="width:130px">Time</th></tr></thead>
+      <tbody>
+        <tr><td>Documents posted to SAP</td><td class="mono">2,223</td><td class="mono">250–460 ms</td><td class="mono">9–17 min</td></tr>
+        <tr><td>Duplicates recognised and skipped</td><td class="mono">8,130</td><td class="mono">~15 ms</td><td class="mono">~2 min</td></tr>
+        <tr><td>Reading and splitting the 11.6 MB extract</td><td class="mono">1 file</td><td class="mono">—</td><td class="mono">~1 min</td></tr>
+        <tr><td><b>Total, unattended</b></td><td class="mono">10,353</td><td class="mono"></td><td class="mono"><b>12–20 min</b></td></tr>
+      </tbody>
+    </table>
+    <div class="note" style="margin-top:24px">
+      <b>Room to go faster</b>
+      Documents are currently posted one at a time, because the duplicate check must be updated between records. Moving that
+      check to a database would allow parallel posting and reduce the run to a few minutes. Not required for the POC — worth
+      knowing it is available.
+    </div>
+  </div>
+  <span class="slide__num">08</span>
+</section>
+
+<!-- 9 ───────────────────────────────────────────── -->
+<section class="slide">
+  <p class="eyebrow">Scope of the demonstration</p>
+  <h2>What is real, and what stands in for Abans configuration</h2>
+  <div class="fill">
+    <div class="two">
+      <div>
+        <p class="eyebrow" style="color:var(--good)">Real and proven</p>
+        <ul class="clean">
+          <li><span class="m">✓</span><span>Reading and parsing the actual Abans extract, unmodified</span></li>
+          <li><span class="m">✓</span><span>Duplicate detection across runs and within a batch</span></li>
+          <li><span class="m">✓</span><span>Document amounts, balancing, and line-item counts</span></li>
+          <li><span class="m">✓</span><span>The SAP posting mechanism, including transaction commit</span></li>
+          <li><span class="m">✓</span><span>Traceability from the Abans reference number to the SAP document</span></li>
+        </ul>
+      </div>
+      <div>
+        <p class="eyebrow" style="color:var(--warn)">Substituted for the demo</p>
+        <ul class="clean">
+          <li><span class="m">→</span><span>Company code <span class="mono">1010</span> on a Boomi demo SAP system, not Abans's <span class="mono">2000</span></span></li>
+          <li><span class="m">→</span><span>G/L accounts mapped to demo-system equivalents via a translation table</span></li>
+          <li><span class="m">→</span><span>Amounts posted in EUR at unchanged magnitudes, pending an LKR exchange-rate entry</span></li>
+          <li><span class="m">→</span><span>Posting date set to today, as the July 2025 period is closed</span></li>
+          <li><span class="m">→</span><span>Customer and vendor line types not yet routed — 100 of 31,407 lines</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <span class="slide__num">09</span>
+</section>
+
+<!-- 10 ──────────────────────────────────────────── -->
+<section class="slide">
+  <p class="eyebrow">Next steps</p>
+  <h2>Three things turn this demonstration into a production integration</h2>
+  <div class="fill">
+    <ul class="clean" style="gap:18px">
+      <li><span class="m">01</span><span><b>Point it at an Abans SAP environment.</b> Company code, chart of accounts, document type and posting periods become the real ones, and the account translation table is no longer needed. <span class="pill good">Configuration, not development</span></span></li>
+      <li><span class="m">02</span><span><b>Confirm what the existing ABAP program does beyond posting.</b> If it applies derivations or validations of its own, those must be reproduced — this is the one open question that could change the design. <span class="pill warn">Needs Abans SAP team</span></span></li>
+      <li><span class="m">03</span><span><b>Extend to the remaining extracts and full volume.</b> Add the customer and vendor line types, cover API0018 and API0023 including its mixed record shapes, and move the duplicate ledger to a database for parallel posting. <span class="pill good">Scoped extension</span></span></li>
+    </ul>
+    <p class="sub" style="margin:30px 0 0">The mechanism is proven. What remains is configuration, one clarification, and a
+    defined extension — not further proof of concept.</p>
+  </div>
+  <span class="slide__num">10</span>
+</section>
+
+</div>
+
+<nav class="nav" aria-label="Deck navigation">
+  <button id="prev" type="button">&larr; Prev</button>
+  <span class="count" id="count">1 / 10</span>
+  <button id="next" type="button">Next &rarr;</button>
+  <span class="hint">← → to navigate · Cmd/Ctrl-P to save as PDF</span>
+</nav>
+
+<script>
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var countEl = document.getElementById('count');
+  var i = 0;
+
+  function show(n){
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides[i].scrollIntoView({block:'center'});
+    countEl.textContent = (i + 1) + ' / ' + slides.length;
+  }
+  document.getElementById('prev').addEventListener('click', function(){ show(i - 1); });
+  document.getElementById('next').addEventListener('click', function(){ show(i + 1); });
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'ArrowRight' || e.key === 'PageDown'){ e.preventDefault(); show(i + 1); }
+    if (e.key === 'ArrowLeft'  || e.key === 'PageUp'  ){ e.preventDefault(); show(i - 1); }
+    if (e.key === 'Home'){ e.preventDefault(); show(0); }
+    if (e.key === 'End'){ e.preventDefault(); show(slides.length - 1); }
+  });
+
+  /* Keep the counter honest when the reader scrolls instead of using the buttons. */
+  if ('IntersectionObserver' in window){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(en){
+        if (en.isIntersecting){
+          var n = slides.indexOf(en.target);
+          if (n >= 0){ i = n; countEl.textContent = (n + 1) + ' / ' + slides.length; }
+        }
+      });
+    }, {threshold:0.55});
+    slides.forEach(function(s){ io.observe(s); });
+  }
+</script>
+</body>
+</html>

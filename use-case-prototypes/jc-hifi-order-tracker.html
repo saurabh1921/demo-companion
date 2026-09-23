@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="theme-color" content="#FFEC0F"/>
+  <title>JC Hi-Fi – Order Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      /* JB Hi-Fi exact palette */
+      --yellow:          #FFEC0F;
+      --yellow-dark:     #E6D400;
+      --primary-dark:    #232323;
+      --primary-neutral: #707070;
+      --primary-light:   #F5F5F5;
+      --border-main:     #CCCCCC;
+      --text-primary:    #000000;
+      --text-secondary:  #707070;
+      --text-neutral:    #484848;
+      --success:         #028702;
+      --success-light:   #F2F9F2;
+      --error:           #E02020;
+      --error-light:     #FDF2F2;
+      --warning:         #DA6A00;
+      --warning-light:   #FFF9F0;
+      --info:            #005EAB;
+      --info-light:      #F2F7FB;
+      --white:           #FFFFFF;
+    }
+
+    body {
+      background: var(--white);
+      color: var(--text-primary);
+      font-family: 'Roboto', sans-serif;
+      font-size: 1rem;
+      line-height: 1.25rem;
+      min-height: 100vh;
+    }
+
+    a { color: var(--text-primary); text-decoration: none; }
+
+    /* ── Utility bar ── */
+    .utility-bar {
+      background: var(--primary-dark);
+      padding: 6px 24px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 20px;
+    }
+    .utility-bar a {
+      color: #ccc;
+      font-size: 0.75rem;
+      font-weight: 400;
+      transition: color 0.24s cubic-bezier(0.4, 0.14, 1, 1);
+    }
+    .utility-bar a:hover { color: var(--yellow); }
+
+    /* ── Header ── */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      background: var(--primary-dark);
+      border-bottom: 4px solid var(--yellow);
+      padding: 0 24px;
+      height: 70px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      display: flex;
+      align-items: baseline;
+      gap: 2px;
+      text-decoration: none;
+    }
+    .logo-jc {
+      font-size: 2.8rem;
+      font-weight: 700;
+      color: var(--yellow);
+      letter-spacing: -2px;
+      font-style: italic;
+      line-height: 1;
+    }
+    .logo-hifi {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--white);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      padding-left: 5px;
+    }
+
+    .header-nav {
+      display: flex;
+      height: 100%;
+      align-items: stretch;
+    }
+    .header-nav a {
+      color: var(--white);
+      font-size: 0.875rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      padding: 0 14px;
+      display: flex;
+      align-items: center;
+      border-bottom: 3px solid transparent;
+      transition: color 0.24s cubic-bezier(0.4, 0.14, 1, 1),
+                  border-color 0.24s cubic-bezier(0.4, 0.14, 1, 1);
+    }
+    .header-nav a:hover { color: var(--yellow); border-bottom-color: var(--yellow); }
+    .header-nav a.active { color: var(--yellow); border-bottom-color: var(--yellow); }
+
+    /* ── Category strip ── */
+    .cat-strip {
+      background: var(--white);
+      border-bottom: 1px solid var(--border-main);
+      padding: 0 24px;
+      display: flex;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .cat-strip::-webkit-scrollbar { display: none; }
+    .cat-strip a {
+      color: var(--text-primary);
+      font-size: 0.8125rem;
+      font-weight: 500;
+      padding: 10px 12px;
+      white-space: nowrap;
+      border-bottom: 3px solid transparent;
+      transition: border-color 0.24s cubic-bezier(0.4, 0.14, 1, 1);
+    }
+    .cat-strip a:hover { border-bottom-color: var(--primary-dark); }
+
+    /* ── Search / hero ── */
+    .hero {
+      background: var(--primary-light);
+      border-bottom: 1px solid var(--border-main);
+      padding: 36px 24px;
+      text-align: center;
+    }
+    .hero-eyebrow {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      margin-bottom: 10px;
+    }
+    .hero h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: -0.13125rem;
+      margin-bottom: 8px;
+      color: var(--text-primary);
+    }
+    .hero p {
+      color: var(--text-secondary);
+      font-size: 0.875rem;
+      margin-bottom: 24px;
+    }
+
+    .search-box {
+      display: flex;
+      max-width: 560px;
+      margin: 0 auto;
+      border: 1px solid var(--primary-dark);
+      box-shadow: 3px 3px 0 0 var(--primary-dark);
+    }
+    .search-box input {
+      flex: 1;
+      background: var(--white);
+      border: none;
+      color: var(--text-primary);
+      font-family: 'Roboto', sans-serif;
+      font-size: 1rem;
+      font-weight: 400;
+      padding: 13px 18px;
+      outline: none;
+    }
+    .search-box input::placeholder { color: var(--text-secondary); }
+
+    /* Buttons */
+    .btn {
+      background: var(--primary-dark);
+      border: 1px solid var(--primary-dark);
+      color: var(--yellow);
+      cursor: pointer;
+      font-family: 'Roboto', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      line-height: 1;
+      padding: 13px 24px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      transition: box-shadow 0.24s cubic-bezier(0.4, 0.14, 1, 1),
+                  background 0.24s cubic-bezier(0.4, 0.14, 1, 1);
+      white-space: nowrap;
+    }
+    .btn:hover { box-shadow: 2px 2px rgba(0,0,0,0.3); background: #111; }
+    .btn:disabled { background: var(--text-neutral); border-color: var(--text-neutral); color: var(--primary-light); cursor: not-allowed; box-shadow: none; }
+
+    .btn-yellow {
+      background: var(--yellow);
+      border-color: var(--primary-dark);
+      color: var(--text-primary);
+    }
+    .btn-yellow:hover { background: var(--yellow-dark); box-shadow: 2px 2px rgba(0,0,0,0.3); }
+
+    .btn-secondary {
+      background: var(--primary-light);
+      border: 1px solid var(--border-main);
+      color: var(--text-primary);
+    }
+    .btn-secondary:hover { box-shadow: 2px 2px rgba(0,0,0,0.1); }
+
+    .hint {
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 0.8125rem;
+      margin-top: 12px;
+    }
+    .hint code {
+      background: rgba(0,0,0,0.06);
+      padding: 2px 8px;
+      font-family: monospace;
+      font-size: 0.8125rem;
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .hint code:hover { background: var(--yellow); }
+
+    /* ── Main ── */
+    main {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 24px 80px;
+    }
+
+    /* ── Spinner ── */
+    .spinner-wrap {
+      display: none;
+      justify-content: center;
+      padding: 56px;
+    }
+    .spinner-wrap.visible { display: flex; }
+    .spinner {
+      width: 44px;
+      height: 44px;
+      border: 3px solid var(--border-main);
+      border-top-color: var(--primary-dark);
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Alert ── */
+    .alert {
+      display: none;
+      background: var(--error-light);
+      border: 1px solid var(--error);
+      border-left: 4px solid var(--error);
+      color: var(--error);
+      font-size: 0.875rem;
+      font-weight: 500;
+      margin-top: 28px;
+      padding: 14px 18px;
+    }
+    .alert.visible { display: block; }
+
+    /* ── Order card ── */
+    .order-card {
+      display: none;
+      margin-top: 32px;
+      border: 1px solid var(--border-main);
+      background: var(--white);
+      box-shadow: 3px 3px 0 0 var(--primary-dark);
+    }
+    .order-card.visible { display: block; }
+
+    .order-card-top {
+      height: 6px;
+      background: var(--yellow);
+    }
+
+    .order-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 24px;
+      padding: 24px;
+      border-bottom: 1px solid var(--border-main);
+      background: var(--white);
+    }
+
+    .product-image-wrap {
+      flex-shrink: 0;
+      border: 1px solid var(--border-main);
+      background: var(--white);
+      width: 130px;
+      height: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px;
+    }
+    .product-image {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+
+    .order-meta { flex: 1; }
+    .order-top-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+    .order-id-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+    }
+
+    /* Status badges */
+    .status-badge {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      padding: 4px 10px;
+      text-transform: uppercase;
+      border-radius: 2px;
+    }
+    .status-processing { background: var(--warning-light); color: var(--warning); border: 1px solid var(--warning); }
+    .status-in_transit { background: var(--info-light);    color: var(--info);    border: 1px solid var(--info); }
+    .status-pending    { background: var(--primary-light); color: var(--text-neutral); border: 1px solid var(--border-main); }
+    .status-delivered  { background: var(--success-light); color: var(--success); border: 1px solid var(--success); }
+    .status-not_found  { background: var(--error-light);   color: var(--error);   border: 1px solid var(--error); }
+
+    .product-name {
+      font-size: 1.375rem;
+      font-weight: 700;
+      line-height: 1.75rem;
+      margin-bottom: 4px;
+      color: var(--text-primary);
+    }
+    .product-sku {
+      font-size: 0.8125rem;
+      color: var(--text-secondary);
+      font-weight: 400;
+    }
+    .product-price {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--error);
+      margin-top: 8px;
+      letter-spacing: -0.5px;
+    }
+
+    /* ── Order body ── */
+    .order-body { padding: 24px; }
+
+    .section-title {
+      font-size: 1.125rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: -0.05rem;
+      border-bottom: 1px solid var(--border-main);
+      padding-bottom: 10px;
+      margin-bottom: 16px;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 20px 24px;
+      margin-bottom: 28px;
+    }
+    .info-item label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+    }
+    .info-item .value {
+      font-size: 0.9375rem;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+    .info-item .value.highlight {
+      color: var(--success);
+      font-weight: 700;
+    }
+    .info-item .value.tracking {
+      font-family: monospace;
+      font-size: 0.875rem;
+      color: var(--text-neutral);
+    }
+
+    /* ── Delivery change panel ── */
+    .delivery-panel {
+      background: var(--warning-light);
+      border: 1px solid var(--warning);
+      border-left: 4px solid var(--warning);
+      padding: 20px 24px;
+      margin-top: 20px;
+    }
+    .delivery-panel h3 {
+      font-size: 0.875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--warning);
+      margin-bottom: 14px;
+    }
+    .date-row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .date-row input[type="date"] {
+      background: var(--white);
+      border: 1px solid var(--border-main);
+      color: var(--text-primary);
+      font-family: 'Roboto', sans-serif;
+      font-size: 0.9375rem;
+      font-weight: 500;
+      padding: 10px 14px;
+      outline: none;
+      transition: border-color 0.24s cubic-bezier(0.4, 0.14, 1, 1);
+    }
+    .date-row input[type="date"]:focus { border-color: var(--primary-dark); }
+
+    .delivered-note {
+      background: var(--success-light);
+      border: 1px solid var(--success);
+      border-left: 4px solid var(--success);
+      color: var(--success);
+      font-size: 0.875rem;
+      font-weight: 500;
+      padding: 14px 18px;
+      margin-top: 20px;
+    }
+
+    .change-btn-wrap { margin-top: 20px; }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--primary-dark);
+      color: var(--yellow);
+      font-family: 'Roboto', sans-serif;
+      font-size: 0.875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      padding: 14px 22px;
+      border-left: 4px solid var(--yellow);
+      box-shadow: 3px 3px 0 0 var(--primary-dark);
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(10px);
+      transition: opacity 0.24s cubic-bezier(0.4, 0.14, 1, 1),
+                  transform 0.24s cubic-bezier(0.4, 0.14, 1, 1);
+      z-index: 999;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    /* ── Footer ── */
+    footer {
+      background: var(--primary-dark);
+      border-top: 4px solid var(--yellow);
+      padding: 32px 24px;
+    }
+    .footer-inner {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .footer-logo {
+      font-size: 2rem;
+      font-weight: 700;
+      font-style: italic;
+      color: var(--yellow);
+      letter-spacing: -1px;
+      margin-bottom: 16px;
+    }
+    .footer-logo span {
+      font-style: normal;
+      color: var(--white);
+      font-size: 1.1rem;
+      padding-left: 4px;
+    }
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 24px;
+      margin-bottom: 20px;
+    }
+    .footer-links a {
+      color: #aaa;
+      font-size: 0.8125rem;
+      font-weight: 400;
+      transition: color 0.24s;
+    }
+    .footer-links a:hover { color: var(--yellow); }
+    .footer-copy {
+      color: var(--text-secondary);
+      font-size: 0.75rem;
+      border-top: 1px solid #444;
+      padding-top: 16px;
+    }
+  </style>
+</head>
+<body>
+<!-- SEDC-NAV:START -->
+<style>
+  .sedc-nav * { box-sizing: border-box; }
+  .sedc-nav {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    margin: 0;
+    background: #072B55;
+    color: #ffffff;
+    font-family: 'Poppins',Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    font-size: 14px;
+    line-height: 1.4;
+  }
+  .sedc-nav-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 10px 20px;
+  }
+  .sedc-nav-brand {
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+  }
+  .sedc-nav-brand:hover,
+  .sedc-nav-brand:focus {
+    text-decoration: underline;
+  }
+  .sedc-nav-jump {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .sedc-nav-label {
+    white-space: nowrap;
+    color: #ffffff;
+  }
+  .sedc-nav-select {
+    font-family: inherit;
+    font-size: 13px;
+    color: #072B55;
+    background: #ffffff;
+    border: 1px solid #ffffff;
+    border-radius: 4px;
+    padding: 5px 8px;
+    max-width: 60vw;
+  }
+  .sedc-nav-rule {
+    height: 3px;
+    width: 100%;
+    background: linear-gradient(90deg,#FF7C66 0%,#A03291 100%);
+  }
+</style>
+<div class="sedc-nav" role="navigation" aria-label="SE Demo Companion navigation">
+  <div class="sedc-nav-bar">
+    <a class="sedc-nav-brand" href="../index.html" target="_top">SE Demo Companion</a>
+    <div class="sedc-nav-jump">
+      <label class="sedc-nav-label" for="sedc-nav-select">Jump to use case</label>
+      <select class="sedc-nav-select" id="sedc-nav-select" onchange="(function(sel){try{var opt=sel.options[sel.selectedIndex];var url=opt&&opt.getAttribute('data-href');if(!url)return;try{window.top.location.href=url;}catch(e){window.location.href=url;}}catch(e){}})(this)">
+        <option value="amc-fee-change-agent" data-href="./amc-fee-change-agent.html">AMC fee-change agent — Finnomena</option>
+        <option value="bvtpa-claims-integration-demo" data-href="./bvtpa-claims-integration-demo.html">Blue Venture TPA claims integration demo — Blue Venture TPA</option>
+        <option value="bvtpa-claims-adjudication-cio-brief" data-href="./bvtpa-claims-adjudication-cio-brief.html">Claims adjudication CIO brief — Blue Venture TPA</option>
+        <option value="delivery-status-sync-demo" data-href="./delivery-status-sync-demo.html">Delivery status sync demo — TOTO</option>
+        <option value="boomi-tenant-ceo-dashboard" data-href="./boomi-tenant-ceo-dashboard.html">Boomi tenant CEO dashboard — Boomi internal tenant</option>
+        <option value="boomi-tenant-30-day-report" data-href="./boomi-tenant-30-day-report.html">Boomi tenant operations report, 30-day view — Boomi internal tenant</option>
+        <option value="json-to-xml-order-integration" data-href="./json-to-xml-order-integration.html">JSON to XML order integration, executive documentation — NTT</option>
+        <option value="edi-850-flight-deck" data-href="./edi-850-flight-deck.html">EDI 850 flight deck — Infosys</option>
+        <option value="whatsapp-to-sap-master-agent" data-href="./whatsapp-to-sap-master-agent.html">WhatsApp to SAP master agent — Boomi internal build</option>
+        <option value="student-xml-to-crm-json" data-href="./student-xml-to-crm-json.html">Student XML to CRM JSON — Attura</option>
+        <option value="sap-accounting-document-poc-outcome" data-href="./sap-accounting-document-poc-outcome.html">SAP accounting document automation, POC outcome — Abans PLC</option>
+        <option value="abans-sap-posting-poc-dashboard" data-href="./abans-sap-posting-poc-dashboard.html">Abans SAP posting, live POC dashboard — Abans PLC</option>
+        <option value="order-intake-api-fan-out" data-href="./order-intake-api-fan-out.html">Order intake API with multi-target fan-out — LTIMindtree</option>
+        <option value="electromart-track-and-reschedule" data-href="./electromart-track-and-reschedule.html">ElectroMart track order and reschedule delivery — ElectroMart (demo brand)</option>
+        <option value="enterprise-portal-ai-agent" data-href="./enterprise-portal-ai-agent.html">Enterprise portal with an embedded AI agent — ITG</option>
+        <option value="o2c-qad-build-journey" data-href="./o2c-qad-build-journey.html">O2C-QAD build journey — Boomi internal build</option>
+        <option value="boomi-accenture-trivia" data-href="./boomi-accenture-trivia.html">Boomi x Accenture trivia — Boomi internal build</option>
+        <option value="cloud-runtime-sizing-calculator" data-href="./cloud-runtime-sizing-calculator.html">Boomi public cloud runtime sizing estimator — Boomi internal build</option>
+        <option value="coupa-netsuite-vendor-bill" data-href="./coupa-netsuite-vendor-bill.html">Vendor bill pipeline, Coupa to NetSuite — Boomi internal build</option>
+        <option value="coupa-oracle-s2p-console" data-href="./coupa-oracle-s2p-console.html">Source-to-pay flow console, Coupa to Oracle Fusion — Boomi internal build</option>
+        <option value="epic-rauland-adt-nurse-call" data-href="./epic-rauland-adt-nurse-call.html">Epic ADT to Rauland Responder 5, nurse call integration — Boomi internal build</option>
+        <option value="epic-salesforce-trial-screening" data-href="./epic-salesforce-trial-screening.html">Clinical trial screening console, Epic to Salesforce — Meridian Research (demo brand)</option>
+        <option value="jc-hifi-order-tracker" data-href="./jc-hifi-order-tracker.html" selected>JC Hi-Fi order tracker, customer self-service — JC Hi-Fi (demo brand)</option>
+        <option value="pacific-bank-onboarding" data-href="./pacific-bank-onboarding.html">Pacific onboarding console, retail bank customer onboarding — Pacific Islands Community Bank (demo brand)</option>
+        <option value="sea-data-product-assistant" data-href="./sea-data-product-assistant.html">SEA regional performance, data products and an agent over two ERPs — Boomi internal build</option>
+        <option value="servicenow-jira-incident-sync" data-href="./servicenow-jira-incident-sync.html">Incident sync prototype, ServiceNow to Jira — Boomi internal build</option>
+        <option value="zendesk-magento-order-status" data-href="./zendesk-magento-order-status.html">Order status bot and flow inspector, Zendesk to Magento — Avery Products (demo brand)</option>
+        <option value="zoho-netsuite-invoice-sync" data-href="./zoho-netsuite-invoice-sync.html">Invoice sync console, Zoho CRM to NetSuite — Boomi internal build</option>
+      </select>
+    </div>
+  </div>
+  <div class="sedc-nav-rule"></div>
+</div>
+<!-- SEDC-NAV:END -->
+
+
+<!-- Utility bar -->
+<div class="utility-bar">
+  <a href="#">Store Finder</a>
+  <a href="#">Gift Cards</a>
+  <a href="#">Help &amp; Support</a>
+  <a href="#">Sign In</a>
+</div>
+
+<!-- Header -->
+<header>
+  <a class="logo" href="#">
+    <span class="logo-jc">JC</span>
+    <span class="logo-hifi">Hi-Fi</span>
+  </a>
+  <nav class="header-nav">
+    <a href="#">TVs &amp; AV</a>
+    <a href="#">Computers</a>
+    <a href="#">Gaming</a>
+    <a href="#">Phones</a>
+    <a href="#">Audio</a>
+    <a href="#" class="active">My Orders</a>
+  </nav>
+</header>
+
+<!-- Category strip -->
+<div class="cat-strip">
+  <a href="#">Smart TVs</a>
+  <a href="#">Laptops</a>
+  <a href="#">PlayStation</a>
+  <a href="#">Xbox</a>
+  <a href="#">Headphones</a>
+  <a href="#">Speakers</a>
+  <a href="#">Tablets</a>
+  <a href="#">Cameras</a>
+  <a href="#">Smart Home</a>
+  <a href="#">Cables &amp; Accessories</a>
+</div>
+
+<!-- Hero / search -->
+<div class="hero">
+  <div class="hero-eyebrow">Order Management</div>
+  <h1>Track Your Order</h1>
+  <p>Enter your JC Hi-Fi order number to view status and manage your delivery.</p>
+  <div class="search-box">
+    <input type="text" id="orderInput" placeholder="Enter order number e.g. ORD-1001"
+           maxlength="20" onkeydown="if(event.key==='Enter') lookupOrder()"/>
+    <button class="btn" id="lookupBtn" onclick="lookupOrder()">Track Order</button>
+  </div>
+  <p class="hint" id="sampleNote" style="display:none">
+    <strong>Sample data.</strong> This page is running standalone on its own built-in demo
+    dataset &mdash; no order system is connected. Orders, products, prices and addresses below
+    are invented for the demo.
+  </p>
+  <p class="hint">
+    Demo orders:
+    <code onclick="fillAndLookup('ORD-1001')">ORD-1001</code>
+    <code onclick="fillAndLookup('ORD-1002')">ORD-1002</code>
+    <code onclick="fillAndLookup('ORD-1003')">ORD-1003</code>
+    <code onclick="fillAndLookup('ORD-1004')">ORD-1004</code>
+    <code onclick="fillAndLookup('ORD-1005')">ORD-1005</code>
+  </p>
+</div>
+
+<main>
+  <div class="spinner-wrap" id="spinner">
+    <div class="spinner"></div>
+  </div>
+
+  <div class="alert" id="errorAlert"></div>
+
+  <div class="order-card" id="orderCard">
+    <div class="order-card-top"></div>
+
+    <div class="order-header">
+      <div class="product-image-wrap">
+        <img class="product-image" id="productImage" src="" alt="Product"/>
+      </div>
+      <div class="order-meta">
+        <div class="order-top-row">
+          <span class="order-id-label" id="orderIdLabel"></span>
+          <span class="status-badge" id="statusBadge"></span>
+        </div>
+        <div class="product-name" id="productName"></div>
+        <div class="product-sku" id="productSku"></div>
+        <div class="product-price" id="productPrice"></div>
+      </div>
+    </div>
+
+    <div class="order-body">
+      <div class="section-title">Order Details</div>
+      <div class="info-grid">
+        <div class="info-item">
+          <label>Order Date</label>
+          <div class="value" id="orderDate"></div>
+        </div>
+        <div class="info-item">
+          <label>Est. Delivery</label>
+          <div class="value highlight" id="estimatedDelivery"></div>
+        </div>
+        <div class="info-item">
+          <label>Tracking Number</label>
+          <div class="value tracking" id="trackingNumber"></div>
+        </div>
+        <div class="info-item" style="grid-column: 1 / -1">
+          <label>Shipping Address</label>
+          <div class="value" id="shippingAddress"></div>
+        </div>
+      </div>
+
+      <div class="section-title">Customer</div>
+      <div class="info-grid" style="margin-bottom: 0">
+        <div class="info-item">
+          <label>Name</label>
+          <div class="value" id="customerName"></div>
+        </div>
+        <div class="info-item">
+          <label>Email</label>
+          <div class="value" id="customerEmail"></div>
+        </div>
+      </div>
+
+      <!-- Delivery change panel -->
+      <div id="changePanel" class="delivery-panel" style="display:none">
+        <h3>Change Delivery Date</h3>
+        <div class="date-row">
+          <input type="date" id="newDateInput"/>
+          <button class="btn btn-yellow" id="updateBtn" onclick="updateDelivery()">Confirm Date</button>
+          <button class="btn btn-secondary" onclick="cancelDateChange()">Cancel</button>
+        </div>
+      </div>
+
+      <div id="deliveredNote" class="delivered-note" style="display:none">
+        ✔ This order has been delivered. Delivery date changes are no longer available.
+      </div>
+
+      <div class="change-btn-wrap" id="changeButtonWrap">
+        <button class="btn btn-yellow" onclick="showDateChange()">Change Delivery Date</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-logo">JC<span>Hi-Fi</span></div>
+    <div class="footer-links">
+      <a href="#">Privacy Policy</a>
+      <a href="#">Terms &amp; Conditions</a>
+      <a href="#">Returns Policy</a>
+      <a href="#">Contact Us</a>
+      <a href="#">Careers</a>
+      <a href="#">About Us</a>
+    </div>
+    <div class="footer-copy">
+      © 2026 JC Hi-Fi Pty Ltd. ABN 00 000 000 000. All prices in AUD. Powered by Boomi Integration Platform.
+    </div>
+  </div>
+</footer>
+
+<script>
+  let currentOrder = null;
+
+  /* ============================================================
+     Standalone fallback dataset.
+
+     server.py proxies /api/lookup and /api/update to Boomi, which owns the
+     orders. Opened as a file there is no proxy, so the five demo order numbers
+     printed by server.py are served from here instead, in the same shape
+     renderOrder() expects. Invented demo data, flagged on screen.
+     ============================================================ */
+  const OFFLINE_NOTICE = 'sampleNote';
+
+  // Opened as a file there is no proxy at all, so do not even attempt the call.
+  const OFFLINE = (location.protocol !== 'http:' && location.protocol !== 'https:');
+
+  // Dates are held as day offsets from today so the demo never reads as stale.
+  function dayOffset(n) {
+    const d = new Date();
+    d.setDate(d.getDate() + n);
+    return d.toISOString().split('T')[0];
+  }
+
+  // Inline placeholder artwork - no network, no external asset.
+  function placeholderImage(label) {
+    const svg =
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130 100">' +
+      '<rect width="130" height="100" fill="#f2f2f2"/>' +
+      '<rect x="24" y="26" width="82" height="48" rx="3" fill="#d8d8d8"/>' +
+      '<rect x="52" y="74" width="26" height="5" fill="#c4c4c4"/>' +
+      '<text x="65" y="93" font-family="Helvetica,Arial,sans-serif" font-size="9" ' +
+      'fill="#8a8a8a" text-anchor="middle">' + label + '</text></svg>';
+    return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+  }
+
+  const SAMPLE_ORDERS = {
+    'ORD-1001': {
+      orderId: 'ORD-1001', status: 'processing',
+      orderDateOffset: -3, deliveryOffset: 6,
+      trackingNumber: null,
+      shippingAddress: '14 Kingsway, Glen Waverley VIC 3150',
+      canChangeDelivery: true,
+      product: { name: '65" 4K Smart TV', sku: 'TV-65U8N', price: 1499.00, art: 'TV' },
+      customer: { name: 'Alicia Moreau', email: 'alicia.moreau@example.com' }
+    },
+    'ORD-1002': {
+      orderId: 'ORD-1002', status: 'in_transit',
+      orderDateOffset: -6, deliveryOffset: 2,
+      trackingNumber: 'JCF4820117AU',
+      shippingAddress: '3/212 Harris Street, Pyrmont NSW 2009',
+      canChangeDelivery: true,
+      product: { name: 'Noise Cancelling Over-Ear Headphones', sku: 'AU-NC700', price: 449.00, art: 'AUDIO' },
+      customer: { name: 'Daniel Okafor', email: 'daniel.okafor@example.com' }
+    },
+    'ORD-1003': {
+      orderId: 'ORD-1003', status: 'pending',
+      orderDateOffset: -1, deliveryOffset: 11,
+      trackingNumber: null,
+      shippingAddress: '88 Adelaide Street, Brisbane QLD 4000',
+      canChangeDelivery: true,
+      product: { name: '14" Ultrabook Laptop, 16GB / 512GB', sku: 'CP-UB14512', price: 1899.00, art: 'LAPTOP' },
+      customer: { name: 'Priya Nair', email: 'priya.nair@example.com' }
+    },
+    'ORD-1004': {
+      orderId: 'ORD-1004', status: 'delivered',
+      orderDateOffset: -12, deliveryOffset: -4,
+      trackingNumber: 'JCF4790043AU',
+      shippingAddress: '27 Rundle Street, Adelaide SA 5000',
+      canChangeDelivery: false,
+      product: { name: 'Games Console, 1TB Disc Edition', sku: 'GM-PS5D1T', price: 799.00, art: 'GAMING' },
+      customer: { name: 'Tom Whelan', email: 'tom.whelan@example.com' }
+    },
+    'ORD-1005': {
+      orderId: 'ORD-1005', status: 'in_transit',
+      orderDateOffset: -4, deliveryOffset: 3,
+      trackingNumber: 'JCF4831562AU',
+      shippingAddress: '9 Hay Street, East Perth WA 6004',
+      canChangeDelivery: true,
+      product: { name: 'Wireless Multiroom Speaker', sku: 'SP-WM220', price: 329.00, art: 'SPEAKER' },
+      customer: { name: 'Meera Kulkarni', email: 'meera.kulkarni@example.com' }
+    }
+  };
+
+  // Materialise a stored order into the payload shape server.py returns.
+  function sampleOrder(orderId, overrideDelivery) {
+    const o = SAMPLE_ORDERS[orderId];
+    if (!o) return { status: 'not_found', message: 'Order not found. Please check your order number and try again.' };
+    return {
+      orderId: o.orderId,
+      status: o.status,
+      orderDate: dayOffset(o.orderDateOffset),
+      estimatedDelivery: overrideDelivery || dayOffset(o.deliveryOffset),
+      trackingNumber: o.trackingNumber,
+      shippingAddress: o.shippingAddress,
+      canChangeDelivery: o.canChangeDelivery,
+      product: { name: o.product.name, sku: o.product.sku, price: o.product.price,
+                 imageUrl: placeholderImage(o.product.art) },
+      customer: { name: o.customer.name, email: o.customer.email }
+    };
+  }
+
+  // Delivery-date changes are held in memory so the write-back reads back.
+  const sampleOverrides = {};
+
+  function showSampleNote() {
+    const el = document.getElementById(OFFLINE_NOTICE);
+    if (el) el.style.display = '';
+  }
+
+  function fillAndLookup(id) {
+    document.getElementById('orderInput').value = id;
+    lookupOrder();
+  }
+
+  function setLoading(on) {
+    document.getElementById('spinner').classList.toggle('visible', on);
+    document.getElementById('lookupBtn').disabled = on;
+    const upd = document.getElementById('updateBtn');
+    if (upd) upd.disabled = on;
+  }
+
+  function showError(msg) {
+    const el = document.getElementById('errorAlert');
+    el.textContent = msg;
+    el.classList.add('visible');
+    document.getElementById('orderCard').classList.remove('visible');
+  }
+
+  function clearError() {
+    document.getElementById('errorAlert').classList.remove('visible');
+  }
+
+  function formatDate(d) {
+    if (!d) return '—';
+    const [y, m, day] = d.split('-');
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return `${parseInt(day)} ${months[parseInt(m)-1]} ${y}`;
+  }
+
+  function statusLabel(s) {
+    return { processing:'Processing', in_transit:'In Transit', pending:'Pending',
+             delivered:'Delivered', not_found:'Not Found' }[s] || s;
+  }
+
+  function renderOrder(order) {
+    currentOrder = order;
+
+    document.getElementById('productImage').src = order.product?.imageUrl || '';
+    document.getElementById('productImage').alt = order.product?.name || '';
+    document.getElementById('orderIdLabel').textContent = `Order #${order.orderId}`;
+    document.getElementById('productName').textContent = order.product?.name || '—';
+    document.getElementById('productSku').textContent = order.product?.sku ? `SKU: ${order.product.sku}` : '';
+    document.getElementById('productPrice').textContent = order.product?.price
+      ? `$${order.product.price.toFixed(2)}` : '';
+    document.getElementById('orderDate').textContent = formatDate(order.orderDate);
+    document.getElementById('estimatedDelivery').textContent = formatDate(order.estimatedDelivery);
+    document.getElementById('trackingNumber').textContent = order.trackingNumber || 'Not yet assigned';
+    document.getElementById('shippingAddress').textContent = order.shippingAddress || '—';
+    document.getElementById('customerName').textContent = order.customer?.name || '—';
+    document.getElementById('customerEmail').textContent = order.customer?.email || '—';
+
+    const badge = document.getElementById('statusBadge');
+    badge.textContent = statusLabel(order.status);
+    badge.className = `status-badge status-${order.status}`;
+
+    const panel   = document.getElementById('changePanel');
+    const note    = document.getElementById('deliveredNote');
+    const btnWrap = document.getElementById('changeButtonWrap');
+    panel.style.display = 'none';
+
+    if (order.canChangeDelivery) {
+      note.style.display = 'none';
+      btnWrap.style.display = 'block';
+      const minDate = new Date();
+      minDate.setDate(minDate.getDate() + 1);
+      document.getElementById('newDateInput').min = minDate.toISOString().split('T')[0];
+      document.getElementById('newDateInput').value = order.estimatedDelivery || '';
+    } else {
+      note.style.display = order.status === 'delivered' ? 'block' : 'none';
+      btnWrap.style.display = 'none';
+    }
+
+    document.getElementById('orderCard').classList.add('visible');
+    document.getElementById('orderCard').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function showDateChange() {
+    document.getElementById('changePanel').style.display = 'block';
+    document.getElementById('changeButtonWrap').style.display = 'none';
+    document.getElementById('newDateInput').focus();
+  }
+
+  function cancelDateChange() {
+    document.getElementById('changePanel').style.display = 'none';
+    document.getElementById('changeButtonWrap').style.display = 'block';
+  }
+
+  async function lookupOrder() {
+    const orderId = document.getElementById('orderInput').value.trim().toUpperCase();
+    if (!orderId) { showError('Please enter an order number.'); return; }
+
+    clearError();
+    setLoading(true);
+
+    try {
+      if (OFFLINE) throw new Error('no proxy');
+      const resp = await fetch('/api/lookup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId })
+      });
+      const data = await resp.json();
+
+      if (data.error || data.status === 'not_found') {
+        showError(data.message || 'Order not found. Please check your order number and try again.');
+      } else {
+        renderOrder(data);
+      }
+    } catch (e) {
+      // No proxy (opened as a file, or server.py not running) - serve the
+      // built-in sample dataset so the walkthrough still runs.
+      showSampleNote();
+      const data = sampleOrder(orderId, sampleOverrides[orderId]);
+      if (data.status === 'not_found') showError(data.message);
+      else renderOrder(data);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function updateDelivery() {
+    const newDate = document.getElementById('newDateInput').value;
+    if (!newDate) { alert('Please select a new delivery date.'); return; }
+    if (!currentOrder) return;
+
+    setLoading(true);
+    try {
+      if (OFFLINE) throw new Error('no proxy');
+      const resp = await fetch('/api/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId: currentOrder.orderId, newDeliveryDate: newDate })
+      });
+      const data = await resp.json();
+
+      if (data.error) {
+        showError(data.message || 'Could not update delivery date. Please try again.');
+      } else {
+        renderOrder(data);
+        showToast('Delivery date updated to ' + formatDate(newDate));
+      }
+    } catch (e) {
+      // Same fallback for the write. The new date is held in the page so the
+      // order reads back changed, the way the Boomi write-back would show it.
+      showSampleNote();
+      sampleOverrides[currentOrder.orderId] = newDate;
+      const data = sampleOrder(currentOrder.orderId, newDate);
+      if (data.status === 'not_found') showError('Update failed. Please try again.');
+      else { renderOrder(data); showToast('Delivery date updated to ' + formatDate(newDate)); }
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3500);
+  }
+
+  /* Opened straight from the file system there is no proxy to reach, so say up
+     front that the orders come from the page's own sample dataset. */
+  if (OFFLINE) showSampleNote();
+</script>
+</body>
+</html>
