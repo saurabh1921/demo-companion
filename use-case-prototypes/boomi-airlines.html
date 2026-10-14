@@ -112,6 +112,8 @@
   #login input { width: 100%; padding: 11px 12px; border: 1px solid var(--line); border-radius: 8px; font: inherit; margin-bottom: 10px; }
   #login .btn { width: 100%; }
   #login .err { min-height: 18px; font-size: 13px; margin-top: 8px; }
+  nav.top a.custlink { display: inline-block !important; background: #00a884; color: #fff; text-decoration: none; opacity: 1; font-weight: 700; font-size: 14px; padding: 7px 12px; border-radius: 999px; }
+  nav.top a.custlink:hover { background: #008f72; text-decoration: none; }
   .signout { background: none; border: 1px solid rgba(255,255,255,.5); color: #fff; border-radius: 6px; padding: 5px 10px; font: inherit; font-size: 13px; cursor: pointer; }
   footer { background: var(--navy); color: #c9d2ee; font-size: 13px; text-align: center; padding: 18px; }
   .tablewrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
@@ -168,7 +170,7 @@
     <nav class="top">
       <div class="brand"><span class="stripe"></span><div><b>Boomi Air</b><i>Ops Portal · Operations Control Centre</i></div></div>
       <a data-tab="briefing" class="active">Briefing</a><a data-tab="disruption">Disruptions</a><a data-tab="commercial">Commercial</a><a data-tab="service">Pax Services</a><a data-tab="audit">Audit</a>
-      <div class="right"><span>14 Oct · 08:00 MNL</span><span><b>A. Dizon</b> · Ops Admin</span><span class="avatar">AD</span><button class="signout" id="signout">Sign out</button></div>
+      <div class="right"><a class="custlink" href="boomi-airlines-customer.html">💬 Customer view</a><span>14 Oct · 08:00 MNL</span><span><b>A. Dizon</b> · Ops Admin</span><span class="avatar">AD</span><button class="signout" id="signout">Sign out</button></div>
     </nav>
     <h1>Good morning, A. Dizon.<br>Your 09:00 OCC meeting is in 60 minutes.</h1>
     <p class="lead">Ask the Ops & Insights Agent for live network performance, disruption risk, revenue and catering – answered in real time from Boomi.</p>
