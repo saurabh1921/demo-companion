@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Boomi Air Ops Portal – OCC (Synthetic Demo)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+  /* ====== CONFIG: fill these in before publishing (all values are safe to be public) ====== */
+  window.PORTAL_CONFIG = {
+    SUPABASE_URL: "https://hfovtnceicailrkshvqg.supabase.co",
+    SUPABASE_ANON_KEY: "sb_publishable_-CP2yRvCsH6NTvpulcYfVA_oZZrKyxV",
+    FUNCTION_NAME: "agent-chat",
+    READ_ONLY: true            /* must match the function's READ_ONLY secret; hides the Ops actions tab */
+  };
+</script>
+<style>
+  :root {
+    --royal: #1f3fb5; --royal-dk: #0b31a5; --indigo: #0d1590; --navy: #0b1d4f; --red: #d0112b; --gold: #f6b511;
+    --bg: #eef0f4; --card: #ffffff; --ink: #1b2440; --muted: #5d6680; --line: #dde2ec; --soft: #eef2fc; --ok: #1f8a4c; --warn: #c27c0e;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Nunito Sans", system-ui, sans-serif; background: var(--bg); color: var(--ink); }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+  /* advisory strip */
+  .advisory { background: var(--royal-dk); color: #fff; font-size: 14px; }
+  .advisory .wrap { display: flex; align-items: center; gap: 10px; height: 42px; }
+  .advisory b { font-weight: 700; }
+  .advisory .pill { margin-left: auto; background: var(--gold); color: #2b2000; font-weight: 700; font-size: 11px; padding: 3px 10px; border-radius: 999px; letter-spacing: .5px; }
+  /* hero */
+  .hero { position: relative; color: #fff; padding-bottom: 120px;
+    background: linear-gradient(180deg, rgba(5,14,60,.82) 0%, rgba(10,30,110,.55) 55%, rgba(10,30,110,.35) 100%),
+                radial-gradient(1200px 500px at 85% 20%, #6aa7ff 0%, transparent 60%),
+                linear-gradient(120deg, #0a2a8a 0%, #2c6be0 55%, #9cc7ff 100%); overflow: hidden; }
+  .hero::after { content: ""; position: absolute; right: -120px; top: 40px; width: 620px; height: 620px; border-radius: 50%;
+    border: 2px solid rgba(255,255,255,.12); box-shadow: 0 0 0 60px rgba(255,255,255,.04), 0 0 0 140px rgba(255,255,255,.03); }
+  nav.top { display: flex; align-items: center; gap: 24px; height: 76px; white-space: nowrap; position: relative; z-index: 2; }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .stripe { width: 30px; height: 26px; border-radius: 3px; background: linear-gradient(135deg, var(--royal) 0 33%, var(--red) 33% 66%, var(--gold) 66%); transform: skewX(-12deg); }
+  .brand b { font-family: Nunito; font-weight: 800; font-size: 17px; display: block; line-height: 1.1; }
+  .brand i { font-size: 11px; opacity: .85; }
+  nav.top a { color: #fff; text-decoration: none; font-size: 15px; opacity: .92; cursor: pointer; }
+  nav.top a:hover, nav.top a.active { opacity: 1; text-decoration: underline; text-underline-offset: 6px; }
+  nav.top .right { margin-left: auto; display: flex; align-items: center; gap: 14px; font-size: 14px; }
+  .avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--royal); border: 2px solid rgba(255,255,255,.6); display: grid; place-items: center; font-weight: 800; }
+  .hero h1 { font-family: Nunito; font-weight: 900; font-size: 46px; line-height: 1.08; margin: 34px 0 12px; max-width: 640px; position: relative; z-index: 2; }
+  .hero p.lead { font-size: 21px; font-weight: 600; margin: 0 0 22px; max-width: 560px; opacity: .95; position: relative; z-index: 2; }
+  .btn { border: 0; border-radius: 6px; padding: 12px 22px; font: inherit; font-size: 16px; font-weight: 700; cursor: pointer; }
+  .btn.primary { background: var(--royal); color: #fff; }
+  .btn.primary:hover { background: #2a4fd0; }
+  .btn.light { background: rgba(255,255,255,.14); color: #fff; border: 1px solid rgba(255,255,255,.4); }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .kpis { display: flex; gap: 14px; margin-top: 28px; position: relative; z-index: 2; flex-wrap: wrap; }
+  .kpi { background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.25); border-radius: 10px; padding: 10px 16px; min-width: 150px; backdrop-filter: blur(4px); }
+  .kpi small { display: block; font-size: 12px; opacity: .85; }
+  .kpi b { font-family: Nunito; font-size: 20px; }
+  /* indigo banner */
+  .banner { position: relative; z-index: 3; margin-top: -96px; }
+  .banner .inner { background: var(--indigo); color: #fff; border-radius: 8px; padding: 16px 18px; display: flex; align-items: center; gap: 14px; box-shadow: 0 10px 30px rgba(5,10,60,.25); }
+  .banner .inner b { font-weight: 700; }
+  .banner .status { margin-left: auto; font-size: 13px; opacity: .9; display: flex; align-items: center; gap: 8px; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--warn); display: inline-block; }
+  .ok .dot { background: #4ad187; }
+  /* tab card */
+  .tabs { display: flex; margin: 22px auto 0; width: max-content; max-width: 100%; background: #fff; border-radius: 10px 10px 0 0; overflow-x: auto; position: relative; z-index: 3; }
+  .tabs button { border: 0; background: #fff; font: inherit; font-size: 15px; color: var(--ink); padding: 14px 24px; cursor: pointer; white-space: nowrap; }
+  .tabs button.active { background: var(--royal); color: #fff; border-radius: 10px 10px 0 0; font-weight: 700; }
+  .panel { background: var(--card); border-radius: 12px; box-shadow: 0 6px 24px rgba(15,25,70,.08); padding: 20px 22px; position: relative; z-index: 2; }
+  .chips { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 10px; }
+  .chip { text-align: left; border: 1px solid var(--line); background: #fff; border-radius: 8px; padding: 11px 14px; font: inherit; font-size: 14px; color: var(--ink); cursor: pointer; display: flex; gap: 10px; align-items: flex-start; }
+  .chip:hover { border-color: var(--royal); background: var(--soft); }
+  .chip .ico { color: var(--royal); font-weight: 800; }
+  .chip.action { border-left: 4px solid var(--gold); }
+  .composer { display: flex; gap: 12px; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); align-items: flex-end; }
+  .composer label { font-size: 13px; color: var(--royal); font-weight: 700; display: block; margin-bottom: 4px; }
+  .composer .field { flex: 1; }
+  textarea { width: 100%; resize: none; border: 0; border-bottom: 2px solid var(--line); padding: 6px 0; font: inherit; font-size: 17px; color: var(--ink); background: transparent; }
+  textarea:focus { outline: none; border-color: var(--royal); }
+  /* conversation */
+  .conv-head { display: flex; align-items: center; margin: 30px 0 10px; }
+  .conv-head h2 { font-family: Nunito; font-weight: 800; font-size: 22px; margin: 0; }
+  .conv-head .btn { margin-left: auto; background: #fff; color: var(--royal); border: 1px solid var(--royal); padding: 8px 16px; font-size: 14px; }
+  #log { display: flex; flex-direction: column; gap: 14px; padding-bottom: 40px; }
+  .msg { border-radius: 12px; padding: 14px 18px; font-size: 15px; line-height: 1.55; }
+  .msg.user { align-self: flex-end; background: var(--royal); color: #fff; max-width: 75%; border-bottom-right-radius: 4px; font-weight: 600; }
+  .msg.agent { background: #fff; border: 1px solid var(--line); box-shadow: 0 4px 16px rgba(15,25,70,.05); }
+  .who { display: flex; align-items: center; gap: 10px; font-size: 12px; font-weight: 800; color: var(--royal); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 8px; }
+  .who .t { color: var(--muted); font-weight: 600; text-transform: none; letter-spacing: 0; }
+  .steps { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+  .step { font-size: 12px; background: var(--soft); color: var(--royal-dk); padding: 3px 10px; border-radius: 999px; }
+  .step.live::before { content: "● "; color: var(--warn); }
+  .body table { border-collapse: collapse; width: 100%; font-size: 13.5px; margin: 10px 0; }
+  .body th { background: var(--soft); color: var(--navy); text-align: left; }
+  .body th, .body td { border: 1px solid var(--line); padding: 6px 10px; }
+  .body img { max-width: 100%; border: 1px solid var(--line); border-radius: 10px; margin-top: 8px; background: #fff; }
+  .body p { margin: 6px 0; }
+  .err { color: var(--red); }
+  .empty { text-align: center; color: var(--muted); padding: 30px; background: #fff; border: 1px dashed var(--line); border-radius: 12px; }
+  #login { position: fixed; inset: 0; z-index: 50; display: none; place-items: center; background: linear-gradient(120deg, #0a1a6b, #1f3fb5 60%, #4f86e8); }
+  #login form { background: #fff; border-radius: 14px; padding: 28px; width: 360px; box-shadow: 0 20px 50px rgba(0,0,0,.3); }
+  #login h2 { font-family: Nunito; font-weight: 900; margin: 0 0 4px; color: var(--navy); }
+  #login p { margin: 0 0 16px; color: var(--muted); font-size: 14px; }
+  #login input { width: 100%; padding: 11px 12px; border: 1px solid var(--line); border-radius: 8px; font: inherit; margin-bottom: 10px; }
+  #login .btn { width: 100%; }
+  #login .err { min-height: 18px; font-size: 13px; margin-top: 8px; }
+  .signout { background: none; border: 1px solid rgba(255,255,255,.5); color: #fff; border-radius: 6px; padding: 5px 10px; font: inherit; font-size: 13px; cursor: pointer; }
+  footer { background: var(--navy); color: #c9d2ee; font-size: 13px; text-align: center; padding: 18px; }
+  @media (max-width: 760px) { .hero h1 { font-size: 34px; } nav.top a { display: none; } .chips { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div id="login"><form id="loginForm"><h2>Boomi Air Ops Portal</h2><p>Sign in with your portal account. Synthetic demo.</p>
+  <input id="email" type="email" placeholder="Email" autocomplete="username" required>
+  <input id="password" type="password" placeholder="Password" autocomplete="current-password" required>
+  <button class="btn primary" type="submit">Sign in</button><div class="err" id="loginErr"></div></form></div>
+<div class="advisory"><div class="wrap">ⓘ <b>OCC Advisory</b> PR306 MNL–HKG and PR1845 MNL–CEB running late today · <span class="pill">SYNTHETIC DEMO</span></div></div>
+<section class="hero">
+  <div class="wrap">
+    <nav class="top">
+      <div class="brand"><span class="stripe"></span><div><b>Boomi Air</b><i>Ops Portal · Operations Control Centre</i></div></div>
+      <a data-tab="briefing" class="active">Briefing</a><a data-tab="disruption">Disruptions</a><a data-tab="commercial">Commercial</a><a data-tab="service">Pax Services</a><a data-tab="audit">Audit</a>
+      <div class="right"><span>14 Oct · 08:00 MNL</span><span><b>A. Dizon</b> · Ops Admin</span><span class="avatar">AD</span><button class="signout" id="signout">Sign out</button></div>
+    </nav>
+    <h1>Good morning, A. Dizon.<br>Your 09:00 OCC meeting is in 60 minutes.</h1>
+    <p class="lead">Ask the Ops & Insights Agent for live network performance, disruption risk, revenue and catering – answered in real time from Boomi.</p>
+    <button class="btn primary" id="prep">Prepare my 9 AM briefing</button>
+    <div class="kpis">
+      <div class="kpi"><small>Network today</small><b>Ask for live KPIs</b></div>
+      <div class="kpi"><small>Hub</small><b>NAIA · Mactan-Cebu</b></div>
+      <div class="kpi"><small>International</small><b>HKG · KUL · CGK</b></div>
+    </div>
+  </div>
+</section>
+<div class="wrap banner">
+  <div class="inner"><b>Boomi Air Ops & Insights Agent:</b> dashboards, manifests, catering, connections at risk, revenue trends and flight updates.
+    <span class="status" id="status"><span class="dot"></span>Connecting…</span></div>
+  <div class="tabs" id="tabs"></div>
+  <div class="panel">
+    <div class="chips" id="chips"></div>
+    <div class="composer">
+      <div class="field"><label for="q">Ask anything about today's operations</label>
+        <textarea id="q" rows="1" placeholder="e.g. Which passenger connections are at risk tomorrow at NAIA?"></textarea></div>
+      <button class="btn primary" id="send">Ask the agent</button>
+    </div>
+  </div>
+  <div class="conv-head"><h2>Briefing conversation</h2><button class="btn" id="reset">New conversation</button></div>
+  <div id="log"><div class="empty" id="empty">Pick a prompt above or click <b>Prepare my 9 AM briefing</b>. Answers stream live from the agent.</div></div>
+</div>
+<footer>Boomi Air Ops Portal – synthetic demonstration built on Boomi Agentstudio and Boomi Integration. Boomi Air is a fictional airline; no real passenger or commercial data.</footer>
+<script>
+const LIBRARY = [
+  { id: "briefing", title: "Morning briefing", items: [
+    "Give me today's OCC morning briefing: OTP, delays, cancellations and network load factor.",
+    "Which flights departing today are running late, and by how many minutes?",
+    "Show today's load factor by flight with a chart and flag anything below 80%.",
+    "How is check-in progressing for this afternoon's departures from Manila and Cebu?",
+    "Summarise today's domestic MNL–CEB shuttle performance versus the international flights."]},
+  { id: "disruption", title: "Disruptions & recovery", items: [
+    "Which passenger connections are at risk tomorrow at NAIA?",
+    "What would happen if PR1847 Cebu–Manila tomorrow is delayed by 150 minutes? Give me the impact quote only, do not apply it.",
+    "Are any flights cancelled in the schedule? Which routes and dates are affected?",
+    "PR306 to Hong Kong is delayed tonight – how many passengers are on board and how many have checked in?",
+    "Which connections from the Cebu bank into the Manila international departures are tight tomorrow?"]},
+  { id: "commercial", title: "Commercial performance", items: [
+    "Revenue by route with a chart – which route contributes the most?",
+    "Break down booked revenue by cabin: Business versus Economy.",
+    "Revenue by fare class – how much comes from Supersaver and Saver versus Flex fares?",
+    "What is our ancillary revenue mix across seats, extra baggage and change fees?",
+    "OTP trend for the last 14 days across all routes, with a chart.",
+    "Load factor trend on MNL–CEB for the last 30 days. Is the weekend uplift holding?",
+    "Revenue trend for MNL–HKG over the last 14 days with average, best and worst day."]},
+  { id: "service", title: "Passenger services", items: [
+    "Pull the passenger manifest for PR306 Manila–Hong Kong today.",
+    "Special meal counts per flight for today's departures, for the catering order.",
+    "Catering requirements for tomorrow's flights, including special meals.",
+    "Who on PR527 Manila–Kuala Lumpur tonight has purchased extra baggage?",
+    "List children travelling on PR306 today and their seat assignments."]},
+  { id: "audit", title: "Audit & compliance", items: [
+    "Summarise system activity today and any failed transactions.",
+    "Show the most recent failed operations with their error codes.",
+    "How many check-ins, seat changes and cancellations were processed recently?"]},
+  { id: "actions", title: "Ops actions", action: true, items: [
+    "Change the departure gate for PR1841 Manila–Cebu today to gate 12.",
+    "Mark PR1855 Manila–Cebu tonight as delayed by 30 minutes.",
+    "Delay PR1847 Cebu–Manila tomorrow by 150 minutes and then show connections at risk."]},
+];
+const BRIEFING = [
+  "Give me today's OCC morning briefing: OTP, delays, cancellations and network load factor.",
+  "Which passenger connections are at risk today and tomorrow?",
+  "OTP trend for the last 14 days across all routes, with a chart.",
+  "Revenue by route with a chart – which route contributes the most?",
+  "Special meal counts per flight for today's departures, for the catering order."];
+
+const $ = s => document.querySelector(s);
+const CFG = window.PORTAL_CONFIG;
+const sb = supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY);
+const FUNCTION_URL = `${CFG.SUPABASE_URL}/functions/v1/${CFG.FUNCTION_NAME}`;
+if (CFG.READ_ONLY) { const i = LIBRARY.findIndex(g => g.id === "actions"); if (i >= 0) LIBRARY.splice(i, 1); }
+async function accessToken() { const { data } = await sb.auth.getSession(); return data.session?.access_token; }
+async function showAuth() {
+  const tok = await accessToken();
+  $("#login").style.display = tok ? "none" : "grid";
+  const s = $("#status");
+  if (tok) { s.classList.add("ok"); s.innerHTML = `<span class="dot"></span>Live · signed in${CFG.READ_ONLY ? " · read-only" : ""}`; }
+}
+$("#loginForm").onsubmit = async (e) => { e.preventDefault(); $("#loginErr").textContent = "";
+  const { error } = await sb.auth.signInWithPassword({ email: $("#email").value, password: $("#password").value });
+  if (error) $("#loginErr").textContent = error.message; else showAuth(); };
+$("#signout").onclick = async () => { await sb.auth.signOut(); sessionId = null; showAuth(); };
+let sessionId = null, busy = false, current = "briefing";
+
+function renderTabs() {
+  $("#tabs").innerHTML = "";
+  LIBRARY.forEach(g => {
+    const b = document.createElement("button"); b.textContent = g.title; b.className = g.id === current ? "active" : "";
+    b.onclick = () => selectTab(g.id); $("#tabs").appendChild(b);
+  });
+  const g = LIBRARY.find(x => x.id === current); $("#chips").innerHTML = "";
+  g.items.forEach(t => { const c = document.createElement("button"); c.className = "chip" + (g.action ? " action" : "");
+    c.innerHTML = `<span class="ico">${g.action ? "⚑" : "›"}</span><span></span>`; c.lastChild.textContent = t; c.onclick = () => ask(t); $("#chips").appendChild(c); });
+  document.querySelectorAll("nav.top a").forEach(a => a.classList.toggle("active", a.dataset.tab === current));
+}
+function selectTab(id) { current = id; renderTabs(); }
+document.querySelectorAll("nav.top a").forEach(a => a.onclick = () => { selectTab(a.dataset.tab); $("#tabs").scrollIntoView({ behavior: "smooth", block: "center" }); });
+
+function addMsg(cls, html) {
+  $("#empty")?.remove();
+  const el = document.createElement("div"); el.className = "msg " + cls; el.innerHTML = html;
+  $("#log").appendChild(el); el.scrollIntoView({ behavior: "smooth", block: "end" }); return el;
+}
+const md = t => DOMPurify.sanitize(marked.parse(t || ""));
+function setBusy(v) { busy = v; ["#send", "#prep", "#reset"].forEach(s => $(s).disabled = v); }
+
+async function ask(text) {
+  if (busy || !text.trim()) return;
+  setBusy(true);
+  addMsg("user", DOMPurify.sanitize(text));
+  const started = Date.now();
+  const card = addMsg("agent", `<div class="who">Ops & Insights Agent <span class="t">working…</span></div><div class="steps"></div><div class="body"></div>`);
+  const steps = card.querySelector(".steps"), body = card.querySelector(".body"), t = card.querySelector(".t");
+  const tick = setInterval(() => t.textContent = `working… ${Math.round((Date.now() - started) / 1000)}s`, 1000);
+  let answer = "";
+  const step = txt => { steps.querySelectorAll(".live").forEach(s => s.classList.remove("live"));
+    const s = document.createElement("span"); s.className = "step live"; s.textContent = txt; steps.appendChild(s); };
+  try {
+    const tok = await accessToken();
+    if (!tok) { showAuth(); throw new Error("Please sign in again."); }
+    const res = await fetch(FUNCTION_URL, { method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${tok}`, "apikey": CFG.SUPABASE_ANON_KEY }, body: JSON.stringify({ message: text, session_id: sessionId }) });
+    const reader = res.body.getReader(); const dec = new TextDecoder(); let buf = "", ev = null;
+    while (true) {
+      const { value, done } = await reader.read(); if (done) break;
+      buf += dec.decode(value, { stream: true });
+      let i;
+      while ((i = buf.indexOf("\n")) >= 0) {
+        const line = buf.slice(0, i).trim(); buf = buf.slice(i + 1);
+        if (line.startsWith("event:")) { ev = line.slice(6).trim(); continue; }
+        if (!line.startsWith("data:")) continue;
+        const raw = line.slice(5).trim(); if (!raw || raw === "null") continue;
+        let d; try { d = JSON.parse(raw); } catch { continue; }
+        if (d.session_id) sessionId = d.session_id;
+        if (ev === "progress_notification" && d.content && d.type !== "GENERATING_TITLE") step(d.content.replace("Calling Tool: ", "🔧 "));
+        else if (ev === "message" && d.role === "agent") { answer += (answer ? "\n\n" : "") + d.content; body.innerHTML = md(answer); }
+        else if (ev === "portal_error") {
+          const e = d.error || "Unknown error";
+          if (/could not find the requested session/i.test(e)) { sessionId = null; body.innerHTML = `<div class="err">Conversation expired – starting a new one. Please ask again.</div>`; }
+          else body.innerHTML = `<div class="err">${DOMPurify.sanitize(e)}</div>`;
+        }
+      }
+    }
+    if (!answer && !body.innerHTML) body.innerHTML = `<div class="err">No answer received. Please try again.</div>`;
+  } catch (e) { body.innerHTML = `<div class="err">Connection error: ${DOMPurify.sanitize(String(e))}</div>`; }
+  clearInterval(tick); steps.querySelectorAll(".live").forEach(s => s.classList.remove("live"));
+  t.textContent = `answered in ${Math.round((Date.now() - started) / 1000)}s`;
+  card.scrollIntoView({ behavior: "smooth", block: "start" });
+  setBusy(false);
+}
+
+$("#send").onclick = () => { const v = $("#q").value; $("#q").value = ""; ask(v); };
+$("#q").addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); $("#send").click(); } });
+$("#reset").onclick = () => { sessionId = null; $("#log").innerHTML = `<div class="empty" id="empty">New conversation started. Ask anything about today's operations.</div>`; };
+$("#prep").onclick = async () => { $("#log").scrollIntoView({ behavior: "smooth" }); for (const p of BRIEFING) { await ask(p); } };
+showAuth();
+renderTabs();
+</script>
+</body>
+</html>
