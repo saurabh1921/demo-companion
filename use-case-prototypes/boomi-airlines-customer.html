@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#008069">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Boomi Air Care">
+<title>Boomi Air Customer Care (Synthetic Demo)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+  /* Same Supabase project/key as the Ops portal (public values). The chat uses the passenger agent via agent="customer". */
+  window.PORTAL_CONFIG = {
+    SUPABASE_URL: "https://hfovtnceicailrkshvqg.supabase.co",
+    SUPABASE_ANON_KEY: "sb_publishable_-CP2yRvCsH6NTvpulcYfVA_oZZrKyxV",
+    FUNCTION_NAME: "agent-chat",
+    OPS_PORTAL: "boomi-airlines.html"
+  };
+</script>
+<style>
+  :root { --teal: #008069; --teal-dk: #005c4b; --green: #00a884; --out: #d9fdd3; --in: #ffffff; --wall: #efeae2; --panel: #f0f2f5;
+          --ink: #111b21; --muted: #667781; --line: #e9edef; --royal: #1f3fb5; --gold: #f6b511; }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body { font-family: "Nunito Sans", system-ui, sans-serif; color: var(--ink); background: #dfe3e6; display: flex; flex-direction: column; }
+  /* top switcher (both views reachable from the top) */
+  .switch { background: #0b1d4f; color: #fff; display: flex; align-items: center; gap: 10px; padding: 7px 16px; font-size: 13px; }
+  .switch .brand { font-weight: 800; display: flex; align-items: center; gap: 8px; }
+  .stripe { width: 20px; height: 16px; border-radius: 2px; background: linear-gradient(135deg, var(--royal) 0 33%, #d0112b 33% 66%, var(--gold) 66%); transform: skewX(-12deg); }
+  .switch nav { margin-left: auto; display: flex; gap: 4px; background: rgba(255,255,255,.1); border-radius: 999px; padding: 3px; }
+  .switch nav a { color: #fff; text-decoration: none; padding: 5px 12px; border-radius: 999px; font-weight: 700; }
+  .switch nav a.on { background: #fff; color: #0b1d4f; }
+  .switch .demo { background: var(--gold); color: #2b2000; font-weight: 800; font-size: 10px; padding: 2px 8px; border-radius: 999px; }
+  .switch button { background: none; border: 1px solid rgba(255,255,255,.4); color: #fff; border-radius: 6px; padding: 3px 9px; font: inherit; font-size: 12px; cursor: pointer; }
+  /* desktop app frame */
+  .app { flex: 1; min-height: 0; display: grid; grid-template-columns: 380px 1fr; max-width: 1500px; width: 100%; margin: 0 auto; background: #fff; box-shadow: 0 6px 24px rgba(0,0,0,.08); }
+  .side { border-right: 1px solid var(--line); display: flex; flex-direction: column; min-height: 0; }
+  .side header { background: var(--panel); height: 60px; display: flex; align-items: center; padding: 0 16px; gap: 12px; }
+  .me { width: 40px; height: 40px; border-radius: 50%; background: #c9d4e8; display: grid; place-items: center; font-weight: 800; color: #3b4a6b; }
+  .side header b { font-size: 16px; }
+  .search { padding: 8px 12px; border-bottom: 1px solid var(--line); }
+  .search div { background: var(--panel); border-radius: 8px; padding: 8px 12px; color: var(--muted); font-size: 14px; }
+  .chats { overflow-y: auto; }
+  .chat { display: flex; gap: 12px; padding: 10px 14px; align-items: center; border-bottom: 1px solid var(--line); cursor: default; }
+  .chat.active { background: #f0f2f5; }
+  .chat .av { width: 48px; height: 48px; border-radius: 50%; flex: none; display: grid; place-items: center; color: #fff; font-weight: 800; background: linear-gradient(135deg, var(--royal), #4f86e8); }
+  .chat .av.muted { background: #c9d4e8; color: #55627d; }
+  .chat .t { flex: 1; min-width: 0; }
+  .chat .t b { display: flex; justify-content: space-between; gap: 8px; font-size: 16px; font-weight: 700; white-space: nowrap; }
+  .chat .t b > span { overflow: hidden; text-overflow: ellipsis; }
+  .chat .t b small { color: var(--muted); font-weight: 400; font-size: 12px; }
+  .chat .t span { color: var(--muted); font-size: 14px; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tick { color: #53bdeb; }
+  .verified { color: var(--green); font-size: 14px; margin-left: 4px; }
+  /* conversation */
+  .conv { display: flex; flex-direction: column; min-height: 0; min-width: 0; }
+  .b img { max-width: 100%; } .b hr { border: 0; border-top: 1px solid var(--line); }
+  .conv header { background: var(--panel); height: 60px; display: flex; align-items: center; gap: 12px; padding: 0 16px; border-left: 1px solid var(--line); }
+  .conv header .av { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-weight: 800; background: linear-gradient(135deg, var(--royal), #4f86e8); }
+  .conv header b { font-size: 16px; display: block; }
+  .conv header small { color: var(--muted); font-size: 13px; }
+  .back { display: none; color: #fff; text-decoration: none; font-size: 22px; }
+  #log { flex: 1; overflow-y: auto; padding: 18px 7%; display: flex; flex-direction: column; gap: 4px;
+    background-color: var(--wall);
+    background-image: radial-gradient(rgba(0,0,0,.035) 1.2px, transparent 1.3px), radial-gradient(rgba(0,0,0,.025) 1.2px, transparent 1.3px);
+    background-size: 26px 26px, 26px 26px; background-position: 0 0, 13px 13px; }
+  .day { align-self: center; background: #fff; color: var(--muted); font-size: 12.5px; padding: 5px 12px; border-radius: 8px; margin: 6px 0 10px; box-shadow: 0 1px .5px rgba(0,0,0,.13); }
+  .note { align-self: center; background: #ffeecd; color: #54656f; font-size: 12.5px; padding: 6px 12px; border-radius: 8px; max-width: 520px; text-align: center; margin-bottom: 10px; box-shadow: 0 1px .5px rgba(0,0,0,.13); }
+  .b { max-width: 65%; padding: 6px 9px 8px; border-radius: 8px; font-size: 14.5px; line-height: 1.42; box-shadow: 0 1px .5px rgba(0,0,0,.13); position: relative; word-wrap: break-word; margin-top: 4px; }
+  .b.out { align-self: flex-end; background: var(--out); border-top-right-radius: 0; }
+  .b.in { align-self: flex-start; background: var(--in); border-top-left-radius: 0; }
+  .b .meta { float: right; margin: 6px 0 -4px 10px; font-size: 11px; color: var(--muted); }
+  .b p { margin: 2px 0; } .b ul, .b ol { margin: 4px 0; padding-left: 20px; }
+  .b table { border-collapse: collapse; font-size: 13px; margin: 4px 0; }
+  .b th, .b td { border: 1px solid var(--line); padding: 3px 7px; white-space: nowrap; }
+  .tablewrap { overflow-x: auto; }
+  .typing { align-self: flex-start; background: #fff; border-radius: 8px; border-top-left-radius: 0; padding: 9px 12px; box-shadow: 0 1px .5px rgba(0,0,0,.13); color: var(--muted); font-size: 13px; margin-top: 4px; }
+  .dots span { display: inline-block; width: 6px; height: 6px; margin: 0 1px; border-radius: 50%; background: #9aa6ad; animation: blink 1.2s infinite; }
+  .dots span:nth-child(2) { animation-delay: .2s } .dots span:nth-child(3) { animation-delay: .4s }
+  @keyframes blink { 0%, 80%, 100% { opacity: .3 } 40% { opacity: 1 } }
+  .quick { display: flex; gap: 8px; padding: 8px 12px; background: var(--panel); overflow-x: auto; scrollbar-width: none; }
+  .quick::-webkit-scrollbar { display: none; }
+  .quick button { flex: none; border: 1px solid #d1d7db; background: #fff; color: var(--teal-dk); border-radius: 18px; padding: 6px 12px; font: inherit; font-size: 13.5px; font-weight: 700; cursor: pointer; }
+  .composer { display: flex; gap: 10px; align-items: flex-end; background: var(--panel); padding: 8px 14px calc(8px + env(safe-area-inset-bottom)); }
+  .composer .box { flex: 1; background: #fff; border-radius: 24px; display: flex; align-items: center; padding: 4px 6px 4px 14px; }
+  .composer .ico { color: #54656f; font-size: 20px; padding: 0 6px; user-select: none; }
+  textarea { flex: 1; border: 0; resize: none; font: inherit; font-size: 15px; padding: 8px 4px; max-height: 110px; outline: none; background: transparent; }
+  #send { width: 46px; height: 46px; border-radius: 50%; border: 0; background: var(--green); color: #fff; font-size: 19px; cursor: pointer; flex: none; }
+  #send:disabled { opacity: .55; }
+  #login { position: fixed; inset: 0; z-index: 50; display: none; place-items: center; background: linear-gradient(160deg, #00a884 0 220px, #e9edef 220px); }
+  #login form { background: #fff; border-radius: 12px; padding: 26px; width: 360px; box-shadow: 0 10px 40px rgba(0,0,0,.15); }
+  #login h2 { margin: 0 0 4px; } #login p { margin: 0 0 14px; color: var(--muted); font-size: 14px; }
+  #login input { width: 100%; padding: 11px 12px; border: 1px solid #d1d7db; border-radius: 8px; font: inherit; margin-bottom: 10px; }
+  #login button { width: 100%; background: var(--green); color: #fff; border: 0; border-radius: 22px; padding: 11px; font: inherit; font-weight: 800; cursor: pointer; }
+  #login .err { color: #d0112b; font-size: 13px; min-height: 18px; margin-top: 8px; }
+  /* mobile = phone chat app */
+  @media (max-width: 760px) {
+    body { background: var(--wall); }
+    .switch { padding: calc(6px + env(safe-area-inset-top)) 10px 6px; font-size: 12px; }
+    .switch .brand span.txt, .switch .demo { display: none; }
+    .app { grid-template-columns: minmax(0, 1fr); box-shadow: none; }
+    .b { overflow-wrap: anywhere; }
+    .side { display: none; }
+    .conv header { background: var(--teal); color: #fff; border: 0; height: 58px; padding: 0 10px; gap: 10px; }
+    .conv header small { color: #d6efe9; }
+    .back { display: block; }
+    #log { padding: 12px 10px; }
+    .b { max-width: 86%; font-size: 15px; }
+    .composer { padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); }
+    #login form { width: calc(100% - 32px); }
+  }
+</style>
+</head>
+<body>
+<div id="login"><form id="loginForm"><h2>Boomi Air Customer Care</h2><p>Sign in with your demo account. Synthetic demo.</p>
+  <input id="email" type="email" placeholder="Email" autocomplete="username" required>
+  <input id="password" type="password" placeholder="Password" autocomplete="current-password" required>
+  <button type="submit">Sign in</button><div class="err" id="loginErr"></div></form></div>
+
+<div class="switch">
+  <div class="brand"><span class="stripe"></span><span class="txt">Boomi Air</span></div>
+  <span class="demo">SYNTHETIC DEMO</span>
+  <nav><a id="toOps">Ops Portal</a><a class="on">Customer view</a></nav>
+  <button id="signout">Sign out</button>
+</div>
+
+<div class="app">
+  <aside class="side">
+    <header><div class="me">You</div><b>Chats</b></header>
+    <div class="search"><div>🔍 Search or start new chat</div></div>
+    <div class="chats">
+      <div class="chat active"><div class="av">BA</div><div class="t"><b><span>Boomi Air Customer Care<span class="verified">✔</span></span><small id="lastTime">now</small></b><span id="lastMsg">Check-in, seats, baggage, flight status…</span></div></div>
+      <div class="chat"><div class="av muted">MF</div><div class="t"><b>Mabuhay Friends<small>Yesterday</small></b><span>See you at NAIA T1! 🛫</span></div></div>
+      <div class="chat"><div class="av muted">LG</div><div class="t"><b>Liza Garcia<small>Mon</small></b><span><span class="tick">✓✓</span> Booked the Hong Kong trip</span></div></div>
+    </div>
+  </aside>
+  <section class="conv">
+    <header><a class="back" id="backOps">‹</a><div class="av">BA</div><div><b>Boomi Air Customer Care <span class="verified">✔</span></b><small id="presence">online</small></div></header>
+    <div id="log">
+      <div class="day">TODAY</div>
+      <div class="note">🔒 Synthetic demo. Answers come live from the Boomi Air customer-service AI agent built on Boomi. Try PNR <b>PAL7K2</b>, surname <b>Santos</b>.</div>
+    </div>
+    <div class="quick" id="quick"></div>
+    <div class="composer"><div class="box"><span class="ico">☺</span><textarea id="q" rows="1" placeholder="Type a message"></textarea><span class="ico">📎</span></div><button id="send" aria-label="Send">➤</button></div>
+  </section>
+</div>
+<script>
+const QUICK = ["Hi, I want to check in. PNR PAL7K2, surname Santos", "What's the status of PR 306 today?", "Show my itinerary – PAL3N9, Garcia",
+  "Can I add 10 kg baggage? PAL3N9, Garcia, for Carlo", "Vegetarian meal for Liza on the Hong Kong flight", "What refund would I get if I cancel PAL9N3, Castillo?"];
+const CFG = window.PORTAL_CONFIG, $ = s => document.querySelector(s);
+const sb = supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY);
+const FUNCTION_URL = `${CFG.SUPABASE_URL}/functions/v1/${CFG.FUNCTION_NAME}`;
+let sessionId = null, busy = false;
+try { sessionId = sessionStorage.getItem("ba_customer_session"); } catch {}
+$("#toOps").href = CFG.OPS_PORTAL; $("#backOps").href = CFG.OPS_PORTAL;
+QUICK.forEach(t => { const b = document.createElement("button"); b.textContent = t; b.onclick = () => ask(t); $("#quick").appendChild(b); });
+
+const hhmm = () => new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+const md = t => DOMPurify.sanitize(marked.parse(t || "")).replace(/<table/g, '<div class="tablewrap"><table').replace(/<\/table>/g, "</table></div>");
+function bubble(cls, html) {
+  const el = document.createElement("div"); el.className = "b " + cls;
+  el.innerHTML = html + `<span class="meta">${hhmm()}${cls === "out" ? ' <span class="tick">✓✓</span>' : ""}</span>`;
+  $("#log").appendChild(el); $("#log").scrollTop = $("#log").scrollHeight; return el;
+}
+async function token() { const { data } = await sb.auth.getSession(); return data.session?.access_token; }
+async function showAuth() { $("#login").style.display = (await token()) ? "none" : "grid"; }
+$("#loginForm").onsubmit = async e => { e.preventDefault(); $("#loginErr").textContent = "";
+  const { error } = await sb.auth.signInWithPassword({ email: $("#email").value, password: $("#password").value });
+  if (error) $("#loginErr").textContent = error.message; else showAuth(); };
+$("#signout").onclick = async () => { await sb.auth.signOut(); showAuth(); };
+
+async function ask(text) {
+  text = text.trim(); if (busy || !text) return;
+  busy = true; $("#send").disabled = true;
+  bubble("out", DOMPurify.sanitize(text).replace(/\n/g, "<br>"));
+  $("#lastMsg").textContent = text; $("#lastTime").textContent = hhmm();
+  const typing = document.createElement("div"); typing.className = "typing"; typing.innerHTML = '<span class="dots"><span></span><span></span><span></span></span>';
+  $("#log").appendChild(typing); $("#log").scrollTop = $("#log").scrollHeight;
+  $("#presence").textContent = "typing…";
+  let answer = "";
+  try {
+    const tok = await token(); if (!tok) { showAuth(); throw new Error("Please sign in again."); }
+    const res = await fetch(FUNCTION_URL, { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${tok}`, apikey: CFG.SUPABASE_ANON_KEY },
+      body: JSON.stringify({ message: text, session_id: sessionId, agent: "customer" }) });
+    const reader = res.body.getReader(), dec = new TextDecoder(); let buf = "", ev = null;
+    while (true) {
+      const { value, done } = await reader.read(); if (done) break;
+      buf += dec.decode(value, { stream: true }); let i;
+      while ((i = buf.indexOf("\n")) >= 0) {
+        const line = buf.slice(0, i).trim(); buf = buf.slice(i + 1);
+        if (line.startsWith("event:")) { ev = line.slice(6).trim(); continue; }
+        if (!line.startsWith("data:")) continue;
+        const raw = line.slice(5).trim(); if (!raw || raw === "null") continue;
+        let d; try { d = JSON.parse(raw); } catch { continue; }
+        if (d.session_id) { sessionId = d.session_id; try { sessionStorage.setItem("ba_customer_session", sessionId); } catch {} }
+        if (ev === "progress_notification" && d.type === "ACTION") $("#presence").textContent = "checking with Boomi Air systems…";
+        else if (ev === "message" && d.role === "agent") answer += (answer ? "\n\n" : "") + d.content;
+        else if (ev === "portal_error") {
+          if (/could not find the requested session/i.test(d.error || "")) { sessionId = null; try { sessionStorage.removeItem("ba_customer_session"); } catch {} answer = "Our previous chat expired – please send your message again."; }
+          else answer = "⚠️ " + (d.error || "Something went wrong.");
+        }
+      }
+    }
+  } catch (e) { answer = "⚠️ " + String(e.message || e); }
+  typing.remove();
+  bubble("in", md(answer || "Sorry, no reply. Please try again."));
+  $("#lastMsg").textContent = (answer || "").replace(/[*#|_`>]/g, "").slice(0, 80);
+  $("#presence").textContent = "online"; busy = false; $("#send").disabled = false;
+}
+$("#send").onclick = () => { const v = $("#q").value; $("#q").value = ""; ask(v); };
+$("#q").addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); $("#send").click(); } });
+showAuth();
+</script>
+</body>
+</html>
