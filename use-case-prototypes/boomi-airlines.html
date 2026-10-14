@@ -2,7 +2,12 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b31a5">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Boomi Air Ops">
 <title>Boomi Air Ops Portal – OCC (Synthetic Demo)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
@@ -109,7 +114,47 @@
   #login .err { min-height: 18px; font-size: 13px; margin-top: 8px; }
   .signout { background: none; border: 1px solid rgba(255,255,255,.5); color: #fff; border-radius: 6px; padding: 5px 10px; font: inherit; font-size: 13px; cursor: pointer; }
   footer { background: var(--navy); color: #c9d2ee; font-size: 13px; text-align: center; padding: 18px; }
-  @media (max-width: 760px) { .hero h1 { font-size: 34px; } nav.top a { display: none; } .chips { grid-template-columns: 1fr; } }
+  .tablewrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  @media (max-width: 760px) {
+    body { padding-bottom: calc(92px + env(safe-area-inset-bottom)); -webkit-text-size-adjust: 100%; }
+    .wrap { padding: 0 14px; }
+    .advisory { display: none; }
+    .hero { padding-bottom: 76px; }
+    .hero::after { display: none; }
+    nav.top { position: sticky; top: 0; height: 58px; gap: 10px; padding-top: env(safe-area-inset-top); }
+    nav.top a, nav.top .right span:not(.avatar) { display: none; }
+    nav.top .right { gap: 8px; }
+    .brand i { display: none; }
+    .avatar { width: 32px; height: 32px; font-size: 13px; }
+    .signout { padding: 4px 8px; font-size: 12px; }
+    .hero h1 { font-size: 26px; margin: 10px 0 8px; }
+    .hero p.lead { font-size: 15px; margin-bottom: 14px; }
+    .hero .btn.primary#prep { width: 100%; padding: 13px; }
+    .kpis { display: none; }
+    .banner { margin-top: -58px; }
+    .banner .inner { flex-wrap: wrap; font-size: 13px; padding: 12px 14px; gap: 6px; }
+    .banner .status { margin-left: 0; width: 100%; }
+    .tabs { width: 100%; margin-top: 14px; border-radius: 10px; scrollbar-width: none; }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tabs button { padding: 11px 14px; font-size: 14px; }
+    .tabs button.active { border-radius: 10px; }
+    .panel { padding: 12px; border-radius: 12px; }
+    .chips { grid-template-columns: 1fr; gap: 8px; }
+    .chip { font-size: 14px; padding: 11px 12px; }
+    .composer { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; margin: 0; background: #fff; border-top: 1px solid var(--line);
+      box-shadow: 0 -6px 20px rgba(15,25,70,.10); padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); gap: 8px; }
+    .composer label { display: none; }
+    textarea { font-size: 16px; border: 1px solid var(--line); border-radius: 22px; padding: 10px 14px; }
+    #send { border-radius: 22px; padding: 11px 16px; font-size: 15px; }
+    .conv-head { margin: 18px 0 8px; }
+    .conv-head h2 { font-size: 18px; }
+    .msg { font-size: 15px; padding: 12px 13px; }
+    .msg.user { max-width: 88%; }
+    .body table { font-size: 13px; }
+    .body th, .body td { white-space: nowrap; padding: 6px 9px; }
+    footer { font-size: 11px; padding: 12px; }
+    #login form { width: calc(100% - 32px); }
+  }
 </style>
 </head>
 <body>
@@ -232,7 +277,7 @@ function addMsg(cls, html) {
   const el = document.createElement("div"); el.className = "msg " + cls; el.innerHTML = html;
   $("#log").appendChild(el); el.scrollIntoView({ behavior: "smooth", block: "end" }); return el;
 }
-const md = t => DOMPurify.sanitize(marked.parse(t || ""));
+const md = t => DOMPurify.sanitize(marked.parse(t || "")).replace(/<table/g, '<div class="tablewrap"><table').replace(/<\/table>/g, '</table></div>');
 function setBusy(v) { busy = v; ["#send", "#prep", "#reset"].forEach(s => $(s).disabled = v); }
 
 async function ask(text) {
@@ -284,6 +329,7 @@ $("#q").addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey)
 $("#reset").onclick = () => { sessionId = null; $("#log").innerHTML = `<div class="empty" id="empty">New conversation started. Ask anything about today's operations.</div>`; };
 $("#prep").onclick = async () => { $("#log").scrollIntoView({ behavior: "smooth" }); for (const p of BRIEFING) { await ask(p); } };
 showAuth();
+if (matchMedia('(max-width: 760px)').matches) { $("#q").placeholder = "Ask the Ops agent…"; $("#send").textContent = "Ask"; }
 renderTabs();
 </script>
 </body>
