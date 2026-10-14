@@ -52,7 +52,9 @@
   .chat .av.muted { background: #c9d4e8; color: #55627d; }
   .chat .t { flex: 1; min-width: 0; }
   .chat .t b { display: flex; justify-content: space-between; gap: 8px; font-size: 16px; font-weight: 700; white-space: nowrap; }
-  .chat .t b > span { overflow: hidden; text-overflow: ellipsis; }
+  .chat .t b > span { overflow: hidden; text-overflow: ellipsis; display: inline; white-space: nowrap; }
+  .chat .t b > span { color: var(--ink); font-size: 16px; }
+  .chat .t b span.verified { display: inline; color: var(--green); font-size: 14px; }
   .chat .t b small { color: var(--muted); font-weight: 400; font-size: 12px; }
   .chat .t span { color: var(--muted); font-size: 14px; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .tick { color: #53bdeb; }
@@ -114,16 +116,17 @@
     .composer { padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); }
     #login form { width: calc(100% - 32px); }
   }
+  .logo { width: 26px; height: 26px; object-fit: cover; border-radius: 50%; border: 2px solid #fff; background: #033d58; flex: none; }
 </style>
 </head>
 <body>
-<div id="login"><form id="loginForm"><h2>Boomi Air Customer Care</h2><p>Sign in with your demo account. Synthetic demo.</p>
+<div id="login"><form id="loginForm"><img src="https://sapinsider.org/wp-content/uploads/2023/08/5f4c132d6f746ffb370839ff_Boomi-Logo-B-9X5.png" alt="Boomi" referrerpolicy="no-referrer" style="width:54px;height:54px;object-fit:cover;border-radius:50%;display:block;margin-bottom:12px" onerror="this.remove()"><h2>Boomi Air Customer Care</h2><p>Sign in with your demo account. Synthetic demo.</p>
   <input id="email" type="email" placeholder="Email" autocomplete="username" required>
   <input id="password" type="password" placeholder="Password" autocomplete="current-password" required>
   <button type="submit">Sign in</button><div class="err" id="loginErr"></div></form></div>
 
 <div class="switch">
-  <div class="brand"><span class="stripe"></span><span class="txt">Boomi Air</span></div>
+  <div class="brand"><img class="logo" src="https://sapinsider.org/wp-content/uploads/2023/08/5f4c132d6f746ffb370839ff_Boomi-Logo-B-9X5.png" alt="Boomi" referrerpolicy="no-referrer" onerror="this.outerHTML='<span class=&quot;stripe&quot;></span>'"><span class="txt">Boomi Air</span></div>
   <span class="demo">SYNTHETIC DEMO</span>
   <nav><a id="toOps">Ops Portal</a><a class="on">Customer view</a></nav>
   <button id="signout">Sign out</button>
@@ -134,13 +137,13 @@
     <header><div class="me">You</div><b>Chats</b></header>
     <div class="search"><div>🔍 Search or start new chat</div></div>
     <div class="chats">
-      <div class="chat active"><div class="av">BA</div><div class="t"><b><span>Boomi Air Customer Care<span class="verified">✔</span></span><small id="lastTime">now</small></b><span id="lastMsg">Check-in, seats, baggage, flight status…</span></div></div>
+      <div class="chat active"><div class="av" style="background:#033d58;overflow:hidden"><img src="https://sapinsider.org/wp-content/uploads/2023/08/5f4c132d6f746ffb370839ff_Boomi-Logo-B-9X5.png" alt="Boomi Air" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;border-radius:50%" onerror="this.outerHTML='BA'"></div><div class="t"><b><span>Boomi Air Customer Care<span class="verified">✔</span></span><small id="lastTime">now</small></b><span id="lastMsg">Check-in, seats, baggage, flight status…</span></div></div>
       <div class="chat"><div class="av muted">MF</div><div class="t"><b>Mabuhay Friends<small>Yesterday</small></b><span>See you at NAIA T1! 🛫</span></div></div>
       <div class="chat"><div class="av muted">LG</div><div class="t"><b>Liza Garcia<small>Mon</small></b><span><span class="tick">✓✓</span> Booked the Hong Kong trip</span></div></div>
     </div>
   </aside>
   <section class="conv">
-    <header><a class="back" id="backOps">‹</a><div class="av">BA</div><div><b>Boomi Air Customer Care <span class="verified">✔</span></b><small id="presence">online</small></div></header>
+    <header><a class="back" id="backOps">‹</a><div class="av" style="background:#033d58;overflow:hidden;border:2px solid #fff"><img src="https://sapinsider.org/wp-content/uploads/2023/08/5f4c132d6f746ffb370839ff_Boomi-Logo-B-9X5.png" alt="Boomi Air" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;border-radius:50%" onerror="this.outerHTML='BA'"></div><div><b>Boomi Air Customer Care <span class="verified">✔</span></b><small id="presence">online</small></div></header>
     <div id="log">
       <div class="day">TODAY</div>
       <div class="note">🔒 Synthetic demo. Answers come live from the Boomi Air customer-service AI agent built on Boomi. Try PNR <b>PAL7K2</b>, surname <b>Santos</b>.</div>
