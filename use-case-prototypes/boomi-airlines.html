@@ -129,6 +129,7 @@
     .brand i { display: none; }
     .avatar { width: 32px; height: 32px; font-size: 13px; }
     .signout { padding: 4px 8px; font-size: 12px; }
+    nav.top a.custlink { font-size: 13px; padding: 6px 10px; } .cl-v { display: none; }
     .hero h1 { font-size: 26px; margin: 10px 0 8px; }
     .hero p.lead { font-size: 15px; margin-bottom: 14px; }
     .hero .btn.primary#prep { width: 100%; padding: 13px; }
@@ -157,10 +158,11 @@
     footer { font-size: 11px; padding: 12px; }
     #login form { width: calc(100% - 32px); }
   }
+  .logo { width: 38px; height: 38px; object-fit: cover; border-radius: 50%; border: 2px solid #fff; background: #033d58; flex: none; }
 </style>
 </head>
 <body>
-<div id="login"><form id="loginForm"><h2>Boomi Air Ops Portal</h2><p>Sign in with your portal account. Synthetic demo.</p>
+<div id="login"><form id="loginForm"><img src="https://sapinsider.org/wp-content/uploads/2023/08/5f4c132d6f746ffb370839ff_Boomi-Logo-B-9X5.png" alt="Boomi" referrerpolicy="no-referrer" style="width:54px;height:54px;object-fit:cover;border-radius:50%;display:block;margin-bottom:12px" onerror="this.remove()"><h2>Boomi Air Ops Portal</h2><p>Sign in with your portal account. Synthetic demo.</p>
   <input id="email" type="email" placeholder="Email" autocomplete="username" required>
   <input id="password" type="password" placeholder="Password" autocomplete="current-password" required>
   <button class="btn primary" type="submit">Sign in</button><div class="err" id="loginErr"></div></form></div>
@@ -168,9 +170,9 @@
 <section class="hero">
   <div class="wrap">
     <nav class="top">
-      <div class="brand"><span class="stripe"></span><div><b>Boomi Air</b><i>Ops Portal · Operations Control Centre</i></div></div>
+      <div class="brand"><img class="logo" src="https://sapinsider.org/wp-content/uploads/2023/08/5f4c132d6f746ffb370839ff_Boomi-Logo-B-9X5.png" alt="Boomi" referrerpolicy="no-referrer" onerror="this.outerHTML='<span class=&quot;stripe&quot;></span>'"><div><b>Boomi Air</b><i>Ops Portal · Operations Control Centre</i></div></div>
       <a data-tab="briefing" class="active">Briefing</a><a data-tab="disruption">Disruptions</a><a data-tab="commercial">Commercial</a><a data-tab="service">Pax Services</a><a data-tab="audit">Audit</a>
-      <div class="right"><a class="custlink" href="boomi-airlines-customer.html">💬 Customer view</a><span>14 Oct · 08:00 MNL</span><span><b>A. Dizon</b> · Ops Admin</span><span class="avatar">AD</span><button class="signout" id="signout">Sign out</button></div>
+      <div class="right"><a class="custlink" href="boomi-airlines-customer.html">💬 Customer<span class="cl-v"> view</span></a><span>14 Oct · 08:00 MNL</span><span><b>A. Dizon</b> · Ops Admin</span><span class="avatar">AD</span><button class="signout" id="signout">Sign out</button></div>
     </nav>
     <h1>Good morning, A. Dizon.<br>Your 09:00 OCC meeting is in 60 minutes.</h1>
     <p class="lead">Ask the Ops & Insights Agent for live network performance, disruption risk, revenue and catering – answered in real time from Boomi.</p>
