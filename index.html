@@ -441,7 +441,7 @@ function formatNumber(n){ return String(n||0).replace(/\B(?=(\d{3})+(?!\d))/g, '
 var CANON_SYSTEMS    = ['Cloudflare','Coupa','Epic','Gmail','Jira','Magento','NetSuite','Oracle','QAD','Rauland','Salesforce','SAP','ServiceNow','Twilio','WhatsApp','Zendesk','Zoho'];
 var CANON_PRODUCTS   = ['Agentstudio','Boomi for SAP','Data Hub','Flow','Integration'];
 var CANON_PARTNERS   = ['Altria','Aware','Datacom','Valtatech'];
-var CANON_INDUSTRIES = ['Cross-industry','Financial services','Healthcare','Insurance','Manufacturing','Retail'];
+var CANON_INDUSTRIES = ['Aviation','Cross-industry','Financial services','Healthcare','Insurance','Manufacturing','Retail'];
 // Who built it. The fifth controlled vocabulary and the sixth dropdown facet:
 // "who do I ask about this one?" is a question a shared SE portal should
 // answer in one click, and it gets more useful as more SEs contribute.
@@ -479,6 +479,38 @@ var USE_CASES = [
     originalPath: '',
     source: 'Finnomena/Fintech-Asset-Mgmt-AMC-fee-change-agent-demo.html',
     added: '2026-09-15'
+  },
+  {
+    id: 'boomi-airlines',
+    title: 'Boomi Air Agent — Ops portal and customer care',
+    customer: 'Boomi Air (fictional airline)',
+    industry: 'Aviation',
+    author: 'Saurabh Singh',
+    summary: 'Two views of one airline built on Boomi Agentstudio: an Operations Control Centre portal where the Ops & Insights Agent answers live questions on OTP, disruptions, revenue and catering, and a WhatsApp-style customer care chat where a passenger agent handles check-in, baggage, meals and refunds.',
+    narrative: '',
+    impact: null,
+    impactModel: null,
+    demoFlow: ['Open the Ops portal and click "Prepare my 9 AM briefing" for the OCC morning briefing: OTP, delays, cancellations and network load factor.',
+               'Walk the prompt tabs — Disruptions & recovery (connections at risk, a what-if delay impact quote), Commercial performance (revenue by route, cabin and fare class, with charts) and Passenger services (manifests, special meal counts for catering).',
+               'Show Audit & compliance: system activity today and recent failed operations with their error codes.',
+               'Click "Customer view" to switch to the passenger chat and check in with PNR PAL7K2, surname Santos.',
+               'Use the quick replies to ask for PR 306 flight status, add 10 kg baggage, request a vegetarian meal and get a cancellation refund quote.'],
+    partners: [],
+    partnersNote: 'No partner named.',
+    systems: [],
+    adjacentSystems: ['A passenger service system or departure control system for real PNRs and check-in',
+                      'WhatsApp Business for the customer channel'],
+    products: ['Agentstudio', 'Integration'],
+    conversations: ['Airline operations control and disruption management with an AI agent',
+                    'One agent platform serving both internal ops staff and passengers',
+                    'Self-service customer care over a messaging channel'],
+    misc: 'Synthetic demo: Boomi Air is a fictional airline and no real passenger or commercial data is used. Both pages sign in and call the same Supabase edge function (agent-chat), which fronts the Boomi agents; the customer page uses the passenger agent. The Ops portal runs READ_ONLY, which hides the Ops actions tab (gate change, mark delayed, apply a delay). Both pages need network access to Supabase to answer.',
+    tags: ['airline', 'aviation', 'OCC', 'disruption', 'customer care', 'chat', 'check-in', 'baggage', 'catering', 'Boomi Air'],
+    url: 'use-case-prototypes/boomi-airlines.html',
+    relatedPages: [{label:'Customer care — passenger chat view', file:'use-case-prototypes/boomi-airlines-customer.html'}],
+    originalPath: '',
+    source: 'use-case-prototypes/boomi-airlines.html',
+    added: '2026-10-14'
   },
   {
     id: 'bvtpa-claims-integration-demo',
