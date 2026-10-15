@@ -352,7 +352,8 @@ $("#addById").onclick = async () => { const a = await addAgent($("#agentId").val
   if (a) { $("#addModal").classList.remove("open"); openAgent(a); } };
 $("#agentId").addEventListener("keydown", e => { if (e.key === "Enter") $("#addById").click(); });
 
-sb.auth.onAuthStateChange(() => showAuth());
+// Defer: calling auth methods inside this callback deadlocks supabase-js (page stuck on "Loading agents…").
+sb.auth.onAuthStateChange(() => setTimeout(showAuth, 0));
 showAuth();
 </script>
 </body>
