@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#033d58">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Agents Messenger">
+<title>Boomi Agents Messenger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+  /* Same Supabase project/key as the Boomi Air pages (public values). Boomi credentials live only in the Edge Function. */
+  window.PORTAL_CONFIG = {
+    SUPABASE_URL: "https://hfovtnceicailrkshvqg.supabase.co",
+    SUPABASE_ANON_KEY: "sb_publishable_-CP2yRvCsH6NTvpulcYfVA_oZZrKyxV",
+    FUNCTION_NAME: "agent-messenger"
+  };
+</script>
+<style>
+  :root { --brand: #033d58; --brand-2: #0a5c83; --accent: #00a884; --out: #d9fdd3; --in: #ffffff; --wall: #efeae2; --panel: #f0f2f5;
+          --ink: #111b21; --muted: #667781; --line: #e9edef; --danger: #d0112b; }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body { font-family: "Nunito Sans", system-ui, sans-serif; color: var(--ink); background: #dfe3e6; display: flex; flex-direction: column; }
+  button { font: inherit; }
+  .top { background: var(--brand); color: #fff; display: flex; align-items: center; gap: 10px; padding: calc(7px + env(safe-area-inset-top)) 16px 7px; font-size: 13px; }
+  .top .brand { font-weight: 800; display: flex; align-items: center; gap: 8px; font-size: 14px; }
+  .top .demo { background: #f6b511; color: #2b2000; font-weight: 800; font-size: 10px; padding: 2px 8px; border-radius: 999px; }
+  .top .sp { flex: 1; }
+  .top .who { opacity: .75; font-size: 12px; }
+  .top button { background: none; border: 1px solid rgba(255,255,255,.4); color: #fff; border-radius: 6px; padding: 3px 9px; font-size: 12px; cursor: pointer; }
+  .logo { width: 26px; height: 26px; object-fit: cover; border-radius: 50%; border: 2px solid #fff; background: var(--brand); flex: none; }
+  .app { flex: 1; min-height: 0; display: grid; grid-template-columns: 380px 1fr; max-width: 1500px; width: 100%; margin: 0 auto; background: #fff; box-shadow: 0 6px 24px rgba(0,0,0,.08); }
+  /* sidebar */
+  .side { border-right: 1px solid var(--line); display: flex; flex-direction: column; min-height: 0; }
+  .side header { background: var(--panel); height: 60px; display: flex; align-items: center; padding: 0 12px 0 16px; gap: 10px; }
+  .side header b { font-size: 17px; flex: 1; }
+  .iconbtn { border: 0; background: none; width: 38px; height: 38px; border-radius: 50%; cursor: pointer; color: #54656f; font-size: 20px; display: grid; place-items: center; }
+  .iconbtn:hover { background: rgba(0,0,0,.06); }
+  .addbtn { border: 0; background: var(--accent); color: #fff; border-radius: 18px; padding: 7px 13px; font-weight: 800; font-size: 13px; cursor: pointer; }
+  .search { padding: 8px 12px; border-bottom: 1px solid var(--line); }
+  .search input { width: 100%; background: var(--panel); border: 0; border-radius: 8px; padding: 9px 12px; font: inherit; font-size: 14px; outline: none; }
+  .chats { overflow-y: auto; flex: 1; }
+  .chat { display: flex; gap: 12px; padding: 10px 14px; align-items: center; border-bottom: 1px solid var(--line); cursor: pointer; }
+  .chat:hover { background: #f5f6f6; } .chat.active { background: var(--panel); }
+  .av { width: 48px; height: 48px; border-radius: 50%; flex: none; display: grid; place-items: center; color: #fff; font-weight: 800; font-size: 16px; letter-spacing: .3px; }
+  .chat .t { flex: 1; min-width: 0; }
+  .chat .t b { display: flex; justify-content: space-between; gap: 8px; font-size: 16px; font-weight: 700; }
+  .chat .t b > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .chat .t b small { color: var(--muted); font-weight: 400; font-size: 12px; flex: none; }
+  .chat .t > span { color: var(--muted); font-size: 14px; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .empty { padding: 30px 20px; color: var(--muted); text-align: center; font-size: 14px; }
+  /* conversation */
+  .conv { display: flex; flex-direction: column; min-height: 0; min-width: 0; }
+  .conv header { background: var(--panel); height: 60px; display: flex; align-items: center; gap: 12px; padding: 0 10px 0 16px; border-left: 1px solid var(--line); }
+  .conv header .av { width: 40px; height: 40px; font-size: 14px; }
+  .conv header .h { flex: 1; min-width: 0; }
+  .conv header b { font-size: 16px; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .conv header small { color: var(--muted); font-size: 13px; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .back { display: none; border: 0; background: none; color: inherit; font-size: 26px; cursor: pointer; padding: 0 4px; }
+  .menu { position: relative; }
+  .menu .pop { position: absolute; right: 0; top: 42px; background: #fff; border-radius: 8px; box-shadow: 0 6px 24px rgba(0,0,0,.18); min-width: 200px; z-index: 20; display: none; padding: 6px 0; }
+  .menu .pop.open { display: block; }
+  .menu .pop button { display: block; width: 100%; text-align: left; border: 0; background: none; padding: 10px 16px; cursor: pointer; font-size: 14px; color: var(--ink); }
+  .menu .pop button:hover { background: var(--panel); } .menu .pop button.danger { color: var(--danger); }
+  #log { flex: 1; overflow-y: auto; padding: 18px 7%; display: flex; flex-direction: column; gap: 4px;
+    background-color: var(--wall);
+    background-image: radial-gradient(rgba(0,0,0,.035) 1.2px, transparent 1.3px), radial-gradient(rgba(0,0,0,.025) 1.2px, transparent 1.3px);
+    background-size: 26px 26px, 26px 26px; background-position: 0 0, 13px 13px; }
+  .note { align-self: center; background: #ffeecd; color: #54656f; font-size: 12.5px; padding: 7px 12px; border-radius: 8px; max-width: 560px; text-align: center; margin: 4px 0 10px; box-shadow: 0 1px .5px rgba(0,0,0,.13); }
+  .b { max-width: 65%; padding: 6px 9px 8px; border-radius: 8px; font-size: 14.5px; line-height: 1.42; box-shadow: 0 1px .5px rgba(0,0,0,.13); word-wrap: break-word; overflow-wrap: anywhere; margin-top: 4px; }
+  .b.out { align-self: flex-end; background: var(--out); border-top-right-radius: 0; }
+  .b.in { align-self: flex-start; background: var(--in); border-top-left-radius: 0; }
+  .b .meta { float: right; margin: 6px 0 -4px 10px; font-size: 11px; color: var(--muted); }
+  .b p { margin: 2px 0; } .b ul, .b ol { margin: 4px 0; padding-left: 20px; } .b img { max-width: 100%; }
+  .b pre { overflow-x: auto; background: #f6f8fa; padding: 6px 8px; border-radius: 6px; font-size: 12.5px; }
+  .b table { border-collapse: collapse; font-size: 13px; margin: 4px 0; }
+  .b th, .b td { border: 1px solid var(--line); padding: 3px 7px; white-space: nowrap; }
+  .tablewrap { overflow-x: auto; }
+  .typing { align-self: flex-start; background: #fff; border-radius: 8px; border-top-left-radius: 0; padding: 9px 12px; box-shadow: 0 1px .5px rgba(0,0,0,.13); margin-top: 4px; }
+  .dots span { display: inline-block; width: 6px; height: 6px; margin: 0 1px; border-radius: 50%; background: #9aa6ad; animation: blink 1.2s infinite; }
+  .dots span:nth-child(2) { animation-delay: .2s } .dots span:nth-child(3) { animation-delay: .4s }
+  @keyframes blink { 0%, 80%, 100% { opacity: .3 } 40% { opacity: 1 } }
+  .quick { display: flex; gap: 8px; padding: 8px 12px; background: var(--panel); overflow-x: auto; scrollbar-width: none; }
+  .quick:empty { display: none; } .quick::-webkit-scrollbar { display: none; }
+  .quick button { flex: none; border: 1px solid #d1d7db; background: #fff; color: var(--brand-2); border-radius: 18px; padding: 6px 12px; font-size: 13.5px; font-weight: 700; cursor: pointer; max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .composer { display: flex; gap: 10px; align-items: flex-end; background: var(--panel); padding: 8px 14px calc(8px + env(safe-area-inset-bottom)); }
+  .composer .box { flex: 1; background: #fff; border-radius: 24px; display: flex; align-items: center; padding: 4px 14px; }
+  textarea { flex: 1; border: 0; resize: none; font: inherit; font-size: 15px; padding: 8px 4px; max-height: 110px; outline: none; background: transparent; }
+  #send { width: 46px; height: 46px; border-radius: 50%; border: 0; background: var(--accent); color: #fff; font-size: 19px; cursor: pointer; flex: none; }
+  #send:disabled { opacity: .55; }
+  .welcome { flex: 1; display: grid; place-items: center; background: var(--panel); text-align: center; color: var(--muted); padding: 30px; border-left: 1px solid var(--line); }
+  .welcome h2 { color: var(--ink); margin: 14px 0 6px; font-size: 26px; }
+  .welcome p { max-width: 440px; margin: 0 auto; }
+  /* modal */
+  .modal { position: fixed; inset: 0; z-index: 40; background: rgba(11,20,26,.45); display: none; place-items: center; padding: 16px; }
+  .modal.open { display: grid; }
+  .sheet { background: #fff; border-radius: 12px; width: 520px; max-width: 100%; max-height: min(640px, 92vh); display: flex; flex-direction: column; box-shadow: 0 12px 40px rgba(0,0,0,.25); }
+  .sheet header { display: flex; align-items: center; padding: 14px 16px 6px; } .sheet header b { flex: 1; font-size: 18px; }
+  .sheet .sec { padding: 6px 16px 12px; }
+  .sheet label { font-size: 13px; color: var(--muted); font-weight: 700; display: block; margin-bottom: 6px; }
+  .row { display: flex; gap: 8px; }
+  .row input { flex: 1; min-width: 0; padding: 10px 12px; border: 1px solid #d1d7db; border-radius: 8px; font: inherit; font-size: 14px; font-family: ui-monospace, Menlo, monospace; }
+  .msg { min-height: 18px; font-size: 13px; margin-top: 6px; } .msg.err { color: var(--danger); } .msg.ok { color: var(--accent); }
+  .divider { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 12px; padding: 0 16px; }
+  .divider::before, .divider::after { content: ""; flex: 1; border-top: 1px solid var(--line); }
+  .tenant { overflow-y: auto; border-top: 1px solid var(--line); min-height: 120px; }
+  .tenant .chat { cursor: default; }
+  .tenant .chat .av { width: 40px; height: 40px; font-size: 14px; }
+  .tenant .chat button { border: 1px solid var(--accent); background: #fff; color: var(--accent); border-radius: 16px; padding: 5px 12px; font-weight: 800; font-size: 12.5px; cursor: pointer; flex: none; }
+  .tenant .chat button:disabled { border-color: var(--line); color: var(--muted); cursor: default; }
+  #login { position: fixed; inset: 0; z-index: 50; display: none; place-items: center; background: linear-gradient(160deg, var(--brand) 0 220px, #e9edef 220px); }
+  #login form { background: #fff; border-radius: 12px; padding: 26px; width: 360px; box-shadow: 0 10px 40px rgba(0,0,0,.15); }
+  #login h2 { margin: 0 0 4px; } #login p { margin: 0 0 14px; color: var(--muted); font-size: 14px; }
+  #login input { width: 100%; padding: 11px 12px; border: 1px solid #d1d7db; border-radius: 8px; font: inherit; margin-bottom: 10px; }
+  #login button { width: 100%; background: var(--accent); color: #fff; border: 0; border-radius: 22px; padding: 11px; font-weight: 800; cursor: pointer; }
+  #login .err { color: var(--danger); font-size: 13px; min-height: 18px; margin-top: 8px; }
+  /* phone: list view <-> chat view */
+  @media (max-width: 760px) {
+    body { background: #fff; }
+    .top { padding: calc(6px + env(safe-area-inset-top)) 10px 6px; font-size: 12px; }
+    .top .demo, .top .who { display: none; }
+    .app { grid-template-columns: minmax(0, 1fr); box-shadow: none; }
+    .app.in-chat .side { display: none; }
+    .app:not(.in-chat) .conv, .app:not(.in-chat) .welcome { display: none; }
+    .conv header { background: var(--brand); color: #fff; border: 0; height: 58px; padding: 0 6px; gap: 8px; }
+    .conv header small { color: #cfe3ee; } .conv header .iconbtn { color: #fff; }
+    .back { display: block; }
+    #log { padding: 12px 10px; }
+    .b { max-width: 86%; font-size: 15px; }
+    .composer { padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); }
+    #login form { width: calc(100% - 32px); }
+    .sheet { max-height: 92vh; }
+  }
+</style>
+</head>
+<body>
+<div id="login"><form id="loginForm"><img src="https://sapinsider.org/wp-content/uploads/2023/08/5f4c132d6f746ffb370839ff_Boomi-Logo-B-9X5.png" alt="Boomi" referrerpolicy="no-referrer" style="width:54px;height:54px;object-fit:cover;border-radius:50%;display:block;margin-bottom:12px" onerror="this.remove()"><h2>Boomi Agents Messenger</h2><p>Sign in to chat with the Boomi Agentstudio agents on this tenant.</p>
+  <input id="email" type="email" placeholder="Email" autocomplete="username" required>
+  <input id="password" type="password" placeholder="Password" autocomplete="current-password" required>
+  <button type="submit">Sign in</button><div class="err" id="loginErr"></div></form></div>
+
+<div class="top">
+  <div class="brand"><img class="logo" src="https://sapinsider.org/wp-content/uploads/2023/08/5f4c132d6f746ffb370839ff_Boomi-Logo-B-9X5.png" alt="Boomi" referrerpolicy="no-referrer" onerror="this.remove()">Boomi Agents Messenger</div>
+  <span class="demo">DEMO</span><span class="sp"></span><span class="who" id="who"></span>
+  <button id="signout">Sign out</button>
+</div>
+
+<div class="app" id="app">
+  <aside class="side">
+    <header><b>Agents</b><button class="iconbtn" id="refresh" title="Refresh list">⟳</button><button class="addbtn" id="openAdd">＋ Add agent</button></header>
+    <div class="search"><input id="filter" placeholder="Search agents" autocomplete="off"></div>
+    <div class="chats" id="chats"><div class="empty">Loading agents…</div></div>
+  </aside>
+
+  <div class="welcome" id="welcome"><div>
+    <img src="https://sapinsider.org/wp-content/uploads/2023/08/5f4c132d6f746ffb370839ff_Boomi-Logo-B-9X5.png" alt="" referrerpolicy="no-referrer" style="width:72px;height:72px;border-radius:50%;object-fit:cover" onerror="this.remove()">
+    <h2>Boomi Agents Messenger</h2>
+    <p>Pick an agent to start chatting. Use <b>＋ Add agent</b> to add any deployed conversational agent from this tenant by its agent ID.</p>
+  </div></div>
+
+  <section class="conv" id="conv" hidden>
+    <header>
+      <button class="back" id="back" aria-label="Back">‹</button>
+      <div class="av" id="cAv"></div>
+      <div class="h"><b id="cName"></b><small id="presence">online</small></div>
+      <div class="menu"><button class="iconbtn" id="menuBtn" aria-label="Menu">⋮</button>
+        <div class="pop" id="pop">
+          <button id="mNew">New conversation</button>
+          <button id="mCopy">Copy agent ID</button>
+          <button id="mRemove" class="danger">Remove from messenger</button>
+        </div></div>
+    </header>
+    <div id="log"></div>
+    <div class="quick" id="quick"></div>
+    <div class="composer"><div class="box"><textarea id="q" rows="1" placeholder="Type a message"></textarea></div><button id="send" aria-label="Send">➤</button></div>
+  </section>
+</div>
+
+<div class="modal" id="addModal"><div class="sheet">
+  <header><b>Add an agent</b><button class="iconbtn" id="closeAdd" aria-label="Close">✕</button></header>
+  <div class="sec">
+    <label for="agentId">Agent ID</label>
+    <div class="row"><input id="agentId" placeholder="e.g. c07f2146-e399-47fe-9f41-8b6570ef13dd" autocomplete="off" spellcheck="false"><button class="addbtn" id="addById">Add</button></div>
+    <div class="msg" id="addMsg"></div>
+  </div>
+  <div class="divider">or pick from deployed agents on this tenant</div>
+  <div class="tenant" id="tenant"><div class="empty">Loading…</div></div>
+</div></div>
+
+<script>
+const CFG = window.PORTAL_CONFIG, $ = s => document.querySelector(s);
+const sb = supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY);
+const FUNCTION_URL = `${CFG.SUPABASE_URL}/functions/v1/${CFG.FUNCTION_NAME}`;
+const COLOURS = { Sunset: ["#f0623a", "#f6a04d"], Lavender: ["#7b5cd6", "#b28cf0"], Seabreeze: ["#0f9db0", "#4fd1c5"], Midnight: ["#1f3a8a", "#4f6fd8"] };
+let agents = [], current = null, busy = false;
+const threads = {};   // agent_id -> [{cls, html, time}] (this tab only)
+const last = {};      // agent_id -> {text, time}
+
+const store = { get(k) { try { return sessionStorage.getItem(k); } catch { return null; } },
+  set(k, v) { try { v == null ? sessionStorage.removeItem(k) : sessionStorage.setItem(k, v); } catch {} } };
+const hhmm = () => new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const md = t => DOMPurify.sanitize(marked.parse(t || "")).replace(/<table/g, '<div class="tablewrap"><table').replace(/<\/table>/g, "</table></div>");
+const initials = n => String(n || "?").replace(/[^A-Za-z0-9 &-]/g, " ").split(/[\s&-]+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join("") || "AI";
+function paintAv(el, a) { const [c1, c2] = COLOURS[a.colour] || COLOURS.Sunset; el.style.background = `linear-gradient(135deg, ${c1}, ${c2})`; el.textContent = initials(a.name); }
+
+async function token() { const { data } = await sb.auth.getSession(); return data.session?.access_token; }
+async function api(body) {
+  const tok = await token(); if (!tok) { showAuth(); throw new Error("Please sign in again."); }
+  const r = await fetch(FUNCTION_URL, { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${tok}`, apikey: CFG.SUPABASE_ANON_KEY }, body: JSON.stringify(body) });
+  const d = await r.json().catch(() => ({})); if (!r.ok) throw new Error(d.error || `Error ${r.status}`); return d;
+}
+
+/* ---------- auth ---------- */
+async function showAuth() {
+  const { data } = await sb.auth.getSession(); const s = data.session;
+  $("#login").style.display = s ? "none" : "grid"; $("#who").textContent = s?.user?.email || "";
+  if (s && !agents.length) loadAgents();
+}
+$("#loginForm").onsubmit = async e => { e.preventDefault(); $("#loginErr").textContent = "";
+  const { error } = await sb.auth.signInWithPassword({ email: $("#email").value, password: $("#password").value });
+  if (error) $("#loginErr").textContent = error.message; else showAuth(); };
+$("#signout").onclick = async () => { await sb.auth.signOut(); agents = []; showAuth(); };
+
+/* ---------- agent list ---------- */
+async function loadAgents() {
+  try { agents = (await api({ op: "agents" })).agents || []; renderList(); }
+  catch (e) { $("#chats").innerHTML = `<div class="empty">⚠️ ${esc(e.message)}</div>`; }
+}
+function renderList() {
+  const f = $("#filter").value.trim().toLowerCase();
+  const list = agents.filter(a => !f || a.name.toLowerCase().includes(f) || a.objective.toLowerCase().includes(f));
+  list.sort((a, b) => (last[b.agent_id]?.at || 0) - (last[a.agent_id]?.at || 0) || a.name.localeCompare(b.name));
+  $("#chats").innerHTML = list.length ? "" : `<div class="empty">${agents.length ? "No matching agents." : "No agents yet. Tap ＋ Add agent."}</div>`;
+  for (const a of list) {
+    const el = document.createElement("div"); el.className = "chat" + (current?.agent_id === a.agent_id ? " active" : "");
+    el.innerHTML = `<div class="av"></div><div class="t"><b><span>${esc(a.name)}</span><small>${esc(last[a.agent_id]?.time || "")}</small></b><span>${esc(last[a.agent_id]?.text || a.objective)}</span></div>`;
+    paintAv(el.querySelector(".av"), a); el.onclick = () => openAgent(a); $("#chats").appendChild(el);
+  }
+}
+$("#filter").oninput = renderList;
+$("#refresh").onclick = loadAgents;
+
+/* ---------- conversation ---------- */
+function openAgent(a) {
+  current = a; $("#welcome").hidden = true; $("#welcome").style.display = "none"; $("#conv").hidden = false; $("#app").classList.add("in-chat");
+  paintAv($("#cAv"), a); $("#cName").textContent = a.name; $("#presence").textContent = a.model ? `online · ${a.model}` : "online";
+  $("#log").innerHTML = `<div class="note">${esc(a.objective.split(/(?<=\.)\s/)[0] || a.objective)}</div>`;
+  (threads[a.agent_id] || []).forEach(m => bubble(m.cls, m.html, m.time, false));
+  $("#quick").innerHTML = "";
+  ((a.samples && a.samples.length ? a.samples : a.starters) || []).forEach(t => { const b = document.createElement("button"); b.textContent = t; b.title = t; b.onclick = () => ask(t); $("#quick").appendChild(b); });
+  renderList(); if (window.innerWidth > 760) $("#q").focus();
+}
+function closeAgent() { $("#app").classList.remove("in-chat"); }
+$("#back").onclick = closeAgent;
+function bubble(cls, html, time = hhmm(), save = true) {
+  const el = document.createElement("div"); el.className = "b " + cls;
+  el.innerHTML = html + `<span class="meta">${time}</span>`;
+  $("#log").appendChild(el); $("#log").scrollTop = $("#log").scrollHeight;
+  if (save && current) (threads[current.agent_id] ||= []).push({ cls, html, time });
+}
+
+async function ask(text) {
+  text = text.trim(); if (busy || !text || !current) return;
+  const a = current, sKey = "bam_session_" + a.agent_id;
+  busy = true; $("#send").disabled = true;
+  bubble("out", esc(text).replace(/\n/g, "<br>"));
+  last[a.agent_id] = { text: "You: " + text, time: hhmm(), at: Date.now() }; renderList();
+  const typing = document.createElement("div"); typing.className = "typing"; typing.innerHTML = '<span class="dots"><span></span><span></span><span></span></span>';
+  $("#log").appendChild(typing); $("#log").scrollTop = $("#log").scrollHeight; $("#presence").textContent = "typing…";
+  let answer = "";
+  try {
+    const tok = await token(); if (!tok) { showAuth(); throw new Error("Please sign in again."); }
+    const res = await fetch(FUNCTION_URL, { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${tok}`, apikey: CFG.SUPABASE_ANON_KEY },
+      body: JSON.stringify({ op: "chat", agent_id: a.agent_id, message: text, session_id: store.get(sKey) }) });
+    const reader = res.body.getReader(), dec = new TextDecoder(); let buf = "", ev = null;
+    while (true) {
+      const { value, done } = await reader.read(); if (done) break;
+      buf += dec.decode(value, { stream: true }); let i;
+      while ((i = buf.indexOf("\n")) >= 0) {
+        const line = buf.slice(0, i).trim(); buf = buf.slice(i + 1);
+        if (line.startsWith("event:")) { ev = line.slice(6).trim(); continue; }
+        if (!line.startsWith("data:")) continue;
+        const raw = line.slice(5).trim(); if (!raw || raw === "null") continue;
+        let d; try { d = JSON.parse(raw); } catch { continue; }
+        if (d.session_id) store.set(sKey, d.session_id);
+        if (ev === "progress_notification" && d.type === "ACTION" && current === a) $("#presence").textContent = "working on it…";
+        else if (ev === "message" && d.role === "agent") answer += (answer ? "\n\n" : "") + d.content;
+        else if (ev === "portal_error") {
+          if (/could not find the requested session/i.test(d.error || "")) { store.set(sKey, null); answer = "Our previous chat expired. Please send your message again."; }
+          else answer = "⚠️ " + (d.error || "Something went wrong.");
+        }
+      }
+    }
+  } catch (e) { answer = "⚠️ " + String(e.message || e); }
+  typing.remove();
+  const html = md(answer || "Sorry, no reply. Please try again.");
+  if (current === a) bubble("in", html); else (threads[a.agent_id] ||= []).push({ cls: "in", html, time: hhmm() });
+  last[a.agent_id] = { text: (answer || "").replace(/[*#|_`>!\[\]()]/g, "").slice(0, 80), time: hhmm(), at: Date.now() };
+  if (current === a) $("#presence").textContent = a.model ? `online · ${a.model}` : "online";
+  busy = false; $("#send").disabled = false; renderList();
+}
+$("#send").onclick = () => { const v = $("#q").value; $("#q").value = ""; ask(v); };
+$("#q").addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); $("#send").click(); } });
+
+/* ---------- menu ---------- */
+$("#menuBtn").onclick = e => { e.stopPropagation(); $("#pop").classList.toggle("open"); };
+document.addEventListener("click", () => $("#pop").classList.remove("open"));
+$("#mNew").onclick = () => { if (!current) return; store.set("bam_session_" + current.agent_id, null); threads[current.agent_id] = []; openAgent(current); };
+$("#mCopy").onclick = () => { if (current) navigator.clipboard?.writeText(current.agent_id); };
+$("#mRemove").onclick = async () => {
+  if (!current || !confirm(`Remove "${current.name}" from the messenger for everyone? (The agent itself is not changed.)`)) return;
+  try { await api({ op: "remove", agent_id: current.agent_id }); agents = agents.filter(x => x.agent_id !== current.agent_id); current = null;
+    $("#conv").hidden = true; $("#welcome").style.display = ""; closeAgent(); renderList(); }
+  catch (e) { alert(e.message); }
+};
+
+/* ---------- add agent ---------- */
+async function addAgent(id, btn) {
+  const msg = $("#addMsg"); msg.className = "msg"; msg.textContent = "Checking agent on the tenant…"; if (btn) btn.disabled = true;
+  try {
+    const d = await api({ op: "add", agent_id: id.trim() });
+    if (!agents.some(x => x.agent_id === d.agent.agent_id)) agents.push(d.agent);
+    msg.className = "msg ok"; msg.textContent = d.already ? `"${d.agent.name}" is already in the messenger.` : `Added "${d.agent.name}".`;
+    renderList(); return d.agent;
+  } catch (e) { msg.className = "msg err"; msg.textContent = e.message; if (btn) btn.disabled = false; }
+}
+async function loadTenant() {
+  $("#tenant").innerHTML = `<div class="empty">Loading…</div>`;
+  try {
+    const list = (await api({ op: "tenant" })).agents || []; $("#tenant").innerHTML = list.length ? "" : `<div class="empty">No deployed conversational agents found.</div>`;
+    for (const t of list) {
+      const added = t.added || agents.some(x => x.agent_id === t.agent_id);
+      const el = document.createElement("div"); el.className = "chat";
+      el.innerHTML = `<div class="av"></div><div class="t"><b><span>${esc(t.name)}</span></b><span>${esc(t.objective)}</span></div><button ${added ? "disabled" : ""}>${added ? "Added" : "Add"}</button>`;
+      paintAv(el.querySelector(".av"), t);
+      el.querySelector("button").onclick = async ev => { const b = ev.currentTarget; if (await addAgent(t.agent_id, b)) b.textContent = "Added"; };
+      $("#tenant").appendChild(el);
+    }
+  } catch (e) { $("#tenant").innerHTML = `<div class="empty">⚠️ ${esc(e.message)}</div>`; }
+}
+$("#openAdd").onclick = () => { $("#addModal").classList.add("open"); $("#addMsg").textContent = ""; $("#agentId").value = ""; loadTenant(); setTimeout(() => $("#agentId").focus(), 50); };
+$("#closeAdd").onclick = () => $("#addModal").classList.remove("open");
+$("#addModal").onclick = e => { if (e.target.id === "addModal") $("#addModal").classList.remove("open"); };
+$("#addById").onclick = async () => { const a = await addAgent($("#agentId").value, $("#addById")); $("#addById").disabled = false;
+  if (a) { $("#addModal").classList.remove("open"); openAgent(a); } };
+$("#agentId").addEventListener("keydown", e => { if (e.key === "Enter") $("#addById").click(); });
+
+sb.auth.onAuthStateChange(() => showAuth());
+showAuth();
+</script>
+</body>
+</html>
