@@ -28,8 +28,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="br.css">
 <style>
-  .views { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
-  @media (max-width: 960px) { .views { grid-template-columns: minmax(0, 1fr); } }
+  .views { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+  @media (max-width: 1100px) { .views { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 640px) { .views { grid-template-columns: minmax(0, 1fr); } }
   .view { display: flex; flex-direction: column; gap: 10px; text-decoration: none; color: inherit; border-top: 3px solid var(--vc); transition: transform .12s, box-shadow .12s; }
   .view:hover { transform: translateY(-2px); }
   .view .who { display: flex; align-items: center; gap: 10px; }

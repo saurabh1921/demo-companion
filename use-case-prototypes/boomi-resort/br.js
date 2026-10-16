@@ -17,6 +17,8 @@
       does: "Checks guests in and out, updates housekeeping and looks up folios.", sees: "Check-in, check-out and room-status orchestrations running on Boomi" } },
     { id: "concierge", href: "concierge.html", label: "Concierge", persona: { name: "Liam Carter", role: "Guest Concierge", initials: "LC", color: "#8a5a17",
       does: "Answers guest requests with the AI concierge agent.", sees: "Agent Studio agent calling Boomi data products in real time" } },
+    { id: "data-flow", href: "data-flow.html", label: "Data flow", persona: { name: "Priya Nair", role: "Integration Architect", initials: "PN", color: "#6b4bb8",
+      does: "Traces how four source systems become three governed data products.", sees: "Boomi Data Hub survivorship, FX normalisation and the live data product APIs" } },
     { id: "guest-app", href: "guest-app.html", label: "Guest app", persona: { name: "Hotel guest", role: "Guest · mobile app", initials: "G", color: "#1f8a5b",
       does: "Checks in from the phone, sees the bill and chats with the concierge.", sees: "Self-service journeys powered by the same Boomi APIs" } }
   ];
@@ -104,7 +106,14 @@
 
   /* ---------- live API ---------- */
   /* BR.call("guest", {guest_name:"Elena Vance"}) -> Promise<{data, ms}>. Rejects on any failure (no mock data). */
+  /* Boomi runtimes can be cold after idle (edge function gives up after ~40 s): retry an "unavailable" answer once. */
   BR.call = function (kind, payload) {
+    return callOnce(kind, payload).catch(function (e) {
+      if (/unavailable|did not answer|timed? ?out/i.test(e.message || "")) return callOnce(kind, payload);
+      throw e;
+    });
+  };
+  function callOnce(kind, payload) {
     var path = ENDPOINTS[kind]; if (!path) return Promise.reject(new Error("Unknown endpoint " + kind));
     var t0 = performance.now();
     return headers({ "Content-Type": "application/json" }).then(function (h) {
@@ -116,7 +125,7 @@
         return { data: d, ms: Math.round(performance.now() - t0) };
       });
     });
-  };
+  }
   BR.health = function () {
     return headers().then(function (h) { return fetch(CFG.functionUrl + "/health", { headers: h }); })
       .then(function (r) { return r.ok ? r.json() : fail(r); });

@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Data flow | Boomi Resorts live demo</title>
+<!-- share -->
+<meta name="description" content="Trace one guest from Opera PMS, Salesforce, Operations and Simphony POS through Boomi Data Hub survivorship and FX normalisation to three governed data product APIs, live.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Boomi Resorts">
+<meta property="og:title" content="Data flow | Boomi Resorts live demo">
+<meta property="og:description" content="Trace one guest from Opera PMS, Salesforce, Operations and Simphony POS through Boomi Data Hub survivorship and FX normalisation to three governed data product APIs, live.">
+<meta property="og:url" content="https://saurabh1921.github.io/demo-companion/use-case-prototypes/boomi-resort/data-flow.html">
+<meta property="og:image" content="https://saurabh1921.github.io/demo-companion/use-case-prototypes/boomi-resort/og-image.jpg">
+<meta property="og:image:secure_url" content="https://saurabh1921.github.io/demo-companion/use-case-prototypes/boomi-resort/og-image.jpg">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Boomi Resorts: connected guest journeys, live on Boomi">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Data flow | Boomi Resorts live demo">
+<meta name="twitter:description" content="Trace one guest from Opera PMS, Salesforce, Operations and Simphony POS through Boomi Data Hub survivorship and FX normalisation to three governed data product APIs, live.">
+<meta name="twitter:image" content="https://saurabh1921.github.io/demo-companion/use-case-prototypes/boomi-resort/og-image.jpg">
+<meta name="theme-color" content="#033d58">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23033d58'/%3E%3Cpath d='M6 19c3 0 3-2.5 6-2.5S15 19 18 19s3-2.5 6-2.5' fill='none' stroke='%23fff' stroke-width='2.4' stroke-linecap='round'/%3E%3Ccircle cx='21.5' cy='10.5' r='3.5' fill='%23c9a46a'/%3E%3C/svg%3E">
+<!-- /share -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="br.css">
+<style>
+  .gsel { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .gsel button { border: 1px solid var(--line); background: var(--panel); color: var(--ink); border-radius: 999px; padding: 6px 13px; font: 600 13px var(--sans); cursor: pointer; }
+  .gsel button.on { background: var(--brand); border-color: var(--brand); color: var(--brand-ink); }
+  .stagenav { display: flex; gap: 4px; flex-wrap: wrap; margin-left: auto; }
+  .stagenav a { text-decoration: none; color: var(--muted); font-size: 12.5px; font-weight: 600; padding: 5px 9px; border-radius: 7px; }
+  .stagenav a:hover { background: var(--panel-2); color: var(--ink); }
+
+  /* pipeline diagram */
+  .pipe { display: grid; grid-template-columns: 1fr 34px 1.25fr 34px 1fr 34px 0.9fr; align-items: stretch; gap: 0; }
+  .col h4 { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 8px; }
+  .col { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .node { border: 1px solid var(--line); background: var(--panel-2); border-radius: 10px; padding: 9px 11px; font-size: 13px; transition: border-color .3s, background .3s, box-shadow .3s; }
+  .node b { display: block; font-size: 13px; }
+  .node small { color: var(--muted); font-size: 11.5px; display: block; overflow-wrap: anywhere; }
+  .node.lit { border-color: var(--good); background: var(--good-soft); box-shadow: 0 0 0 3px color-mix(in srgb, var(--good) 15%, transparent); }
+  .node.run { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .node.err { border-color: var(--bad); background: var(--bad-soft); }
+  .node .rid { font-family: var(--mono); font-size: 11px; color: var(--good); }
+  .node.boomi { background: color-mix(in srgb, #6b4bb8 10%, var(--panel)); }
+  .arrow { display: grid; place-items: center; color: var(--muted); font-size: 18px; }
+  @media (max-width: 960px) {
+    .pipe { grid-template-columns: minmax(0, 1fr); }
+    .arrow { transform: rotate(90deg); height: 26px; }
+    .col .nodes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  }
+  .col .nodes { display: flex; flex-direction: column; gap: 8px; }
+
+  .stage { margin-top: 18px; scroll-margin-top: 150px; }
+  .stage-h { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 12px; }
+  .snum { width: 30px; height: 30px; border-radius: 50%; background: #6b4bb8; color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 13px; flex: none; }
+  .stage-h p { margin: 2px 0 0; color: var(--muted); font-size: 13.5px; }
+  .tag { display: inline-block; font: 600 11px var(--mono); padding: 1px 7px; border-radius: 6px; background: var(--panel-2); border: 1px solid var(--line); }
+  .tag.OPERA_PMS { color: #0b8fb3; } .tag.SALESFORCE_CRM { color: #2f6fd6; } .tag.OPERATIONS { color: #8a5a17; } .tag.SIMPHONY_POS { color: #c2412d; }
+  :root[data-theme="dark"] .tag.SALESFORCE_CRM { color: #7aa8f0; } :root[data-theme="dark"] .tag.OPERATIONS { color: #d8b981; } :root[data-theme="dark"] .tag.SIMPHONY_POS { color: #ef7a65; }
+  .rules { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 18px; font-size: 13px; }
+  .rules li::before { content: "✓ "; color: var(--good); font-weight: 700; }
+  @media (max-width: 640px) { .rules { grid-template-columns: minmax(0, 1fr); } }
+  .tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 12px; }
+  @media (max-width: 760px) { .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .tile { background: var(--panel-2); border-radius: 10px; padding: 10px 12px; }
+  .tile .v { font-size: 18px; font-weight: 700; } .tile .l { font-size: 11.5px; color: var(--muted); }
+  .calls { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+  .callmeta { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; font-size: 12.5px; margin-bottom: 8px; }
+  tr.flag td { background: var(--warn-soft); }
+  @media (max-width: 640px) { .tbl { min-width: 560px; } }
+</style>
+</head>
+<body data-page="data-flow">
+<main class="br-main">
+  <div class="page-head">
+    <div><h1>Data flow</h1><p>Follow one guest from four source systems to three governed data products, live on Boomi.</p></div>
+  </div>
+
+  <div class="card" style="padding:12px 14px;margin-bottom:16px">
+    <div class="gsel" id="gsel"><span class="small muted" style="font-weight:600;margin-right:4px">Guest</span></div>
+  </div>
+
+  <section class="card">
+    <div class="pipe" id="pipe">
+      <div class="col"><h4>Source systems</h4><div class="nodes">
+        <div class="node" data-n="OPERA_PMS"><b>Opera PMS</b><small>Rooms, reservations, charges</small><span class="rid"></span></div>
+        <div class="node" data-n="SALESFORCE_CRM"><b>Salesforce CRM</b><small>Loyalty, VIP, preferences</small><span class="rid"></span></div>
+        <div class="node" data-n="OPERATIONS"><b>Operations</b><small>Hosts, butlers, amenities</small><span class="rid"></span></div>
+        <div class="node" data-n="SIMPHONY_POS"><b>Simphony POS</b><small>Bar &amp; restaurant checks</small><span class="rid"></span></div>
+      </div></div>
+      <div class="arrow">→</div>
+      <div class="col"><h4>Boomi</h4><div class="nodes">
+        <div class="node boomi" data-n="P1"><b>Ingest &amp; cleanse</b><small>CR_P1_Guest_Profile_Ingest_Cleanse</small></div>
+        <div class="node boomi" data-n="HUB"><b>Data Hub match &amp; merge</b><small>Connected-Resorts / guestmaster</small></div>
+        <div class="node boomi" data-n="P2"><b>Folio + FX normalisation</b><small>CR_P2 / CR_P3 · [SUB] CR Folio Source Extract</small></div>
+      </div></div>
+      <div class="arrow">→</div>
+      <div class="col"><h4>Data products (APIs)</h4><div class="nodes">
+        <div class="node" data-n="guest"><b>guest_master</b><small>/ws/simple/queryGuestfullpicture</small><span class="rid"></span></div>
+        <div class="node" data-n="folio"><b>resort_folio_consolidated</b><small>/ws/simple/queryConsolidatedfolio</small><span class="rid"></span></div>
+        <div class="node" data-n="receivables"><b>open_receivables</b><small>/ws/simple/queryResortreceivables</small><span class="rid"></span></div>
+      </div></div>
+      <div class="arrow">→</div>
+      <div class="col"><h4>Consumers</h4><div class="nodes">
+        <div class="node" data-n="AGENT"><b>AI concierge</b><small>Agent Studio tools</small></div>
+        <div class="node" data-n="FD"><b>Front desk</b><small>Check-in / check-out</small></div>
+        <div class="node" data-n="APP"><b>Guest app</b><small>Mobile self-service</small></div>
+        <div class="node" data-n="FIN"><b>Finance</b><small>AR &amp; night audit</small></div>
+      </div></div>
+    </div>
+    <div class="small muted" id="pipeNote" style="margin-top:12px">Nodes light up as each live Boomi call returns.</div>
+  </section>
+
+  <nav class="stagenav" style="margin-top:14px"><a href="#s1">1 Sources</a><a href="#s2">2 Match &amp; merge</a><a href="#s3">3 Currency</a><a href="#s4">4 Live APIs</a><a href="#s5">5 Products</a></nav>
+
+  <section class="card stage" id="s1">
+    <div class="stage-h"><div class="snum">1</div><div><h2>Source records and cleansing</h2>
+      <p>The source records Data Hub linked to this guest's golden record, and the cleansing rules <span class="mono">CR_P1_Guest_Profile_Ingest_Cleanse</span> applies on ingest.</p></div></div>
+    <div id="srcBox"><div class="skel" style="height:80px"></div></div>
+    <h3 style="margin-top:16px">Cleansing rules on ingest</h3>
+    <ul class="rules">
+      <li>Trim and title-case names</li><li>Email format validation</li><li>Phones normalised to E.164</li><li>Loyalty IDs normalised (LOY-######)</li>
+      <li>VIP codes decoded to tiers</li><li>Passport hashed and masked, never leaves Boomi</li>
+    </ul>
+  </section>
+
+  <section class="card stage" id="s2">
+    <div class="stage-h"><div class="snum">2</div><div><h2>Data Hub match, merge &amp; survivorship</h2>
+      <p>Records match on passport hash or loyalty ID; each field then takes its value from the system that owns it.</p></div></div>
+    <div id="survBox"><div class="skel" style="height:120px"></div></div>
+  </section>
+
+  <section class="card stage" id="s3">
+    <div class="stage-h"><div class="snum">3</div><div><h2>Currency normalisation (local to USD)</h2>
+      <p>From <span class="mono">resort_folio_consolidated</span>: each line converted at the treasury mid-rate, rounded half-up per line, then summed. Lines in a currency different from the folio are flagged.</p></div></div>
+    <div id="fxBox"><div class="skel" style="height:140px"></div></div>
+  </section>
+
+  <section class="card stage" id="s4">
+    <div class="stage-h"><div class="snum">4</div><div><h2>Live data product calls</h2>
+      <p>Each button calls the Supabase edge function, which calls the Boomi web service with credentials held server-side. No fallback data.</p></div></div>
+    <div class="calls" id="calls"></div>
+    <div id="callOut" class="note">Run a call to see the live response.</div>
+  </section>
+
+  <section class="card stage" id="s5">
+    <div class="stage-h"><div class="snum">5</div><div><h2>The three data products</h2><p>What was built, who owns it, and the rules each one enforces.</p></div></div>
+    <div class="tbl-wrap"><table class="tbl">
+      <thead><tr><th>Data product</th><th>Owner / system of record</th><th>Boomi process</th><th>Consumers</th><th>Data-quality rules</th></tr></thead>
+      <tbody>
+        <tr><td><b>guest_master</b><br><span class="small muted">golden guest profile</span></td><td>Guest Experience · Data Hub <i>Connected-Resorts / guestmaster</i></td>
+          <td class="mono">CR_P1_Guest_Profile_Ingest_Cleanse (ingest)<br>CR_P4_Guest_Full_Picture_API (serve)</td><td>AI concierge, front desk, guest app</td><td>Name, email, phone, loyalty-ID cleansing; passport hashed</td></tr>
+        <tr><td><b>resort_folio_consolidated</b><br><span class="small muted">one folio, all outlets</span></td><td>Finance / Front Office · Opera PMS + Simphony POS</td>
+          <td class="mono">CR_P2_Consolidated_Folio_API</td><td>AI concierge, check-out, guest app</td><td>FX to USD half-up per line; CURRENCY_MISMATCH; UNLINKED_GUEST_ID kept out of totals</td></tr>
+        <tr><td><b>open_receivables</b><br><span class="small muted">per subsidiary</span></td><td>Finance (AR)</td>
+          <td class="mono">CR_P3_Open_Receivables_API</td><td>AI concierge, finance, night audit</td><td>Folios sorted by balance; unlinked POS items counted; issues by type</td></tr>
+      </tbody></table></div>
+    <p class="small muted" style="margin:12px 0 0">Agent guardrails on all three: passport hashes and card data are never revealed; folio adjustments over $200 USD need Front Office Manager approval.</p>
+  </section>
+</main>
+<script src="br.js"></script>
+<script>
+(function () {
+  var GUESTS = [["Elena Vance", "LOY-200101"], ["Marcus Thorne", "LOY-200102"], ["Sophia Lin", "LOY-200103"]];
+  var $ = BR.$, esc = BR.esc, cur = null, runId = 0;
+  try { cur = GUESTS.find(function (g) { return g[0] === localStorage.getItem("br_flow_guest"); }); } catch (e) {}
+  cur = cur || GUESTS[0];
+  var SYS = { OPERA_PMS: "Opera PMS", SALESFORCE_CRM: "Salesforce CRM", OPERATIONS: "Operations", SIMPHONY_POS: "Simphony POS" };
+  function tag(s) { return '<span class="tag ' + esc(s) + '">' + esc(s) + "</span>"; }
+  function node(n) { return document.querySelector('.node[data-n="' + n + '"]'); }
+  function mark(names, cls) { names.forEach(function (n) { var el = node(n); if (el) { el.classList.remove("lit", "run", "err"); if (cls) el.classList.add(cls); } }); }
+  function rid(n, text) { var el = node(n); if (el) el.querySelector(".rid") && (el.querySelector(".rid").textContent = text || ""); }
+  function errBox(id, e) { $(id).innerHTML = '<div class="note bad">' + esc(e.message || e) + "</div>"; }
+
+  GUESTS.forEach(function (g) {
+    var b = document.createElement("button"); b.type = "button"; b.textContent = g[0]; b.dataset.g = g[0];
+    b.onclick = function () { cur = g; try { localStorage.setItem("br_flow_guest", g[0]); } catch (e) {} load(); };
+    $("#gsel").appendChild(b);
+  });
+
+  function load() {
+    var my = ++runId;
+    document.querySelectorAll("#gsel button").forEach(function (b) { b.classList.toggle("on", b.dataset.g === cur[0]); });
+    BR.setPersona({ extra: ["Tracing: " + cur[0]] });
+    document.querySelectorAll(".node").forEach(function (n) { n.classList.remove("lit", "run", "err"); var r = n.querySelector(".rid"); if (r) r.textContent = ""; });
+    ["#srcBox", "#survBox", "#fxBox"].forEach(function (id) { $(id).innerHTML = '<div class="skel" style="height:100px"></div>'; });
+    $("#pipeNote").innerHTML = '<span class="spin"></span> Calling Boomi for ' + esc(cur[0]) + "… (first call after idle can take a minute or two)";
+    mark(["P1", "HUB", "guest", "P2", "folio"], "run");
+    var gP = BR.call("guest", { guest_name: cur[0] }).then(function (r) { if (my === runId) guestDone(r); return r; }, function (e) { if (my === runId) { mark(["P1", "HUB", "guest"], "err"); errBox("#srcBox", e); errBox("#survBox", e); } });
+    var fP = BR.call("folio", { guest_id: cur[1] }).then(function (r) { if (my === runId) folioDone(r); return r; }, function (e) { if (my === runId) { mark(["P2", "folio"], "err"); errBox("#fxBox", e); } });
+    Promise.all([gP, fP]).then(function (rs) {
+      if (my !== runId) return;
+      var ok = rs.filter(Boolean).length;
+      if (ok) mark(["AGENT", "FD", "APP"], "lit");
+      $("#pipeNote").textContent = ok === 2 ? "All nodes on the path for " + cur[0] + " answered live from Boomi." : "Some calls failed - see the stages below.";
+    });
+  }
+
+  function guestDone(r) {
+    var d = r.data, g = (d.guests || []).find(function (x) { return x.guestId === cur[1]; }) || (d.guests || [])[0];
+    if (!g) { mark(["P1", "HUB", "guest"], "err"); errBox("#srcBox", new Error(d.message || "Guest not found")); errBox("#survBox", new Error(d.message || "Guest not found")); return; }
+    mark(["P1", "HUB", "guest"], "lit"); rid("guest", r.ms + " ms · " + (d._process || ""));
+    var links = g.sourceLinks || [];
+    links.forEach(function (l) { mark([l.system], "lit"); rid(l.system, l.recordId); });
+    $("#srcBox").innerHTML = '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>System</th><th>Source record</th><th>Contributes</th></tr></thead><tbody>' +
+      links.map(function (l) {
+        var owns = Object.keys((d.governance || {}).survivorship || {}).filter(function (k) { return d.governance.survivorship[k] === l.system; });
+        return "<tr><td>" + tag(l.system) + '</td><td class="mono">' + esc(l.recordId) + "</td><td>" + esc(owns.join(", ") || "–") + "</td></tr>";
+      }).join("") + "</tbody></table></div>" +
+      '<p class="small muted" style="margin:10px 0 0">Golden record <span class="mono">' + esc(g.goldenRecordId || "") + "</span> · " + esc((d.governance || {}).source || "") + "</p>";
+    var surv = (d.governance || {}).survivorship || {}, stay = g.stay || {};
+    var val = { vipStatus: g.vipStatus, email: g.email, preferences: g.preferences, currentRoom: stay.room,
+      reservationDates: (stay.checkIn || "") + " → " + (stay.checkOut || ""), accountableHost: g.accountableHost };
+    $("#survBox").innerHTML = '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Field</th><th>Owning system</th><th>Surviving value (live)</th></tr></thead><tbody>' +
+      Object.keys(surv).map(function (k) { return "<tr><td><b>" + esc(k) + "</b></td><td>" + tag(surv[k]) + "</td><td>" + esc(val[k] != null ? val[k] : "–") + "</td></tr>"; }).join("") +
+      "</tbody></table></div>" +
+      ((d.governance || {}).withheldFields || []).map(function (w) { return '<div class="note" style="margin-top:10px">🔒 Withheld: ' + esc(w) + "</div>"; }).join("") +
+      BR.rawDetails(d, "Raw guest_master response");
+  }
+
+  function folioDone(r) {
+    var d = r.data, t = d.totals || {}, bs = t.bySource || {}, fx = d.fxRates || {};
+    if (d.matched === false) { mark(["P2", "folio"], "err"); errBox("#fxBox", new Error(d.message || "Folio not found")); return; }
+    mark(["P2", "folio"], "lit"); rid("folio", r.ms + " ms · " + (d.folioNumber || ""));
+    Object.keys(bs).forEach(function (s) { mark([s], "lit"); });
+    var flags = {}; ((d.dataQuality || {}).issues || []).forEach(function (i) { flags[i.lineId] = i; });
+    $("#fxBox").innerHTML = '<div class="tiles">' +
+      '<div class="tile"><div class="l">Folio</div><div class="v">' + esc(d.folioNumber || "–") + '</div><div class="l">' + esc(d.folioCurrency || "") + " → " + esc(d.reportingCurrency || "USD") + "</div></div>" +
+      Object.keys(bs).map(function (s) { var x = bs[s]; return '<div class="tile"><div class="l">' + esc(SYS[s] || s) + " · " + esc(x.lineCount) + ' lines</div><div class="v">' + BR.money(x.amountUSD, "USD") + '</div><div class="l">' + BR.money(x.localAmount, x.localCurrency) + "</div></div>"; }).join("") +
+      '<div class="tile"><div class="l">Balance</div><div class="v">' + BR.money(t.balanceUSD, "USD") + '</div><div class="l">Rates: ' + esc(Object.keys(fx).map(function (c) { return c + " " + fx[c]; }).join(" · ")) + "</div></div></div>" +
+      '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Line</th><th>Source</th><th>Description</th><th class="num">Local</th><th class="num">Rate</th><th class="num">USD</th><th>Flag</th></tr></thead><tbody>' +
+      (d.lines || []).map(function (l) {
+        var f = flags[l.lineId] || (l.dataQualityFlags && l.dataQualityFlags.length ? { flag: l.dataQualityFlags.join(", ") } : null);
+        return "<tr" + (f ? ' class="flag"' : "") + '><td class="mono">' + esc(l.lineId) + "</td><td>" + tag(l.sourceSystem) + "</td><td>" + esc(l.description) + '<br><span class="small muted">' + esc(l.outlet || "") + " · " + esc(l.postingDate || "") + "</span></td>" +
+          '<td class="num">' + BR.money(l.amount, l.currency) + '</td><td class="num">' + esc(l.fxRate) + '</td><td class="num">' + BR.money(l.amountUSD, "USD") + "</td><td>" + (f ? BR.pill(f.flag, "warn") + (f.detail ? '<br><span class="small muted">' + esc(f.detail) + "</span>" : "") : "") + "</td></tr>";
+      }).join("") + "</tbody></table></div>" +
+      ((d.possibleUnlinkedCharges || []).length ? '<div class="note warn" style="margin-top:10px">' + d.possibleUnlinkedCharges.length + " possible unlinked POS charge(s) kept out of the total: " +
+        d.possibleUnlinkedCharges.map(function (u) { return esc((u.lineId || "") + " " + BR.money(u.amountUSD || u.amount, "USD")); }).join(", ") + "</div>" : "") +
+      BR.rawDetails(d, "Raw resort_folio_consolidated response");
+  }
+
+  /* stage 4: explicit live calls */
+  var CALLS = [
+    { k: "guest", label: "get_guest_full_picture", body: function () { return { guest_name: cur[0] }; }, nodes: ["guest"] },
+    { k: "folio", label: "get_consolidated_folio", body: function () { return { guest_id: cur[1] }; }, nodes: ["folio"] },
+    { k: "receivables", label: "get_open_receivables · Grand Horizon", body: function () { return { subsidiary: "Grand Horizon" }; }, nodes: ["receivables", "FIN"] },
+    { k: "receivables", label: "get_open_receivables · Coral Bay", body: function () { return { subsidiary: "Coral Bay" }; }, nodes: ["receivables", "FIN"] }
+  ];
+  CALLS.forEach(function (c) {
+    var b = document.createElement("button"); b.className = "btn sm"; b.type = "button"; b.textContent = c.label;
+    b.onclick = function () {
+      var body = c.body(); b.disabled = true; b.innerHTML = '<span class="spin"></span> ' + esc(c.label); mark(c.nodes, "run");
+      $("#callOut").className = ""; $("#callOut").innerHTML = '<div class="callmeta"><span class="mono">POST ' + esc(c.k) + "</span></div><pre class=\"json\">" + BR.json(body) + "</pre>";
+      BR.call(c.k, body).then(function (r) {
+        mark(c.nodes, "lit"); var d = r.data;
+        $("#callOut").innerHTML = '<div class="callmeta">' + BR.pill("live", "good") + '<span class="mono">' + esc(d._endpoint || "") + "</span>" + BR.pill(d._process || c.k, "info") + "<span>" + r.ms + " ms</span></div>" +
+          '<div class="grid g2"><div><div class="eyebrow">Request</div><pre class="json">' + BR.json(body) + '</pre></div><div><div class="eyebrow">Response</div><pre class="json">' + BR.json(d) + "</pre></div></div>";
+      }).catch(function (e) { mark(c.nodes, "err"); $("#callOut").className = "note bad"; $("#callOut").textContent = e.message; })
+        .then(function () { b.disabled = false; b.textContent = c.label; });
+    };
+    $("#calls").appendChild(b);
+  });
+
+  BR.ready(load);
+})();
+</script>
+</body>
+</html>
