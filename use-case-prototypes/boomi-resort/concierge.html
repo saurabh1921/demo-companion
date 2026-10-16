@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Concierge Agent</title>
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="br.css">
+<style>
+  /* page-local: concierge chat */
+  .cx-main { padding-bottom: 20px; }
+  .cx { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 16px; align-items: start; }
+  .chat { display: flex; flex-direction: column; height: calc(100dvh - var(--cx-top, 82px) - 20px); min-height: 460px; padding: 0; overflow: hidden; }
+  .chat-head { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+  .chat-head h1 { font-size: 16px; margin: 0; }
+  .chat-head .sub { font-size: 12px; color: var(--muted); }
+  .chat-head .sp { flex: 1; }
+  .chat-head .sid { font: 11.5px var(--mono); color: var(--muted); }
+  .log { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; overscroll-behavior: contain; }
+  .empty { margin: auto 0; text-align: center; color: var(--muted); padding: 10px 4px; }
+  .empty h2 { color: var(--ink); font-size: 18px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 14px; }
+  .chips button { border: 1px solid var(--line); background: var(--panel-2); color: var(--ink); font: 500 13px var(--sans); padding: 7px 12px; border-radius: 999px; cursor: pointer; text-align: left; max-width: 100%; }
+  .chips button:hover { border-color: var(--accent); background: var(--accent-soft); }
+  .chips button:disabled { opacity: .5; cursor: default; }
+  .msg { max-width: min(760px, 88%); padding: 10px 14px; border-radius: 14px; font-size: 14px; overflow-wrap: anywhere; min-width: 0; }
+  .msg.user { align-self: flex-end; background: var(--brand); color: var(--brand-ink); border-bottom-right-radius: 4px; white-space: pre-wrap; }
+  .msg.agent { align-self: flex-start; background: var(--panel-2); border-bottom-left-radius: 4px; }
+  .msg.agent.streaming::after { content: "▍"; color: var(--accent); animation: blink 1s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  .msg.error { align-self: flex-start; background: var(--bad-soft); color: var(--bad); border: 1px solid color-mix(in srgb, var(--bad) 30%, transparent); }
+  .md > :first-child { margin-top: 0; } .md > :last-child { margin-bottom: 0; }
+  .md p, .md ul, .md ol { margin: 0 0 .6em; } .md ul, .md ol { padding-left: 1.25em; }
+  .md h1, .md h2, .md h3, .md h4 { font-size: 15px; margin: .8em 0 .4em; }
+  .md code { font: 12.5px var(--mono); background: var(--panel); padding: 1px 5px; border-radius: 5px; }
+  .md pre { background: var(--panel); padding: 10px; border-radius: 8px; overflow-x: auto; } .md pre code { padding: 0; }
+  .md .tbl-wrap { margin: .4em 0 .7em; background: var(--panel); border-radius: 8px; border: 1px solid var(--line); }
+  .md .tbl td, .md .tbl th { padding: 7px 10px; overflow-wrap: normal; word-break: normal; }
+  .md a { overflow-wrap: anywhere; }
+  .status { align-self: flex-start; display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted); padding: 2px 4px; }
+  .status .spin { width: 13px; height: 13px; color: var(--accent); }
+  .status .steps { font-size: 11.5px; opacity: .8; }
+  .composer { border-top: 1px solid var(--line); padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); display: flex; gap: 8px; align-items: flex-end; background: var(--panel); }
+  .composer textarea { flex: 1; min-width: 0; resize: none; max-height: 140px; min-height: 40px; line-height: 1.4; font-size: 15px; }
+  .composer .btn { height: 40px; flex: none; }
+  .guard { font-size: 11.5px; color: var(--muted); padding: 0 14px 8px; background: var(--panel); }
+  /* guest context panel */
+  .side { display: flex; flex-direction: column; gap: 12px; position: sticky; top: calc(var(--cx-top, 82px)); max-height: calc(100dvh - var(--cx-top, 82px) - 20px); overflow-y: auto; }
+  .side-head { display: flex; align-items: center; gap: 8px; }
+  .side-head h2 { font-size: 15px; margin: 0; flex: 1; }
+  .gpick { display: grid; grid-template-columns: 1fr; gap: 6px; }
+  .gpick button { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; border: 1px solid var(--line); background: var(--panel); color: var(--ink); border-radius: 10px; padding: 8px 10px; cursor: pointer; font: 13.5px var(--sans); }
+  .gpick button:hover { background: var(--panel-2); }
+  .gpick button.on { border-color: var(--accent); background: var(--accent-soft); }
+  .gpick .av { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--brand); color: var(--brand-ink); font: 700 11px var(--sans); flex: none; }
+  .gpick small { display: block; color: var(--muted); font: 11.5px var(--mono); }
+  .ctx .card { padding: 14px; box-shadow: none; }
+  .ctx h3 { font-size: 14px; margin-bottom: 8px; flex-wrap: wrap; }
+  .ctx .kv { font-size: 13px; gap: 4px 12px; }
+  .ctx .bal { font-size: 22px; font-weight: 700; letter-spacing: -.02em; }
+  .ctx .meta { font-size: 11.5px; color: var(--muted); margin-top: 8px; }
+  .ctx .flag { font-size: 12.5px; margin-top: 8px; }
+  .side-close { display: none; }
+  .ctx-toggle { display: none; }
+  .sheet-bg { display: none; }
+  @media (max-width: 860px) {
+    .cx-main { padding: 0; }
+    .cx { display: block; }
+    .chat { height: calc(100dvh - var(--cx-top, 58px)); min-height: 0; border-radius: 0; border-left: 0; border-right: 0; border-bottom: 0; box-shadow: none; }
+    .chat-head { padding: 10px 12px; }
+    .chat-head .sub, .chat-head .sid { display: none; }
+    .log { padding: 12px; }
+    .msg { max-width: 92%; }
+    .guard { display: none; }
+    .ctx-toggle { display: inline-flex; }
+    .side { display: none; position: fixed; left: 0; right: 0; bottom: 0; top: auto; max-height: 82dvh; z-index: 60; background: var(--panel); border-top: 1px solid var(--line);
+      border-radius: 16px 16px 0 0; padding: 14px 16px calc(16px + env(safe-area-inset-bottom)); box-shadow: 0 -10px 40px rgba(0,0,0,.25); }
+    .side.open { display: flex; }
+    .side-close { display: inline-flex; }
+    .sheet-bg.open { display: block; position: fixed; inset: 0; z-index: 55; background: rgba(6,12,20,.45); }
+    .gpick { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 400px) { .chat-head .btn .lbl { display: none; } }
+</style>
+</head>
+<body data-page="concierge">
+<main class="br-main cx-main">
+  <div class="cx">
+    <section class="card chat" aria-label="Concierge chat">
+      <div class="chat-head">
+        <div>
+          <h1>Concierge agent</h1>
+          <div class="sub">Live Boomi Agent Studio · governed resort tools</div>
+        </div>
+        <span class="sp"></span>
+        <span class="sid" id="sid" title="Agent session"></span>
+        <button class="btn sm ctx-toggle" type="button" id="ctxToggle" aria-controls="side" aria-expanded="false">Guest</button>
+        <button class="btn sm" type="button" id="newChat" title="New conversation">↺ <span class="lbl">New conversation</span></button>
+      </div>
+      <div class="log" id="log" aria-live="polite">
+        <div class="empty" id="empty">
+          <h2>How can I help with your guests today?</h2>
+          <p class="small">Answers come live from the Agent Studio concierge, which calls Boomi for guest, folio and receivables data.</p>
+          <div class="chips" id="chips"></div>
+        </div>
+      </div>
+      <form class="composer" id="form" autocomplete="off">
+        <textarea class="input" id="input" rows="1" placeholder="Ask about a guest, room or receivables…" aria-label="Message"></textarea>
+        <button class="btn pri" type="submit" id="send">Send</button>
+      </form>
+      <div class="guard">Guardrails: no passport hashes or card numbers · folio adjustments over $200 USD need Front Office Manager approval.</div>
+    </section>
+
+    <div class="sheet-bg" id="sheetBg"></div>
+    <aside class="side" id="side" aria-label="Guest context">
+      <div class="side-head">
+        <h2>Guest context</h2>
+        <button class="btn sm side-close" type="button" id="sideClose" aria-label="Close guest context">✕</button>
+      </div>
+      <div class="gpick" id="gpick"></div>
+      <div class="ctx" id="ctx"><p class="note">Pick a demo guest to load their live Boomi guest record and folio.</p></div>
+    </aside>
+  </div>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
+<script src="br.js"></script>
+<script>
+(function () {
+  "use strict";
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = BR.esc;
+  var SUGGEST = [
+    "What is the full picture for Elena Vance?", "What is the full picture for Marcus Thorne?", "What is the full picture for Sophia Lin?",
+    "Show open receivables for Grand Horizon", "Show open receivables for Coral Bay",
+    "Who owns Suite 402?", "Who owns Ocean Villa 7?", "Who owns room 1108?"
+  ];
+  var GUESTS = [
+    { name: "Elena Vance", id: "LOY-200101" }, { name: "Marcus Thorne", id: "LOY-200102" }, { name: "Sophia Lin", id: "LOY-200103" }
+  ];
+  var SKEY = "br_concierge_session", TIMEOUT = 300000;
+  var log = $("log"), input = $("input"), send = $("send"), form = $("form");
+  var sessionId = null, busy = false, ctl = null, current = null;
+  try { sessionId = sessionStorage.getItem(SKEY) || null; } catch (e) {}
+
+  /* ---------- layout: chat fills the viewport below the shell ---------- */
+  function fit() {
+    var m = document.querySelector(".cx");
+    if (m) document.documentElement.style.setProperty("--cx-top", Math.max(0, Math.round(m.getBoundingClientRect().top + window.scrollY)) + "px");
+  }
+  window.addEventListener("resize", fit);
+
+  /* ---------- markdown ---------- */
+  function md(text) {
+    text = String(text == null ? "" : text);
+    var html;
+    if (window.marked && window.DOMPurify) {
+      try { html = DOMPurify.sanitize(marked.parse(text, { gfm: true, breaks: true })); } catch (e) { html = null; }
+    }
+    if (html == null) html = "<p>" + esc(text).replace(/\n/g, "<br>") + "</p>";
+    var box = document.createElement("div"); box.className = "md"; box.innerHTML = html;
+    box.querySelectorAll("table").forEach(function (t) {
+      t.classList.add("tbl");
+      var w = document.createElement("div"); w.className = "tbl-wrap"; t.parentNode.insertBefore(w, t); w.appendChild(t);
+    });
+    box.querySelectorAll("a").forEach(function (a) { a.target = "_blank"; a.rel = "noopener"; });
+    return box;
+  }
+
+  /* ---------- chat rendering ---------- */
+  function scroll() { log.scrollTop = log.scrollHeight; }
+  function clearEmpty() { var e = $("empty"); if (e) e.remove(); }
+  function bubble(kind, text) {
+    clearEmpty();
+    var el = document.createElement("div"); el.className = "msg " + kind;
+    if (kind === "agent") el.appendChild(md(text)); else el.textContent = text;
+    log.appendChild(el); scroll(); return el;
+  }
+  function Turn() {
+    var st = document.createElement("div"); st.className = "status";
+    st.innerHTML = '<span class="spin"></span><span class="tx">Working…</span>';
+    log.appendChild(st); scroll();
+    var t = { el: null, text: "", got: false, steps: 0, t0: Date.now() };
+    t.progress = function (txt) {
+      t.steps++;
+      st.querySelector(".tx").textContent = txt || "Working…";
+      scroll();
+    };
+    t.delta = function (txt) {
+      if (!t.el) { t.el = bubble("agent", ""); t.el.classList.add("streaming"); log.appendChild(st); }
+      t.text += txt; t.el.replaceChildren(md(t.text)); t.got = true; scroll();
+    };
+    t.message = function (txt) {
+      if (t.el) { t.el.classList.remove("streaming"); t.el.replaceChildren(md(txt)); }
+      else { t.el = bubble("agent", txt); }
+      t.got = true; t.final = true; scroll();
+    };
+    t.error = function (txt) { bubble("error", txt); t.got = true; };
+    t.finish = function () {
+      if (t.el) t.el.classList.remove("streaming");
+      var secs = ((Date.now() - t.t0) / 1000).toFixed(1);
+      st.innerHTML = '<span class="steps">' + (t.steps ? t.steps + " tool step" + (t.steps > 1 ? "s" : "") + " · " : "") + secs + " s</span>";
+      if (!t.got) bubble("error", "The agent ended without a reply. Try again or start a new conversation.");
+    };
+    return t;
+  }
+  function setSid(id) {
+    sessionId = id || null;
+    try { id ? sessionStorage.setItem(SKEY, id) : sessionStorage.removeItem(SKEY); } catch (e) {}
+    $("sid").textContent = id ? "session " + String(id).slice(0, 10) + "…" : "";
+    $("sid").title = id ? "Agent session " + id : "";
+  }
+  function setBusy(b) {
+    busy = b; send.disabled = b; input.disabled = b;
+    document.querySelectorAll("#chips button, #askGuest").forEach(function (x) { x.disabled = b; });
+  }
+  function handle(t, evt, obj) {
+    if (obj && obj.session_id && obj.session_id !== sessionId) setSid(obj.session_id);
+    if (evt === "progress_notification") t.progress(obj.content || obj.message || obj.type);
+    else if (evt === "delta" && obj.content) t.delta(obj.content);
+    else if (evt === "message" && obj.content) t.message(obj.content);
+    else if (evt === "error") t.error(obj.content || obj.message || "Agent error");
+  }
+  function ask(q) {
+    q = String(q || "").trim();
+    if (!q || busy) return;
+    closeSheet();
+    bubble("user", q);
+    input.value = ""; grow();
+    setBusy(true);
+    var t = current = Turn();
+    ctl = new AbortController();
+    var aborted = false, timer = setTimeout(function () { aborted = true; ctl.abort(); }, TIMEOUT);
+    BR.chat(q, sessionId, function (evt, obj) { handle(t, evt, obj || {}); }, ctl.signal)
+      .catch(function (e) {
+        if (e && e.name === "AbortError") { if (aborted) t.error("The agent took longer than 5 minutes and the request was stopped."); else t.got = true; }
+        else t.error((e && e.message) || "Could not reach the concierge agent.");
+      })
+      .then(function () { clearTimeout(timer); t.finish(); ctl = null; current = null; setBusy(false); if (window.matchMedia("(min-width: 861px)").matches) input.focus(); });
+  }
+  function newChat() {
+    if (ctl) ctl.abort();
+    setSid(null);
+    log.innerHTML = '<div class="empty" id="empty"><h2>New conversation</h2><p class="small">Ask anything about guests, rooms, folios or receivables.</p><div class="chips" id="chips"></div></div>';
+    renderChips();
+  }
+  function renderChips() {
+    var c = $("chips"); if (!c) return;
+    c.innerHTML = SUGGEST.map(function (q) { return '<button type="button">' + esc(q) + "</button>"; }).join("");
+    c.querySelectorAll("button").forEach(function (b, i) { b.onclick = function () { ask(SUGGEST[i]); }; b.disabled = busy; });
+  }
+  function grow() { input.style.height = "auto"; input.style.height = Math.min(140, input.scrollHeight + 2) + "px"; }
+
+  /* ---------- guest context panel ---------- */
+  var side = $("side"), bg = $("sheetBg"), selected = null, loadSeq = 0;
+  function openSheet() { side.classList.add("open"); bg.classList.add("open"); $("ctxToggle").setAttribute("aria-expanded", "true"); }
+  function closeSheet() { side.classList.remove("open"); bg.classList.remove("open"); $("ctxToggle").setAttribute("aria-expanded", "false"); }
+  function initials(n) { return n.split(/\s+/).map(function (w) { return w[0]; }).join("").slice(0, 2).toUpperCase(); }
+  function renderPicker() {
+    $("gpick").innerHTML = GUESTS.map(function (g, i) {
+      return '<button type="button" data-i="' + i + '"' + (selected === g ? ' class="on" aria-pressed="true"' : ' aria-pressed="false"') + '><span class="av">' + initials(g.name) + "</span><span>" + esc(g.name) + "<small>" + esc(g.id) + "</small></span></button>";
+    }).join("");
+    $("gpick").querySelectorAll("button").forEach(function (b) { b.onclick = function () { pick(GUESTS[+b.dataset.i]); }; });
+  }
+  function dt(d) { return d ? esc(d) : "–"; }
+  function guestCard(d, ms) {
+    var g = d && d.matched && d.guests && d.guests[0];
+    if (!g) return '<div class="card"><h3>Guest</h3><p class="note warn">' + esc((d && (d.message || d.error)) || "No matching guest record.") + "</p></div>";
+    var s = g.stay || {}, a = g.amenityBookings || [];
+    return '<div class="card"><h3>' + esc(g.legalName) + " " + (g.vipStatus ? BR.pill(g.vipStatus, g.isVip ? "info" : "") : "") + (s.status ? " " + BR.pill(String(s.status).replace(/_/g, " "), BR.statusKind(s.status) || "good") : "") + "</h3>" +
+      '<dl class="kv"><dt>Room</dt><dd>' + dt(s.room) + "</dd><dt>Stay</dt><dd>" + dt(s.checkIn) + " → " + dt(s.checkOut) + "</dd>" +
+      "<dt>Host</dt><dd>" + dt(g.accountableHost) + "</dd><dt>Currency</dt><dd>" + dt(g.preferredCurrency) + "</dd>" +
+      (g.preferences ? "<dt>Prefers</dt><dd>" + esc(g.preferences) + "</dd>" : "") +
+      (a.length ? "<dt>Bookings</dt><dd>" + a.map(function (b) { return esc(b.description || b.type) + (b.start ? ' <span class="muted">(' + esc(String(b.start).replace("T", " ")) + ")</span>" : ""); }).join("<br>") + "</dd>" : "") +
+      "</dl>" + '<div class="meta">Boomi guest_master · golden record linked to ' + ((g.sourceLinks || []).length) + " sources" + (ms != null ? " · " + ms + " ms" : "") + "</div></div>";
+  }
+  function folioCard(d, ms) {
+    if (!d || !d.matched) return '<div class="card"><h3>Folio</h3><p class="note warn">' + esc((d && (d.message || d.error)) || "No folio returned.") + "</p></div>";
+    var t = d.totals || {}, issues = (d.dataQuality && d.dataQuality.issues) || [], unl = (d.possibleUnlinkedCharges || []).length;
+    var mism = issues.filter(function (i) { return i.flag === "CURRENCY_MISMATCH"; }).length;
+    return '<div class="card"><h3>Folio ' + esc(d.folioNumber || "") + "</h3>" +
+      '<div class="bal">' + BR.money(t.balanceUSD, "USD") + '</div><div class="small muted">balance · ' + (t.lineCount || 0) + " lines · folio currency " + esc(d.folioCurrency || "–") + "</div>" +
+      '<dl class="kv" style="margin-top:8px"><dt>Property</dt><dd>' + dt(d.property) + "</dd><dt>Charges</dt><dd>" + BR.money(t.chargesUSD, "USD") + "</dd><dt>Credits</dt><dd>" + BR.money(t.creditsUSD, "USD") + "</dd></dl>" +
+      (mism ? '<div class="note warn flag">' + mism + " × currency mismatch (POS posted in USD to a " + esc(d.folioCurrency) + " folio)</div>" : '<div class="note good flag">No currency mismatches</div>') +
+      (unl ? '<div class="note warn flag">' + unl + " possible unlinked charge(s)</div>" : "") +
+      '<div class="meta">Boomi resort_folio_consolidated' + (ms != null ? " · " + ms + " ms" : "") + "</div></div>";
+  }
+  function errCard(title, e) { return '<div class="card"><h3>' + esc(title) + '</h3><p class="note bad">' + esc((e && e.message) || "Request failed") + "</p></div>"; }
+  function pick(g) {
+    selected = g; renderPicker();
+    if (BR.setPersona) { BR.setPersona({ extra: ["Assisting: " + g.name] }); fit(); }
+    var seq = ++loadSeq, ctx = $("ctx");
+    ctx.innerHTML = '<div style="display:flex;flex-direction:column;gap:12px"><div id="cG"><div class="card"><div class="skel" style="height:90px"></div></div></div>' +
+      '<div id="cF"><div class="card"><div class="skel" style="height:90px"></div></div></div>' +
+      '<button class="btn pri" type="button" id="askGuest">Ask about ' + esc(g.name.split(" ")[0]) + "</button></div>";
+    $("askGuest").disabled = busy;
+    $("askGuest").onclick = function () {
+      input.value = "What is the full picture for " + g.name + "? Include the stay, preferences, bookings and consolidated folio.";
+      grow(); closeSheet(); input.focus();
+    };
+    BR.call("guest", { guest_name: g.name }).then(function (r) { if (seq === loadSeq) $("cG").innerHTML = guestCard(r.data, r.ms); },
+      function (e) { if (seq === loadSeq) $("cG").innerHTML = errCard("Guest", e); });
+    BR.call("folio", { guest_id: g.id }).then(function (r) { if (seq === loadSeq) $("cF").innerHTML = folioCard(r.data, r.ms); },
+      function (e) { if (seq === loadSeq) $("cF").innerHTML = errCard("Folio", e); });
+  }
+
+  /* ---------- wire up ---------- */
+  form.onsubmit = function (e) { e.preventDefault(); ask(input.value); };
+  input.addEventListener("keydown", function (e) { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); ask(input.value); } });
+  input.addEventListener("input", grow);
+  $("newChat").onclick = newChat;
+  $("ctxToggle").onclick = function () { side.classList.contains("open") ? closeSheet() : openSheet(); };
+  $("sideClose").onclick = closeSheet; bg.onclick = closeSheet;
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeSheet(); });
+  renderChips(); renderPicker(); setSid(sessionId);
+  fit(); setTimeout(fit, 0);
+
+  BR.ready(function () {
+    fit();
+    if (sessionId) {
+      var e = $("empty"); if (e) { var p = document.createElement("p"); p.className = "small"; p.textContent = "Continuing your previous agent session. Use New conversation to start fresh."; e.insertBefore(p, $("chips")); }
+    }
+    var q = new URLSearchParams(location.search).get("prompt");
+    if (q) { input.value = q; grow(); ask(q); }
+  });
+})();
+</script>
+</body>
+</html>

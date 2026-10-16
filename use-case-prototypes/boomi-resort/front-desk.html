@@ -1,0 +1,429 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Front desk · Boomi Resorts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="br.css">
+<style>
+  /* page-local helpers (front desk only) */
+  main [hidden] { display: none !important; }
+  .fd-nw { white-space: nowrap; }
+  @media (max-width: 640px) { .fd-out .tbl-wrap .tbl { min-width: 560px; } }
+  .fd-tabs { margin-bottom: 16px; }
+  .fd-layout { display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: 16px; align-items: start; }
+  @media (max-width: 900px) { .fd-layout { grid-template-columns: minmax(0, 1fr); } }
+  .fd-form { display: flex; flex-direction: column; gap: 14px; }
+  .fd-form .row { display: flex; flex-wrap: wrap; gap: 10px; }
+  .fd-form .row > .field { flex: 1 1 140px; }
+  .fd-form .btn.pri { width: 100%; }
+  .fd-toggles { display: flex; flex-direction: column; gap: 10px; }
+  .fd-out { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+  .fd-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .fd-head .sp { flex: 1; }
+  .fd-empty { color: var(--muted); font-size: 13.5px; }
+  .fd-list { margin: 0; padding-left: 18px; font-size: 13.5px; }
+  .fd-list li { margin: 3px 0; }
+  .fd-tl-main { min-width: 0; flex: 1; }
+  .fd-tl-main .sub { color: var(--muted); font-size: 12.5px; overflow-wrap: anywhere; }
+  .fd-tl-main .top { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .fd-big { font-size: 22px; font-weight: 700; letter-spacing: -.02em; }
+  .fd-status { display: flex; gap: 8px; flex-wrap: wrap; }
+  .fd-status .btn { flex: 1 1 90px; }
+  .fd-status .btn.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+  .fd-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .fd-lookup { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-bottom: 16px; }
+  @media (max-width: 960px) { .fd-lookup { grid-template-columns: minmax(0, 1fr); } }
+  .fd-lookup .card { display: flex; flex-direction: column; gap: 12px; }
+  .fd-lookup .card .btn.pri { margin-top: auto; }
+  .fd-sec + .fd-sec { margin-top: 14px; }
+  .tbl tfoot td { font-weight: 700; border-top: 1px solid var(--line); padding: 9px 10px; }
+</style>
+</head>
+<body data-page="front-desk"><main class="br-main">
+  <div class="page-head">
+    <div><h1>Front desk</h1>
+      <p>Each action calls a live Boomi process. Calls can take 5–60 seconds.</p></div>
+  </div>
+
+  <div class="seg fd-tabs" id="tabs" role="tablist">
+    <button type="button" data-tab="checkin">Check-in</button>
+    <button type="button" data-tab="checkout">Check-out</button>
+    <button type="button" data-tab="hk">Housekeeping</button>
+    <button type="button" data-tab="lookup">Guest lookup</button>
+  </div>
+
+  <!-- Check-in -->
+  <section data-panel="checkin" hidden>
+    <div class="fd-layout">
+      <form class="card fd-form" id="ciForm">
+        <h2>Check in a guest</h2>
+        <div class="field"><label for="ciGuest">Guest</label><select class="input" id="ciGuest"></select></div>
+        <div class="row">
+          <div class="field"><label for="ciChannel">Channel</label>
+            <select class="input" id="ciChannel"><option value="FRONT_DESK">Front desk</option><option value="MOBILE_APP">Mobile app</option><option value="KIOSK">Kiosk</option></select></div>
+          <div class="field"><label for="ciTime">Arrival time</label><input class="input" id="ciTime" type="time" value="15:05"></div>
+        </div>
+        <div class="fd-toggles">
+          <label class="toggle"><input type="checkbox" id="ciKeyDown"> Simulate key system down</label>
+          <label class="toggle"><input type="checkbox" id="ciNotReady"> Simulate room not ready</label>
+        </div>
+        <button class="btn pri" type="submit">Run check-in</button>
+      </form>
+      <div class="fd-out" id="ciOut"><div class="card fd-empty">Pick a guest and run check-in to see the room allocation and every system Boomi updated.</div></div>
+    </div>
+  </section>
+
+  <!-- Check-out -->
+  <section data-panel="checkout" hidden>
+    <div class="fd-layout">
+      <form class="card fd-form" id="coForm">
+        <h2>Check out a guest</h2>
+        <div class="field"><label for="coGuest">Guest</label><select class="input" id="coGuest"></select></div>
+        <div class="fd-toggles">
+          <label class="toggle"><input type="checkbox" id="coConfirm" checked> Confirm unlinked charges</label>
+          <label class="toggle"><input type="checkbox" id="coDecline"> Simulate payment declined</label>
+        </div>
+        <button class="btn pri" type="submit">Run check-out</button>
+      </form>
+      <div class="fd-out" id="coOut"><div class="card fd-empty">Run check-out to see the final bill, payment result and systems updated.</div></div>
+    </div>
+  </section>
+
+  <!-- Housekeeping -->
+  <section data-panel="hk" hidden>
+    <div class="fd-layout">
+      <form class="card fd-form" id="hkForm">
+        <h2>Update room status</h2>
+        <div class="field"><label for="hkRoom">Room</label>
+          <select class="input" id="hkRoom"><option>Suite 402</option><option>Ocean Villa 7</option><option>1108</option></select></div>
+        <div class="field"><label for="hkAttendant">Attendant</label><input class="input" id="hkAttendant" value="Maria Santos" autocomplete="off"></div>
+        <div class="field"><label>Status</label>
+          <div class="fd-status" id="hkStatus">
+            <button type="button" class="btn" data-status="CLEANING">Cleaning</button>
+            <button type="button" class="btn on" data-status="CLEAN">Clean</button>
+            <button type="button" class="btn" data-status="INSPECTED">Inspected</button>
+          </div></div>
+        <button class="btn pri" type="submit">Send status update</button>
+      </form>
+      <div class="fd-out" id="hkOut"><div class="card fd-empty">Send a housekeeping status to see how Boomi routes it to the PMS and operations.</div></div>
+    </div>
+  </section>
+
+  <!-- Guest lookup / data products -->
+  <section data-panel="lookup" hidden>
+    <div class="fd-lookup">
+      <form class="card" id="gpForm">
+        <div><div class="eyebrow">Data product · guest_master</div><h3>Guest full picture</h3></div>
+        <div class="seg" id="gpMode"><button type="button" data-mode="name" class="on">By name</button><button type="button" data-mode="room">By room</button></div>
+        <div class="field" id="gpNameF"><label for="gpName">Guest name</label><select class="input" id="gpName"></select></div>
+        <div class="field" id="gpRoomF" hidden><label for="gpRoom">Room</label>
+          <select class="input" id="gpRoom"><option>Suite 402</option><option>Ocean Villa 7</option><option>1108</option></select></div>
+        <button class="btn pri" type="submit">Look up guest</button>
+      </form>
+      <form class="card" id="foForm">
+        <div><div class="eyebrow">Data product · resort_folio_consolidated</div><h3>Consolidated folio</h3></div>
+        <div class="field"><label for="foGuest">Guest</label><select class="input" id="foGuest"></select></div>
+        <button class="btn pri" type="submit">Get folio</button>
+      </form>
+      <form class="card" id="arForm">
+        <div><div class="eyebrow">Data product · open_receivables</div><h3>Open receivables</h3></div>
+        <div class="field"><label for="arSub">Subsidiary</label>
+          <select class="input" id="arSub"><option>Grand Horizon</option><option>Coral Bay</option></select></div>
+        <button class="btn pri" type="submit">Get receivables</button>
+      </form>
+    </div>
+    <div class="fd-out" id="luOut"><div class="card fd-empty">Run one of the data products above. Results appear here.</div></div>
+  </section>
+</main>
+<script src="br.js"></script>
+<script>
+BR.ready(function () {
+  "use strict";
+  var esc = BR.esc, $ = BR.$;
+  var GUESTS = [
+    { id: "LOY-200101", name: "Elena Vance" },
+    { id: "LOY-200102", name: "Marcus Thorne" },
+    { id: "LOY-200103", name: "Sophia Lin" }
+  ];
+  var TAB_KEY = "br_frontdesk_tab";
+  if (BR.setPersona) BR.setPersona({ extra: ["Shift: Day", "Grand Horizon"] });
+
+  /* ---------- small helpers ---------- */
+  function store(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } }
+  function arr(x) { return Array.isArray(x) ? x : []; }
+  function text(x) {
+    if (x == null) return "";
+    if (typeof x === "string" || typeof x === "number" || typeof x === "boolean") return String(x);
+    return x.message || x.detail || x.text || x.action || JSON.stringify(x);
+  }
+  function guestOptions(sel, byName) {
+    sel.innerHTML = GUESTS.map(function (g) {
+      return '<option value="' + esc(byName ? g.name : g.id) + '">' + esc(g.name) + " · " + esc(g.id) + "</option>";
+    }).join("");
+  }
+  function kv(pairs) {
+    var rows = pairs.filter(function (p) { return p[1] != null && p[1] !== ""; });
+    if (!rows.length) return "";
+    return '<dl class="kv">' + rows.map(function (p) { return "<dt>" + esc(p[0]) + "</dt><dd>" + (p[2] ? p[1] : esc(p[1])) + "</dd>"; }).join("") + "</dl>";
+  }
+  function card(title, body, right) {
+    return '<div class="card"><div class="fd-head"><h3>' + title + '</h3><span class="sp"></span>' + (right || "") + "</div>" + body + "</div>";
+  }
+  function list(items, empty) {
+    items = arr(items);
+    if (!items.length) return '<p class="fd-empty">' + esc(empty) + "</p>";
+    return '<ul class="fd-list">' + items.map(function (i) { return "<li>" + esc(text(i)) + "</li>"; }).join("") + "</ul>";
+  }
+  function stepClass(s) { var k = BR.statusKind(s); return k === "good" ? "ok" : k; }
+  function stepIcon(s) { var k = BR.statusKind(s); return k === "bad" ? "!" : k === "warn" ? "~" : k === "good" ? "✓" : "·"; }
+  /* Render the response's own steps[] array as a timeline. */
+  function timeline(steps) {
+    steps = arr(steps);
+    if (!steps.length) return '<p class="fd-empty">No steps returned.</p>';
+    return '<ol class="timeline">' + steps.map(function (s) {
+      return '<li class="' + stepClass(s.status) + '"><span class="ic">' + stepIcon(s.status) + '</span><div class="fd-tl-main"><div class="top"><strong>' +
+        esc(s.action || s.stage || "Step") + "</strong>" + BR.pill(s.system || "", "info") + (s.status ? BR.pill(s.status, BR.statusKind(s.status)) : "") +
+        (s.mode ? BR.pill(s.mode, s.mode === "live" ? "good" : "") : "") + "</div>" +
+        (s.detail ? '<div class="sub">' + esc(s.detail) + "</div>" : "") +
+        (s.boomiStep ? '<div class="sub mono">' + esc(s.boomiStep) + "</div>" : "") + "</div></li>";
+    }).join("") + "</ol>";
+  }
+  function latency(ms) { return '<span class="pill">' + esc(ms) + " ms</span>"; }
+  function errorBox(e) { return '<div class="note bad"><strong>Call failed.</strong> ' + esc(e && e.message ? e.message : e) + "</div>"; }
+  function loading(label) {
+    return '<div class="card"><p class="muted small"><span class="spin"></span> ' + esc(label) + ' – waiting for Boomi…</p><div class="skel" style="height:14px;width:60%;margin:10px 0"></div><div class="skel" style="height:14px;width:85%;margin:10px 0"></div><div class="skel" style="height:14px;width:40%"></div></div>';
+  }
+  /* Run one call: spinner on the button, skeleton in the output, error note on failure (no fallback data). */
+  function run(btn, out, label, kind, payload, render) {
+    if (btn.disabled) return;
+    var orig = btn.innerHTML;
+    btn.disabled = true; btn.innerHTML = '<span class="spin"></span> Running…';
+    out.innerHTML = loading(label);
+    BR.call(kind, payload).then(function (r) {
+      try { out.innerHTML = render(r.data || {}, r.ms); }
+      catch (e) { console.error(e); out.innerHTML = errorBox("Could not render the response: " + e.message) + '<div class="card">' + BR.rawDetails(r.data) + "</div>"; }
+    }).catch(function (e) {
+      out.innerHTML = errorBox(e);
+    }).then(function () { btn.disabled = false; btn.innerHTML = orig; });
+  }
+
+  /* ---------- tabs ---------- */
+  var tabs = document.querySelectorAll("#tabs button");
+  function showTab(id) {
+    if (!document.querySelector('[data-panel="' + id + '"]')) id = "checkin";
+    tabs.forEach(function (b) { var on = b.getAttribute("data-tab") === id; b.classList.toggle("on", on); b.setAttribute("aria-selected", on); });
+    document.querySelectorAll("[data-panel]").forEach(function (p) { p.hidden = p.getAttribute("data-panel") !== id; });
+    store(TAB_KEY, id);
+  }
+  tabs.forEach(function (b) { b.onclick = function () { showTab(b.getAttribute("data-tab")); }; });
+  showTab(store(TAB_KEY) || "checkin");
+
+  guestOptions($("#ciGuest")); guestOptions($("#coGuest")); guestOptions($("#foGuest")); guestOptions($("#gpName"), true);
+
+  /* ---------- check-in ---------- */
+  $("#ciForm").onsubmit = function (e) {
+    e.preventDefault();
+    var payload = {
+      guest_id: $("#ciGuest").value, channel: $("#ciChannel").value, arrival_time: $("#ciTime").value || "15:05",
+      simulate_key_system_down: $("#ciKeyDown").checked ? "true" : "false",
+      simulate_room_not_ready: $("#ciNotReady").checked ? "true" : "false"
+    };
+    run(e.submitter || this.querySelector(".btn.pri"), $("#ciOut"), "Check-in", "checkin", payload, renderCheckin);
+  };
+  function renderCheckin(d, ms) {
+    var g = d.guest || {}, a = d.allocation || {}, res = d.reservation || {}, sm = d.summary || {};
+    var head = card(esc(g.legalName || "Check-in"),
+      kv([["Check-in ID", d.checkInId], ["Channel", d.channel], ["Guest ID", g.guestId], ["Tier", g.vipStatus ? g.vipStatus + (g.isVip ? " (VIP)" : "") : null],
+          ["Host", g.accountableHost], ["Reservation", res.confirmationNo ? res.confirmationNo + " · " + (res.roomType || "") + " · " + (res.nights || "?") + " nights" : null],
+          ["Preferences", g.preferences]]),
+      BR.pill(d.status || "UNKNOWN", BR.statusKind(d.status)) + latency(ms));
+    var ready = a.ready === false ? BR.pill("NOT READY", "warn") : a.ready ? BR.pill("READY", "good") : "";
+    var cands = arr(a.candidates);
+    var alloc = card("Room allocation",
+      (a.room ? '<div class="fd-big">' + esc(a.room) + "</div>" : '<p class="fd-empty">No room allocated.</p>') +
+      kv([["Type", a.roomType], ["Floor", a.floor], ["Housekeeping", a.hkStatus], ["Ready by", a.ready === false ? a.readyBy : null], ["Score", a.score],
+          ["Why", arr(a.reasons).join(" · ")], ["Features", arr(a.features).join(", ")]]) +
+      (cands.length ? '<div class="tbl-wrap" style="margin-top:12px"><table class="tbl"><thead><tr><th>Candidate</th><th>HK</th><th>Reasons</th><th class="num">Score</th></tr></thead><tbody>' +
+        cands.map(function (c) {
+          return "<tr><td>" + esc(c.room) + (c.room === a.room ? " " + BR.pill("chosen", "good") : c.eligible === false ? " " + BR.pill("ineligible", "bad") : "") +
+            "</td><td>" + esc(c.hkStatus || "") + "</td><td class=\"small\">" + esc(arr(c.reasons).join(" · ")) + '</td><td class="num">' + esc(c.score) + "</td></tr>";
+        }).join("") + "</tbody></table></div>" : ""),
+      ready);
+    var systems = card("Systems updated", timeline(d.steps),
+      (sm.systemsUpdated != null ? BR.pill(sm.systemsUpdated + " updated", "good") : "") + (sm.systemsFailed ? BR.pill(sm.systemsFailed + " failed", "bad") : ""));
+    var follow = card("Warnings &amp; next actions",
+      '<div class="fd-sec"><div class="eyebrow">Warnings</div>' + list(sm.warnings, "None.") + '</div><div class="fd-sec"><div class="eyebrow">Next actions</div>' + list(sm.nextActions, "Nothing for staff to action.") + "</div>" +
+      (d.handoff && d.handoff.conciergePrompt ? '<div class="fd-sec"><div class="eyebrow">Concierge hand-off</div><p class="small">' + esc(d.handoff.conciergePrompt) + "</p></div>" : ""));
+    return head + '<div class="grid g2">' + alloc + follow + "</div>" + systems + '<div class="card">' + BR.rawDetails(d) + "</div>";
+  }
+
+  /* ---------- check-out ---------- */
+  $("#coForm").onsubmit = function (e) {
+    e.preventDefault();
+    var payload = {
+      guest_id: $("#coGuest").value, channel: "FRONT_DESK",
+      confirm_unlinked_charges: $("#coConfirm").checked ? "true" : "false",
+      simulate_payment_declined: $("#coDecline").checked ? "true" : "false"
+    };
+    run(e.submitter || this.querySelector(".btn.pri"), $("#coOut"), "Check-out", "checkout", payload, renderCheckout);
+  };
+  function renderCheckout(d, ms) {
+    var g = d.guest || {}, b = d.bill || {}, t = b.totals || {}, p = d.payment || {}, hk = d.housekeeping || {}, sm = d.summary || {};
+    var cur = b.folioCurrency || t.currency;
+    var head = card(esc(g.legalName || "Check-out"),
+      kv([["Check-out ID", d.checkOutId], ["Channel", d.channel], ["Guest ID", g.guestId], ["Room", g.room || (d.room || {}).room],
+          ["Room status", (d.room || {}).status], ["Loyalty", d.loyalty && d.loyalty.pointsAwarded != null ? d.loyalty.pointsAwarded.toLocaleString() + " points · " + (d.loyalty.tier || "") : null]]),
+      BR.pill(d.status || "UNKNOWN", BR.statusKind(d.status)) + latency(ms));
+    var lines = arr(b.lines);
+    var bill = card("Final bill" + (b.folioNumber ? ' <span class="muted small">' + esc(b.folioNumber) + "</span>" : ""),
+      (lines.length ? '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Date</th><th>Line</th><th class="num">Original</th><th class="num">Posted</th><th class="num">USD</th></tr></thead><tbody>' +
+        lines.map(function (l) {
+          var o = l.original || {}, ps = l.posted || {};
+          return "<tr><td>" + esc(l.postingDate || "") + "</td><td>" + esc(l.description || l.lineId) + '<div class="muted small">' + esc((l.outlet || "") + " · " + (l.sourceSystem || "")) + "</div>" +
+            (l.resolution ? '<div class="small" style="color:var(--warn)">' + esc(l.resolution) + "</div>" : "") +
+            '</td><td class="num">' + esc(BR.money(o.amount, o.currency)) + '</td><td class="num">' + esc(BR.money(ps.amount, ps.currency)) + '</td><td class="num">' + esc(BR.money(l.amountUSD, "USD")) + "</td></tr>";
+        }).join("") + '</tbody><tfoot><tr><td colspan="3">Total · ' + esc(t.lineCount != null ? t.lineCount : lines.length) + ' lines</td><td class="num">' + esc(BR.money(t.balanceLocal, t.currency || cur)) +
+        '</td><td class="num">' + esc(BR.money(t.balanceUSD, "USD")) + "</td></tr></tfoot></table></div>" : '<p class="fd-empty">No bill lines returned.</p>') +
+      (arr(b.resolutions).length ? '<div class="fd-sec" style="margin-top:12px"><div class="eyebrow">Data-quality fixes</div><ul class="fd-list">' + b.resolutions.map(function (r) {
+        return "<li>" + esc(r.lineId) + ": " + esc(r.action || r.flag) + " (" + esc(r.from || "") + " → " + esc(r.to || "") + ")</li>";
+      }).join("") + "</ul></div>" : "") +
+      (arr(b.leftForReview).length ? '<div class="fd-sec"><div class="eyebrow">Left for review</div>' + list(b.leftForReview.map(function (x) { return (x.lineId || "") + " · " + (x.outlet || "") + " · " + (x.nameOnCheck || "") + " · " + BR.money(x.amount, x.currency); }), "") + "</div>" : "") +
+      (arr(b.released).length ? '<div class="fd-sec"><div class="eyebrow">Released (not charged)</div>' + list(b.released.map(function (x) { return (x.bookingId || "") + " · " + (x.description || x.type || ""); }), "") + "</div>" : ""));
+    var pay = card("Payment",
+      '<div class="fd-big">' + esc(BR.money(p.amount, p.currency)) + "</div>" +
+      kv([["Method", p.method], ["Gateway", p.gateway], ["Auth code", p.authCode], ["Decline reason", p.declineReason]]) +
+      (hk.room ? '<hr class="divider"><div class="eyebrow">Housekeeping task</div>' + kv([["Task", hk.task ? hk.task + " · " + hk.room : hk.room], ["Attendant", hk.attendant], ["Priority", hk.priority],
+        ["Estimate", hk.estimatedMinutes != null ? hk.estimatedMinutes + " min" : null],
+        ["Next arrival", hk.nextArrival ? (hk.nextArrival.guestName || "") + " · ETA " + (hk.nextArrival.eta || "?") : null]]) : ""),
+      p.status ? BR.pill(p.status, /CAPTUR|AUTHORI[SZ]ED|SETTLED|PAID/i.test(p.status) ? "good" : BR.statusKind(p.status)) : "");
+    var follow = card("Warnings &amp; next actions",
+      '<div class="fd-sec"><div class="eyebrow">Warnings</div>' + list(sm.warnings, "None.") + '</div><div class="fd-sec"><div class="eyebrow">Next actions</div>' + list(sm.nextActions, "Nothing for staff to action.") + "</div>");
+    var systems = card("Systems updated", timeline(d.steps), sm.systemsUpdated != null ? BR.pill(sm.systemsUpdated + " updated", "good") : "");
+    return head + bill + '<div class="grid g2">' + pay + follow + "</div>" + systems + '<div class="card">' + BR.rawDetails(d) + "</div>";
+  }
+
+  /* ---------- housekeeping ---------- */
+  var hkStatus = "CLEAN";
+  document.querySelectorAll("#hkStatus button").forEach(function (b) {
+    b.onclick = function () {
+      hkStatus = b.getAttribute("data-status");
+      document.querySelectorAll("#hkStatus button").forEach(function (x) { x.classList.toggle("on", x === b); });
+    };
+  });
+  $("#hkForm").onsubmit = function (e) {
+    e.preventDefault();
+    var payload = { room: $("#hkRoom").value, status: hkStatus, attendant: $("#hkAttendant").value.trim() || "Duty attendant" };
+    run(e.submitter || this.querySelector(".btn.pri"), $("#hkOut"), "Room status", "roomstatus", payload, renderRoomStatus);
+  };
+  function renderRoomStatus(d, ms) {
+    var na = d.nextArrival;
+    var st = d.roomStatus || d.status;
+    return card(esc(d.room || "Room"),
+      kv([["Room status", st], ["Attendant", d.attendant], ["Ready for next guest", d.readyForNextGuest == null ? null : d.readyForNextGuest ? "Yes" : "No"],
+          ["Next arrival", na ? (typeof na === "object" ? (na.guestName || "") + (na.eta ? " · ETA " + na.eta : "") + (na.vip ? " · " + na.vip : "") : na) : "None"]]),
+      BR.pill(st || "UNKNOWN", BR.statusKind(st)) + latency(ms)) +
+      card("Systems updated", timeline(d.steps)) + '<div class="card">' + BR.rawDetails(d) + "</div>";
+  }
+
+  /* ---------- guest lookup / data products ---------- */
+  var gpMode = "name";
+  document.querySelectorAll("#gpMode button").forEach(function (b) {
+    b.onclick = function () {
+      gpMode = b.getAttribute("data-mode");
+      document.querySelectorAll("#gpMode button").forEach(function (x) { x.classList.toggle("on", x === b); });
+      $("#gpNameF").hidden = gpMode !== "name"; $("#gpRoomF").hidden = gpMode !== "room";
+    };
+  });
+  $("#gpForm").onsubmit = function (e) {
+    e.preventDefault();
+    var payload = gpMode === "room" ? { room: $("#gpRoom").value } : { guest_name: $("#gpName").value };
+    run(e.submitter || this.querySelector(".btn.pri"), $("#luOut"), "Guest full picture", "guest", payload, renderGuest);
+  };
+  $("#foForm").onsubmit = function (e) {
+    e.preventDefault();
+    run(e.submitter || this.querySelector(".btn.pri"), $("#luOut"), "Consolidated folio", "folio", { guest_id: $("#foGuest").value }, renderFolio);
+  };
+  $("#arForm").onsubmit = function (e) {
+    e.preventDefault();
+    run(e.submitter || this.querySelector(".btn.pri"), $("#luOut"), "Open receivables", "receivables", { subsidiary: $("#arSub").value }, renderReceivables);
+  };
+
+  function renderGuest(d, ms) {
+    var guests = arr(d.guests), gov = d.governance || {};
+    if (!guests.length) return '<div class="note warn">No guest matched this query.</div>' + '<div class="card">' + BR.rawDetails(d) + "</div>";
+    var html = guests.map(function (g) {
+      var s = g.stay || {};
+      var links = arr(g.sourceLinks).map(function (l) { return BR.pill(l.system + " · " + l.recordId); }).join("");
+      var books = arr(g.amenityBookings);
+      return card(esc(g.legalName || g.guestId),
+        '<div class="grid g2"><div>' + kv([["Guest ID", g.guestId], ["Tier", g.vipStatus ? g.vipStatus + (g.isVip ? " (VIP)" : "") : null], ["Host", g.accountableHost],
+          ["Email", g.email], ["Phone", g.phone], ["Currency", g.preferredCurrency], ["ID on file", g.identity ? (g.identity.idDocumentOnFile ? "Yes" : "No") : null]]) + "</div><div>" +
+          kv([["Room", s.room], ["Stay", s.checkIn ? s.checkIn + " → " + (s.checkOut || "") : null], ["Stay status", s.status ? BR.pill(s.status, BR.statusKind(s.status) || "info") : null, true],
+            ["Preferences", g.preferences], ["Golden record", g.goldenRecordId]]) + "</div></div>" +
+        (books.length ? '<div class="fd-sec" style="margin-top:12px"><div class="eyebrow">Amenity bookings</div><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Booking</th><th>When</th><th>Status</th><th class="num">Amount</th></tr></thead><tbody>' +
+          books.map(function (x) {
+            return "<tr><td>" + esc(x.description || x.type) + '<div class="muted small">' + esc((x.bookingId || "") + " · " + (x.type || "")) + "</div></td><td>" + esc(x.start || "") +
+              "</td><td>" + BR.pill(x.status || "", BR.statusKind(x.status)) + '</td><td class="num">' + esc(BR.money(x.amount, x.currency)) + "</td></tr>";
+          }).join("") + "</tbody></table></div></div>" : "") +
+        (links ? '<div class="fd-sec" style="margin-top:12px"><div class="eyebrow">Source records</div><div class="fd-chips">' + links + "</div></div>" : ""),
+        BR.pill("guest_master", "info") + latency(ms));
+    }).join("");
+    var surv = gov.survivorship || {};
+    var govHtml = Object.keys(surv).length || arr(gov.withheldFields).length ? card("Governance",
+      kv(Object.keys(surv).map(function (k) { return [k, surv[k]]; })) +
+      (arr(gov.withheldFields).length ? '<div class="fd-sec" style="margin-top:12px"><div class="eyebrow">Withheld fields</div>' + list(gov.withheldFields, "") + "</div>" : "")) : "";
+    return html + govHtml + '<div class="card">' + BR.rawDetails(d) + "</div>";
+  }
+
+  function renderFolio(d, ms) {
+    if (d.matched === false) return '<div class="note warn">No folio found for this guest.</div><div class="card">' + BR.rawDetails(d) + "</div>";
+    var t = d.totals || {}, bySrc = t.bySource || {}, dq = d.dataQuality || {}, lines = arr(d.lines);
+    var head = card(esc((d.guestName || d.guestId || "Folio") + (d.folioNumber ? " · " + d.folioNumber : "")),
+      '<div class="grid g3" style="margin-bottom:12px"><div><div class="eyebrow">Charges</div><div class="stat">' + esc(BR.money(t.chargesUSD, "USD")) + '</div></div><div><div class="eyebrow">Credits</div><div class="stat">' +
+        esc(BR.money(t.creditsUSD, "USD")) + '</div></div><div><div class="eyebrow">Balance</div><div class="stat">' + esc(BR.money(t.balanceUSD, "USD")) + "</div></div></div>" +
+      kv([["Property", d.property], ["Room", d.room], ["Folio currency", d.folioCurrency], ["Reporting currency", d.reportingCurrency], ["Lines", t.lineCount]]),
+      BR.pill("resort_folio_consolidated", "info") + latency(ms));
+    var srcKeys = Object.keys(bySrc);
+    var sources = srcKeys.length ? card("By source system", '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Source</th><th class="num">Lines</th><th class="num">Local</th><th class="num">USD</th></tr></thead><tbody>' +
+      srcKeys.map(function (k) { var s = bySrc[k] || {}; return "<tr><td>" + esc(k) + '</td><td class="num">' + esc(s.lineCount) + '</td><td class="num">' + esc(BR.money(s.localAmount, s.localCurrency)) + '</td><td class="num">' + esc(BR.money(s.amountUSD, "USD")) + "</td></tr>"; }).join("") +
+      "</tbody></table></div>") : "";
+    var issues = arr(dq.issues);
+    var quality = card("Data quality", issues.length ? '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Line</th><th>Flag</th><th>Detail</th></tr></thead><tbody>' +
+      issues.map(function (i) { return "<tr><td>" + esc(i.lineId) + "</td><td>" + BR.pill(i.flag || "", "warn") + "</td><td>" + esc(i.detail || "") + "</td></tr>"; }).join("") + "</tbody></table></div>" : '<p class="fd-empty">No issues.</p>',
+      BR.pill((dq.issueCount != null ? dq.issueCount : issues.length) + " issues", issues.length ? "warn" : "good"));
+    var lineTbl = card("Lines", lines.length ? '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Date</th><th>Line</th><th>Source</th><th class="num">Amount</th><th class="num">USD</th></tr></thead><tbody>' +
+      lines.map(function (l) {
+        return "<tr><td>" + esc(l.postingDate || "") + "</td><td>" + esc(l.description || l.lineId) + '<div class="muted small">' + esc((l.lineId || "") + " · " + (l.outlet || "")) + "</div>" +
+          arr(l.dataQualityFlags).map(function (f) { return " " + BR.pill(f, "warn"); }).join("") + "</td><td>" + esc(l.sourceSystem || "") + '</td><td class="num">' + esc(BR.money(l.amount, l.currency)) +
+          '</td><td class="num">' + esc(BR.money(l.amountUSD, "USD")) + "</td></tr>";
+      }).join("") + "</tbody></table></div>" : '<p class="fd-empty">No lines.</p>');
+    var unlinked = arr(d.possibleUnlinkedCharges);
+    var unl = unlinked.length ? card("Possible unlinked charges", list(unlinked.map(function (u) { return (u.lineId || "") + " · " + (u.outlet || "") + " · " + (u.nameOnCheck || "") + " · " + BR.money(u.amount, u.currency); }), "")) : "";
+    return head + '<div class="grid g2">' + sources + quality + "</div>" + lineTbl + unl + '<div class="card">' + BR.rawDetails(d) + "</div>";
+  }
+
+  function renderReceivables(d, ms) {
+    if (d.matched === false) return '<div class="note warn">No receivables found for this subsidiary.</div><div class="card">' + BR.rawDetails(d) + "</div>";
+    var s = d.summary || {}, folios = arr(d.folios), unl = arr(d.unlinkedItems), dq = d.dataQuality || {};
+    var head = card(esc((d.property || d.subsidiary || "Receivables")),
+      '<div class="grid g3"><div><div class="eyebrow">Total open</div><div class="stat">' + esc(BR.money(s.totalOpenUSD, "USD")) + '</div></div><div><div class="eyebrow">Open folios / items</div><div class="stat">' +
+        esc((s.openFolios != null ? s.openFolios : "–") + " / " + (s.openItems != null ? s.openItems : "–")) + '</div></div><div><div class="eyebrow">Flagged</div><div class="stat">' +
+        esc(BR.money(s.flaggedAmountUSD, "USD")) + '</div><div class="muted small">' + esc((s.flaggedItems != null ? s.flaggedItems : 0) + " items") + "</div></div></div>" +
+      (s.issuesByType ? '<div class="fd-chips" style="margin-top:12px">' + Object.keys(s.issuesByType).map(function (k) { return BR.pill(k + " · " + s.issuesByType[k], "warn"); }).join("") + "</div>" : "") +
+      '<div class="muted small" style="margin-top:8px">As of ' + esc(d.asOf || "–") + " · " + esc(d.reportingCurrency || "USD") + "</div>",
+      BR.pill("open_receivables", "info") + latency(ms));
+    var fTbl = card("Open folios", folios.length ? '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Guest</th><th>Room</th><th>Folio</th><th class="num">Items</th><th class="num">Open (USD)</th></tr></thead><tbody>' +
+      folios.map(function (f) {
+        return "<tr><td>" + esc(f.guestName || f.guestId) + '<div class="muted small">' + esc(f.guestId || "") + "</div>" + arr(f.dataQualityFlags).map(function (x) { return " " + BR.pill(x, "warn"); }).join("") +
+          "</td><td>" + esc(f.room || "") + "</td><td class=\"fd-nw\">" + esc((f.folioNumber || "") + " · " + (f.folioCurrency || "")) + '</td><td class="num">' + esc(f.openItems) + '</td><td class="num">' + esc(BR.money(f.openBalanceUSD, "USD")) + "</td></tr>";
+      }).join("") + "</tbody></table></div>" : '<p class="fd-empty">No open folios.</p>');
+    var uTbl = card("Unlinked items", unl.length ? '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Line</th><th>Name on check</th><th>Suggested guest</th><th class="num">Amount</th></tr></thead><tbody>' +
+      unl.map(function (u) {
+        return "<tr><td class=\"fd-nw\">" + esc(u.lineId) + '<div class="muted small">' + esc((u.outlet || "") + " · " + (u.postingDate || "")) + "</div></td><td>" + esc(u.nameOnCheck || "") + "</td><td>" + esc(u.suggestedGuest || "–") +
+          '</td><td class="num">' + esc(BR.money(u.amount, u.currency)) + "</td></tr>";
+      }).join("") + "</tbody></table></div>" : '<p class="fd-empty">No unlinked items.</p>', unl.length ? BR.pill(unl.length + " unlinked", "warn") : "");
+    var issues = arr(dq.issues);
+    var qTbl = issues.length ? card("Data-quality issues", '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Line</th><th>Guest</th><th>Issue</th><th class="num">USD</th></tr></thead><tbody>' +
+      issues.map(function (i) { return "<tr><td class=\"fd-nw\">" + esc(i.lineId) + "</td><td class=\"fd-nw\">" + esc(i.guestId || "") + "</td><td>" + BR.pill(i.flag || "", "warn") + '<div class="muted small">' + esc(i.detail || "") + '</div></td><td class="num">' + esc(BR.money(i.amountUSD, "USD")) + "</td></tr>"; }).join("") +
+      "</tbody></table></div>") : "";
+    return head + fTbl + uTbl + qTbl + '<div class="card">' + BR.rawDetails(d) + "</div>";
+  }
+});
+</script></body></html>

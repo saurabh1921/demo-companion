@@ -2,498 +2,133 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Connected Resort Concierge</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Boomi Resorts · Operations overview</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="br.css">
 <style>
-  .hero { background: linear-gradient(180deg, var(--brand) 0%, var(--brand) 62%, var(--bg) 62%); color: var(--brand-ink); padding: 30px 0 0; }
-  .hero h1 { font-size: clamp(28px, 4.4vw, 44px); margin: 6px 0 10px; max-width: 820px; }
-  .hero .eyebrow { color: #7fd0ea; }
-  .hero p.lede { color: var(--brand-ink); opacity: .85; max-width: 760px; font-size: 16.5px; margin: 0 0 24px; }
-  .facts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
-  .fact { padding: 16px; }
-  .fact .v { font: 600 26px var(--serif); color: var(--ink); }
-  .fact .l { font-size: 13px; color: var(--muted); }
-  .context { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
-  .context .card { padding: 18px; }
-  .context h3 { font-size: 17px; margin: 0 0 6px; }
-  .context p { margin: 0; color: var(--ink-2); font-size: 14px; }
-  .arch { display: grid; grid-template-columns: 1.1fr auto 1.2fr auto 1fr auto 1.1fr; gap: 10px; align-items: stretch; margin-top: 18px; }
-  .arch .col { padding: 14px; display: flex; flex-direction: column; gap: 6px; }
-  .arch .col h4 { margin: 0 0 4px; font: 600 12px var(--sans); text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
-  .arch .item { font-size: 13.5px; }
-  .arch .arrow { display: grid; place-items: center; color: var(--muted); font-size: 20px; }
-  .tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
-  .chip { font: 500 14px var(--sans); border: 1px solid var(--line-2); background: var(--panel); color: var(--ink); padding: 7px 14px; border-radius: 999px; cursor: pointer; }
-  .chip[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
-  .compare { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.15fr); gap: 14px; }
-  .sys { padding: 16px; display: flex; flex-direction: column; gap: 10px; }
-  .sys header { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-  .sys header strong { font-family: var(--serif); font-size: 16px; }
-  .sys.golden { border: 2px solid var(--hub); }
-  .fld { display: grid; grid-template-columns: 92px 1fr; gap: 8px; font-size: 13.5px; align-items: baseline; padding: 6px 0; border-top: 1px dashed var(--line); }
-  .fld .n { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
-  .fld .val { word-break: break-word; }
-  .fld .conf { color: var(--bad); }
-  .fld .why { display: block; font-size: 11.5px; color: var(--muted); margin-top: 2px; }
-  .impact { margin-top: 14px; padding: 14px 16px; border-left: 4px solid var(--warn); background: var(--warn-soft); border-radius: 8px; color: var(--ink); font-size: 14px; }
-  .chatgrid { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 16px; align-items: start; }
-  .chatbox { display: flex; flex-direction: column; overflow: hidden; }
-  .chathead { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
-  .chathead .who { font: 600 15px var(--serif); }
-  .chathead .sid { margin-left: auto; font-size: 12px; color: var(--muted); }
-  .quick { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 14px; border-bottom: 1px solid var(--line); background: var(--panel-2); }
-  .quick button { font: 13px var(--sans); border: 1px solid var(--line-2); background: var(--panel); color: var(--ink); padding: 6px 12px; border-radius: 999px; cursor: pointer; text-align: left; }
-  .quick button:hover:not(:disabled) { border-color: var(--accent); background: var(--accent-soft); }
-  .quick button.guard { border-style: dashed; }
-  .quick button:disabled { opacity: .5; cursor: default; }
-  .log { height: 520px; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
-  .empty { margin: auto; text-align: center; color: var(--muted); max-width: 420px; font-size: 14px; }
-  .msg { max-width: 92%; padding: 10px 13px; border-radius: 12px; word-wrap: break-word; }
-  .msg.user { align-self: flex-end; background: var(--accent); color: var(--accent-ink); border-bottom-right-radius: 3px; white-space: pre-wrap; }
-  .msg.agent { align-self: flex-start; background: var(--panel-2); border: 1px solid var(--line); border-bottom-left-radius: 3px; }
-  .msg.error { align-self: flex-start; background: var(--bad-soft); color: var(--bad); border: 1px solid var(--bad); font-size: 13.5px; }
-  .msg.agent.streaming::after { content: ""; display: inline-block; width: 7px; height: 14px; background: var(--accent); margin-left: 2px; vertical-align: -2px; animation: blink 1s steps(1) infinite; }
-  @keyframes blink { 50% { opacity: 0; } }
-  .trail { align-self: flex-start; display: flex; flex-direction: column; gap: 5px; max-width: 92%; }
-  .step { display: inline-flex; align-items: center; gap: 7px; font: 12.5px var(--mono); color: var(--ink-2); background: var(--accent-soft); border: 1px solid var(--line); padding: 4px 10px; border-radius: 999px; width: fit-content; max-width: 100%; }
-  .step .d { width: 7px; height: 7px; border-radius: 50%; background: var(--good); flex: none; }
-  .step.on .d { background: var(--accent); animation: pulse 1s ease-in-out infinite; }
-  .step.guard { background: var(--gold-soft); }
-  @keyframes pulse { 0%, 100% { opacity: .3; } 50% { opacity: 1; } }
-  form.ask { display: flex; gap: 8px; padding: 12px 14px; border-top: 1px solid var(--line); }
-  form.ask input { flex: 1; min-width: 0; padding: 10px 12px; border: 1px solid var(--line-2); border-radius: 9px; font: inherit; background: var(--panel); color: var(--ink); }
-  .side .card { padding: 16px; margin-bottom: 14px; }
-  .side h3 { font-size: 16px; margin: 0 0 8px; }
-  .side ul { margin: 0; padding-left: 18px; font-size: 13.5px; color: var(--ink-2); }
-  .side li { margin: 5px 0; }
-  .side code { font-size: 11.5px; }
-  @media (max-width: 960px) {
-    .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .context { grid-template-columns: minmax(0, 1fr); }
-    .arch { grid-template-columns: minmax(0, 1fr); }
-    .arch .arrow { transform: rotate(90deg); height: 18px; }
-    .compare { grid-template-columns: minmax(0, 1fr); }
-    .chatgrid { grid-template-columns: minmax(0, 1fr); }
-  }
-  .topbar nav .act { opacity: .7; }
-  @media (max-width: 420px) { .topbar nav a { padding: 6px 7px; font-size: 13px; } }
-  @media (max-width: 520px) { .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); } .fact .v { font-size: 21px; } .log { height: 460px; } }
+  .views { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+  @media (max-width: 960px) { .views { grid-template-columns: minmax(0, 1fr); } }
+  .view { display: flex; flex-direction: column; gap: 10px; text-decoration: none; color: inherit; border-top: 3px solid var(--vc); transition: transform .12s, box-shadow .12s; }
+  .view:hover { transform: translateY(-2px); }
+  .view .who { display: flex; align-items: center; gap: 10px; }
+  .view .who span.a { width: 38px; height: 38px; border-radius: 50%; background: var(--vc); color: #fff; display: grid; place-items: center; font-weight: 750; font-size: 13px; flex: none; }
+  .view .who b { display: block; } .view .who small { color: var(--muted); }
+  .view p { color: var(--muted); font-size: 13.5px; margin: 0; flex: 1; }
+  .view .go { font-weight: 650; color: var(--vc); font-size: 13.5px; }
+  :root[data-theme="dark"] .view .go { color: color-mix(in srgb, var(--vc) 55%, #fff); }
+  .flow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 13px; }
+  .flow .n { padding: 8px 12px; border-radius: 10px; background: var(--panel-2); border: 1px solid var(--line); font-weight: 600; }
+  .flow .n small { display: block; font-weight: 400; color: var(--muted); font-size: 11.5px; }
+  .flow .ar { color: var(--muted); }
+  .hl li { display: flex; justify-content: space-between; gap: 10px; padding: 7px 0; border-bottom: 1px dashed var(--line); font-size: 13.5px; }
+  .hl { list-style: none; margin: 0; padding: 0; } .hl li:last-child { border-bottom: 0; }
+  .hl .pill { align-self: center; }
+  @media (max-width: 640px) { #kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; } #kpis .card { padding: 14px; } #kpis .stat { font-size: 19px; } }
+  .guest-row { display: flex; align-items: center; gap: 10px; }
+  .guest-row .a { width: 30px; height: 30px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; font-weight: 700; font-size: 11px; flex: none; }
 </style>
 </head>
-<body>
-<div class="topbar">
-  <div class="wrap">
-    <div class="logo"><span class="mark">B</span> Connected Resort <span class="muted small" style="color:inherit;opacity:.7;font-family:var(--sans)">· Grand Horizon Island Resort</span></div>
-    <nav>
-      <a href="checkin.html" data-route="/checkin"><span class="act">Act 1 ·</span> Check-in</a>
-      <a href="index.html" class="on" data-route="/"><span class="act">Act 2 ·</span> Concierge</a>
-      <a href="checkout.html" data-route="/checkout"><span class="act">Act 3 ·</span> Check-out</a>
-      <a href="flow.html" data-route="/flow"><span class="act">Act 4 ·</span> Flow &amp; governance</a>
-      <span class="badge mock" id="dpBadge"><span class="dot"></span>data: checking</span>
-      <button class="iconbtn" id="theme" type="button">Dark mode</button>
-    </nav>
+<body data-page="hub">
+<main class="br-main">
+  <div class="page-head">
+    <div><h1>Operations overview</h1><p>Every number on this page comes live from Boomi.</p></div>
+    <span class="sp"></span>
+    <button class="btn sm" type="button" id="refresh">↻ Refresh</button>
   </div>
-</div>
 
-<section class="hero">
-  <div class="wrap">
-    <p class="eyebrow">Connected Resort · Boomi data products for hospitality</p>
-    <h1>One governed guest, across every system the resort runs on.</h1>
-    <p class="lede">A resort runs on a property management system, a CRM, point-of-sale terminals and an operations roster, and each one
-      holds its own version of the guest. Boomi integrates them, resolves a single golden record in Data Hub, and publishes
-      governed data products that staff and the <strong>Boomi Resort Concierge</strong> agent can trust.</p>
-    <div class="facts" id="facts">
-      <div class="card fact"><div class="v">4</div><div class="l">source systems feeding one guest record</div></div>
-      <div class="card fact"><div class="v" id="fVip">2 of 2</div><div class="l">VIP guests whose PMS tier disagrees with CRM</div></div>
-      <div class="card fact"><div class="v" id="fFx">$1,350.00</div><div class="l">POS spend posted in USD to a EUR folio</div></div>
-      <div class="card fact"><div class="v" id="fUnl">$280.50</div><div class="l">bar tabs with no room or member number</div></div>
+  <section class="grid g4" id="kpis">
+    <div class="card"><div class="eyebrow">Guests in house</div><div class="stat" id="kIn"><div class="skel" style="width:60px;height:28px"></div></div><div class="small muted">Demo guests on Boomi</div></div>
+    <div class="card"><div class="eyebrow">Open receivables</div><div class="stat" id="kAr"><div class="skel" style="width:110px;height:28px"></div></div><div class="small muted" id="kArS">All properties, USD</div></div>
+    <div class="card"><div class="eyebrow">Data-quality flags</div><div class="stat" id="kDq"><div class="skel" style="width:50px;height:28px"></div></div><div class="small muted" id="kDqS">Currency + unlinked charges</div></div>
+    <div class="card"><div class="eyebrow">Boomi integration</div><div class="stat" id="kH"><div class="skel" style="width:90px;height:28px"></div></div><div class="small muted" id="kHS">Edge function health</div></div>
+  </section>
+
+  <h2 style="margin:28px 0 12px">Switch persona</h2>
+  <section class="views" id="views"></section>
+
+  <section class="grid g2" style="margin-top:16px">
+    <div class="card">
+      <h3>Guests in house</h3>
+      <div id="guests"><div class="skel" style="height:90px"></div></div>
     </div>
-    <p class="small muted" style="margin:8px 0 0">Figures computed from this demo's sample data for Grand Horizon Island Resort, as of 13 Oct 2026.</p>
-  </div>
-</section>
-
-<section class="section">
-  <div class="wrap">
-    <p class="eyebrow">Market context</p>
-    <h2>Why hospitality data fragments</h2>
-    <p class="lede">The pattern is common across the industry: guest data is spread across systems bought at different times for different jobs.</p>
-    <div class="context">
-      <div class="card"><h3>Systems of record grew up apart</h3><p>The PMS owns stays and rooms, the CRM owns loyalty and preferences, POS owns spend, and Operations owns who looks after whom. None of them was designed to agree with the others.</p></div>
-      <div class="card"><h3>Identity is the weak link</h3><p>Free-text membership numbers, local phone formats and mistyped emails mean the same guest looks like different people. Charges on open tabs arrive with only a name.</p></div>
-      <div class="card"><h3>AI raises the stakes</h3><p>An assistant that reads raw systems repeats their contradictions confidently. Governed data products give it one answer, with masking and approval rules applied before it speaks.</p></div>
+    <div class="card">
+      <h3>Open receivables by property</h3>
+      <div id="ar"><div class="skel" style="height:90px"></div></div>
     </div>
+  </section>
 
-    <div class="arch">
-      <div class="card col"><h4>Sources</h4>
-        <div class="item"><span class="tag OPERA_PMS">OPERA_PMS</span> profiles, stays, folios</div>
-        <div class="item"><span class="tag SALESFORCE_CRM">SALESFORCE_CRM</span> VIP tier, email, preferences</div>
-        <div class="item"><span class="tag SIMPHONY_POS">SIMPHONY_POS</span> outlet checks</div>
-        <div class="item"><span class="tag OPERATIONS">OPERATIONS</span> host roster</div>
-      </div>
-      <div class="arrow" aria-hidden="true">&rarr;</div>
-      <div class="card col"><h4>Boomi Integration</h4>
-        <div class="item mono small">CR_P1_Guest_Profile_Ingest_Cleanse</div>
-        <div class="item mono small">CR_P2_Consolidated_Folio_API</div>
-        <div class="item mono small">CR_P3_Open_Receivables_API</div>
-        <div class="item mono small">CR_P4_Guest_Full_Picture_API</div>
-        <div class="item muted small">shared: [SUB] CR Folio Source Extract</div>
-      </div>
-      <div class="arrow" aria-hidden="true">&rarr;</div>
-      <div class="card col"><h4>Boomi Data Hub</h4>
-        <div class="item">Repository <strong>Connected-Resorts</strong></div>
-        <div class="item">Model <strong>guestmaster</strong></div>
-        <div class="item small muted">Match on passportHash or loyaltyId; field-level survivorship</div>
-      </div>
-      <div class="arrow" aria-hidden="true">&rarr;</div>
-      <div class="card col"><h4>Data products &amp; agent</h4>
-        <div class="item"><code>guest_master</code></div>
-        <div class="item"><code>resort_folio_consolidated</code></div>
-        <div class="item"><code>open_receivables</code></div>
-        <div class="item small">consumed by <strong>Boomi Resort Concierge</strong> (Agent Studio)</div>
-      </div>
+  <section class="card" style="margin-top:16px">
+    <h3>How this portal connects</h3>
+    <div class="flow">
+      <span class="n">This page<small>signed-in user</small></span><span class="ar">→</span>
+      <span class="n">Supabase Edge Function<small>connected-resort · holds secrets</small></span><span class="ar">→</span>
+      <span class="n">Boomi processes<small>check-in, check-out, folio, receivables</small></span><span class="ar">+</span>
+      <span class="n">Agent Studio<small>concierge agent</small></span>
     </div>
-  </div>
-</section>
-
-<section class="section" style="background:var(--bg-2)">
-  <div class="wrap">
-    <p class="eyebrow">The problem, guest by guest</p>
-    <h2>Opera PMS and Salesforce CRM disagree. Data Hub decides.</h2>
-    <p class="lede">Pick a guest. Values that conflict between systems are marked in red; the governed record shows which system won each field and why.</p>
-    <div class="tabs" role="tablist" id="guestTabs">
-      <button class="chip" role="tab" aria-selected="true" data-g="Elena Vance">Elena Vance</button>
-      <button class="chip" role="tab" aria-selected="false" data-g="Marcus Thorne">Marcus Thorne</button>
-      <button class="chip" role="tab" aria-selected="false" data-g="Sophia Lin">Sophia Lin</button>
-    </div>
-    <div class="compare" id="compare"><div class="card sys muted">Loading…</div></div>
-    <div class="impact" id="impact"></div>
-  </div>
-</section>
-
-<section class="section" id="chat">
-  <div class="wrap">
-    <p class="eyebrow">Agentic concierge</p>
-    <h2>Ask the Boomi Resort Concierge</h2>
-    <p class="lede">The agent answers only from the three governed data products. Watch the status chips: each one is the agent calling a Boomi endpoint.</p>
-    <div class="chatgrid">
-      <div class="card chatbox">
-        <div class="chathead">
-          <span class="who">Boomi Resort Concierge</span>
-          <span class="badge mock" id="agentBadge"><span class="dot"></span>checking</span>
-          <span class="sid">session <code id="sid">new</code></span>
-        </div>
-        <div class="quick" id="quick">
-          <button data-q="What is the full picture for Elena Vance?">What is the full picture for Elena Vance?</button>
-          <button data-q="Show open receivables for Grand Horizon">Show open receivables for Grand Horizon</button>
-          <button data-q="Who owns Suite 402?">Who owns Suite 402?</button>
-          <button data-q="Show Marcus Thorne's consolidated folio">Show Marcus Thorne's consolidated folio</button>
-          <button data-q="Waive Elena's Sky Lounge charge of $520" class="guard">Waive Elena's Sky Lounge charge of $520</button>
-        </div>
-        <div class="log" id="log" aria-live="polite">
-          <div class="empty" id="empty">Pick a prompt above, or ask about a guest, a room, a folio or receivables.<br>
-            <em>Try a follow-up like "what is her folio balance?" to see session memory.</em></div>
-        </div>
-        <form class="ask" id="form" autocomplete="off">
-          <input type="text" id="input" placeholder="Ask the concierge…" aria-label="Your question">
-          <button class="btn primary" id="send" type="submit">Send</button>
-          <button class="btn" id="reset" type="button" title="Start a new conversation">Reset</button>
-        </form>
-      </div>
-      <aside class="side">
-        <div class="card">
-          <h3>Tools (Boomi data products)</h3>
-          <ul>
-            <li><code>get_guest_full_picture(guest_name)</code><br><span class="muted small">guest_master · CR_P4</span></li>
-            <li><code>get_consolidated_folio(guest_id)</code><br><span class="muted small">resort_folio_consolidated · CR_P2</span></li>
-            <li><code>get_open_receivables(subsidiary)</code><br><span class="muted small">open_receivables · CR_P3</span></li>
-          </ul>
-        </div>
-        <div class="card">
-          <h3>Guardrails</h3>
-          <ul>
-            <li>Never reveals passport hashes or payment card details.</li>
-            <li>Folio adjustments over <strong>$200 USD</strong> need human approval from the Front Office Manager.</li>
-            <li>Always states VIP status and the accountable host.</li>
-          </ul>
-        </div>
-        <div class="card small muted" id="modeNote">Checking which backends are live…</div>
-      </aside>
-    </div>
-  </div>
-</section>
-
-<footer class="foot"><div class="wrap">Boomi Connected Resort demo · credentials stay in the Supabase edge function · sample data only. <a href="checkin.html" data-route="/checkin">&larr; Act 1: guest check-in</a> · <a href="checkout.html" data-route="/checkout">Act 3: check-out &amp; room turnaround &rarr;</a></div></footer>
-
-<script src="mock-bundle.js"></script>
-<script src="common.js"></script>
-<script src="config.js"></script>
-<script src="online.js"></script>
+    <div id="health" style="margin-top:12px"></div>
+  </section>
+</main>
+<script src="br.js"></script>
 <script>
 (function () {
-  "use strict";
-  var CR = window.CR, esc = CR.esc;
-  CR.initTheme(document.getElementById("theme"));
-  if (CR.served) document.querySelectorAll("a[data-route]").forEach(function (a) { a.href = a.dataset.route; });
+  var GUESTS = ["Elena Vance", "Marcus Thorne", "Sophia Lin"], SUBS = ["Grand Horizon", "Coral Bay"];
+  var $ = BR.$, esc = BR.esc;
 
-  /* ---------------- facts from the data ---------------- */
-  (function facts() {
-    var m = window.CR_MOCK;
-    if (!m) return;
-    var vip = 0, n = 0;
-    Object.keys(m.sources).forEach(function (k) {
-      var s = m.sources[k].survivorship.find(function (r) { return r.field === "vipStatus"; });
-      if (s && s.golden !== "Standard") { n++; if (s.contested) vip++; }
-    });
-    document.getElementById("fVip").textContent = vip + " of " + n;
-    var ar = m.receivables["Grand Horizon"];
-    var mm = ar.dataQuality.issues.filter(function (i) { return i.flag === "CURRENCY_MISMATCH"; }).reduce(function (a, i) { return a + i.amountUSD; }, 0);
-    var un = ar.unlinkedItems.reduce(function (a, i) { return a + i.amountUSD; }, 0);
-    document.getElementById("fFx").textContent = CR.usd(mm);
-    document.getElementById("fUnl").textContent = CR.usd(un);
-  })();
-
-  /* ---------------- problem showcase ---------------- */
-  var IMPACT = {
-    "Elena Vance": "<strong>Impact:</strong> Opera's coded VIP2 decodes to Platinum, so a Diamond guest on her 10th anniversary would be greeted as Platinum. Her three Simphony checks ($1,350) were priced in USD on a EUR folio and are flagged <code>CURRENCY_MISMATCH</code>.",
-    "Marcus Thorne": "<strong>Impact:</strong> Opera's email <code>marcus.thorne@@thornecap</code> fails validation and is dropped, and the free-text membership <code>loy 200102</code> only matches after cleansing. Two Cabana Bar open tabs ($280.50) carry just 'THORNE M' and are flagged <code>UNLINKED_GUEST_ID</code>.",
-    "Sophia Lin": "<strong>Impact:</strong> the systems mostly agree. Data Hub still standardises her local phone <code>9123 4567</code> to E.164 and confirms no host is assigned (Standard guest). Her Horizon Spa booking is <strong>PENDING</strong> a card guarantee."
-  };
-  var SHOW = [["vipStatus", "VIP tier"], ["email", "Email"], ["phone", "Phone"], ["currentRoom", "Room"], ["accountableHost", "Host"]];
-  var cache = {};
-  function val(v) { return v == null || v === "" ? '<span class="muted">-</span>' : esc(v); }
-
-  function renderCompare(s) {
-    var row = {}; s.survivorship.forEach(function (r) { row[r.field] = r; });
-    var op = s.sources.OPERA_PMS.raw, sf = s.sources.SALESFORCE_CRM.raw;
-    var opRaw = { vipStatus: (op.VIP_CODE || "(blank)") + " → " + row.vipStatus.OPERA_PMS, email: op.EMAIL_ADDR, phone: op.PHONE_NO, currentRoom: op.ROOM_NO, accountableHost: null };
-    var sfRaw = { vipStatus: sf.VIP_Tier__c, email: sf.Email, phone: sf.Phone, currentRoom: null, accountableHost: null };
-    function differs(f, side) {
-      var r = row[f]; if (!r) return false;
-      var mine = side === "op" ? r.OPERA_PMS : r.SALESFORCE_CRM;
-      if (f === "email" && side === "op" && !r.OPERA_PMS && op.EMAIL_ADDR) return "invalid - dropped at cleanse";
-      if (mine == null) return false;
-      return String(mine).toLowerCase() !== String(r.golden || "").toLowerCase() ? "lost to " + r.winner : false;
-    }
-    function sysCard(title, tag, raw, side, note) {
-      return '<div class="card sys"><header><strong>' + title + '</strong><span class="tag ' + tag + '">' + tag + "</span></header>" +
-        SHOW.map(function (p) {
-          var d = differs(p[0], side);
-          var v = raw[p[0]];
-          var hint = v == null ? (p[0] === "currentRoom" ? "no stay data in CRM" : p[0] === "accountableHost" ? "owned by Operations" : "") : "";
-          return '<div class="fld"><span class="n">' + p[1] + '</span><span class="val' + (d ? " conf" : "") + '">' + val(v) +
-            (d ? '<span class="why">' + esc(d) + "</span>" : hint ? '<span class="why">' + hint + "</span>" : "") + "</span></div>";
-        }).join("") + (note ? '<div class="small muted">' + note + "</div>" : "") + "</div>";
-    }
-    var gold = '<div class="card sys golden"><header><strong>Governed golden record</strong><span class="tag HUB">DATA HUB</span></header>' +
-      SHOW.map(function (p) {
-        var r = row[p[0]];
-        var g = r.golden || (p[0] === "accountableHost" ? "None assigned" : "");
-        return '<div class="fld"><span class="n">' + p[1] + '</span><span class="val"><strong>' + val(g) + '</strong> <span class="tag ' + r.winner + '">' + r.winner + "</span></span></div>";
-      }).join("") +
-      '<div class="small muted">Matched on <strong>' + esc(s.match.rule) + "</strong> · " + esc(s.match.detail.replace(/^loyaltyId - /, "")) + "</div></div>";
-    document.getElementById("compare").innerHTML =
-      sysCard("Opera PMS", "OPERA_PMS", opRaw, "op", "Profile " + esc(s.sources.OPERA_PMS.recordId)) +
-      sysCard("Salesforce CRM", "SALESFORCE_CRM", sfRaw, "sf", "Contact " + esc(s.sources.SALESFORCE_CRM.recordId)) + gold;
-    document.getElementById("impact").innerHTML = IMPACT[s.guest] || "";
-  }
-  function showGuest(name) {
-    document.querySelectorAll("#guestTabs .chip").forEach(function (b) { b.setAttribute("aria-selected", b.dataset.g === name ? "true" : "false"); });
-    if (cache[name]) return renderCompare(cache[name]);
-    CR.sources(name).then(function (s) { if (s && s.survivorship) { cache[name] = s; renderCompare(s); } });
-  }
-  document.getElementById("guestTabs").addEventListener("click", function (e) {
-    var b = e.target.closest("[data-g]"); if (b) showGuest(b.dataset.g);
-  });
-  showGuest("Elena Vance");
-
-  /* ---------------- health ---------------- */
-  var agentMode = "offline";
-  CR.health().then(function (h) {
-    var note = document.getElementById("modeNote");
-    if (!h) {
-      CR.badge(document.getElementById("dpBadge"), "mock", "data: embedded");
-      CR.badge(document.getElementById("agentBadge"), "mock", "offline · sign in for the live agent");
-      note.innerHTML = "Opened as a file: answers come from the embedded sample data. Run <code>python3 demo/server.py</code> for the live Boomi endpoints and agent.";
-      return;
-    }
-    var dp = h.dataProducts || {}, live = Object.keys(dp).filter(function (k) { return dp[k].mode === "live"; }).length;
-    CR.badge(document.getElementById("dpBadge"), live === 3 ? "live" : "mock", "data: " + (live === 3 ? "Boomi live" : live ? live + "/3 live" : "mock fallback"));
-    agentMode = h.agent.mode;
-    CR.badge(document.getElementById("agentBadge"), agentMode, agentMode === "live" ? "live agent" : "offline mode");
-    note.innerHTML = "<strong>Agent:</strong> " + esc(h.agent.detail) + "<br><strong>Data products:</strong> " +
-      Object.keys(dp).map(function (k) { return esc(dp[k].process) + " - " + esc(dp[k].mode); }).join("; ");
+  BR.pages.filter(function (p) { return p.id !== "hub"; }).forEach(function (p) {
+    var a = document.createElement("a"); a.className = "card view"; a.href = p.href + (BR.embed ? "?embed=1" : "");
+    a.style.setProperty("--vc", p.persona.color);
+    a.innerHTML = '<div class="who"><span class="a">' + esc(p.persona.initials) + "</span><div><b>" + esc(p.persona.name) + "</b><small>" + esc(p.persona.role) + "</small></div></div>" +
+      "<p>" + esc(p.persona.does) + "</p><span class=\"go\">Open " + esc(p.label) + " →</span>";
+    $("#views").appendChild(a);
   });
 
-  /* ---------------- chat ---------------- */
-  var log = document.getElementById("log"), form = document.getElementById("form"), input = document.getElementById("input");
-  var send = document.getElementById("send"), quick = document.getElementById("quick"), sidEl = document.getElementById("sid");
-  var sessionId = null, busy = false, offlineCtx = {};
+  function err(el, e) { el.innerHTML = '<div class="note bad">' + esc(e.message || e) + "</div>"; }
+  function initials(n) { return String(n || "?").split(/\s+/).map(function (w) { return w[0]; }).join("").slice(0, 2).toUpperCase(); }
 
-  function scroll() { log.scrollTop = log.scrollHeight; }
-  function clearEmpty() { var e = document.getElementById("empty"); if (e) e.remove(); }
-  function bubble(cls, text) {
-    clearEmpty();
-    var el = document.createElement("div");
-    el.className = "msg " + cls;
-    if (cls === "agent") el.innerHTML = '<div class="md">' + CR.md(text) + "</div>"; else el.textContent = text;
-    log.appendChild(el); scroll(); return el;
+  function loadGuests() {
+    $("#guests").innerHTML = '<div class="skel" style="height:90px"></div>';
+    Promise.all(GUESTS.map(function (n) { return BR.call("guest", { guest_name: n }).then(function (r) { return r.data; }, function (e) { return { _err: e.message, q: n }; }); }))
+      .then(function (rs) {
+        var inHouse = 0;
+        $("#guests").innerHTML = '<ul class="hl">' + rs.map(function (d) {
+          if (d._err) return "<li><span>" + esc(d.q) + '</span><span class="pill bad">' + esc(d._err) + "</span></li>";
+          var g = (d.guests || [])[0]; if (!g) return "<li><span>" + esc(d.query && d.query.guest_name) + '</span><span class="pill">not found</span></li>';
+          var st = (g.stay || {}).status || "";
+          if (/IN_HOUSE|CHECKED_IN/i.test(st)) inHouse++;
+          return '<li><span class="guest-row"><span class="a">' + esc(initials(g.legalName)) + "</span><span><b>" + esc(g.legalName) + '</b><br><span class="small muted">' +
+            esc((g.stay || {}).room || "–") + " · " + esc(g.vipStatus || "") + "</span></span></span>" + BR.pill(st.replace(/_/g, " ") || "–", BR.statusKind(st) || "info") + "</li>";
+        }).join("") + "</ul>";
+        $("#kIn").textContent = inHouse + " / " + GUESTS.length;
+      });
   }
-  function Turn() {
-    clearEmpty();
-    var trail = document.createElement("div"); trail.className = "trail"; log.appendChild(trail);
-    var t = { trail: trail, bubble: null, text: "", done: false };
-    t.step = function (txt) {
-      trail.querySelectorAll(".step.on").forEach(function (s) { s.classList.remove("on"); });
-      var s = document.createElement("span");
-      s.className = "step on" + (/^Guardrail/.test(txt) ? " guard" : "");
-      s.innerHTML = '<span class="d"></span>' + esc(txt);
-      trail.appendChild(s); scroll();
-    };
-    t.delta = function (txt) {
-      if (!t.bubble) { t.bubble = bubble("agent", ""); t.bubble.classList.add("streaming"); }
-      t.text += txt; t.bubble.innerHTML = '<div class="md">' + CR.md(t.text) + "</div>"; scroll();
-    };
-    t.message = function (txt) {
-      if (t.bubble && !t.done) { t.bubble.classList.remove("streaming"); t.bubble.innerHTML = '<div class="md">' + CR.md(txt) + "</div>"; }
-      else bubble("agent", txt);
-      t.done = true; scroll();
-    };
-    t.finish = function () {
-      trail.querySelectorAll(".step.on").forEach(function (s) { s.classList.remove("on"); });
-      if (t.bubble) t.bubble.classList.remove("streaming");
-    };
-    return t;
+  function loadAR() {
+    $("#ar").innerHTML = '<div class="skel" style="height:90px"></div>';
+    Promise.all(SUBS.map(function (s) { return BR.call("receivables", { subsidiary: s }).then(function (r) { return r.data; }, function (e) { return { _err: e.message, subsidiary: s }; }); }))
+      .then(function (rs) {
+        var tot = 0, flags = 0, unl = 0;
+        $("#ar").innerHTML = '<ul class="hl">' + rs.map(function (d) {
+          if (d._err) return "<li><span>" + esc(d.subsidiary) + '</span><span class="pill bad">' + esc(d._err) + "</span></li>";
+          var s = d.summary || {}; tot += Number(s.totalOpenUSD || 0); flags += Number(s.flaggedItems || 0); unl += Number(s.unlinkedItems || 0);
+          return "<li><span><b>" + esc(d.property || d.subsidiary) + '</b><br><span class="small muted">' + esc(s.openFolios || 0) + " open folios · " + esc(s.openItems || 0) + " items" +
+            (s.flaggedItems ? " · " + esc(s.flaggedItems) + " flagged" : "") + '</span></span><span class="num"><b>' + BR.money(s.totalOpenUSD, "USD") + "</b></span></li>";
+        }).join("") + "</ul>";
+        $("#kAr").textContent = BR.money(tot, "USD"); $("#kDq").textContent = String(flags);
+        $("#kDqS").textContent = unl + " unlinked charge" + (unl === 1 ? "" : "s") + " to resolve";
+      });
   }
-  function setBusy(b) {
-    busy = b; send.disabled = b; input.disabled = b;
-    quick.querySelectorAll("button").forEach(function (x) { x.disabled = b; });
+  function loadHealth() {
+    BR.health().then(function (h) {
+      var ok = h && (h.ok === true || /ok|up|healthy/i.test(String(h.status || "")));
+      $("#kH").innerHTML = BR.pill(ok ? "Connected" : "Check", ok ? "good" : "warn");
+      $("#kHS").textContent = h && h.latencyMs ? "Edge → Boomi " + h.latencyMs + " ms" : "Edge function reachable";
+      $("#health").innerHTML = BR.rawDetails(h, "Health check details");
+    }).catch(function (e) { $("#kH").innerHTML = BR.pill("Unavailable", "bad"); $("#kHS").textContent = e.message; });
   }
-  function handle(t, evt, obj) {
-    if (evt === "mode") {
-      CR.badge(document.getElementById("agentBadge"), obj.mode, obj.mode === "live" ? "live agent" : "offline mode");
-      if (obj.reason) t.step("Agent Studio unavailable (" + obj.reason + ") - offline concierge");
-    } else if (evt === "start" && obj.session_id) {
-      sessionId = obj.session_id; sidEl.textContent = sessionId.slice(0, 14) + "…";
-    } else if (evt === "progress_notification") {
-      t.step(obj.content || obj.type || "Working…");
-    } else if (evt === "delta" && obj.content) {
-      t.delta(obj.content);
-    } else if (evt === "message" && obj.content) {
-      t.message(obj.content);
-    } else if (evt === "error") {
-      bubble("error", obj.content || obj.message || "Agent error"); t.done = true;
-    }
-  }
-
-  async function askServer(q, t) {
-    var ctl = new AbortController(), timer = setTimeout(function () { ctl.abort(); }, 300000);
-    try {
-      var res = await fetch(CR.apiUrl("/api/chat"), { method: "POST", headers: CR.authHeaders({ "Content-Type": "application/json" }),
-        body: JSON.stringify({ message: q, session_id: sessionId }), signal: ctl.signal });
-      if (res.status === 503 || res.status === 401) { await askOffline(q, t); return; }
-      if (!res.ok) {
-        var msg = "HTTP " + res.status;
-        try { var j = await res.json(); msg = j.error + (j.detail ? " - " + j.detail : ""); } catch (e) {}
-        bubble("error", msg); return;
-      }
-      var reader = res.body.getReader(), dec = new TextDecoder(), buf = "";
-      while (true) {
-        var r = await reader.read();
-        if (r.done) break;
-        buf += dec.decode(r.value, { stream: true }).replace(/\r\n/g, "\n");
-        var cut;
-        while ((cut = buf.indexOf("\n\n")) !== -1) {
-          var block = buf.slice(0, cut); buf = buf.slice(cut + 2);
-          var evt = "", data = "";
-          block.split("\n").forEach(function (line) {
-            if (line.indexOf("event:") === 0) evt = line.slice(6).trim();
-            else if (line.indexOf("data:") === 0) data += line.slice(5).trim();
-          });
-          if (!evt || !data || data === "null") continue;
-          var obj; try { obj = JSON.parse(data); } catch (e) { continue; }
-          handle(t, evt, obj);
-        }
-      }
-      if (!t.done) bubble("error", "The agent returned no message. Check the server console.");
-    } finally { clearTimeout(timer); }
-  }
-
-  /* File mode: a client-side version of the scripted concierge, using answers
-     pre-computed by server.py into mock-bundle.js. */
-  function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
-  function offlineRoute(q) {
-    var C = (window.CR_MOCK || {}).chat || {}, s = q.toLowerCase();
-    var names = { elena: "Elena Vance", vance: "Elena Vance", marcus: "Marcus Thorne", thorne: "Marcus Thorne", sophia: "Sophia Lin", lin: "Sophia Lin" };
-    var g = null; (s.match(/[a-z]+/g) || []).some(function (w) { if (names[w]) { g = names[w]; return true; } return false; });
-    if (!g && /\b(she|her|he|him|his|this guest)\b/.test(s)) g = offlineCtx.guest || null;
-    if (/passport/.test(s)) return C["Show me Elena Vance's passport hash"];
-    if (/card number|credit card|debit card|card details|cvv|payment card/.test(s)) return C["Show me Marcus Thorne's credit card number"];
-    if (/\b(waive|refund|adjust|comp|void|discount|write.?off|reverse)\b/.test(s)) {
-      if (g === "Elena Vance" && /sky lounge|520|48803/.test(s)) return C["Waive Elena's Sky Lounge charge of $520"];
-      var m = /\$\s?(\d[\d,]*(?:\.\d+)?)/.exec(q), amt = m ? parseFloat(m[1].replace(/,/g, "")) : null;
-      var who = g ? " on **" + g + "**'s folio" : "";
-      return { steps: ["Guardrail check: folio adjustment approval policy ($200 USD threshold)"], answer: amt == null
-        ? "Folio adjustments are governed: anything **over $200 USD** needs human approval from the **Front Office Manager**; $200 or less can be applied by the duty manager. Tell me the guest and the amount."
-        : amt > 200 ? "**Human approval required.** A " + CR.usd(amt) + " adjustment" + who + " is over the **$200 USD** automated limit, so I have **not** applied it.\n\n- Routed for approval to: **Front Office Manager**\n- Status: `PENDING_APPROVAL` - no change has been posted"
-        : "A " + CR.usd(amt) + " adjustment" + who + " is within the **$200 USD** limit, so it **can be applied by the duty manager** in Opera PMS. I don't post folio changes myself.", guest: g };
-    }
-    if (/receivable|outstanding|unpaid|owed|open balance|open folio|unlinked/.test(s)) return C[/coral|cbv/.test(s) ? "Show open receivables for Coral Bay" : "Show open receivables for Grand Horizon"];
-    if (g && /folio|bill|charge|balance|spend|invoice|account/.test(s)) return Object.assign({ guest: g }, C["Show " + g + "'s consolidated folio"]);
-    if (!g) {
-      if (/402/.test(s)) return Object.assign({ guest: "Elena Vance" }, C["Who owns Suite 402?"]);
-      if (/villa\s*7\b/.test(s)) return Object.assign({ guest: "Marcus Thorne" }, C["Who owns Ocean Villa 7?"]);
-      if (/1108/.test(s)) return Object.assign({ guest: "Sophia Lin" }, C["Who owns room 1108?"]);
-    }
-    if (g) return Object.assign({ guest: g }, C["What is the full picture for " + g + "?"]);
-    return C.help;
-  }
-  async function askOffline(q, t) {
-    CR.badge(document.getElementById("agentBadge"), "mock", "offline · sign in for the live agent");
-    if (!sessionId) { sessionId = "offline-file-" + Math.random().toString(16).slice(2, 8); sidEl.textContent = sessionId; }
-    var r = offlineRoute(q) || { steps: [], answer: "Sample data is not loaded (mock-bundle.js missing)." };
-    t.step("Understanding the request…");
-    for (var i = 0; i < r.steps.length; i++) { await sleep(450); t.step(r.steps[i]); }
-    await sleep(350); t.step("Composing answer…");
-    var toks = r.answer.match(/\S+\s*|\s+/g) || [];
-    for (var k = 0; k < toks.length; k++) { t.delta(toks[k]); if (k % 2 === 0) await sleep(12); }
-    t.message(r.answer);
-    if (r.guest) offlineCtx.guest = r.guest;
-  }
-
-  async function ask(q) {
-    if (busy || !q.trim()) return;
-    bubble("user", q); input.value = ""; setBusy(true);
-    var t = Turn();
-    try {
-      if (CR.live()) await askServer(q, t); else await askOffline(q, t);
-    } catch (err) {
-      if (CR.live() && err.name !== "AbortError") { try { await askOffline(q, t); } catch (e2) { bubble("error", "Request failed: " + err.message); } }
-      else bubble("error", err.name === "AbortError" ? "Timed out after 5 minutes. Press Reset and try again." : "Request failed: " + err.message);
-    } finally { t.finish(); setBusy(false); input.focus(); }
-  }
-  form.addEventListener("submit", function (e) { e.preventDefault(); ask(input.value); });
-  quick.addEventListener("click", function (e) { var b = e.target.closest("button[data-q]"); if (b && !busy) ask(b.dataset.q); });
-  document.getElementById("reset").addEventListener("click", function () {
-    sessionId = null; offlineCtx = {}; sidEl.textContent = "new";
-    log.innerHTML = '<div class="empty" id="empty">New conversation. Pick a prompt above, or ask anything.</div>';
-  });
-
-  /* ---------------- hand-off from Act 1: ?prompt=... ---------------- */
-  (function handoff() {
-    var params, pre;
-    try { params = new URLSearchParams(location.search); pre = (params.get("prompt") || "").trim(); } catch (e) { return; }
-    if (!pre) return;
-    params.delete("prompt");
-    try { history.replaceState(null, "", location.pathname + (params.toString() ? "?" + params.toString() : "") + location.hash); } catch (e) { /* file:// in some browsers */ }
-    input.value = pre;   /* prefilled, then sent once */
-    var chat = document.getElementById("chat");
-    if (chat && chat.scrollIntoView) chat.scrollIntoView({ block: "start" });
-    setTimeout(function () { if (!busy) ask(pre); }, 350);
-  })();
+  function all() { loadGuests(); loadAR(); loadHealth(); }
+  $("#refresh").onclick = all;
+  BR.ready(all);
 })();
 </script>
 </body>
