@@ -441,7 +441,7 @@ function formatNumber(n){ return String(n||0).replace(/\B(?=(\d{3})+(?!\d))/g, '
 var CANON_SYSTEMS    = ['Cloudflare','Coupa','Epic','Gmail','Jira','Magento','NetSuite','Oracle','QAD','Rauland','Salesforce','SAP','ServiceNow','Twilio','WhatsApp','Zendesk','Zoho'];
 var CANON_PRODUCTS   = ['Agentstudio','Boomi for SAP','Data Hub','Flow','Integration'];
 var CANON_PARTNERS   = ['Altria','Aware','Datacom','Valtatech'];
-var CANON_INDUSTRIES = ['Aviation','Cross-industry','Financial services','Healthcare','Insurance','Manufacturing','Retail'];
+var CANON_INDUSTRIES = ['Aviation','Cross-industry','Financial services','Healthcare','Hospitality','Insurance','Manufacturing','Retail'];
 // Who built it. The fifth controlled vocabulary and the sixth dropdown facet:
 // "who do I ask about this one?" is a question a shared SE portal should
 // answer in one click, and it gets more useful as more SEs contribute.
@@ -506,11 +506,87 @@ var USE_CASES = [
                     'Self-service customer care over a messaging channel'],
     misc: 'Synthetic demo: Boomi Air is a fictional airline and no real passenger or commercial data is used. Both pages sign in and call the same Supabase edge function (agent-chat), which fronts the Boomi agents; the customer page uses the passenger agent. The Ops portal runs READ_ONLY, which hides the Ops actions tab (gate change, mark delayed, apply a delay). Both pages need network access to Supabase to answer.',
     tags: ['airline', 'aviation', 'OCC', 'disruption', 'customer care', 'chat', 'check-in', 'baggage', 'catering', 'Boomi Air'],
-    url: 'use-case-prototypes/boomi-airlines.html',
+    url: 'https://saurabh1921.github.io/demo-companion/use-case-prototypes/boomi-airlines.html',
     relatedPages: [{label:'Customer care — passenger chat view', file:'use-case-prototypes/boomi-airlines-customer.html'}],
     originalPath: '',
     source: 'use-case-prototypes/boomi-airlines.html',
     added: '2026-10-14'
+  },
+  {
+    id: 'boomi-resort',
+    title: 'Boomi Resorts – connected guest journeys',
+    customer: 'Boomi Resorts (fictional resort)',
+    industry: 'Hospitality',
+    author: 'Saurabh Singh',
+    summary: 'One resort run end to end on Boomi: four guest systems cleansed and matched into a Data Hub golden guest record, three governed data products, check-in, check-out and housekeeping orchestrations, and a Boomi Agentstudio concierge, shown across five persona pages on live data.',
+    narrative: 'A resort guest exists four times over: once in the property management system, once in the CRM, once in operations and once on every point-of-sale cheque. The front desk cannot see spa and restaurant charges until check-out, the concierge cannot tell a returning VIP from a first-time walk-in, and finance chases receivables split across systems that disagree on who the guest even is.\n\nThis demo runs one resort end to end on Boomi. Opera PMS, Salesforce CRM, Operations and Simphony POS are ingested and cleansed (CR_P1), matched, merged and survived in Boomi Data Hub (Connected-Resorts universe, guestmaster domain), FX-normalised, and published as three data products — guest_master, resort_folio_consolidated and open_receivables — through Boomi web services (CR_P2, CR_P3, CR_P4). Check-in (CR_P5), check-out (CR_P6) and housekeeping room status (CR_P7) are orchestrations on top, and an Agentstudio agent, Boomi Resort Concierge, answers guest questions through three governed tools that can only see what those data products expose.\n\nFive personas, five pages: Isabel Reyes (operations manager) on the overview, Maya Santos at the front desk, Liam Carter with the AI concierge, the guest on the mobile app, and Priya Nair (integration architect) on the data flow.',
+    impact: null,
+    impactModel: null,
+    demoFlow: ['Sign in with the demo@Boomi.com account (ask Saurabh for the password). Every page calls live Boomi with no mock fallback, so you need network access.',
+               'Overview (Isabel Reyes, operations manager): live guests in house, open receivables, data-quality flags and integration health.',
+               'Data flow (Priya Nair, integration architect): pick Elena Vance and follow her through ingest and cleanse (CR_P1), Data Hub match, merge and survivorship, FX normalisation and the three data products served by CR_P2, CR_P3 and CR_P4.',
+               'Front desk (Maya Santos): check in Marcus Thorne through the CR_P5 orchestration, then try "Simulate key system down" to show the failure path. Guest, folio and receivables lookup sit alongside check-out (CR_P6) and housekeeping room status (CR_P7).',
+               'AI concierge (Liam Carter): ask "Who owns Suite 402?" and watch the Boomi Resort Concierge agent call its governed tools — get_guest_full_picture, get_consolidated_folio and get_open_receivables.',
+               'Guest app: show the live bill, then run express check-out. Mobile check-in with digital key and the concierge chat are on the same page.',
+               'Finish from the user menu with "Reset demo guests" so the next run starts clean.'],
+    partners: [],
+    partnersNote: 'No partner named — generic hospitality demo.',
+    systems: ['Oracle', 'Salesforce'],
+    adjacentSystems: ['Door-lock and digital key systems (ASSA ABLOY Vostio, dormakaba, Salto) for the real key at check-in',
+                      'A payment gateway or card vault for express check-out settlement',
+                      'Opera Cloud versus on-premise Opera — the integration route (OHIP APIs or OXI) differs',
+                      'A loyalty platform if the group runs its own programme',
+                      'Housekeeping and maintenance tools such as HotSOS or Optii'],
+    products: ['Integration', 'Data Hub', 'Agentstudio'],
+    conversations: ['Hotel or resort group with guest data split across PMS, CRM and POS — the golden guest record conversation',
+                    'Consolidated folio and receivables visibility for finance before check-out, not after',
+                    'Governed AI agents: a concierge that can only see what the data products expose',
+                    'Front-desk orchestration and failure handling when a downstream system such as door locks is down'],
+    misc: 'Synthetic demo: Boomi Resorts is fictional and no real guest data is used. Systems: Oracle covers Opera PMS and Simphony POS. Architecture: static pages on GitHub Pages, Supabase Auth sign-in, and one Supabase Edge Function (connected-resort) that holds the Boomi and Agentstudio credentials as secrets and fronts the Boomi web-service listeners and the agent, so the browser never sees a Boomi credential. Live data only, no mock fallback. Every page has light/dark, a mobile-view toggle and a persona strip to switch roles. This is a five-page asset in its own subfolder of use-case-prototypes: index.html (the overview, which the tile opens), front-desk.html, concierge.html, guest-app.html and data-flow.html, sharing br.css and br.js. The portal tests only accept flat use-case-prototypes/<name>.html paths, so the four companion pages are reached from the persona strip inside the demo rather than listed as related pages, and the tile points at the published Pages URL.',
+    tags: ['hotel', 'resort', 'hospitality', 'travel', 'guest 360', 'golden record', 'MDM', 'Opera PMS', 'Simphony POS', 'folio', 'receivables', 'check-in', 'check-out', 'housekeeping', 'digital key', 'concierge', 'Agentstudio', 'Supabase', 'multi-page'],
+    url: 'https://saurabh1921.github.io/demo-companion/use-case-prototypes/boomi-resort/index.html',
+    relatedPages: [],
+    originalPath: 'boomicompanion_projects/PAL- Phillipenes Airlines/boomi-resorts (local); live: https://saurabh1921.github.io/demo-companion/use-case-prototypes/boomi-resort/',
+    source: 'boomicompanion_projects/PAL- Phillipenes Airlines/boomi-resorts',
+    added: '2026-10-16'
+  },
+  {
+    id: 'boomi-movie-ticketing',
+    title: 'Boomi Cinemas – BIR-ready movie ticketing',
+    customer: 'Boomi Cinemas (fictional cinema, Philippines)',
+    industry: 'Retail',
+    author: 'Saurabh Singh',
+    summary: 'A cinema box office whose point-of-sale logic runs as one Boomi process: BIR-style sales invoices with a printable QR e-ticket, void slips and credit memos, Senior Citizen, PWD, National Athletes and Coaches and Solo Parent sales reports, X/Z readings and a hash-chained audit trail, plus a Boomi Agentstudio agent that books, voids and reports through the same process.',
+    narrative: 'Philippine POS and e-invoicing rules ask a seller to prove what its system does: the software name and version on every screen and document, an online/offline indicator, the principal and supplementary documents it issues, and a fixed set of reports including Senior Citizen, PWD, National Athletes and Coaches, Solo Parent and an audit trail. Cinemas add their own twist: admissions carry amusement tax and are VAT-exempt while concessions are VATable, and every discounted seat needs the holder\'s name and ID.\n\nIn this demo the whole point-of-sale brain is one Boomi web-service process (Boomi Cinemas POS e-Ticket API). It generates showtimes, books seats, computes VATable, VAT, VAT-exempt, discount and amusement tax lines, numbers invoices, void slips and credit memos in their own series, keeps a journal on the Boomi runtime, and produces every report on request. The QR printed on the sales invoice links to a public verify page that checks the ticket live against that journal, and staff can mark it admitted at the door.\n\nA Boomi Agentstudio agent (Boomi Cinemas Ticketing Agent) uses eight API tools on the same process, so a booking made in chat appears in the page\'s documents and reports, and the other way round. A BIR checklist tab maps the demo to accreditation items 10 to 13.',
+    impact: null,
+    impactModel: null,
+    demoFlow: ['Open the page: the header shows the software name and version and a live online/offline badge; the moving BIR line lists what is covered. Sign in with the demo account (ask Saurabh for the password).',
+               'Box office: pick tonight\'s show, choose two seats, set one to Senior citizen with name and ID, add popcorn, pay by GCash and issue. Boomi returns the sales invoice with the QR e-ticket at the top; print or save it as PDF.',
+               'Scan the QR with a phone (no sign-in): the verify page shows the ticket as valid, live from Boomi. Signed in, mark it admitted and scan again.',
+               'Documents: reprint the invoice (marked REPRINT), void one invoice (void slip) and refund another (credit memo).',
+               'Reports: run Senior Citizen Sales, Audit Trail (note the hash chain), X-reading and the Solo Parent report, which is empty because cinema admissions are not covered.',
+               'AI agent: ask it to book two seats for a senior citizen, then for today\'s Senior Citizen sales report — the new booking is already in it.',
+               'Finish on the BIR checklist tab, which maps each feature to items 10 to 13.'],
+    partners: [],
+    partnersNote: 'No partner named — generic cinema and POS e-invoicing demo built in Saurabh\'s own Boomi tenant.',
+    systems: [],
+    adjacentSystems: ['The BIR Electronic Invoicing System (EIS) for real e-invoice transmission',
+                      'A payment gateway or e-wallet (GCash, Maya) for card and QR payments',
+                      'A ticketing or seat-inventory platform if the chain already runs one',
+                      'An ERP or accounting system for the daily Z-reading postings',
+                      'An LGU amusement tax filing process'],
+    products: ['Integration', 'Agentstudio'],
+    conversations: ['Retail, cinema or F&B chain preparing POS or e-invoicing accreditation in the Philippines',
+                    'Showing that integration logic, not only the front end, can carry tax and document rules',
+                    'Governed AI agents that act through the same audited process as the staff screen',
+                    'Printable QR documents verified live against a central journal'],
+    misc: 'Synthetic demo: Boomi Cinemas is fictional and every TIN, MIN, PTU and accreditation number is dummy. Every document says DEMO – not a valid BIR document; tax treatment is simplified and should be confirmed with a tax adviser. Architecture: one static page on GitHub Pages, Supabase Auth sign-in, and one Supabase Edge Function (movie-ticketing) that holds the Boomi credentials and fronts the Boomi web-service listener and the Agentstudio agent. INFO and VERIFY are public so the online badge and the QR check work without sign-in; everything else needs a signed-in user. The journal lives on the Boomi runtime (Disk V2), shared by the page and the agent.',
+    tags: ['cinema', 'movie', 'ticketing', 'POS', 'e-invoicing', 'BIR', 'Philippines', 'sales invoice', 'QR code', 'senior citizen', 'PWD', 'audit trail', 'X-reading', 'Z-reading', 'VAT', 'amusement tax', 'Agentstudio', 'Supabase'],
+    url: 'https://saurabh1921.github.io/demo-companion/use-case-prototypes/boomi-movie-ticketing.html',
+    relatedPages: [],
+    originalPath: 'use-case-prototypes/boomi-movie-ticketing.html in this portal (single file); Boomi process and agent in Saurabh\'s tenant, folder BoomiAgents-RockwellCinemaTicket',
+    source: 'boomicompanion_projects/PAL- Phillipenes Airlines/pal/cinema_agent',
+    added: '2026-10-16'
   },
   {
     id: 'bvtpa-claims-integration-demo',
@@ -1220,7 +1296,7 @@ var FACET_LABELS = {industry:'Industry', systems:'Systems',
 var FACET_ALL = {industry:'All industries', systems:'All systems',
   partners:'All partners', products:'All Boomi products',
   author:'All authors', status:'All statuses'};
-var STATUS_LABELS = {published:'Published', local:'Local preview', pending:'Coming soon'};
+var STATUS_LABELS = {published:'Live demo available', local:'Local preview', pending:'Coming soon'};
 // Stable display order for each dropdown. Values come from deriveFacets(),
 // never hardcoded, so the options always match the data — this just decides
 // the ORDER they appear in: canonical order first (from the CANON_ arrays

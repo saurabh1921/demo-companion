@@ -1,0 +1,712 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Boomi Cinemas | BIR-ready movie ticketing on Boomi</title>
+<meta name="description" content="Live demo: a cinema box office that issues BIR-style e-invoices and printable QR e-tickets, with senior, PWD and athlete discounts, void and refund documents, X/Z readings and an audit trail, all run by a Boomi process and a Boomi AI agent.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Boomi Cinemas">
+<meta property="og:title" content="Boomi Cinemas | BIR-ready movie ticketing on Boomi">
+<meta property="og:description" content="Issue BIR-style e-invoices and printable QR e-tickets, run Senior, PWD, Athlete and Solo Parent sales reports, X/Z readings and an audit trail. Live on a Boomi process and AI agent.">
+<meta property="og:url" content="https://saurabh1921.github.io/demo-companion/use-case-prototypes/boomi-movie-ticketing.html">
+<meta property="og:image" content="https://saurabh1921.github.io/demo-companion/use-case-prototypes/boomi-movie-ticketing-og.jpg">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#072B55">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23FF7C66'/%3E%3Cstop offset='1' stop-color='%23A03291'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='8' fill='url(%23g)'/%3E%3Cpath d='M9 10h14v12H9z' fill='none' stroke='%23fff' stroke-width='2'/%3E%3Cpath d='M14 13l5 3-5 3z' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
+<style>
+  :root {
+    --navy: #072B55; --coral: #FF7C66; --purple: #A03291; --peri: #4B4FE2; --blue: #0085F0; --green: #0EC38B;
+    --bg: #f4f5f8; --panel: #ffffff; --panel-2: #f0f1f5; --ink: #0d1726; --muted: #5d6779; --line: #e1e4ea;
+    --accent: var(--purple); --good: #0a9a6d; --good-soft: #e3f7ef; --warn: #b26b00; --warn-soft: #fff2db; --bad: #c8322b; --bad-soft: #fde8e6;
+    --grad: linear-gradient(120deg, var(--coral), var(--purple)); --shadow: 0 1px 2px rgba(7,43,85,.06), 0 6px 20px rgba(7,43,85,.06);
+    --sans: "Poppins", system-ui, sans-serif; --mono: "JetBrains Mono", ui-monospace, Menlo, monospace; color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --bg: #071423; --panel: #0d1e33; --panel-2: #12263f; --ink: #e8eef6; --muted: #98a6ba; --line: #1f3550;
+    --good: #2fd39f; --good-soft: #0d2c24; --warn: #f0b04a; --warn-soft: #2e2410; --bad: #ff7a70; --bad-soft: #351816; --shadow: 0 6px 22px rgba(0,0,0,.35); color-scheme: dark; } }
+  :root[data-theme="dark"] {
+    --bg: #071423; --panel: #0d1e33; --panel-2: #12263f; --ink: #e8eef6; --muted: #98a6ba; --line: #1f3550;
+    --good: #2fd39f; --good-soft: #0d2c24; --warn: #f0b04a; --warn-soft: #2e2410; --bad: #ff7a70; --bad-soft: #351816; --shadow: 0 6px 22px rgba(0,0,0,.35); color-scheme: dark; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { background: var(--bg); color: var(--ink); font: 300 14.5px/1.55 var(--sans); min-height: 100vh; }
+  b, strong, h1, h2, h3, h4, th, .btn, label { font-weight: 500; }
+  h1, h2, h3 { margin: 0 0 .4em; line-height: 1.2; font-weight: 600; } h1 { font-size: 26px; } h2 { font-size: 18px; } h3 { font-size: 15px; }
+  p { margin: 0 0 .7em; } a { color: var(--blue); }
+  .mono { font-family: var(--mono); font-size: 12.5px; } .muted { color: var(--muted); } .small { font-size: 12.5px; }
+
+  /* header */
+  .top { position: sticky; top: 0; z-index: 30; background: var(--navy); color: #fff; }
+  .top .in { max-width: 1240px; margin: 0 auto; display: flex; align-items: center; gap: 12px; padding: 10px 20px; flex-wrap: wrap; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 17px; white-space: nowrap; }
+  .brand i { width: 34px; height: 34px; border-radius: 9px; background: var(--grad); display: grid; place-items: center; }
+  .brand small { display: block; font-weight: 300; font-size: 11.5px; opacity: .75; }
+  .sw { font: 500 11.5px var(--mono); padding: 4px 9px; border-radius: 7px; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.18); white-space: nowrap; cursor: pointer; }
+  .net { display: inline-flex; align-items: center; gap: 7px; font: 500 12px var(--sans); padding: 5px 11px; border-radius: 999px; background: rgba(255,255,255,.1); white-space: nowrap; }
+  .net .d { width: 9px; height: 9px; border-radius: 50%; background: #8a95a8; }
+  .net.on .d { background: var(--green); box-shadow: 0 0 0 4px rgba(14,195,139,.25); } .net.off .d { background: #ff5f57; box-shadow: 0 0 0 4px rgba(255,95,87,.25); }
+  .sp { flex: 1; }
+  .ib { height: 34px; min-width: 34px; border-radius: 9px; border: 1px solid rgba(255,255,255,.22); background: transparent; color: #fff; cursor: pointer; font: 500 12.5px var(--sans); padding: 0 10px; }
+  .ib:hover { background: rgba(255,255,255,.1); }
+  .bir { position: sticky; top: 64px; z-index: 29; background: var(--grad); color: #fff; display: flex; align-items: center; overflow: hidden; height: 32px; font-size: 12.5px; white-space: nowrap; }
+  .bir .lbl { flex: none; font-weight: 600; padding: 0 14px 0 20px; height: 100%; display: flex; align-items: center; background: rgba(7,43,85,.35); position: relative; z-index: 1; }
+  .bir .lbl a { color: #fff; text-decoration: none; }
+  .bir .track { flex: 1; overflow: hidden; mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent); -webkit-mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent); }
+  .bir .run { display: inline-flex; animation: birRun 38s linear infinite; }
+  .bir .run span { padding: 0 22px; } .bir .run span::before { content: "✓ "; font-weight: 600; }
+  .bir:hover .run { animation-play-state: paused; }
+  @keyframes birRun { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  @media (prefers-reduced-motion: reduce) { .bir .run { animation: none; } }
+  @media (max-width: 720px) { .bir { top: var(--toph, 64px); } .top .in { padding: 8px 14px; gap: 8px; } .brand small, .sw .full { display: none; } .bir { font-size: 11.5px; } .bir .lbl { padding: 0 10px 0 14px; } }
+
+  main { max-width: 1240px; margin: 0 auto; padding: 20px 20px 70px; }
+  @media (max-width: 640px) { main { padding: 14px 14px 60px; } }
+  .tabs { display: flex; gap: 4px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 4px; margin-bottom: 16px; overflow-x: auto; scrollbar-width: none; }
+  .tabs button { border: 0; background: none; color: var(--muted); font: 500 13.5px var(--sans); padding: 8px 14px; border-radius: 9px; cursor: pointer; white-space: nowrap; }
+  .tabs button.on { background: var(--navy); color: #fff; }
+  :root[data-theme="dark"] .tabs button.on { background: var(--purple); }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px; box-shadow: var(--shadow); min-width: 0; }
+  .grid { display: grid; gap: 16px; } .g2 { grid-template-columns: repeat(2, minmax(0, 1fr)); } .g3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .split { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+  @media (max-width: 980px) { .split, .g3 { grid-template-columns: minmax(0, 1fr); } }
+  @media (max-width: 640px) { .g2 { grid-template-columns: minmax(0, 1fr); } }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; height: 38px; padding: 0 15px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); font: 500 13.5px var(--sans); cursor: pointer; white-space: nowrap; text-decoration: none; }
+  .btn:hover { background: var(--panel-2); } .btn:disabled { opacity: .55; cursor: default; }
+  .btn.pri { background: var(--grad); border: 0; color: #fff; } .btn.pri:hover { filter: brightness(1.06); }
+  .btn.navy { background: var(--navy); border-color: var(--navy); color: #fff; }
+  .btn.sm { height: 31px; padding: 0 11px; font-size: 12.5px; } .btn.bad { color: var(--bad); }
+  .field { display: flex; flex-direction: column; gap: 4px; min-width: 0; } .field label { font-size: 12px; color: var(--muted); }
+  .inp { height: 38px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); padding: 0 11px; font: 300 14px var(--sans); width: 100%; outline: none; }
+  .inp:focus { border-color: var(--purple); box-shadow: 0 0 0 3px color-mix(in srgb, var(--purple) 18%, transparent); }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
+  .pill { display: inline-flex; align-items: center; gap: 5px; padding: 2px 9px; border-radius: 999px; font: 500 11.5px var(--sans); background: var(--panel-2); color: var(--muted); white-space: nowrap; }
+  .pill.good { background: var(--good-soft); color: var(--good); } .pill.warn { background: var(--warn-soft); color: var(--warn); } .pill.bad { background: var(--bad-soft); color: var(--bad); }
+  .pill.brand { background: color-mix(in srgb, var(--purple) 14%, transparent); color: var(--purple); }
+  :root[data-theme="dark"] .pill.brand { color: #e59bd9; }
+  .note { padding: 10px 12px; border-radius: 10px; background: var(--panel-2); font-size: 13px; color: var(--muted); }
+  .note.bad { background: var(--bad-soft); color: var(--bad); } .note.good { background: var(--good-soft); color: var(--good); } .note.warn { background: var(--warn-soft); color: var(--warn); }
+  .spin { width: 15px; height: 15px; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent; animation: rot .7s linear infinite; display: inline-block; vertical-align: -2px; }
+  @keyframes rot { to { transform: rotate(360deg); } }
+  .tbl-wrap { overflow-x: auto; } table.tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .tbl th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); padding: 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  .tbl td { padding: 8px; border-bottom: 1px solid var(--line); vertical-align: top; } .tbl .num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+  /* shows + seats */
+  .movie { border: 1px solid var(--line); border-radius: 12px; padding: 12px; margin-bottom: 10px; }
+  .movie h3 { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 8px; }
+  .times { display: flex; gap: 6px; flex-wrap: wrap; }
+  .times button { border: 1px solid var(--line); background: var(--panel); color: var(--ink); border-radius: 9px; padding: 6px 10px; font: 500 12.5px var(--sans); cursor: pointer; text-align: left; }
+  .times button small { display: block; font-weight: 300; color: var(--muted); font-size: 11px; }
+  .times button.on { border-color: var(--purple); box-shadow: 0 0 0 2px color-mix(in srgb, var(--purple) 30%, transparent); }
+  .screen { height: 8px; border-radius: 0 0 50% 50%; background: var(--grad); opacity: .7; margin: 4px 8% 14px; }
+  .seats { display: grid; grid-template-columns: 18px repeat(12, minmax(0, 1fr)); gap: 4px; max-width: 460px; margin: 0 auto; }
+  .seats .rl { font: 500 11px var(--mono); color: var(--muted); display: grid; place-items: center; }
+  .seat { aspect-ratio: 1; border-radius: 6px 6px 3px 3px; border: 1px solid var(--line); background: var(--panel-2); cursor: pointer; font: 500 9px var(--mono); color: var(--muted); padding: 0; }
+  .seat.taken { background: var(--line); cursor: not-allowed; opacity: .55; }
+  .seat.sel { background: var(--purple); border-color: var(--purple); color: #fff; }
+  .legend { display: flex; gap: 12px; justify-content: center; font-size: 11.5px; color: var(--muted); margin-top: 8px; }
+  .legend i { display: inline-block; width: 11px; height: 11px; border-radius: 3px; vertical-align: -1px; margin-right: 4px; border: 1px solid var(--line); }
+  .tk { display: grid; grid-template-columns: 52px 1fr; gap: 8px; align-items: start; padding: 8px 0; border-bottom: 1px dashed var(--line); }
+  .tk .s { font: 600 13px var(--mono); background: var(--panel-2); border-radius: 8px; text-align: center; padding: 8px 0; }
+  .tk .f { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; } @media (max-width: 520px) { .tk .f { grid-template-columns: 1fr; } }
+  .conc { display: grid; grid-template-columns: 1fr auto; gap: 6px 10px; align-items: center; font-size: 13.5px; }
+  .qty { display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: 9px; overflow: hidden; }
+  .qty button { width: 30px; height: 30px; border: 0; background: var(--panel-2); color: var(--ink); cursor: pointer; font-size: 15px; } .qty span { width: 30px; text-align: center; font: 500 13px var(--mono); }
+
+  /* printable documents */
+  .doc-actions { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0; }
+  .ticket { display: grid; grid-template-columns: 1fr 190px; background: var(--navy); color: #fff; border-radius: 16px; overflow: hidden; max-width: 640px; position: relative; }
+  .ticket .l { padding: 18px 20px; background: radial-gradient(500px 220px at 100% 0%, rgba(160,50,145,.55), transparent 70%), var(--navy); }
+  .ticket .r { background: #fff; color: #072B55; padding: 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; border-left: 2px dashed #c7cbd6; }
+  .ticket .r .qr svg, .ticket .r .qr img { width: 150px; height: 150px; display: block; }
+  .ticket .t { font-size: 22px; font-weight: 600; line-height: 1.15; margin: 6px 0 10px; }
+  .ticket .meta { display: grid; grid-template-columns: repeat(3, auto); gap: 6px 18px; font-size: 12px; justify-content: start; }
+  .ticket .meta span { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: .08em; opacity: .7; }
+  .ticket .meta b { font-size: 14px; font-weight: 600; }
+  .ticket .chips { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 10px; } .ticket .chips em { font-style: normal; font: 600 12px var(--mono); background: rgba(255,255,255,.14); padding: 3px 8px; border-radius: 6px; }
+  .ticket .code { font: 600 14px var(--mono); letter-spacing: .12em; margin-top: 6px; }
+  .ticket .stamp { position: absolute; top: 14px; right: 205px; transform: rotate(-10deg); border: 3px solid #ff5f57; color: #ff5f57; font: 700 18px var(--sans); padding: 2px 10px; border-radius: 8px; letter-spacing: .1em; background: rgba(7,43,85,.4); }
+  @media (max-width: 560px) { .ticket { grid-template-columns: 1fr; } .ticket .r { border-left: 0; border-top: 2px dashed #c7cbd6; } .ticket .stamp { right: 16px; } }
+  .receipt { background: #fff; color: #111; font: 12px/1.45 var(--mono); max-width: 380px; padding: 18px 18px 22px; border-radius: 6px; box-shadow: var(--shadow); border: 1px solid #e6e6e6; }
+  .receipt .c { text-align: center; } .receipt hr { border: 0; border-top: 1px dashed #999; margin: 8px 0; }
+  .receipt .lr { display: flex; justify-content: space-between; gap: 10px; } .receipt .lr span:last-child { text-align: right; white-space: nowrap; }
+  .receipt .big { font-size: 14px; font-weight: 600; } .receipt .demo { border: 1px solid #c8322b; color: #c8322b; text-align: center; padding: 4px; margin: 8px 0; font-weight: 600; }
+  .receipt .rqr { text-align: center; margin: 10px 0 2px; } .receipt .rqr svg { width: 168px; height: 168px; display: block; margin: 0 auto; }
+  .receipt .rqr .code { font-weight: 600; font-size: 14px; letter-spacing: .14em; margin-top: 2px; } .receipt .rqr div:last-child { font-size: 10.5px; color: #555; }
+  .receipt { position: relative; } .rstamp { position: absolute; top: 120px; left: 50%; transform: translateX(-50%) rotate(-12deg); border: 3px solid #c8322b; color: #c8322b; font: 700 22px var(--sans); padding: 2px 14px; border-radius: 8px; letter-spacing: .12em; background: rgba(255,255,255,.85); z-index: 2; }
+  .docs { display: flex; gap: 18px; flex-wrap: wrap; align-items: flex-start; }
+  .report { background: #fff; color: #111; border-radius: 8px; padding: 18px; border: 1px solid #e6e6e6; font-size: 12.5px; }
+  .report h3 { color: #072B55; } .report .hdr { display: flex; justify-content: space-between; gap: 14px; flex-wrap: wrap; font: 11.5px/1.5 var(--mono); border-bottom: 2px solid #072B55; padding-bottom: 8px; margin-bottom: 10px; }
+  .report table { width: 100%; border-collapse: collapse; } .report th, .report td { border-bottom: 1px solid #e3e3e3; padding: 5px 6px; text-align: left; font-size: 12px; } .report td.num, .report th.num { text-align: right; }
+  .report .tot { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 6px 16px; margin-top: 10px; font: 12px var(--mono); }
+  .report .tot div { display: flex; justify-content: space-between; border-bottom: 1px dotted #ccc; gap: 8px; }
+
+  /* verify view */
+  .verify { max-width: 520px; margin: 20px auto; text-align: center; }
+  .verify .big { font-size: 34px; font-weight: 600; margin: 8px 0; } .verify .ic { width: 84px; height: 84px; border-radius: 50%; margin: 0 auto; display: grid; place-items: center; font-size: 42px; color: #fff; }
+  /* chat */
+  .chat { display: flex; flex-direction: column; height: min(640px, calc(100vh - 230px)); min-height: 420px; }
+  .log { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding: 4px 2px 10px; }
+  .bub { max-width: 85%; padding: 9px 12px; border-radius: 12px; font-size: 14px; overflow-wrap: anywhere; }
+  .bub.me { align-self: flex-end; background: var(--navy); color: #fff; border-bottom-right-radius: 4px; }
+  .bub.ag { align-self: flex-start; background: var(--panel-2); border-bottom-left-radius: 4px; }
+  .bub.err { align-self: flex-start; background: var(--bad-soft); color: var(--bad); }
+  .bub p { margin: 3px 0; } .bub table { border-collapse: collapse; font-size: 12.5px; } .bub td, .bub th { border: 1px solid var(--line); padding: 3px 6px; } .bub img { max-width: 100%; }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; } .chips button { border: 1px solid var(--line); background: var(--panel); color: var(--ink); border-radius: 999px; padding: 5px 11px; font: 300 12.5px var(--sans); cursor: pointer; }
+  .comp { display: flex; gap: 8px; } .comp textarea { flex: 1; resize: none; height: 44px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); font: 300 14px var(--sans); padding: 10px 12px; outline: none; }
+  /* BIR checklist */
+  .bir-item { display: grid; grid-template-columns: 44px 1fr; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+  .bir-item:last-child { border-bottom: 0; } .bir-item .n { width: 40px; height: 40px; border-radius: 12px; background: var(--grad); color: #fff; display: grid; place-items: center; font-weight: 600; }
+  .bir-item ul { margin: 6px 0 0; padding-left: 18px; } .bir-item li { margin: 2px 0; }
+  /* gate */
+  .gate { max-width: 400px; margin: 40px auto; }
+  .gate .btn { width: 100%; height: 42px; } .gate .field { margin-bottom: 10px; }
+  .hide { display: none !important; }
+  #printArea { display: none; }
+  @media print {
+    body * { visibility: hidden !important; } #printArea, #printArea * { visibility: visible !important; }
+    #printArea { display: block !important; position: absolute; inset: 0; padding: 10mm; background: #fff; }
+    .ticket { -webkit-print-color-adjust: exact; print-color-adjust: exact; } .receipt, .report { box-shadow: none; border: 0; }
+  }
+</style>
+</head>
+<body>
+<!-- SEDC-NAV:START -->
+<style>
+  .sedc-nav * { box-sizing: border-box; }
+  .sedc-nav {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    margin: 0;
+    background: #072B55;
+    color: #ffffff;
+    font-family: 'Poppins',Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    font-size: 14px;
+    line-height: 1.4;
+  }
+  .sedc-nav-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 10px 20px;
+  }
+  .sedc-nav-brand {
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+  }
+  .sedc-nav-brand:hover,
+  .sedc-nav-brand:focus {
+    text-decoration: underline;
+  }
+  .sedc-nav-jump {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .sedc-nav-label {
+    white-space: nowrap;
+    color: #ffffff;
+  }
+  .sedc-nav-select {
+    font-family: inherit;
+    font-size: 13px;
+    color: #072B55;
+    background: #ffffff;
+    border: 1px solid #ffffff;
+    border-radius: 4px;
+    padding: 5px 8px;
+    max-width: 60vw;
+  }
+  .sedc-nav-rule {
+    height: 3px;
+    width: 100%;
+    background: linear-gradient(90deg,#FF7C66 0%,#A03291 100%);
+  }
+</style>
+<div class="sedc-nav" role="navigation" aria-label="SE Demo Companion navigation">
+  <div class="sedc-nav-bar">
+    <a class="sedc-nav-brand" href="../index.html" target="_top">SE Demo Companion</a>
+    <div class="sedc-nav-jump">
+      <label class="sedc-nav-label" for="sedc-nav-select">Jump to use case</label>
+      <select class="sedc-nav-select" id="sedc-nav-select" onchange="(function(sel){try{var opt=sel.options[sel.selectedIndex];var url=opt&&opt.getAttribute('data-href');if(!url)return;try{window.top.location.href=url;}catch(e){window.location.href=url;}}catch(e){}})(this)">
+        <option value="amc-fee-change-agent" data-href="./amc-fee-change-agent.html">AMC fee-change agent — Finnomena</option>
+        <option value="boomi-airlines" data-href="./boomi-airlines.html">Boomi Air Agent — Ops portal and customer care — Boomi Air (fictional airline)</option>
+        <option value="boomi-resort" data-href="./boomi-resort.html">Boomi Resorts – connected guest journeys — Boomi Resorts (fictional resort)</option>
+        <option value="boomi-movie-ticketing" data-href="./boomi-movie-ticketing.html" selected>Boomi Cinemas – BIR-ready movie ticketing — Boomi Cinemas (fictional cinema, Philippines)</option>
+        <option value="bvtpa-claims-integration-demo" data-href="./bvtpa-claims-integration-demo.html">Blue Venture TPA claims integration demo — Blue Venture TPA</option>
+        <option value="bvtpa-claims-adjudication-cio-brief" data-href="./bvtpa-claims-adjudication-cio-brief.html">Claims adjudication CIO brief — Blue Venture TPA</option>
+        <option value="delivery-status-sync-demo" data-href="./delivery-status-sync-demo.html">Delivery status sync demo — TOTO</option>
+        <option value="whatsapp-to-sap-master-agent" data-href="./whatsapp-to-sap-master-agent.html">WhatsApp to SAP master agent — Boomi internal build</option>
+        <option value="abans-sap-posting-poc-dashboard" data-href="./abans-sap-posting-poc-dashboard.html">Abans SAP posting, live POC dashboard — Abans PLC</option>
+        <option value="electromart-track-and-reschedule" data-href="./electromart-track-and-reschedule.html">ElectroMart track order and reschedule delivery — ElectroMart (demo brand)</option>
+        <option value="enterprise-portal-ai-agent" data-href="./enterprise-portal-ai-agent.html">Enterprise portal with an embedded AI agent — ITG</option>
+        <option value="o2c-qad-build-journey" data-href="./o2c-qad-build-journey.html">O2C-QAD build journey — Boomi internal build</option>
+        <option value="coupa-netsuite-vendor-bill" data-href="./coupa-netsuite-vendor-bill.html">Vendor bill pipeline, Coupa to NetSuite — Boomi internal build</option>
+        <option value="coupa-oracle-s2p-console" data-href="./coupa-oracle-s2p-console.html">Source-to-pay flow console, Coupa to Oracle Fusion — Boomi internal build</option>
+        <option value="epic-rauland-adt-nurse-call" data-href="./epic-rauland-adt-nurse-call.html">Epic ADT to Rauland Responder 5, nurse call integration — Boomi internal build</option>
+        <option value="epic-salesforce-trial-screening" data-href="./epic-salesforce-trial-screening.html">Clinical trial screening console, Epic to Salesforce — Meridian Research (demo brand)</option>
+        <option value="jc-hifi-order-tracker" data-href="./jc-hifi-order-tracker.html">JC Hi-Fi order tracker, customer self-service — JC Hi-Fi (demo brand)</option>
+        <option value="pacific-bank-onboarding" data-href="./pacific-bank-onboarding.html">Pacific onboarding console, retail bank customer onboarding — Pacific Islands Community Bank (demo brand)</option>
+        <option value="sea-data-product-assistant" data-href="./sea-data-product-assistant.html">SEA regional performance, data products and an agent over two ERPs — Boomi internal build</option>
+        <option value="servicenow-jira-incident-sync" data-href="./servicenow-jira-incident-sync.html">Incident sync prototype, ServiceNow to Jira — Boomi internal build</option>
+        <option value="zendesk-magento-order-status" data-href="./zendesk-magento-order-status.html">Order status bot and flow inspector, Zendesk to Magento — Avery Products (demo brand)</option>
+        <option value="zoho-netsuite-invoice-sync" data-href="./zoho-netsuite-invoice-sync.html">Invoice sync console, Zoho CRM to NetSuite — Boomi internal build</option>
+      </select>
+    </div>
+  </div>
+  <div class="sedc-nav-rule"></div>
+</div>
+<!-- SEDC-NAV:END -->
+
+<header class="top"><div class="in">
+  <div class="brand"><i><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M10 9l5 3-5 3z" fill="#fff"/></svg></i><div>Boomi Cinemas<small>Box office · Makati (Demo)</small></div></div>
+  <span class="sw" id="sw" title="Software name and version (BIR item 10)"><span class="full">Boomi Cinemas POS </span>v<span id="swv">…</span></span>
+  <span class="net" id="net" title="Online / offline indicator (BIR item 11)"><span class="d"></span><span id="netTxt">Checking…</span></span>
+  <span class="sp"></span>
+  <button class="ib" id="theme" type="button" title="Light / dark">◐</button>
+  <button class="ib" id="who" type="button">Sign in</button>
+</div></header>
+<div class="bir" title="Hover to pause"><div class="lbl"><a href="#" data-goto="bir">BIR-ready demo →</a></div><div class="track"><div class="run"><span>Software name &amp; version on every screen and document</span><span>Online / offline indicator</span><span>Sales invoice, void slip and credit memo</span><span>Senior Citizen, PWD, National Athlete &amp; Coach and Solo Parent sales reports</span><span>Audit trail with hash chain</span><span>X-reading and Z-reading</span><span>Printable QR e-ticket checked live on Boomi</span><span aria-hidden="true" style="display:none"></span><span aria-hidden="true">Software name &amp; version on every screen and document</span><span aria-hidden="true">Online / offline indicator</span><span aria-hidden="true">Sales invoice, void slip and credit memo</span><span aria-hidden="true">Senior Citizen, PWD, National Athlete &amp; Coach and Solo Parent sales reports</span><span aria-hidden="true">Audit trail with hash chain</span><span aria-hidden="true">X-reading and Z-reading</span><span aria-hidden="true">Printable QR e-ticket checked live on Boomi</span></div></div></div>
+
+<main>
+  <section id="verifyView" class="hide"></section>
+  <section id="gate" class="hide"><div class="card gate">
+    <h2>Sign in to the box office</h2><p class="muted small">Staff sign-in for booking, documents, reports and the AI agent. Anyone can scan a ticket QR to check it without signing in.</p>
+    <form id="gateForm"><div class="field"><label for="em">Email</label><input class="inp" id="em" type="email" autocomplete="username" required></div>
+      <div class="field"><label for="pw">Password</label><input class="inp" id="pw" type="password" autocomplete="current-password" required></div>
+      <div class="note bad hide" id="gateErr"></div><button class="btn pri" id="gateGo" type="submit" style="margin-top:6px">Sign in</button></form>
+  </div></section>
+
+  <section id="app" class="hide">
+    <nav class="tabs" id="tabs">
+      <button data-t="box" class="on">🎟 Box office</button><button data-t="docs">🧾 Documents</button><button data-t="reports">📊 Reports</button><button data-t="agent">✨ AI agent</button><button data-t="bir">✅ BIR checklist</button>
+    </nav>
+
+    <div data-p="box">
+      <div class="split">
+        <div class="card">
+          <div class="row" style="justify-content:space-between;margin-bottom:10px"><h2 style="margin:0">Now showing</h2>
+            <div class="row"><div class="field"><label for="day">Date</label><select class="inp" id="day" style="width:auto"></select></div></div></div>
+          <div id="shows"><div class="note"><span class="spin"></span> Loading showtimes from Boomi…</div></div>
+        </div>
+        <div class="card" id="cart">
+          <h2>Seats &amp; checkout</h2>
+          <div id="cartEmpty" class="note">Pick a showtime to choose seats.</div>
+          <div id="cartBody" class="hide">
+            <div class="small muted" id="showLbl"></div>
+            <div class="screen"></div>
+            <div class="seats" id="seats"></div>
+            <div class="legend"><span><i></i>Free</span><span><i style="background:var(--purple);border-color:var(--purple)"></i>Selected</span><span><i style="background:var(--line)"></i>Taken</span></div>
+            <h3 style="margin-top:14px">Tickets</h3><div id="tks"><div class="note small">Tap seats above.</div></div>
+            <h3 style="margin-top:14px">Snacks</h3><div class="conc" id="conc"></div>
+            <h3 style="margin-top:14px">Buyer &amp; payment</h3>
+            <div class="grid g2" style="gap:8px">
+              <div class="field"><label>Buyer name (optional)</label><input class="inp" id="bName" placeholder="Walk-in Customer"></div>
+              <div class="field"><label>Buyer TIN (optional)</label><input class="inp" id="bTin" placeholder="000-000-000-00000"></div>
+              <div class="field"><label>Payment</label><select class="inp" id="pay"><option>Cash</option><option>GCash</option><option>Maya</option><option>Card</option></select></div>
+            </div>
+            <div class="row" style="margin-top:14px;justify-content:space-between"><span class="muted small" id="est"></span><button class="btn pri" id="issue" type="button">Issue e-invoice &amp; ticket</button></div>
+            <div id="issueErr" class="note bad hide" style="margin-top:10px"></div>
+          </div>
+        </div>
+      </div>
+      <div id="result" class="card hide" style="margin-top:16px"></div>
+    </div>
+
+    <div data-p="docs" class="hide">
+      <div class="card">
+        <div class="row" style="justify-content:space-between"><h2 style="margin:0">Issued documents</h2><button class="btn sm" id="refreshDocs" type="button">↻ Refresh</button></div>
+        <p class="muted small" style="margin-top:6px">Principal document: <b>Sales Invoice</b>. Supplementary: <b>Void Slip</b> and <b>Credit Memo</b> (refund), each with its own number series and a link to the original invoice.</p>
+        <div id="docList"><div class="note">Loading…</div></div>
+      </div>
+      <div id="docOut" class="card hide" style="margin-top:16px"></div>
+    </div>
+
+    <div data-p="reports" class="hide">
+      <div class="card">
+        <div class="row" style="justify-content:space-between"><h2 style="margin:0">System reports</h2><div class="field"><label for="rDay">Date</label><input class="inp" type="date" id="rDay"></div></div>
+        <div class="row" id="rBtns" style="margin-top:12px"></div>
+      </div>
+      <div id="repOut" class="card hide" style="margin-top:16px"></div>
+    </div>
+
+    <div data-p="agent" class="hide">
+      <div class="card chat">
+        <div class="row" style="justify-content:space-between;margin-bottom:6px"><div><h2 style="margin:0">Boomi Cinemas ticketing agent</h2><div class="small muted">Boomi Agent Studio · books, voids and reports through the same Boomi process</div></div><button class="btn sm" id="newChat" type="button">New chat</button></div>
+        <div class="chips" id="chatChips"></div>
+        <div class="log" id="log"></div>
+        <div class="small muted" id="chatStatus" style="min-height:18px"></div>
+        <div class="comp"><textarea id="msg" placeholder="e.g. Book 2 seats for the 7:30 PM show of Starlight Over Pasig, one senior citizen"></textarea><button class="btn pri" id="send" type="button">Send</button></div>
+      </div>
+    </div>
+
+    <div data-p="bir" class="hide"><div class="card" id="birList"></div></div>
+  </section>
+  <p class="small muted" style="text-align:center;margin-top:24px">Synthetic demo · Boomi Cinemas is fictional · all TIN/MIN/PTU numbers are dummy · <b>DEMO – not a valid BIR document</b></p>
+</main>
+<div id="printArea"></div>
+
+<script>
+(function () {
+  "use strict";
+  var SB = "https://hfovtnceicailrkshvqg.supabase.co", ANON = "sb_publishable_-CP2yRvCsH6NTvpulcYfVA_oZZrKyxV", FN = SB + "/functions/v1/movie-ticketing";
+  var $ = function (s, r) { return (r || document).querySelector(s); }, $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+  var store = { get: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } }, set: function (k, v) { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) {} } };
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  function peso(n) { return n == null || isNaN(Number(n)) ? "–" : "₱" + Number(n).toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+  function fmtDate(d) { try { return new Date(d + "T00:00:00+08:00").toLocaleDateString("en-PH", { weekday: "short", day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Manila" }); } catch (e) { return d; } }
+  function fmtTime(t) { var m = /^(\d{1,2}):(\d{2})/.exec(t || ""); if (!m) return t || ""; var h = +m[1]; return ((h + 11) % 12 + 1) + ":" + m[2] + (h < 12 ? " AM" : " PM"); }
+  function manilaToday(off) { var d = new Date(Date.now() + 8 * 3600e3 + (off || 0) * 864e5); return d.toISOString().slice(0, 10); }
+
+  /* ---------- theme ---------- */
+  var th = store.get("bc_theme"); if (th) document.documentElement.setAttribute("data-theme", th);
+  $("#theme").onclick = function () {
+    var cur = document.documentElement.getAttribute("data-theme") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    var n = cur === "dark" ? "light" : "dark"; document.documentElement.setAttribute("data-theme", n); store.set("bc_theme", n);
+  };
+
+  /* ---------- auth (Supabase password grant) ---------- */
+  var session = null; try { session = JSON.parse(store.get("bc_session") || "null"); } catch (e) {}
+  function authPost(path, body) {
+    return fetch(SB + "/auth/v1/" + path, { method: "POST", headers: { apikey: ANON, "Content-Type": "application/json" }, body: JSON.stringify(body) })
+      .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); });
+  }
+  function keep(j) { session = { access: j.access_token, refresh: j.refresh_token, email: (j.user && j.user.email) || (session && session.email), exp: Date.now() + (j.expires_in || 3600) * 1000 }; store.set("bc_session", JSON.stringify(session)); }
+  function token() {
+    if (!session) return Promise.resolve(null);
+    if (session.exp - Date.now() > 60000) return Promise.resolve(session.access);
+    return authPost("token?grant_type=refresh_token", { refresh_token: session.refresh }).then(function (r) { if (!r.ok) { session = null; store.set("bc_session", null); return null; } keep(r.j); return session.access; });
+  }
+  function paintWho() { $("#who").textContent = session ? "● " + (session.email || "").split("@")[0] + " · Sign out" : "Sign in"; }
+  $("#who").onclick = function () { if (session) { session = null; store.set("bc_session", null); location.reload(); } else showGate(); };
+
+  /* ---------- API ---------- */
+  var SOFTWARE = null;
+  function pos(body) {
+    return token().then(function (t) {
+      var h = { "Content-Type": "application/json", apikey: ANON }; if (t) h.Authorization = "Bearer " + t;
+      return fetch(FN + "/pos", { method: "POST", headers: h, body: JSON.stringify(body) });
+    }).then(function (r) {
+      return r.json().catch(function () { return { ok: false, error: "HTTP " + r.status }; }).then(function (d) {
+        if (r.status === 401) { session = null; store.set("bc_session", null); paintWho(); if (!VERIFY) showGate(); }
+        if (d && d.software) { SOFTWARE = d.software; paintSoftware(); }
+        if (r.status === 503 || (d && d.offline)) setNet(false, d.error); else if (d && d.ok !== undefined) setNet(true);
+        if (!d.ok) { var e = new Error(d.error || "Request failed"); e.data = d; throw e; }
+        return d;
+      });
+    });
+  }
+  function paintSoftware() { if (SOFTWARE) { $("#swv").textContent = SOFTWARE.version + " · " + SOFTWARE.terminal; $("#sw").title = SOFTWARE.name + " v" + SOFTWARE.version + " build " + SOFTWARE.build + " · MIN " + SOFTWARE.min + " · PTU " + SOFTWARE.ptu; } }
+
+  /* ---------- online / offline indicator (BIR item 11) ---------- */
+  var netState = null;
+  function setNet(on, why) {
+    netState = on; var n = $("#net"); n.className = "net " + (on ? "on" : "off");
+    $("#netTxt").textContent = on ? "Online · Boomi" : "Offline";
+    n.title = (on ? "Connected to the Boomi POS process. Invoices are recorded centrally." : "Boomi not reachable" + (why ? " (" + why + ")" : "") + ". New sales are blocked until back online.") + " Last check " + new Date().toLocaleTimeString();
+  }
+  function ping() { pos({ action: "INFO" }).catch(function (e) { if (!e.data || e.data.offline) setNet(false, e.message); }); }
+  window.addEventListener("offline", function () { setNet(false, "browser offline"); });
+  window.addEventListener("online", ping);
+
+  /* ---------- printing ---------- */
+  function printHtml(html) { $("#printArea").innerHTML = html; setTimeout(function () { window.print(); }, 60); }
+  function qrSvg(text, cell) {
+    var q = qrcode(0, "M"); q.addData(text); q.make(); return q.createSvgTag({ cellSize: cell || 4, margin: 2, scalable: true });
+  }
+
+  /* ---------- documents ---------- */
+  function swFooter(s) {
+    s = s || SOFTWARE || {};
+    return "<hr><div class='c small'>" + esc(s.name || "Boomi Cinemas POS") + " v" + esc(s.version || "") + " build " + esc(s.build || "") + "<br>Accreditation No. " + esc(s.acc || "") +
+      "<br>Valid " + esc(s.acc_valid || "") + "<br>PTU No. " + esc(s.ptu || "") + "</div><div class='demo'>DEMO – NOT A VALID BIR DOCUMENT</div>";
+  }
+  function sellerHead(s) {
+    s = s || SOFTWARE || {};
+    return "<div class='c'><div class='big'>" + esc(s.seller || "Boomi Cinemas Inc. (Demo)") + "</div>" + esc(s.branch || "") + "<br>" + esc(s.addr || "") +
+      "<br>VAT REG TIN " + esc(s.tin || "") + "<br>MIN " + esc(s.min || "") + " · S/N " + esc(s.sn || "") + "</div>";
+  }
+  function lr(a, b, cls) { return "<div class='lr" + (cls ? " " + cls : "") + "'><span>" + a + "</span><span>" + b + "</span></div>"; }
+  function invoiceHtml(inv) {
+    var s = inv.software || SOFTWARE || {}, t = inv.tot || {}, sh = inv.show || {}, b = inv.buyer || {};
+    var admit = (inv.lines || []).filter(function (l) { return l.tax === "AMUSEMENT"; }).reduce(function (a, l) { return a + Number(l.q || 0); }, 0);
+    var stamp = inv.status && inv.status !== "ISSUED" ? "<div class='rstamp'>" + esc(inv.status) + "</div>" : "";
+    var h = "<div class='receipt'>" + stamp + sellerHead(s) +
+      "<div class='rqr'>" + qrSvg(inv.verify_url || inv.verify_code, 4) + "<div class='code'>" + esc(inv.verify_code) + "</div><div>E-TICKET · ADMIT " + admit + " · SCAN AT ENTRANCE</div></div>" +
+      "<hr><div class='c big'>SALES INVOICE</div>" + lr("No.", esc(inv.invoice_no)) + lr("Date", esc(String(inv.issued || "").replace("T", " ").slice(0, 19))) +
+      lr("Terminal", esc(inv.terminal || s.terminal || "")) + lr("Cashier", esc(inv.cashier || "")) + (inv.reprint ? lr("REPRINT", "#" + esc(inv.reprint)) : "") + "<hr>" +
+      lr("Sold to", esc(b.name || "Walk-in Customer")) + lr("TIN", esc(b.tin || "________________")) + lr("Address", esc(b.addr || "________________")) + "<hr>" +
+      "<div>" + esc(sh.title) + " (" + esc(sh.rating) + ")<br>" + esc(sh.hall) + " · " + esc(sh.type) + " · " + esc(fmtDate(sh.date)) + " " + esc(fmtTime(sh.time)) + "</div><hr>" +
+      (inv.lines || []).map(function (l) { return "<div>" + esc(l.d) + "</div>" + lr(esc(l.q) + " x " + peso(l.u) + (l.tax === "VAT" ? " V" : " X"), peso(l.amt)) + (l.disc_amt ? lr("&nbsp;&nbsp;less " + esc(l.disc_type) + " discount", "-" + peso(l.disc_amt)) : ""); }).join("") + "<hr>" +
+      lr("Gross amount", peso(t.gross)) + lr("Less discount", "-" + peso(t.discount)) + lr("TOTAL AMOUNT DUE", peso(t.total), "big") + "<hr>" +
+      lr("VATable sales", peso(t.vatable)) + lr("VAT (12%)", peso(t.vat)) + lr("VAT-exempt sales", peso(t.vat_exempt)) + lr("Zero-rated sales", peso(t.zero_rated || 0)) + lr("Amusement tax (LGU) incl.", peso(t.amusement)) + "<hr>" +
+      lr("Amount paid (" + esc(t.method || "") + ")", peso(t.paid)) + lr("Change", peso(t.change)) +
+      ((inv.discounts || []).length ? "<hr>" + inv.discounts.map(function (d) { return "<div>" + esc(d.label) + "<br>Name: " + esc(d.name) + " · ID: " + esc(d.id_no) + "<br>Signature: ______________</div>"; }).join("") : "") +
+      "<hr><div class='c small'>Verify: " + esc(inv.verify_code) + "</div>" + swFooter(s) + "</div>";
+    return h;
+  }
+  function ticketHtml(inv) {
+    var sh = inv.show || {}, admit = (inv.lines || []).filter(function (l) { return l.tax === "AMUSEMENT"; }).reduce(function (a, l) { return a + Number(l.q || 0); }, 0);
+    var stamp = inv.status && inv.status !== "ISSUED" ? "<div class='stamp'>" + esc(inv.status) + "</div>" : "";
+    return "<div class='ticket'>" + stamp + "<div class='l'><span class='pill' style='background:rgba(255,255,255,.14);color:#fff'>" + esc(sh.rating) + "</span> <span class='small' style='opacity:.8'>Boomi Cinemas · Makati</span>" +
+      "<div class='t'>" + esc(sh.title) + "</div><div class='meta'><div><span>Date</span><b>" + esc(fmtDate(sh.date)) + "</b></div><div><span>Time</span><b>" + esc(fmtTime(sh.time)) + "</b></div><div><span>Hall</span><b>" + esc(sh.hall) + "</b></div>" +
+      "<div><span>Type</span><b>" + esc(sh.type) + "</b></div><div><span>Admit</span><b>" + admit + "</b></div><div><span>Invoice</span><b>" + esc(inv.invoice_no) + "</b></div></div>" +
+      "<div class='chips'>" + (sh.seats || []).map(function (s) { return "<em>" + esc(s) + "</em>"; }).join("") + "</div></div>" +
+      "<div class='r'><div class='qr'>" + qrSvg(inv.verify_url || inv.verify_code, 4) + "</div><div class='code'>" + esc(inv.verify_code) + "</div><div class='small'>Scan at the entrance</div></div></div>";
+  }
+  function slipHtml(d) {
+    var title = d.doc === "VOID_SLIP" ? "VOID SLIP" : d.doc === "CREDIT_MEMO" ? "CREDIT MEMO (REFUND)" : d.doc;
+    return "<div class='receipt'>" + sellerHead(d.software) + "<hr><div class='c big'>" + esc(title) + "</div>" + lr("No.", esc(d.doc_no)) + lr("Date", esc(String(d.issued || "").replace("T", " ").slice(0, 19))) +
+      lr("Ref. invoice", esc(d.ref_invoice)) + lr("Amount", peso(d.amount)) + lr("Cashier", esc(d.cashier || "")) + lr("Terminal", esc(d.terminal || "")) + "<hr><div>Reason: " + esc(d.reason || "") + "</div><div style='margin-top:10px'>Approved by: ______________</div>" + swFooter(d.software) + "</div>";
+  }
+  function reportHtml(r) {
+    var s = r.software || SOFTWARE || {}, cols = r.columns || [], rows = r.rows || [], tot = r.totals || {};
+    if (!cols.length && rows.length) cols = Object.keys(rows[0]).map(function (k) { return { key: k, label: k }; });
+    var isNum = function (k) { return /gross|disc|vat|net|amount|total|amusement|sales/i.test(k); };
+    return "<div class='report'><div class='hdr'><div><b style='font-size:13px;color:#072B55'>" + esc(s.seller || "") + "</b><br>" + esc(s.branch || "") + "<br>VAT REG TIN " + esc(s.tin || "") + "</div>" +
+      "<div>" + esc(s.name || "") + " v" + esc(s.version || "") + "<br>MIN " + esc(s.min || "") + " · S/N " + esc(s.sn || "") + "<br>PTU " + esc(s.ptu || "") + "</div></div>" +
+      "<h3>" + esc(r.title || r.type) + "</h3><div class='small'>Date: " + esc(r.date || "") + " · Generated " + esc(String(r.generated || "").replace("T", " ").slice(0, 19)) + "</div>" +
+      (r.note ? "<p class='small' style='margin:6px 0'><i>" + esc(r.note) + "</i></p>" : "") +
+      (cols.length ? "<div class='tbl-wrap'><table><thead><tr>" + cols.map(function (c) { return "<th" + (isNum(c.key) ? " class='num'" : "") + ">" + esc(c.label) + "</th>"; }).join("") + "</tr></thead><tbody>" +
+        (rows.length ? rows.map(function (row) { return "<tr>" + cols.map(function (c) { var v = row[c.key]; return "<td" + (isNum(c.key) ? " class='num'" : "") + ">" + (isNum(c.key) && typeof v === "number" ? peso(v) : esc(typeof v === "object" ? JSON.stringify(v) : v)) + "</td>"; }).join("") + "</tr>"; }).join("")
+          : "<tr><td colspan='" + cols.length + "'><i>No transactions for this report and date.</i></td></tr>") + "</tbody></table></div>" : "") +
+      (Object.keys(tot).length ? "<div class='tot'>" + Object.keys(tot).map(function (k) { var v = tot[k]; return "<div><span>" + esc(k.replace(/_/g, " ")) + "</span><b>" + (typeof v === "number" && isNum(k) ? peso(v) : esc(typeof v === "object" ? JSON.stringify(v) : v)) + "</b></div>"; }).join("") + "</div>" : "") +
+      "<p class='small' style='margin-top:12px;color:#c8322b'><b>DEMO – not a valid BIR document</b></p></div>";
+  }
+  function docActions(htmlFn, extra) { return "<div class='doc-actions'><button class='btn navy sm' type='button' data-print>🖨 Print / Save PDF</button>" + (extra || "") + "</div>"; }
+
+  /* ---------- tabs ---------- */
+  function go(t) {
+    $$("#tabs button").forEach(function (b) { b.classList.toggle("on", b.dataset.t === t); });
+    $$("[data-p]").forEach(function (p) { p.classList.toggle("hide", p.dataset.p !== t); });
+    store.set("bc_tab", t);
+    if (t === "docs") loadDocs(); if (t === "bir") renderBir();
+  }
+  $$("#tabs button").forEach(function (b) { b.onclick = function () { go(b.dataset.t); }; });
+  document.addEventListener("click", function (e) {
+    var g = e.target.closest("[data-goto]"); if (g) { e.preventDefault(); if (VERIFY || !session) return; go(g.dataset.goto); window.scrollTo(0, 0); }
+    var p = e.target.closest("[data-print]"); if (p) { var host = p.closest(".card"); var docs = host && host.querySelector(".printable"); if (docs) printHtml(docs.innerHTML); }
+  });
+
+  /* ---------- box office ---------- */
+  var ST = null, show = null, sel = [], tickets = {}, items = {};
+  var TYPES = [["REGULAR", "Regular"], ["SC", "Senior citizen (RA 9994)"], ["PWD", "PWD (RA 10754)"], ["NAC", "National athlete / coach (RA 10699)"], ["SOLO_PARENT", "Solo parent (RA 11861)"]];
+  function loadShows() {
+    $("#shows").innerHTML = "<div class='note'><span class='spin'></span> Loading showtimes from Boomi… (first call after idle can take a minute)</div>";
+    pos({ action: "SHOWTIMES", date: $("#day").value }).then(function (d) { ST = d; renderShows(); renderConc(); }).catch(function (e) { $("#shows").innerHTML = "<div class='note bad'>" + esc(e.message) + "</div>"; });
+  }
+  function renderShows() {
+    var byMovie = {}; (ST.shows || []).forEach(function (s) { (byMovie[s.movie_id] = byMovie[s.movie_id] || []).push(s); });
+    $("#shows").innerHTML = (ST.movies || []).map(function (m) {
+      var ss = byMovie[m.movie_id] || [];
+      return "<div class='movie'><h3>" + esc(m.title) + " <span class='pill brand'>" + esc(m.rating) + "</span> <span class='pill'>" + esc(m.genre || "") + "</span> <span class='small muted'>" + esc(m.runtime_min || "") + " min</span></h3><div class='times'>" +
+        ss.map(function (s) { var left = (s.seats_total || 120) - (s.seats_taken || []).length; return "<button type='button' data-show='" + esc(s.show_id) + "'" + (show && show.show_id === s.show_id ? " class='on'" : "") + ">" + esc(fmtTime(s.time)) + "<small>" + esc(s.hall) + " · " + esc(s.type) + " · " + peso(s.price) + " · " + left + " left</small></button>"; }).join("") + "</div></div>";
+    }).join("") || "<div class='note'>No shows for this date.</div>";
+    $$("#shows [data-show]").forEach(function (b) { b.onclick = function () { pickShow(b.dataset.show); }; });
+  }
+  function pickShow(id) {
+    show = (ST.shows || []).find(function (s) { return s.show_id === id; }); sel = []; tickets = {};
+    $("#cartEmpty").classList.add("hide"); $("#cartBody").classList.remove("hide");
+    $("#showLbl").innerHTML = "<b>" + esc(show.title) + "</b> · " + esc(show.hall) + " · " + esc(show.type) + " · " + esc(fmtDate(show.date)) + " " + esc(fmtTime(show.time)) + " · " + peso(show.price) + " / seat";
+    renderShows(); renderSeats(); renderTks();
+    if (window.innerWidth < 980) $("#cart").scrollIntoView({ behavior: "smooth" });
+  }
+  function renderSeats() {
+    var taken = {}; (show.seats_taken || []).forEach(function (s) { taken[s] = 1; });
+    var h = ""; "ABCDEFGHIJ".split("").forEach(function (r) {
+      h += "<div class='rl'>" + r + "</div>";
+      for (var c = 1; c <= 12; c++) { var id = r + c; h += "<button type='button' class='seat" + (taken[id] ? " taken" : "") + (sel.indexOf(id) >= 0 ? " sel" : "") + "' data-seat='" + id + "'" + (taken[id] ? " disabled" : "") + " title='" + id + "'>" + c + "</button>"; }
+    });
+    $("#seats").innerHTML = h;
+    $$("#seats [data-seat]").forEach(function (b) { b.onclick = function () { var id = b.dataset.seat, i = sel.indexOf(id); if (i >= 0) sel.splice(i, 1); else if (sel.length < 8) sel.push(id); renderSeats(); renderTks(); }; });
+  }
+  function renderTks() {
+    sel.forEach(function (s) { tickets[s] = tickets[s] || { type: "REGULAR", name: "", id_no: "" }; });
+    $("#tks").innerHTML = sel.length ? sel.map(function (s) {
+      var t = tickets[s];
+      return "<div class='tk'><div class='s'>" + esc(s) + "</div><div class='f'><select class='inp' data-k='type' data-s='" + s + "'>" + TYPES.map(function (x) { return "<option value='" + x[0] + "'" + (t.type === x[0] ? " selected" : "") + ">" + esc(x[1]) + "</option>"; }).join("") + "</select>" +
+        (t.type === "REGULAR" ? "" : "<input class='inp' placeholder='Name on ID' data-k='name' data-s='" + s + "' value='" + esc(t.name) + "'><input class='inp' placeholder='ID number' data-k='id_no' data-s='" + s + "' value='" + esc(t.id_no) + "'>") + "</div></div>";
+    }).join("") : "<div class='note small'>Tap seats above (up to 8).</div>";
+    $$("#tks [data-k]").forEach(function (el) { el.oninput = el.onchange = function () { tickets[el.dataset.s][el.dataset.k] = el.value; if (el.dataset.k === "type") renderTks(); est(); }; });
+    est();
+  }
+  function renderConc() {
+    $("#conc").innerHTML = (ST.concessions || []).map(function (c) { return "<span>" + esc(c.name) + " <span class='muted small'>" + peso(c.price) + "</span></span><span class='qty'><button type='button' data-c='" + esc(c.code) + "' data-d='-1'>−</button><span id='q_" + esc(c.code) + "'>" + (items[c.code] || 0) + "</span><button type='button' data-c='" + esc(c.code) + "' data-d='1'>+</button></span>"; }).join("");
+    $$("#conc [data-c]").forEach(function (b) { b.onclick = function () { var c = b.dataset.c; items[c] = Math.max(0, Math.min(9, (items[c] || 0) + Number(b.dataset.d))); $("#q_" + c).textContent = items[c]; est(); }; });
+  }
+  function est() {
+    if (!show) return; var g = sel.length * Number(show.price || 0);
+    (ST.concessions || []).forEach(function (c) { g += (items[c.code] || 0) * Number(c.price); });
+    var disc = sel.filter(function (s) { return tickets[s] && /^(SC|PWD|NAC)$/.test(tickets[s].type); }).length;
+    $("#est").textContent = sel.length ? "Gross " + peso(g) + (disc ? " · " + disc + " discounted ticket(s): Boomi computes the final amount" : "") : "";
+  }
+  $("#issue").onclick = function () {
+    var err = $("#issueErr"); err.classList.add("hide");
+    if (!sel.length) { err.textContent = "Choose at least one seat."; err.classList.remove("hide"); return; }
+    var tk = sel.map(function (s) { var t = tickets[s]; return { seat: s, type: t.type, name: t.name.trim(), id_no: t.id_no.trim() }; });
+    var miss = tk.find(function (t) { return t.type !== "REGULAR" && (!t.name || !t.id_no); });
+    if (miss) { err.textContent = "Seat " + miss.seat + ": a discount needs the name and ID number on the card."; err.classList.remove("hide"); return; }
+    var body = { action: "BOOK", show_id: show.show_id, seats: sel.slice(), tickets: tk, items: Object.keys(items).filter(function (k) { return items[k] > 0; }).map(function (k) { return { code: k, qty: items[k] }; }),
+      buyer_name: $("#bName").value.trim(), buyer_tin: $("#bTin").value.trim(), payment: $("#pay").value };
+    var b = $("#issue"); b.disabled = true; b.innerHTML = "<span class='spin'></span> Issuing on Boomi…";
+    pos(body).then(function (d) {
+      showIssued(d.invoice, "#result"); sel = []; tickets = {}; items = {}; loadShows(); $("#cartBody").classList.add("hide"); $("#cartEmpty").classList.remove("hide"); show = null;
+    }).catch(function (e) { err.textContent = e.message; err.classList.remove("hide"); })
+      .then(function () { b.disabled = false; b.textContent = "Issue e-invoice & ticket"; });
+  };
+  function showIssued(inv, target) {
+    var el = $(target); el.classList.remove("hide");
+    el.innerHTML = "<div class='row' style='justify-content:space-between'><h2 style='margin:0'>" + (inv.status === "ISSUED" ? "✅ Issued " : "") + esc(inv.invoice_no) + "</h2><span class='pill " + (inv.status === "ISSUED" ? "good" : "bad") + "'>" + esc(inv.status) + "</span></div>" +
+      docActions() + "<div class='printable'><div class='docs'>" + invoiceHtml(inv) + "</div></div>" +
+      "<p class='small muted' style='margin-top:10px'>QR opens <a href='" + esc(inv.verify_url) + "' target='_blank' rel='noopener'>" + esc(inv.verify_url) + "</a>, a public check against the Boomi journal.</p>";
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  /* ---------- documents ---------- */
+  function loadDocs() {
+    $("#docList").innerHTML = "<div class='note'><span class='spin'></span> Loading from Boomi…</div>";
+    pos({ action: "LIST", limit: 30 }).then(function (d) {
+      var list = d.invoices || [];
+      $("#docList").innerHTML = list.length ? "<div class='tbl-wrap'><table class='tbl'><thead><tr><th>Invoice</th><th>Issued</th><th>Movie / show</th><th>Seats</th><th class='num'>Total</th><th>Status</th><th></th></tr></thead><tbody>" +
+        list.map(function (i) {
+          var st = i.status || "ISSUED", live = st === "ISSUED" || st === "ADMITTED";
+          return "<tr><td class='mono'>" + esc(i.invoice_no) + "</td><td class='small'>" + esc(String(i.issued || "").replace("T", " ").slice(0, 16)) + "</td><td>" + esc(i.title) + "<br><span class='small muted'>" + esc(i.show || "") + "</span></td><td class='mono'>" + esc((i.seats || []).join(", ")) + "</td><td class='num'>" + peso(i.total) +
+            "</td><td><span class='pill " + (live ? "good" : "bad") + "'>" + esc(st) + "</span></td><td style='white-space:nowrap'><button class='btn sm' data-act='GET' data-inv='" + esc(i.invoice_no) + "'>Reprint</button> " +
+            (live ? "<button class='btn sm bad' data-act='VOID' data-inv='" + esc(i.invoice_no) + "'>Void</button> <button class='btn sm bad' data-act='REFUND' data-inv='" + esc(i.invoice_no) + "'>Refund</button>" : "") + "</td></tr>";
+        }).join("") + "</tbody></table></div>" : "<div class='note'>No invoices yet. Issue one in the Box office tab.</div>";
+      $$("#docList [data-act]").forEach(function (b) { b.onclick = function () { docAction(b.dataset.act, b.dataset.inv, b); }; });
+    }).catch(function (e) { $("#docList").innerHTML = "<div class='note bad'>" + esc(e.message) + "</div>"; });
+  }
+  function docAction(act, inv, btn) {
+    var reason = "";
+    if (act !== "GET") { reason = prompt((act === "VOID" ? "Void " : "Refund ") + inv + ": reason?", act === "VOID" ? "Customer changed show time" : "Show cancelled"); if (!reason) return; }
+    btn.disabled = true; var t = btn.textContent; btn.innerHTML = "<span class='spin'></span>";
+    pos({ action: act, invoice_no: inv, reason: reason }).then(function (d) {
+      var out = $("#docOut"); out.classList.remove("hide");
+      if (act === "GET") showIssued(d.invoice, "#docOut");
+      else { out.innerHTML = "<h2>" + esc(d.document.doc_no) + " · " + (act === "VOID" ? "Void slip" : "Credit memo") + "</h2>" + docActions() + "<div class='printable'><div class='docs'>" + slipHtml(d.document) + "</div></div>"; out.scrollIntoView({ behavior: "smooth" }); loadDocs(); }
+    }).catch(function (e) { alert(e.message); }).then(function () { btn.disabled = false; btn.textContent = t; });
+  }
+  $("#refreshDocs").onclick = loadDocs;
+
+  /* ---------- reports ---------- */
+  var REPORTS = [["SC", "Senior Citizen Sales"], ["PWD", "PWD Sales"], ["NAC", "National Athletes & Coaches Sales"], ["SOLO_PARENT", "Solo Parent Sales"], ["AUDIT", "Audit Trail"], ["XREAD", "X-reading"], ["ZREAD", "Z-reading (end of day)"], ["ESALES", "e-Sales summary"], ["DOCS", "Documents issued"]];
+  $("#rBtns").innerHTML = REPORTS.map(function (r) { return "<button class='btn sm' type='button' data-rep='" + r[0] + "'>" + esc(r[1]) + "</button>"; }).join("");
+  $$("#rBtns [data-rep]").forEach(function (b) { b.onclick = function () { runReport(b.dataset.rep, b); }; });
+  function runReport(type, btn) {
+    if (type === "ZREAD" && !confirm("Z-reading closes the day and increments the Z counter. Continue?")) return;
+    var out = $("#repOut"); out.classList.remove("hide"); out.innerHTML = "<div class='note'><span class='spin'></span> Generating on Boomi…</div>";
+    if (btn) btn.disabled = true;
+    pos({ action: "REPORT", type: type, date: $("#rDay").value }).then(function (d) { out.innerHTML = docActions() + "<div class='printable'>" + reportHtml(d.report) + "</div>"; })
+      .catch(function (e) { out.innerHTML = "<div class='note bad'>" + esc(e.message) + "</div>"; }).then(function () { if (btn) btn.disabled = false; });
+  }
+
+  /* ---------- agent ---------- */
+  var chatSid = null; try { chatSid = sessionStorage.getItem("bc_chat"); } catch (e) {}
+  var CHIPS = ["What's showing tonight?", "Book 2 seats for the earliest show of Starlight Over Pasig, one senior citizen (Lola Remedios Cruz, ID SC-12345)", "Show today's Senior Citizen sales report", "Run the audit trail for today", "Void the last invoice: customer changed show time"];
+  $("#chatChips").innerHTML = CHIPS.map(function (c) { return "<button type='button'>" + esc(c) + "</button>"; }).join("");
+  $$("#chatChips button").forEach(function (b) { b.onclick = function () { ask(b.textContent); }; });
+  function bub(cls, html) { var d = document.createElement("div"); d.className = "bub " + cls; d.innerHTML = html; $("#log").appendChild(d); $("#log").scrollTop = $("#log").scrollHeight; return d; }
+  function md(t) { return DOMPurify.sanitize(marked.parse(t || "")).replace(/<table/g, "<div class='tbl-wrap'><table").replace(/<\/table>/g, "</table></div>"); }
+  var busy = false;
+  function ask(q) {
+    q = String(q || "").trim(); if (!q || busy) return; busy = true; $("#msg").value = ""; $("#send").disabled = true;
+    bub("me", esc(q)); var ag = null, txt = "", t0 = Date.now(); $("#chatStatus").innerHTML = "<span class='spin'></span> Agent is working… (first answer after idle can take a minute)";
+    token().then(function (t) {
+      return fetch(FN + "/chat", { method: "POST", headers: { "Content-Type": "application/json", apikey: ANON, Authorization: "Bearer " + t }, body: JSON.stringify({ message: q, session_id: chatSid }) });
+    }).then(function (r) {
+      if (!r.ok) return r.json().then(function (j) { throw new Error(j.error || "HTTP " + r.status); });
+      var rd = r.body.getReader(), dec = new TextDecoder(), buf = "", ev = null;
+      function pump() { return rd.read().then(function (x) {
+        if (x.done) return; buf += dec.decode(x.value, { stream: true }); var i;
+        while ((i = buf.indexOf("\n")) >= 0) {
+          var line = buf.slice(0, i).trim(); buf = buf.slice(i + 1);
+          if (line.indexOf("event:") === 0) { ev = line.slice(6).trim(); continue; }
+          if (line.indexOf("data:") !== 0) continue; var raw = line.slice(5).trim(); if (!raw || raw === "null") continue;
+          var d; try { d = JSON.parse(raw); } catch (e) { continue; }
+          if (d.session_id) { chatSid = d.session_id; try { sessionStorage.setItem("bc_chat", chatSid); } catch (e) {} }
+          if (ev === "progress_notification") $("#chatStatus").innerHTML = "<span class='spin'></span> " + esc(d.content || d.type || "Working…");
+          else if (ev === "message" && d.role === "agent") { txt += (txt ? "\n\n" : "") + d.content; if (!ag) ag = bub("ag", ""); ag.innerHTML = md(txt); $("#log").scrollTop = $("#log").scrollHeight; }
+        }
+        return pump(); }); }
+      return pump();
+    }).then(function () { if (!ag) bub("err", "No reply. Please try again."); $("#chatStatus").textContent = "Answered in " + Math.round((Date.now() - t0) / 1000) + " s"; })
+      .catch(function (e) { if (/session/i.test(e.message)) { chatSid = null; try { sessionStorage.removeItem("bc_chat"); } catch (x) {} } bub("err", esc(e.message)); $("#chatStatus").textContent = ""; })
+      .then(function () { busy = false; $("#send").disabled = false; });
+  }
+  $("#send").onclick = function () { ask($("#msg").value); };
+  $("#msg").addEventListener("keydown", function (e) { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); ask($("#msg").value); } });
+  $("#newChat").onclick = function () { chatSid = null; try { sessionStorage.removeItem("bc_chat"); } catch (e) {} $("#log").innerHTML = ""; $("#chatStatus").textContent = ""; };
+
+  /* ---------- BIR checklist ---------- */
+  function renderBir() {
+    var s = SOFTWARE || {};
+    var items = [
+      ["10", "Software name and version number on the system", ["Header badge on every screen: <b>" + esc(s.name || "Boomi Cinemas POS") + " v" + esc(s.version || "–") + "</b> (hover for build, MIN, PTU).", "Printed on every sales invoice, void slip, credit memo and report footer, with accreditation and PTU numbers.", "Returned by the Boomi process in every response (<span class='mono'>software</span> block), so screen and paper always match the running version."], "box"],
+      ["11", "Online / offline indicator", ["Live badge top right: <b>Online · Boomi</b> or <b>Offline</b>, refreshed every 30 s from the Boomi process (INFO action) and on browser network changes.", "When offline, new sales are blocked so no invoice is issued outside the central journal."], "box"],
+      ["12", "Principal and supplementary documents", ["<b>Principal:</b> Sales Invoice (SI-series), with VATable / VAT / VAT-exempt / zero-rated / amusement tax lines, buyer TIN, SC/PWD/NAC name, ID and signature lines, and a QR e-ticket.", "<b>Supplementary:</b> Void Slip (VS-series) and Credit Memo for refunds (CM-series), each referencing the original invoice.", "Reprints are marked REPRINT #n. The <i>Documents issued</i> report lists every series with its number range."], "docs"],
+      ["13", "System-generated reports", ["Senior Citizen Sales (RA 9994) · PWD Sales (RA 10754) · National Athletes &amp; Coaches Sales (RA 10699) · Solo Parent Sales (RA 11861: cinema admissions not covered, so it lists qualifying sales only).", "Audit Trail of every booking, reprint, void, refund, report and admission, with a SHA-256 hash chain as tamper evidence.", "X-reading, Z-reading (end of day, Z counter, accumulated grand total), e-Sales summary. All printable."], "reports"]
+    ];
+    $("#birList").innerHTML = "<h2>How this demo covers the BIR POS requirements</h2><p class='muted small'>Mapped to the accreditation checklist items 10–13. Each item runs live on the Boomi process <span class='mono'>Boomi Cinemas POS e-Ticket API</span>; the AI agent uses the same process, so documents and reports stay consistent. Demo only: not a BIR-accredited system.</p>" +
+      items.map(function (i) { return "<div class='bir-item'><div class='n'>" + i[0] + "</div><div><h3 style='margin:0'>" + i[1] + "</h3><ul>" + i[2].map(function (x) { return "<li>" + x + "</li>"; }).join("") + "</ul><button class='btn sm' type='button' data-goto='" + i[3] + "' style='margin-top:6px'>Show me →</button></div></div>"; }).join("");
+  }
+
+  /* ---------- verify (public QR check) ---------- */
+  var VERIFY = new URLSearchParams(location.search).get("v");
+  function renderVerify() {
+    var v = $("#verifyView"); v.classList.remove("hide");
+    v.innerHTML = "<div class='card verify'><div class='note'><span class='spin'></span> Checking ticket " + esc(VERIFY) + " with Boomi…</div></div>";
+    pos({ action: "VERIFY", code: VERIFY }).then(function (d) {
+      var st = d.status || (d.valid ? "VALID" : "NOT_FOUND"), ok = st === "VALID", col = ok ? "var(--good)" : st === "ADMITTED" ? "var(--warn)" : "var(--bad)";
+      var label = { VALID: "Valid ticket", ADMITTED: "Already admitted", VOIDED: "Voided ticket", REFUNDED: "Refunded ticket", NOT_FOUND: "Ticket not found" }[st] || st;
+      v.innerHTML = "<div class='card verify'><div class='ic' style='background:" + col + "'>" + (ok ? "✓" : st === "ADMITTED" ? "!" : "✕") + "</div><div class='big' style='color:" + col + "'>" + esc(label) + "</div>" +
+        (d.title ? "<h2>" + esc(d.title) + " <span class='pill brand'>" + esc(d.rating || "") + "</span></h2><p>" + esc(d.hall) + " · " + esc(fmtDate(d.date)) + " " + esc(fmtTime(d.time)) + "<br>Seats <b class='mono'>" + esc((d.seats || []).join(", ")) + "</b> · Admit " + esc(d.admit) + "<br><span class='small muted'>Invoice " + esc(d.invoice_no) + " · code " + esc(VERIFY) + "</span></p>" : "") +
+        (session && ok ? "<button class='btn pri' id='admit' type='button'>Admit guest</button>" : ok ? "<p class='small muted'>Staff: sign in to mark this ticket as admitted.</p><button class='btn' id='vs' type='button'>Staff sign in</button>" : "") +
+        "<p class='small muted' style='margin-top:14px'>Checked live against the Boomi Cinemas journal · " + new Date().toLocaleString() + "</p><a class='btn sm' href='" + location.pathname + "'>Open box office</a></div>";
+      var a = $("#admit"); if (a) a.onclick = function () { a.disabled = true; a.innerHTML = "<span class='spin'></span>"; pos({ action: "ADMIT", code: VERIFY }).then(renderVerify).catch(function (e) { alert(e.message); a.disabled = false; a.textContent = "Admit guest"; }); };
+      var vs = $("#vs"); if (vs) vs.onclick = showGate;
+    }).catch(function (e) { v.innerHTML = "<div class='card verify'><div class='note bad'>" + esc(e.message) + "</div></div>"; });
+  }
+
+  /* ---------- gate + boot ---------- */
+  function showGate() { $("#gate").classList.remove("hide"); $("#app").classList.add("hide"); $("#verifyView").classList.add("hide"); setTimeout(function () { $("#em").focus(); }, 30); }
+  $("#gateForm").onsubmit = function (e) {
+    e.preventDefault(); var er = $("#gateErr"), b = $("#gateGo"); er.classList.add("hide"); b.disabled = true; b.innerHTML = "<span class='spin'></span>";
+    authPost("token?grant_type=password", { email: $("#em").value.trim(), password: $("#pw").value }).then(function (r) {
+      if (!r.ok) { er.textContent = (r.j && (r.j.msg || r.j.error_description)) || "Sign-in failed"; er.classList.remove("hide"); b.disabled = false; b.textContent = "Sign in"; return; }
+      keep(r.j); paintWho(); $("#gate").classList.add("hide"); b.disabled = false; b.textContent = "Sign in"; if (VERIFY) renderVerify(); else startApp();
+    }).catch(function () { er.textContent = "Could not reach Supabase."; er.classList.remove("hide"); b.disabled = false; b.textContent = "Sign in"; });
+  };
+  var started = false;
+  function startApp() {
+    $("#app").classList.remove("hide"); if (started) return; started = true;
+    var days = [0, 1].map(function (o) { return manilaToday(o); });
+    $("#day").innerHTML = days.map(function (d, i) { return "<option value='" + d + "'>" + (i ? "Tomorrow" : "Today") + " · " + esc(fmtDate(d)) + "</option>"; }).join("");
+    $("#day").onchange = function () { show = null; $("#cartBody").classList.add("hide"); $("#cartEmpty").classList.remove("hide"); loadShows(); };
+    $("#rDay").value = days[0];
+    loadShows(); go(store.get("bc_tab") || "box");
+  }
+  function topH() { document.documentElement.style.setProperty("--toph", $(".top").offsetHeight + "px"); $(".bir").style.top = $(".top").offsetHeight + "px"; }
+  topH(); window.addEventListener("resize", topH);
+  paintWho(); ping(); setInterval(ping, 30000);
+  if (VERIFY) renderVerify();
+  else token().then(function (t) { if (t) startApp(); else showGate(); });
+})();
+</script>
+</body>
+</html>
