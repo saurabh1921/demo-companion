@@ -1,0 +1,488 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Concierge Desk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  html, body { min-height: 100%; }
+  .wide { max-width: 1400px; margin: 0 auto; padding: 0 16px; }
+  .topbar .wide { display: flex; align-items: center; gap: 12px 16px; min-height: 56px; flex-wrap: wrap; padding-top: 6px; padding-bottom: 6px; }
+  .topbar .agent { display: flex; align-items: center; gap: 8px; margin-left: auto; flex-wrap: wrap; font-size: 13.5px; }
+  .topbar .agent strong { font-weight: 600; }
+  .topbar a.lnk { color: var(--brand-ink); opacity: .78; text-decoration: none; font-size: 13.5px; padding: 5px 8px; border-radius: 7px; }
+  .topbar a.lnk:hover { opacity: 1; background: rgba(255, 255, 255, .1); }
+  #crAuthSlot:empty { display: none; }
+
+  /* incoming call */
+  .call { margin: 18px auto 0; display: flex; align-items: center; gap: 18px; padding: 18px 20px; border: 2px solid var(--good); background: var(--panel); flex-wrap: wrap; }
+  .ring { width: 56px; height: 56px; border-radius: 50%; background: var(--good); color: #fff; display: grid; place-items: center; position: relative; flex: none; }
+  .ring svg { width: 26px; height: 26px; }
+  .ring::before, .ring::after { content: ""; position: absolute; inset: 0; border-radius: 50%; border: 2px solid var(--good); animation: ring 1.8s ease-out infinite; }
+  .ring::after { animation-delay: .9s; }
+  @keyframes ring { from { transform: scale(1); opacity: .8; } to { transform: scale(1.7); opacity: 0; } }
+  .call .who { flex: 1 1 260px; min-width: 0; }
+  .call .lbl { font: 600 11.5px var(--sans); letter-spacing: .08em; text-transform: uppercase; color: var(--good); }
+  .call .nm { font: 600 22px var(--serif); margin: 2px 0; }
+  .call .sub { font-size: 13px; color: var(--muted); }
+  .call .btn.answer { background: var(--good); border-color: var(--good); color: #fff; font-size: 15px; padding: 10px 22px; }
+  .call .btn.answer:hover { filter: brightness(1.08); background: var(--good); }
+  .call.on { border-color: var(--line); padding: 10px 16px; }
+  .call.on .ring { width: 36px; height: 36px; }
+  .call.on .ring svg { width: 18px; height: 18px; }
+  .call.on .ring::before, .call.on .ring::after { display: none; }
+  .call.on .nm { font-size: 17px; }
+  .call.ended .ring { background: var(--muted); }
+  .call.ended .lbl { color: var(--muted); }
+  .preview { text-align: center; color: var(--muted); padding: 48px 16px; font-size: 14px; }
+
+  /* workspace */
+  .ws { display: grid; grid-template-columns: minmax(0, 400px) minmax(0, 1fr); gap: 16px; padding-top: 16px; padding-bottom: 28px; align-items: start; }
+  @media (max-width: 980px) { .ws { grid-template-columns: minmax(0, 1fr); } }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); min-width: 0; overflow: hidden; }
+  .phead { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 11px 14px; border-bottom: 1px solid var(--line); background: var(--panel-2); flex-wrap: wrap; }
+  .phead h2 { font: 600 15px var(--serif); margin: 0; }
+  .blk { padding: 14px; border-bottom: 1px solid var(--line); }
+  .blk:last-child { border-bottom: 0; }
+  .blk h3 { font: 600 11.5px var(--sans); letter-spacing: .07em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px; }
+  .gname { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .gname .n { font: 600 21px var(--serif); }
+  .vip { display: inline-flex; align-items: center; gap: 5px; font: 600 11px var(--sans); letter-spacing: .06em; text-transform: uppercase; color: #3b2a07; background: linear-gradient(135deg, #f6dc9b, #d9a646); padding: 3px 9px; border-radius: 999px; }
+  .host { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+  .avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #f0c987, #b07d2c); color: #fff; display: grid; place-items: center; font: 600 13px var(--sans); flex: none; }
+  .host .t { font-weight: 600; font-size: 14px; }
+  .host .s { font-size: 12px; color: var(--muted); }
+  dl.kv { display: grid; grid-template-columns: auto 1fr; gap: 5px 14px; margin: 0; font-size: 13.5px; }
+  dl.kv dt { color: var(--muted); }
+  dl.kv dd { margin: 0; text-align: right; overflow-wrap: anywhere; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .pchip { font: 500 12.5px var(--sans); background: var(--accent-soft); color: var(--ink); border-radius: 999px; padding: 4px 10px; }
+  .pchip.gold { background: var(--gold-soft); color: var(--gold); font-weight: 600; }
+  .hints { list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+  .hints li { font-size: 13px; padding: 7px 10px; border-radius: 8px; background: var(--warn-soft); border-left: 3px solid var(--warn); }
+  .hints li strong { color: var(--warn); }
+  .hints li.info { background: var(--panel-2); border-left-color: var(--accent); }
+  .hints li.info strong { color: var(--accent); }
+  .book { padding: 8px 0; border-top: 1px dashed var(--line); font-size: 13.5px; }
+  .book:first-of-type { border-top: 0; padding-top: 0; }
+  .book .t { font-weight: 600; }
+  .book .s { font-size: 12.5px; color: var(--muted); }
+  .bal { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .bal .v { font: 600 28px var(--serif); font-variant-numeric: tabular-nums; }
+  .bal .f { font: 500 13px var(--mono); color: var(--muted); }
+  .bysrc { width: 100%; font-size: 12.5px; margin-top: 8px; }
+  .bysrc td { padding: 5px 0; border-bottom: 1px dashed var(--line); }
+  .bysrc tr:last-child td { border-bottom: 0; }
+  .flagline { margin-top: 10px; font-size: 13px; padding: 7px 10px; border-radius: 8px; background: var(--bad-soft); color: var(--ink); border-left: 3px solid var(--bad); }
+  .flagline.ok { background: var(--good-soft); border-left-color: var(--good); }
+  .src { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-top: 12px; font: 11px var(--mono); color: var(--muted); }
+  .src .badge { font-size: 10px; padding: 2px 7px; }
+  .skel { height: 12px; border-radius: 6px; background: linear-gradient(90deg, var(--bg-2), var(--panel-2), var(--bg-2)); background-size: 200% 100%; animation: shimmer 1.2s linear infinite; margin: 8px 0; }
+  @keyframes shimmer { to { background-position: -200% 0; } }
+
+  /* assistant */
+  .chatbox { display: flex; flex-direction: column; }
+  .chathead .sid { font-size: 12px; color: var(--muted); }
+  .quick { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 14px; border-bottom: 1px solid var(--line); background: var(--panel-2); }
+  .quick button { font: 13px var(--sans); border: 1px solid var(--line-2); background: var(--panel); color: var(--ink); padding: 7px 12px; border-radius: 999px; cursor: pointer; text-align: left; }
+  .quick button:hover:not(:disabled) { border-color: var(--accent); background: var(--accent-soft); }
+  .quick button.guard { border-style: dashed; border-color: var(--gold); }
+  .quick button.lead { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .quick button.lead:hover:not(:disabled) { filter: brightness(1.08); background: var(--accent); }
+  .quick button:disabled { opacity: .5; cursor: default; }
+  .log { height: min(600px, calc(100vh - 300px)); min-height: 380px; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+  .empty { margin: auto; text-align: center; color: var(--muted); max-width: 440px; font-size: 14px; }
+  .msg { max-width: 92%; padding: 10px 13px; border-radius: 12px; overflow-wrap: anywhere; }
+  .msg.user { align-self: flex-end; background: var(--accent); color: var(--accent-ink); border-bottom-right-radius: 3px; white-space: pre-wrap; }
+  .msg.agent { align-self: flex-start; background: var(--panel-2); border: 1px solid var(--line); border-bottom-left-radius: 3px; }
+  .msg.error { align-self: flex-start; background: var(--bad-soft); color: var(--bad); border: 1px solid var(--bad); font-size: 13.5px; }
+  .msg.agent.streaming::after { content: ""; display: inline-block; width: 7px; height: 14px; background: var(--accent); margin-left: 2px; vertical-align: -2px; animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  .trail { align-self: flex-start; display: flex; flex-direction: column; gap: 5px; max-width: 92%; }
+  .step { display: inline-flex; align-items: center; gap: 7px; font: 12.5px var(--mono); color: var(--ink-2); background: var(--accent-soft); border: 1px solid var(--line); padding: 4px 10px; border-radius: 999px; width: fit-content; max-width: 100%; }
+  .step .d { width: 7px; height: 7px; border-radius: 50%; background: var(--good); flex: none; }
+  .step.on .d { background: var(--accent); animation: pulse 1s ease-in-out infinite; }
+  .step.guard { background: var(--gold-soft); }
+  @keyframes pulse { 0%, 100% { opacity: .3; } 50% { opacity: 1; } }
+  form.ask { display: flex; gap: 8px; padding: 12px 14px; border-top: 1px solid var(--line); }
+  form.ask input { flex: 1; min-width: 0; padding: 10px 12px; border: 1px solid var(--line-2); border-radius: 9px; font: inherit; background: var(--panel); color: var(--ink); }
+  .guardnote { padding: 10px 14px; border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); background: var(--panel-2); }
+  @media (max-width: 640px) { .call { gap: 12px; padding: 14px; } .call .btn.answer { width: 100%; justify-content: center; } .log { height: 460px; } }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="wide">
+    <div class="logo"><span class="mark">GH</span> Grand Horizon · Concierge desk</div>
+    <a class="lnk" href="guest-app.html">Guest app</a>
+    <a class="lnk" href="checkin.html">Act 1 · Check-in</a>
+    <div class="agent">
+      <span>Agent: <strong>Boomi Resort Concierge</strong></span>
+      <span class="badge mock" id="agentBadge"><span class="dot"></span>checking</span>
+      <span class="badge mock" id="dpBadge"><span class="dot"></span>data: checking</span>
+      <span id="crAuthSlot"></span>
+      <button class="iconbtn" id="theme" type="button">Dark mode</button>
+    </div>
+  </div>
+</div>
+
+<div class="wide">
+  <section class="card call" id="call" aria-live="polite">
+    <div class="ring" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg></div>
+    <div class="who">
+      <div class="lbl" id="callLbl">Incoming call</div>
+      <div class="nm" id="callWho">Elena Vance · Suite 402 · Diamond</div>
+      <div class="sub" id="callSub">Calling from the Grand Horizon guest app</div>
+    </div>
+    <button class="btn answer" id="answer" type="button">Answer</button>
+  </section>
+
+  <p class="preview" id="preview">Answer the call to open Elena's governed guest snapshot and the Boomi Resort Concierge.</p>
+
+  <div class="ws" id="ws" hidden>
+    <aside class="panel" aria-label="Guest snapshot">
+      <div class="phead"><h2>Guest snapshot</h2><span class="small muted">Boomi data products</span></div>
+      <div class="blk" id="bGuest"><h3>Guest</h3><div class="skel" style="width:60%"></div><div class="skel"></div></div>
+      <div class="blk" id="bStay"><h3>Stay</h3><div class="skel" style="width:70%"></div></div>
+      <div class="blk" id="bPrefs"><h3>Preferences &amp; restrictions</h3><div class="skel"></div><div class="skel" style="width:80%"></div></div>
+      <div class="blk" id="bBook"><h3>Amenity bookings</h3><div class="skel" style="width:75%"></div></div>
+      <div class="blk" id="bFolio"><h3>Folio</h3><div class="skel" style="width:50%"></div><div class="skel"></div></div>
+    </aside>
+
+    <section class="panel chatbox" aria-label="Assistant">
+      <div class="phead chathead">
+        <h2>Assistant · Boomi Resort Concierge</h2>
+        <span class="sid">session <code id="sid">new</code></span>
+      </div>
+      <div class="quick" id="quick">
+        <button type="button" class="lead" data-k="anniversary">Plan tonight's anniversary surprise</button>
+        <button type="button" data-k="spend">What has she spent so far?</button>
+        <button type="button" class="guard" data-k="waive">Waive her Sky Lounge charge of $520</button>
+        <button type="button" data-k="butler">Who is her butler and what does she prefer?</button>
+      </div>
+      <div class="log" id="log" aria-live="polite">
+        <div class="empty" id="empty">Elena is on the line. Pick a quick action above, or ask the concierge anything about her stay.<br>
+          <em>The agent answers only from Boomi's governed data products.</em></div>
+      </div>
+      <form class="ask" id="form" autocomplete="off">
+        <input type="text" id="input" placeholder="Ask about Elena's stay, folio or preferences…" aria-label="Your question">
+        <button class="btn primary" id="send" type="submit">Send</button>
+        <button class="btn" id="reset" type="button" title="Start a new conversation">Reset</button>
+      </form>
+      <div class="guardnote">Guardrails: no passport hashes or card numbers · folio adjustments over <strong>$200 USD</strong> pause for Front Office Manager approval.</div>
+    </section>
+  </div>
+</div>
+
+<script src="mock-bundle.js"></script>
+<script src="common.js"></script>
+<script>
+(function () {
+  "use strict";
+  var CR = window.CR, esc = CR.esc, M = window.CR_MOCK || {};
+  var GUEST_ID = "LOY-200101", GUEST_NAME = "Elena Vance";
+  var $ = function (id) { return document.getElementById(id); };
+  CR.initTheme($("theme"));
+
+  /* ---------------- helpers ---------------- */
+  var MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  function parts(iso) { var m = /^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}:\d{2}))?/.exec(String(iso || "")); return m ? { y: +m[1], mo: +m[2] - 1, d: +m[3], t: m[4] || "" } : null; }
+  function day(iso, yr) { var p = parts(iso); return p ? p.d + " " + MON[p.mo] + (yr ? " " + p.y : "") : String(iso || "-"); }
+  function splitHost(h) { var m = /^(.*?)\s*\((.*)\)\s*$/.exec(String(h || "")); return m ? { name: m[1], role: m[2] } : { name: String(h || ""), role: "" }; }
+  function initials(n) { return String(n || "").split(/\s+/).filter(Boolean).slice(0, 2).map(function (w) { return w.charAt(0); }).join("").toUpperCase(); }
+  function isLive(d) { return !!d && d._servedBy === "boomi-live"; }
+  function src(product, process, d, ms) {
+    var live = isLive(d);
+    var why = live ? "Served live by Boomi" : (d && d._servedBy ? d._servedBy : "sample data") + (d && d._fallbackReason ? " · " + d._fallbackReason : "");
+    return '<div class="src"><span title="' + esc(process) + '">' + esc(product) + " · " + esc(process.split("_").slice(0, 2).join("_")) + (ms != null ? " · " + ms + " ms" : "") + '</span><span class="badge ' + (live ? "live" : "mock") +
+      '" title="' + esc(why) + '"><span class="dot"></span>' + (live ? "live" : "replay") + "</span></div>";
+  }
+  var SYS = { OPERA_PMS: "Opera PMS", SIMPHONY_POS: "Simphony POS" };
+
+  /* ---------------- guest snapshot ---------------- */
+  var HINTS = [
+    [/hypoallergenic/i, "warn", "Hypoallergenic", "no fresh flowers, feather pillows or scented candles and diffusers in the suite"],
+    [/still water/i, "warn", "Still water only", "no sparkling water in set-ups or turndown"],
+    [/french/i, "info", "French-speaking butler", "brief and assign a French-speaking butler or server"],
+    [/anniversary/i, "info", "Anniversary", "celebration on record: plan with the restrictions above"]
+  ];
+  function renderGuest(d, ms) {
+    var g = (d && d.guests || [])[0];
+    var S = src("guest_master", "CR_P4_Guest_Full_Picture_API", d, ms);
+    if (!g) {
+      ["bGuest", "bStay", "bPrefs", "bBook"].forEach(function (id) { $(id).innerHTML = '<h3>' + $(id).querySelector("h3").innerHTML + '</h3><p class="small muted" style="margin:0">' + esc((d && (d.message || d.error)) || "No governed profile returned") + "</p>"; });
+      $("bBook").innerHTML += S;
+      return;
+    }
+    var h = splitHost(g.accountableHost), st = g.stay || {};
+    $("callWho").textContent = g.legalName + " · " + (st.room || "Suite 402") + " · " + (g.vipStatus || "");
+    $("bGuest").innerHTML = "<h3>Guest</h3>" +
+      '<div class="gname"><span class="n">' + esc(g.legalName) + "</span>" + (g.isVip ? '<span class="vip">&#9670; ' + esc(g.vipStatus) + " · VIP</span>" : '<span class="badge">' + esc(g.vipStatus || "Standard") + "</span>") + "</div>" +
+      '<dl class="kv" style="margin-top:8px"><dt>Loyalty</dt><dd class="mono">' + esc(g.guestId) + "</dd><dt>Phone</dt><dd>" + esc(g.phone || "-") + "</dd><dt>Email</dt><dd>" + esc(g.email || "-") +
+      "</dd><dt>Currency</dt><dd>" + esc(g.preferredCurrency || "-") + "</dd></dl>" +
+      (h.name ? '<div class="host"><span class="avatar" aria-hidden="true">' + esc(initials(h.name)) + '</span><div><div class="t">' + esc(h.name) + '</div><div class="s">Accountable host · ' + esc(h.role || "") + "</div></div></div>"
+        : '<p class="small muted">No accountable host assigned.</p>') + S;
+    $("bStay").innerHTML = "<h3>Stay</h3>" +
+      '<dl class="kv"><dt>Room</dt><dd><strong>' + esc(st.room || "-") + "</strong></dd><dt>Dates</dt><dd>" + esc(day(st.checkIn)) + " &rarr; " + esc(day(st.checkOut, true)) +
+      '</dd><dt>Status</dt><dd><span class="tag ' + (st.status === "IN_HOUSE" ? "ok" : "flag") + '">' + esc(st.status || "-") + "</span></dd></dl>" + S;
+    var prefs = String(g.preferences || "").split(/;\s*/).filter(Boolean);
+    var hints = HINTS.filter(function (x) { return x[0].test(g.preferences || ""); });
+    $("bPrefs").innerHTML = "<h3>Preferences &amp; restrictions</h3>" +
+      (prefs.length ? '<div class="chips">' + prefs.map(function (p) { return '<span class="pchip' + (/anniversary/i.test(p) ? " gold" : "") + '">' + esc(p) + "</span>"; }).join("") + "</div>" : '<p class="small muted">None on record.</p>') +
+      (hints.length ? '<ul class="hints">' + hints.map(function (x) { return '<li class="' + x[1] + '"><strong>' + esc(x[2]) + ":</strong> " + esc(x[3]) + "</li>"; }).join("") + "</ul>" : "") + S;
+    var books = g.amenityBookings || [];
+    $("bBook").innerHTML = "<h3>Amenity bookings</h3>" + (books.length ? books.map(function (b) {
+      var p = parts(b.start) || {};
+      return '<div class="book"><div class="t">' + esc(b.description) + '</div><div class="s">' + esc(day(b.start)) + (p.t ? " · " + esc(p.t) : "") + " · " + esc(b.type || "") +
+        ' · <span class="tag ' + (b.status === "CONFIRMED" ? "ok" : "flag") + '">' + esc(b.status || "") + "</span>" + (b.amount ? " · " + esc(CR.amt(b.amount, b.currency)) : "") + "</div>" +
+        (b.note ? '<div class="s">' + esc(b.note) + "</div>" : "") + "</div>";
+    }).join("") : '<p class="small muted" style="margin:0">No amenity bookings.</p>') + S;
+  }
+  function renderFolio(d, ms) {
+    var S = src("resort_folio_consolidated", "CR_P2_Consolidated_Folio_API", d, ms);
+    if (!d || !d.matched) { $("bFolio").innerHTML = '<h3>Folio</h3><p class="small muted" style="margin:0">' + esc((d && (d.message || d.error)) || "No folio returned") + "</p>" + S; return; }
+    var t = d.totals || {}, fc = d.folioCurrency, fx = (d.fxRates || {})[fc];
+    /* balance in the folio currency, line by line (lines posted in another currency converted at the folio rate) */
+    var local = (d.lines || []).reduce(function (sum, l) {
+      var v = l.currency === fc ? l.amount : (fx ? Math.round(l.amountUSD / fx * 100) / 100 : 0);
+      return sum + (Number(v) || 0);
+    }, 0);
+    var issues = ((d.dataQuality || {}).issues || []);
+    var mm = issues.filter(function (i) { return i.flag === "CURRENCY_MISMATCH"; }).length;
+    var unl = (d.possibleUnlinkedCharges || []).length;
+    var bs = t.bySource || {};
+    $("bFolio").innerHTML = "<h3>Folio " + esc(d.folioNumber || "") + "</h3>" +
+      '<div class="bal"><span class="v">' + esc(CR.usd(t.balanceUSD)) + ' <span class="small muted" style="font:500 13px var(--sans)">USD</span></span>' +
+      (fc && fc !== "USD" && fx ? '<span class="f">' + esc(CR.amt(Math.round(local * 100) / 100, fc)) + " in folio currency</span>" : '<span class="f">folio currency ' + esc(fc || "-") + "</span>") + "</div>" +
+      '<table class="bysrc"><tbody>' + Object.keys(bs).map(function (k) {
+        var s = bs[k];
+        return "<tr><td>" + esc(SYS[k] || k) + ' <span class="muted">· ' + esc(s.lineCount) + ' lines</span></td><td class="num">' +
+          esc(s.localAmount != null ? CR.amt(s.localAmount, s.localCurrency) : "mixed") + '</td><td class="num"><strong>' + esc(CR.usd(s.amountUSD)) + "</strong></td></tr>";
+      }).join("") + "</tbody></table>" +
+      (mm ? '<div class="flagline"><strong>' + mm + " × CURRENCY_MISMATCH</strong>: POS checks posted in USD to a " + esc(fc) + " folio. Boomi reports them in USD and fixes them at check-out.</div>"
+        : '<div class="flagline ok">No currency mismatches on this folio.</div>') +
+      (unl ? '<div class="flagline"><strong>' + unl + " possible unlinked charge(s)</strong> kept out of the balance until the guest confirms.</div>" : "") + S;
+  }
+  function loadSnapshot() {
+    var g = Promise.resolve().then(function () { return CR.product("guest", { guest_name: GUEST_NAME }); })
+      .then(function (r) { renderGuest(r && r.data, r && r.ms); }, function () { renderGuest(CR.embedded("guest", { guest_name: GUEST_NAME }), null); });
+    var f = Promise.resolve().then(function () { return CR.product("folio", { guest_id: GUEST_ID }); })
+      .then(function (r) { renderFolio(r && r.data, r && r.ms); }, function () { renderFolio(CR.embedded("folio", { guest_id: GUEST_ID }), null); });
+    return Promise.all([g, f]);
+  }
+
+  /* ---------------- call banner ---------------- */
+  var callT0 = null, callTimer = null;
+  function mmss(s) { return Math.floor(s / 60) + ":" + (s % 60 < 10 ? "0" : "") + (s % 60); }
+  function answer() {
+    if (callT0) return;
+    callT0 = Date.now();
+    $("call").classList.add("on"); $("preview").hidden = true; $("ws").hidden = false;
+    $("callLbl").textContent = "On call · 0:00";
+    $("callSub").textContent = "Guest app call · answered at the concierge desk";
+    var b = $("answer"); b.textContent = "End call"; b.className = "btn";
+    callTimer = setInterval(function () { $("callLbl").textContent = "On call · " + mmss(Math.round((Date.now() - callT0) / 1000)); }, 1000);
+  }
+  function endCall() {
+    clearInterval(callTimer);
+    $("call").classList.add("ended");
+    $("callLbl").textContent = "Call ended · " + mmss(Math.round((Date.now() - callT0) / 1000));
+    $("answer").hidden = true;
+  }
+  $("answer").addEventListener("click", function () { if (!callT0) answer(); else endCall(); });
+
+  /* ---------------- health ---------------- */
+  function agentBadge(mode, text) { CR.badge($("agentBadge"), mode, text); }
+  Promise.resolve().then(function () { return CR.health(); }).catch(function () { return null; }).then(function (h) {
+    if (!h) {
+      agentBadge("mock", "offline · file mode");
+      CR.badge($("dpBadge"), "mock", "data: embedded");
+      return;
+    }
+    var dp = h.dataProducts || {}, keys = Object.keys(dp), live = keys.filter(function (k) { return dp[k] && dp[k].mode === "live"; }).length;
+    CR.badge($("dpBadge"), keys.length && live === keys.length ? "live" : "mock", "data: " + (keys.length && live === keys.length ? "Boomi live" : live ? live + "/" + keys.length + " live" : "mock fallback"));
+    var am = (h.agent || {}).mode || "offline";
+    agentBadge(am, am === "live" ? "live agent" : "offline mode");
+    $("agentBadge").title = (h.agent || {}).detail || "";
+  });
+
+  /* ---------------- assistant chat (same SSE contract as index.html) ---------------- */
+  var log = $("log"), form = $("form"), input = $("input"), send = $("send"), quick = $("quick"), sidEl = $("sid");
+  var sessionId = null, busy = false, offlineCtx = {};
+  var QUICK = {
+    anniversary: (M.conciergeCalls || {})[GUEST_ID] || "Elena Vance (Suite 402) just called the concierge: she wants to surprise her husband for their anniversary tonight with something special in the suite. What should we prepare, given her preferences and bookings?",
+    spend: "What has Elena Vance spent so far? Show her consolidated folio.",
+    waive: "Waive Elena's Sky Lounge charge of $520",
+    butler: "Who is Elena Vance's butler and what does she prefer?"
+  };
+
+  function scroll() { log.scrollTop = log.scrollHeight; }
+  function clearEmpty() { var e = $("empty"); if (e) e.remove(); }
+  function bubble(cls, text) {
+    clearEmpty();
+    var el = document.createElement("div");
+    el.className = "msg " + cls;
+    if (cls === "agent") el.innerHTML = '<div class="md">' + CR.md(text) + "</div>"; else el.textContent = text;
+    log.appendChild(el); scroll(); return el;
+  }
+  function Turn() {
+    clearEmpty();
+    var trail = document.createElement("div"); trail.className = "trail"; log.appendChild(trail);
+    var t = { trail: trail, bubble: null, text: "", done: false };
+    t.step = function (txt) {
+      trail.querySelectorAll(".step.on").forEach(function (s) { s.classList.remove("on"); });
+      var s = document.createElement("span");
+      s.className = "step on" + (/^Guardrail/.test(txt) ? " guard" : "");
+      s.innerHTML = '<span class="d"></span>' + esc(txt);
+      trail.appendChild(s); scroll();
+    };
+    t.delta = function (txt) {
+      if (!t.bubble) { t.bubble = bubble("agent", ""); t.bubble.classList.add("streaming"); }
+      t.text += txt; t.bubble.innerHTML = '<div class="md">' + CR.md(t.text) + "</div>"; scroll();
+    };
+    t.message = function (txt) {
+      if (t.bubble && !t.done) { t.bubble.classList.remove("streaming"); t.bubble.innerHTML = '<div class="md">' + CR.md(txt) + "</div>"; }
+      else bubble("agent", txt);
+      t.done = true; scroll();
+    };
+    t.finish = function () {
+      trail.querySelectorAll(".step.on").forEach(function (s) { s.classList.remove("on"); });
+      if (t.bubble) t.bubble.classList.remove("streaming");
+    };
+    return t;
+  }
+  function setBusy(b) {
+    busy = b; send.disabled = b; input.disabled = b;
+    quick.querySelectorAll("button").forEach(function (x) { x.disabled = b; });
+  }
+  function handle(t, evt, obj) {
+    if (evt === "mode") {
+      agentBadge(obj.mode, obj.mode === "live" ? "live agent" : "offline mode");
+      if (obj.reason) t.step("Agent Studio unavailable (" + obj.reason + ") - offline concierge");
+    } else if (evt === "start" && obj.session_id) {
+      sessionId = obj.session_id; sidEl.textContent = sessionId.slice(0, 14) + "…";
+    } else if (evt === "progress_notification") {
+      t.step(obj.content || obj.type || "Working…");
+    } else if (evt === "delta" && obj.content) {
+      t.delta(obj.content);
+    } else if (evt === "message" && obj.content) {
+      t.message(obj.content);
+    } else if (evt === "error") {
+      bubble("error", obj.content || obj.message || "Agent error"); t.done = true;
+    }
+  }
+
+  async function askServer(q, t) {
+    var chatUrl = CR.apiUrl ? CR.apiUrl("/api/chat") : "/api/chat";
+    var headers = CR.authHeaders ? CR.authHeaders({ "Content-Type": "application/json" }) : { "Content-Type": "application/json" };
+    var ctl = new AbortController(), timer = setTimeout(function () { ctl.abort(); }, 300000);
+    try {
+      var res = await fetch(chatUrl, { method: "POST", headers: headers,
+        body: JSON.stringify({ message: q, session_id: sessionId }), signal: ctl.signal });
+      if (res.status === 401 || res.status === 503) {
+        var fe = new Error("HTTP " + res.status); fe.fallback = true; throw fe;
+      }
+      if (!res.ok) {
+        var msg = "HTTP " + res.status;
+        try { var j = await res.json(); msg = j.error + (j.detail ? " - " + j.detail : ""); } catch (e) {}
+        bubble("error", msg); t.done = true; return;
+      }
+      var reader = res.body.getReader(), dec = new TextDecoder(), buf = "";
+      while (true) {
+        var r = await reader.read();
+        if (r.done) break;
+        buf += dec.decode(r.value, { stream: true }).replace(/\r\n/g, "\n");
+        var cut;
+        while ((cut = buf.indexOf("\n\n")) !== -1) {
+          var block = buf.slice(0, cut); buf = buf.slice(cut + 2);
+          var evt = "", data = "";
+          block.split("\n").forEach(function (line) {
+            if (line.indexOf("event:") === 0) evt = line.slice(6).trim();
+            else if (line.indexOf("data:") === 0) data += line.slice(5).trim();
+          });
+          if (!evt || !data || data === "null") continue;
+          var obj; try { obj = JSON.parse(data); } catch (e) { continue; }
+          handle(t, evt, obj);
+        }
+      }
+      if (!t.done) bubble("error", "The agent returned no message. Check the server console.");
+    } finally { clearTimeout(timer); }
+  }
+
+  /* Offline: a client-side version of the scripted concierge, using answers pre-computed into mock-bundle.js. */
+  function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+  function offlineRoute(q) {
+    var C = (window.CR_MOCK || {}).chat || {}, s = q.toLowerCase();
+    var names = { elena: "Elena Vance", vance: "Elena Vance", marcus: "Marcus Thorne", thorne: "Marcus Thorne", sophia: "Sophia Lin", lin: "Sophia Lin" };
+    var g = null; (s.match(/[a-z]+/g) || []).some(function (w) { if (names[w]) { g = names[w]; return true; } return false; });
+    if (!g && /\b(she|her|he|him|his|this guest)\b/.test(s)) g = offlineCtx.guest || GUEST_NAME;
+    if (/passport/.test(s)) return C["Show me Elena Vance's passport hash"] || { steps: ["Guardrail check: sensitive identity / payment data requested"], answer: "I can't share passport or identity document details. Boomi Data Hub only confirms that an ID document is on file; the hash never leaves Boomi." };
+    if (/card number|credit card|debit card|card details|cvv|payment card/.test(s)) return C["Show me Marcus Thorne's credit card number"] || { steps: ["Guardrail check: sensitive identity / payment data requested"], answer: "I can't share payment card details." };
+    if (/\b(waive|refund|adjust|comp|void|discount|write.?off|reverse)\b/.test(s)) {
+      if (g === "Elena Vance" && /sky lounge|520|48803/.test(s)) return Object.assign({ guest: g }, C["Waive Elena's Sky Lounge charge of $520"]);
+      var m = /\$\s?(\d[\d,]*(?:\.\d+)?)/.exec(q), amt = m ? parseFloat(m[1].replace(/,/g, "")) : null;
+      var who = g ? " on **" + g + "**'s folio" : "";
+      return { steps: ["Guardrail check: folio adjustment approval policy ($200 USD threshold)"], answer: amt == null
+        ? "Folio adjustments are governed: anything **over $200 USD** needs human approval from the **Front Office Manager**; $200 or less can be applied by the duty manager. Tell me the guest and the amount."
+        : amt > 200 ? "**Human approval required.** A " + CR.usd(amt) + " adjustment" + who + " is over the **$200 USD** automated limit, so I have **not** applied it.\n\n- Routed for approval to: **Front Office Manager**\n- Status: `PENDING_APPROVAL` - no change has been posted"
+        : "A " + CR.usd(amt) + " adjustment" + who + " is within the **$200 USD** limit, so it **can be applied by the duty manager** in Opera PMS. I don't post folio changes myself.", guest: g };
+    }
+    if (/receivable|outstanding|unpaid|owed|open balance|open folio|unlinked/.test(s)) return C[/coral|cbv/.test(s) ? "Show open receivables for Coral Bay" : "Show open receivables for Grand Horizon"];
+    if (g && /folio|bill|charge|balance|spend|spent|invoice|account/.test(s)) return Object.assign({ guest: g }, C["Show " + g + "'s consolidated folio"]);
+    if (!g) {
+      if (/402/.test(s)) return Object.assign({ guest: "Elena Vance" }, C["Who owns Suite 402?"]);
+      if (/villa\s*7\b/.test(s)) return Object.assign({ guest: "Marcus Thorne" }, C["Who owns Ocean Villa 7?"]);
+      if (/1108/.test(s)) return Object.assign({ guest: "Sophia Lin" }, C["Who owns room 1108?"]);
+    }
+    if (g) return Object.assign({ guest: g }, C["What is the full picture for " + g + "?"]);
+    return C.help;
+  }
+  async function askOffline(q, t, why) {
+    agentBadge("mock", CR.served ? "offline concierge" : "offline · file mode");
+    if (!sessionId || sessionId.indexOf("offline-") !== 0) { sessionId = "offline-file-" + Math.random().toString(16).slice(2, 8); sidEl.textContent = sessionId; }
+    var r = offlineRoute(q) || { steps: [], answer: "Sample data is not loaded (mock-bundle.js missing)." };
+    if (!r.answer) r = { steps: [], answer: "I can answer from the governed resort data products: a guest's full picture, their consolidated folio, room ownership, and open receivables." };
+    if (why) t.step("Concierge service unavailable (" + why + ") - offline concierge");
+    t.step("Understanding the request…");
+    for (var i = 0; i < (r.steps || []).length; i++) { await sleep(450); t.step(r.steps[i]); }
+    await sleep(350); t.step("Composing answer…");
+    var toks = r.answer.match(/\S+\s*|\s+/g) || [];
+    for (var k = 0; k < toks.length; k++) { t.delta(toks[k]); if (k % 2 === 0) await sleep(12); }
+    t.message(r.answer);
+    if (r.guest) offlineCtx.guest = r.guest;
+  }
+
+  async function ask(q) {
+    if (busy || !q || !q.trim()) return;
+    bubble("user", q); input.value = ""; setBusy(true);
+    var t = Turn();
+    var liveMode = CR.live ? CR.live() : CR.served;
+    try {
+      if (liveMode) await askServer(q, t); else await askOffline(q, t);
+    } catch (err) {
+      var canFallback = (err && err.fallback) || (liveMode && err && err.name !== "AbortError");
+      if (canFallback && !t.bubble && !t.done) {
+        try { await askOffline(q, t, err.fallback ? err.message : "network error"); } catch (e2) { bubble("error", "Request failed: " + e2.message); }
+      } else bubble("error", err && err.name === "AbortError" ? "Timed out after 5 minutes. Press Reset and try again." : "Request failed: " + (err && err.message));
+    } finally { t.finish(); setBusy(false); try { input.focus({ preventScroll: true }); } catch (e) { input.focus(); } }
+  }
+  form.addEventListener("submit", function (e) { e.preventDefault(); ask(input.value); });
+  quick.addEventListener("click", function (e) { var b = e.target.closest("button[data-k]"); if (b && !busy) ask(QUICK[b.dataset.k]); });
+  $("reset").addEventListener("click", function () {
+    sessionId = null; offlineCtx = {}; sidEl.textContent = "new";
+    log.innerHTML = '<div class="empty" id="empty">New conversation. Pick a quick action above, or ask anything about Elena\'s stay.</div>';
+  });
+
+  /* ---------------- start: ?answered=1 skips the ring; &quick=anniversary|spend|waive|butler sends one ---------------- */
+  var qp = {}; try { new URLSearchParams(location.search).forEach(function (v, k) { qp[k] = v; }); } catch (e) {}
+  loadSnapshot();
+  if (/^(1|true|yes)$/i.test(qp.answered || "")) answer();
+  if (QUICK[qp.quick]) { answer(); setTimeout(function () { ask(QUICK[qp.quick]); }, 400); }
+})();
+</script>
+</body>
+</html>
