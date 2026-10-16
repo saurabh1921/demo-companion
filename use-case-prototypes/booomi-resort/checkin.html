@@ -1,0 +1,916 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guest Check-in Orchestration</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  .intro { background: var(--brand); color: var(--brand-ink); padding: 24px 0 20px; }
+  .intro h1 { font-size: clamp(25px, 3.8vw, 36px); margin: 4px 0 8px; }
+  .intro p { margin: 0; opacity: .85; max-width: 820px; }
+  .intro .eyebrow { color: #7fd0ea; }
+  .wide { max-width: 1480px; margin: 0 auto; padding: 0 16px; }
+
+  /* control bar */
+  .ctlbar { background: var(--panel); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 15; }
+  .ctlbar .wide { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; padding-top: 9px; padding-bottom: 9px; }
+  .ctl { display: flex; align-items: center; gap: 8px; border: 1px solid var(--line); background: var(--panel-2); border-radius: 9px; padding: 4px 5px 4px 10px; }
+  .ctl .lbl { font: 600 11px var(--sans); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+  .seg { display: flex; gap: 2px; background: var(--bg-2); border-radius: 7px; padding: 2px; }
+  .seg button { border: 0; background: transparent; cursor: pointer; font: 600 12px var(--sans); color: var(--ink-2); padding: 4px 10px; border-radius: 5px; white-space: nowrap; }
+  .seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+  .seg button[aria-pressed="true"].bad { background: var(--bad); color: #fff; }
+  .seg button[aria-pressed="true"].warnb { background: var(--warn); color: #fff; }
+  .seg button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .ctlbar .sp { flex: 1 1 auto; }
+  .ctlbar .btn { padding: 6px 12px; font-size: 13px; }
+
+  /* layout */
+  .stage3 { display: grid; grid-template-columns: minmax(0, .92fr) minmax(0, 1.3fr) minmax(0, 1.12fr); gap: 16px; padding-top: 16px; padding-bottom: 20px; align-items: start; }
+  .col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+  @media (max-width: 1240px) { .stage3 { grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); } .stage3 > .col-board { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); } }
+  @media (max-width: 860px) { .stage3 { grid-template-columns: minmax(0, 1fr); } .stage3 > .col-board { grid-column: auto; display: flex; } }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); min-width: 0; overflow: hidden; }
+  .phead { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 11px 14px; border-bottom: 1px solid var(--line); background: var(--panel-2); flex-wrap: wrap; }
+  .phead h2 { font: 600 15px var(--serif); margin: 0; }
+  .phead .sub { font: 11.5px var(--mono); color: var(--muted); overflow-wrap: anywhere; }
+  .pbody { padding: 14px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+  .empty { font-size: 12.5px; color: var(--muted); font-style: italic; margin: 0; }
+
+  /* ---------- phone ---------- */
+  .phone { width: 100%; max-width: 340px; margin: 0 auto; border: 9px solid #0f1b26; border-radius: 34px; background: var(--panel); box-shadow: var(--shadow); overflow: hidden; position: relative; }
+  :root[data-theme="dark"] .phone { border-color: #2c3d4e; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .phone { border-color: #2c3d4e; } }
+  .pstatus { display: flex; justify-content: space-between; align-items: center; padding: 7px 18px 3px; font: 600 11.5px var(--sans); color: var(--ink-2); }
+  .notch { width: 92px; height: 18px; background: #0f1b26; border-radius: 0 0 12px 12px; position: absolute; top: 0; left: 50%; transform: translateX(-50%); }
+  :root[data-theme="dark"] .notch { background: #2c3d4e; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .notch { background: #2c3d4e; } }
+  .papp { padding: 6px 14px 16px; display: flex; flex-direction: column; gap: 11px; }
+  .pbrand { display: flex; align-items: center; gap: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+  .pbrand .mark { width: 24px; height: 24px; border-radius: 7px; background: linear-gradient(135deg, #2fb4d8, #0a6c8a); display: grid; place-items: center; font: 700 12px var(--sans); color: #fff; }
+  .pbrand strong { font: 600 14px var(--serif); display: block; line-height: 1.2; }
+  .pbrand span { font-size: 11px; color: var(--muted); }
+  .flbl { font: 600 10.5px var(--sans); letter-spacing: .07em; text-transform: uppercase; color: var(--muted); margin-bottom: 5px; }
+  .gpick { display: flex; flex-direction: column; gap: 6px; }
+  .gpick button { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1px 8px; text-align: left; border: 1px solid var(--line-2); background: var(--panel-2); color: var(--ink); border-radius: 10px; padding: 7px 10px; cursor: pointer; font: inherit; }
+  .gpick button .gn { font-weight: 600; font-size: 13.5px; }
+  .gpick button .gid { font: 11px var(--mono); color: var(--muted); grid-column: 1; }
+  .gpick button .tag { grid-row: 1 / span 2; grid-column: 2; align-self: center; }
+  .gpick button[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--accent); }
+  .pseg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
+  .pseg button { border: 1px solid var(--line-2); background: var(--panel-2); color: var(--ink-2); border-radius: 8px; padding: 6px 4px; font: 500 12px var(--sans); cursor: pointer; }
+  .pseg button[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+  .prow { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 13px; }
+  .prow input[type="time"] { font: 13px var(--mono); padding: 5px 8px; border: 1px solid var(--line-2); border-radius: 7px; background: var(--panel-2); color: var(--ink); }
+  .ver { display: flex; align-items: center; gap: 8px; font-size: 13px; padding: 6px 10px; border-radius: 8px; background: var(--good-soft); color: var(--good); }
+  .ver b { font-weight: 600; }
+  .ver .vs { margin-left: auto; font: 11px var(--mono); color: var(--ink-2); }
+  .pcheck { border: 0; border-radius: 12px; padding: 13px; font: 600 16px var(--sans); background: var(--accent); color: var(--accent-ink); cursor: pointer; width: 100%; }
+  .pcheck:disabled { opacity: .55; cursor: default; }
+  .pcheck:not(:disabled):hover { filter: brightness(1.08); }
+  [data-src] { transition: box-shadow .25s, background-color .25s; border-radius: 10px; }
+  [data-src].lit { box-shadow: 0 0 0 2px var(--gold); background-color: var(--gold-soft) !important; }
+  .pdone { position: absolute; inset: 27px 0 0; background: var(--panel); padding: 18px 16px; display: none; flex-direction: column; gap: 10px; text-align: center; }
+  .pdone.on { display: flex; }
+  .pdone .big { font: 600 26px var(--serif); margin: 2px 0; }
+  .pdone .ok { width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; margin: 6px auto 0; font-size: 22px; background: var(--good-soft); color: var(--good); }
+  .pdone.warn .ok { background: var(--warn-soft); color: var(--warn); }
+  .pdone.bad .ok { background: var(--bad-soft); color: var(--bad); }
+  .pdone .msgb { text-align: left; background: var(--panel-2); border: 1px solid var(--line); border-radius: 12px 12px 12px 3px; padding: 9px 11px; font-size: 13px; }
+  .pdone .keyl { font-size: 13px; }
+
+  /* request / code */
+  .codew { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--code-bg); }
+  .codeh { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; padding: 6px 10px; font: 600 10.5px var(--sans); letter-spacing: .06em; text-transform: uppercase; color: #9fb3c4; border-bottom: 1px solid rgba(255,255,255,.08); }
+  .codeh .mono { text-transform: none; letter-spacing: 0; font-weight: 400; overflow-wrap: anywhere; }
+  pre.json.req { border-radius: 0; max-height: none; font-size: 12px; }
+  pre.json .fl { border-radius: 3px; transition: background-color .25s; }
+  pre.json .fl[data-lit="1"] { background: rgba(229, 180, 90, .32); }
+  pre.json.sm { font-size: 11.5px; max-height: 300px; padding: 10px 12px; }
+
+  /* ---------- pipeline ---------- */
+  .srow { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 10px; }
+  .rail { display: flex; flex-direction: column; align-items: center; }
+  .rail .dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--line-2); background: var(--panel); margin-top: 5px; flex: none; transition: all .25s; }
+  .rail .ln { width: 2px; flex: 1 1 auto; background: var(--line); min-height: 10px; margin: 3px 0; }
+  .srow[data-state="active"] .dot { border-color: var(--accent); background: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); animation: pulse 1s ease-in-out infinite; }
+  .srow[data-state="done"] .dot { border-color: var(--good); background: var(--good); }
+  .srow[data-state="warn"] .dot { border-color: var(--warn); background: var(--warn); }
+  .srow[data-state="fail"] .dot { border-color: var(--bad); background: var(--bad); }
+  .srow[data-state="done"] .ln, .srow[data-state="warn"] .ln { background: var(--good); }
+  @keyframes pulse { 50% { box-shadow: 0 0 0 7px var(--accent-soft); } }
+  .sbody { padding-bottom: 16px; min-width: 0; }
+  .stitle { display: flex; align-items: baseline; gap: 6px 8px; flex-wrap: wrap; }
+  .stitle h3 { font: 600 14px var(--sans); margin: 0; }
+  .shape { font: 11px var(--mono); color: var(--muted); overflow-wrap: anywhere; }
+  .mtag { font: 600 9.5px var(--mono); letter-spacing: .08em; padding: 1px 6px; border-radius: 4px; border: 1px solid currentColor; white-space: nowrap; }
+  .mtag.live { color: var(--good); background: var(--good-soft); }
+  .mtag.stub { color: var(--muted); background: var(--panel-2); }
+  .mtag.replay { color: var(--warn); background: var(--warn-soft); }
+  .snote { font-size: 12.5px; color: var(--ink-2); margin-top: 2px; }
+  .srow[data-state="idle"] .sbody { opacity: .5; }
+  .srow[data-state="idle"] .detail { display: none; }
+  .detail { margin-top: 9px; display: flex; flex-direction: column; gap: 9px; min-width: 0; }
+  dl.kv2 { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 3px 12px; margin: 0; font: 12px var(--mono); }
+  dl.kv2 dt { color: var(--muted); white-space: nowrap; }
+  dl.kv2 dd { margin: 0; overflow-wrap: anywhere; }
+  @media (max-width: 420px) { dl.kv2 { grid-template-columns: minmax(0, 1fr); } dl.kv2 dt { margin-top: 4px; } }
+  .links { display: flex; flex-wrap: wrap; gap: 6px; }
+  .links .lk { display: inline-flex; gap: 6px; align-items: center; font: 11.5px var(--mono); border: 1px solid var(--line); border-radius: 6px; padding: 2px 6px 2px 2px; background: var(--panel-2); }
+  .links .lk.none { opacity: .55; }
+  table.mt { width: 100%; border-collapse: collapse; font: 12px var(--mono); }
+  table.mt th { font: 600 10px var(--sans); letter-spacing: .07em; text-transform: uppercase; color: var(--muted); padding: 0 8px 5px 0; background: none; border-bottom: 1px solid var(--line); }
+  table.mt td { padding: 5px 8px 5px 0; border-bottom: 1px solid var(--line); vertical-align: top; overflow-wrap: anywhere; transition: background-color .25s; }
+  table.mt tr:last-child td { border-bottom: 0; }
+  table.mt tr[data-lit="1"] td { background: var(--gold-soft); }
+  table.mt .tgt { color: var(--accent); }
+  table.mt td.hkc { white-space: nowrap; font-size: 10.5px; }
+  table.mt td.num { text-align: right; font-weight: 600; white-space: nowrap; }
+  table.mt tr.win td { background: var(--good-soft); font-weight: 600; }
+  table.mt tr.out td { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--line-2); }
+  table.mt tr.pending td { color: var(--muted); }
+  table.mt .rs { font-size: 11px; color: var(--ink-2); }
+  table.mt tr.out .rs { color: var(--muted); }
+  .rules { display: flex; flex-wrap: wrap; gap: 4px; }
+  .rules span { font: 10.5px var(--mono); padding: 1px 6px; border-radius: 4px; background: var(--bg-2); color: var(--ink-2); }
+  .note { font-size: 12.5px; padding: 8px 10px; border-radius: 8px; border-left: 3px solid var(--accent); background: var(--accent-soft); }
+  .note.warn { border-color: var(--warn); background: var(--warn-soft); }
+  .note.bad { border-color: var(--bad); background: var(--bad-soft); color: var(--ink); }
+  .chips { display: flex; flex-direction: column; gap: 5px; }
+  .chipx { display: flex; gap: 8px; align-items: baseline; font: 11.5px var(--mono); border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; background: var(--panel-2); overflow-wrap: anywhere; }
+  .chipx .n { color: var(--muted); white-space: nowrap; }
+  .chipx.ok { border-color: var(--good); background: var(--good-soft); color: var(--good); }
+  .chipx.err { border-color: var(--bad); background: var(--bad-soft); color: var(--bad); }
+  .chipx.wait { border-color: var(--warn); background: var(--warn-soft); color: var(--warn); }
+  .spin { display: inline-block; width: 10px; height: 10px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: rot .8s linear infinite; vertical-align: -1px; }
+  @keyframes rot { to { transform: rotate(360deg); } }
+
+  /* fork */
+  .fork-head { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--ink-2); flex-wrap: wrap; }
+  .fork-node { font: 600 10.5px var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--accent-ink); background: var(--accent); padding: 3px 8px; border-radius: 4px; }
+  .lanes { position: relative; margin: 2px 0 0 10px; padding: 4px 0 4px 20px; border-left: 2px solid var(--line-2); display: flex; flex-direction: column; gap: 7px; }
+  .lane { position: relative; border: 1px solid var(--line); border-radius: 9px; background: var(--panel-2); padding: 7px 9px; min-width: 0; transition: border-color .25s, background-color .25s; }
+  .lane::before { content: ""; position: absolute; left: -21px; top: 17px; width: 20px; height: 2px; background: var(--line-2); }
+  .lane .lt { display: flex; align-items: center; gap: 6px 7px; flex-wrap: wrap; }
+  .lane .lno { font: 600 10.5px var(--mono); color: var(--muted); }
+  .lane .la { font-size: 12.5px; font-weight: 600; }
+  .lane .lst { margin-left: auto; font: 600 10px var(--mono); letter-spacing: .06em; padding: 2px 7px; border-radius: 999px; background: var(--bg-2); color: var(--muted); white-space: nowrap; }
+  .lane .lsh { font: 10.5px var(--mono); color: var(--muted); margin-top: 3px; overflow-wrap: anywhere; }
+  .lane details { margin-top: 5px; }
+  .lane summary { font: 11px var(--mono); color: var(--ink-2); cursor: pointer; }
+  .lane .pl { margin-top: 5px; display: flex; flex-direction: column; gap: 5px; }
+  .lane .chips { margin-top: 6px; }
+  .lane[data-state="idle"] { opacity: .5; }
+  .lane[data-state="active"] { border-color: var(--accent); background: var(--accent-soft); }
+  .lane[data-state="active"] .lst { background: var(--accent); color: var(--accent-ink); }
+  .lane[data-state="ok"] { border-color: var(--good); }
+  .lane[data-state="ok"] .lst { background: var(--good-soft); color: var(--good); }
+  .lane[data-state="ok"]::before { background: var(--good); }
+  .lane[data-state="warn"] { border-color: var(--warn); }
+  .lane[data-state="warn"] .lst { background: var(--warn-soft); color: var(--warn); }
+  .lane[data-state="warn"]::before { background: var(--warn); }
+  .lane[data-state="fail"] { border-color: var(--bad); background: var(--bad-soft); }
+  .lane[data-state="fail"] .lst { background: var(--bad); color: #fff; }
+  .lane[data-state="fail"]::before { background: var(--bad); }
+  .fork-join { font-size: 12px; color: var(--muted); margin-left: 10px; padding-left: 22px; position: relative; }
+
+  /* system tags not in styles.css */
+  .tag.DATA_HUB, .tag.BOOMI { color: var(--hub); background: var(--hub-soft); }
+  .tag.DOOR_LOCK { color: var(--gold); background: var(--gold-soft); }
+  .tag.GUEST_MESSAGING { color: var(--ink-2); background: var(--bg-2); }
+
+  /* status chips */
+  .st { display: inline-flex; align-items: center; gap: 6px; font: 600 11px var(--mono); letter-spacing: .05em; padding: 3px 9px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
+  .st::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+  .st.COMPLETED { color: var(--good); background: var(--good-soft); }
+  .st.COMPLETED_WITH_WARNINGS { color: var(--warn); background: var(--warn-soft); }
+  .st.REJECTED { color: var(--bad); background: var(--bad-soft); }
+  .st.RUNNING { color: var(--accent); background: var(--accent-soft); }
+
+  /* ---------- room board ---------- */
+  .rgroup h4 { margin: 0 0 6px; font: 600 11px var(--sans); letter-spacing: .07em; text-transform: uppercase; color: var(--muted); }
+  .rooms { display: grid; grid-template-columns: repeat(auto-fill, minmax(128px, 1fr)); gap: 8px; }
+  .room { border: 1px solid var(--line); border-radius: 9px; background: var(--panel-2); padding: 8px 9px; display: flex; flex-direction: column; gap: 4px; min-height: 96px; min-width: 0; position: relative; transition: border-color .3s, background-color .3s, box-shadow .3s; }
+  .room .rt { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+  .room .rn { font: 600 13px var(--mono); }
+  .room .hk { display: inline-flex; align-items: center; gap: 4px; font: 600 9.5px var(--mono); letter-spacing: .05em; color: var(--muted); }
+  .room .hk::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--line-2); }
+  .room .hk.INSPECTED::before, .room .hk.CLEAN::before { background: var(--good); }
+  .room .hk.DIRTY::before { background: var(--warn); }
+  .room .hk.OOO::before { background: var(--muted); }
+  .room .hk.OCCUPIED::before { background: var(--accent); }
+  .room .ty { font: 10.5px var(--mono); color: var(--muted); }
+  .room .ft { display: flex; flex-wrap: wrap; gap: 3px; }
+  .room .ft span { font: 9.5px var(--mono); padding: 0 4px; border-radius: 3px; background: var(--bg-2); color: var(--ink-2); }
+  .room .gname { font-size: 12.5px; font-weight: 600; line-height: 1.25; }
+  .room .rf { margin-top: auto; font: 10.5px var(--mono); color: var(--ink-2); }
+  .room.ooo { opacity: .55; }
+  .room.occ .gname { color: var(--ink-2); font-weight: 500; }
+  .room.scoring { border-color: var(--gold); box-shadow: 0 0 0 2px var(--gold-soft); }
+  .room.alloc { border: 2px solid var(--accent); background: var(--accent-soft); }
+  .room.rush { border: 2px solid var(--warn); background: var(--warn-soft); }
+  .room.flash { animation: flash 1.4s ease 2; }
+  @keyframes flash { 0%, 100% { box-shadow: 0 0 0 0 transparent; } 40% { box-shadow: 0 0 0 6px var(--accent-soft), 0 0 18px var(--accent); } }
+  .legend { display: flex; flex-wrap: wrap; gap: 10px; font-size: 11.5px; color: var(--muted); }
+  .legend span { display: inline-flex; align-items: center; gap: 5px; }
+  .legend i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+
+  /* systems grid */
+  .sysgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+  .systile { border: 1px solid var(--line); border-radius: 9px; padding: 8px 10px; background: var(--panel-2); display: flex; flex-direction: column; gap: 3px; min-width: 0; transition: border-color .25s, background-color .25s; }
+  .systile .sh { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+  .systile .sn { font-weight: 600; font-size: 13px; }
+  .systile .ss { font: 600 9.5px var(--mono); letter-spacing: .06em; color: var(--muted); }
+  .systile .sd { font-size: 11.5px; color: var(--ink-2); overflow-wrap: anywhere; }
+  .systile[data-state="active"] { border-color: var(--accent); background: var(--accent-soft); }
+  .systile[data-state="active"] .ss { color: var(--accent); }
+  .systile[data-state="ok"] { border-color: var(--good); background: var(--good-soft); }
+  .systile[data-state="ok"] .ss { color: var(--good); }
+  .systile[data-state="warn"] { border-color: var(--warn); background: var(--warn-soft); }
+  .systile[data-state="warn"] .ss { color: var(--warn); }
+  .systile[data-state="fail"] { border-color: var(--bad); background: var(--bad-soft); }
+  .systile[data-state="fail"] .ss { color: var(--bad); }
+
+  /* queue + log */
+  .qi { border: 1px solid var(--bad); background: var(--bad-soft); border-radius: 9px; padding: 8px 10px; display: flex; flex-direction: column; gap: 4px; }
+  .qi.warn { border-color: var(--warn); background: var(--warn-soft); }
+  .qi .fn { font: 600 11.5px var(--mono); color: var(--bad); overflow-wrap: anywhere; }
+  .qi.warn .fn { color: var(--warn); }
+  .qi .why { font-size: 12.5px; color: var(--ink); }
+  .qi summary { font: 11px var(--mono); color: var(--ink-2); cursor: pointer; }
+  .qi pre.json { margin-top: 6px; }
+  .plog { display: flex; flex-direction: column; max-height: 240px; overflow-y: auto; }
+  .ll { display: grid; grid-template-columns: auto auto minmax(0, 1fr); gap: 8px; font: 11px var(--mono); padding: 4px 0; border-bottom: 1px solid var(--line); align-items: baseline; }
+  .ll:last-child { border-bottom: 0; }
+  .ll .t { color: var(--muted); }
+  .ll .lv { font-weight: 700; font-size: 9.5px; letter-spacing: .08em; }
+  .ll .lv.INFO { color: var(--accent); } .ll .lv.WARN { color: var(--warn); } .ll .lv.ERR { color: var(--bad); }
+  .ll .m { color: var(--ink-2); overflow-wrap: anywhere; }
+
+  /* hand-off */
+  .handoff { display: none; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 18px; padding: 18px 20px; margin-bottom: 24px; border: 2px solid var(--accent); }
+  .handoff.on { display: grid; }
+  .handoff h2 { margin: 2px 0 8px; font-size: 22px; }
+  .handoff blockquote { margin: 0 0 14px; padding: 10px 14px; border-left: 3px solid var(--gold); background: var(--gold-soft); border-radius: 0 8px 8px 0; font: 15px/1.5 var(--serif); }
+  .handoff .btn.primary { font-size: 15px; padding: 10px 16px; text-decoration: none; }
+  .handoff h4 { margin: 0 0 4px; font: 600 11.5px var(--sans); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+  .handoff ul { margin: 0 0 12px; padding-left: 18px; font-size: 13.5px; }
+  .handoff .none { font-size: 13px; color: var(--muted); margin: 0 0 12px; }
+  @media (max-width: 760px) { .handoff { grid-template-columns: minmax(0, 1fr); padding: 16px; } }
+  .footnote { max-width: 860px; font-size: 13px; color: var(--ink-2); padding-bottom: 30px; }
+  .footnote h3 { font-size: 15px; margin: 0 0 6px; }
+  .topbar nav .act { opacity: .7; }
+  @media (max-width: 420px) { .topbar nav a { padding: 6px 7px; font-size: 13px; } }
+  @media (prefers-reduced-motion: reduce) { * { animation-duration: .001ms !important; transition-duration: .001ms !important; } }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="wrap">
+    <div class="logo"><span class="mark">B</span> Connected Resort <span class="muted small" style="color:inherit;opacity:.7;font-family:var(--sans)">· Grand Horizon Island Resort</span></div>
+    <nav>
+      <a href="checkin.html" class="on" data-route="/checkin"><span class="act">Act 1 ·</span> Check-in</a>
+      <a href="index.html" data-route="/"><span class="act">Act 2 ·</span> Concierge</a>
+      <a href="checkout.html" data-route="/checkout"><span class="act">Act 3 ·</span> Check-out</a>
+      <a href="flow.html" data-route="/flow"><span class="act">Act 4 ·</span> Flow &amp; governance</a>
+      <span class="badge mock" id="dpBadge"><span class="dot"></span>check-in: checking</span>
+      <button class="iconbtn" id="theme" type="button">Dark mode</button>
+    </nav>
+  </div>
+</div>
+
+<div class="intro">
+  <div class="wide">
+    <p class="eyebrow">Act 1 · Guest check-in, orchestrated by Boomi</p>
+    <h1>One tap at check-in. Seven systems updated.</h1>
+    <p>The guest checks in on the app. Boomi resolves who they are in Data Hub, reads the reservation and room rack, allocates the best
+      room for their preferences, then fans out to every system that needs to know, and handles it when one of them is down.</p>
+  </div>
+</div>
+
+<div class="ctlbar">
+  <div class="wide">
+    <div class="ctl"><span class="lbl">Door-lock system</span>
+      <div class="seg" role="group" aria-label="Door-lock system availability">
+        <button type="button" id="lockOn" aria-pressed="true">Online</button>
+        <button type="button" id="lockOff" class="bad" aria-pressed="false">Offline</button>
+      </div></div>
+    <div class="ctl"><span class="lbl">Housekeeping</span>
+      <div class="seg" role="group" aria-label="Room readiness">
+        <button type="button" id="hkReady" aria-pressed="true">Room ready</button>
+        <button type="button" id="hkNot" class="warnb" aria-pressed="false">Not ready</button>
+      </div></div>
+    <div class="ctl"><span class="lbl">Playback</span>
+      <div class="seg" role="group" aria-label="Playback speed">
+        <button type="button" id="sp1" aria-pressed="true">×1</button>
+        <button type="button" id="sp3" aria-pressed="false">×3</button>
+      </div></div>
+    <span class="sp"></span>
+    <span class="st" id="runStatus" hidden></span>
+    <button class="btn" id="resetBtn" type="button">Reset</button>
+  </div>
+</div>
+
+<main class="wide stage3">
+  <!-- ================= LEFT: guest app ================= -->
+  <div class="col col-app">
+    <section class="panel" aria-labelledby="app-h">
+      <div class="phead"><h2 id="app-h">Guest app</h2><span class="sub">source · check-in request</span></div>
+      <div class="pbody">
+        <div class="phone">
+          <div class="notch" aria-hidden="true"></div>
+          <div class="pstatus"><span id="pclock">15:05</span><span aria-hidden="true">5G ▮▮▮</span></div>
+          <div class="papp">
+            <div class="pbrand"><span class="mark">GH</span><div><strong>Grand Horizon</strong><span>Island Resort · Online check-in</span></div></div>
+            <div data-src="guest_id">
+              <div class="flbl">Guest</div>
+              <div class="gpick" id="gpick" role="group" aria-label="Guest"></div>
+            </div>
+            <div data-src="channel">
+              <div class="flbl">Channel</div>
+              <div class="pseg" id="chan" role="group" aria-label="Channel"></div>
+            </div>
+            <label class="prow" data-src="arrival_time" style="padding:2px 0"><span class="flbl" style="margin:0">Arrival time</span>
+              <input type="time" id="arr" value="15:05" aria-label="Arrival time"></label>
+            <div class="ver" data-src="id_scan"><span aria-hidden="true">✓</span><b>ID scanned</b><span class="vs">passport · verified</span></div>
+            <div class="ver" data-src="card"><span aria-hidden="true">✓</span><b>Card on file</b><span class="vs">guarantee · tokenised</span></div>
+            <button class="pcheck" id="goBtn" type="button">Check in</button>
+          </div>
+          <div class="pdone" id="pdone" aria-live="polite"></div>
+        </div>
+        <div class="codew">
+          <div class="codeh"><span>Outbound request</span><span class="mono">POST /api/v1/resort/checkin</span></div>
+          <pre class="json req" id="req"></pre>
+          <div class="codeh" style="border-top:1px solid rgba(255,255,255,.08);border-bottom:0"><span>proxied to</span><span class="mono">/ws/simple/createGuestcheckin</span></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ================= MIDDLE: Boomi ================= -->
+  <div class="col col-boomi">
+    <section class="panel" aria-labelledby="boomi-h">
+      <div class="phead"><h2 id="boomi-h">Boomi</h2><span class="sub">CR_P5_Guest_CheckIn_Orchestration</span><span class="badge mock" id="servedBadge" hidden></span></div>
+      <div class="pbody"><div id="pipeline"></div></div>
+    </section>
+  </div>
+
+  <!-- ================= RIGHT: targets ================= -->
+  <div class="col col-board">
+    <section class="panel" aria-labelledby="board-h">
+      <div class="phead"><h2 id="board-h">Room board</h2><span class="sub">OPERA room rack · Grand Horizon</span></div>
+      <div class="pbody">
+        <div id="board"></div>
+        <div class="legend"><span><i style="background:var(--good)"></i>Inspected / clean</span><span><i style="background:var(--warn)"></i>Dirty</span><span><i style="background:var(--accent)"></i>Occupied</span><span><i style="background:var(--muted)"></i>Out of order</span></div>
+      </div>
+    </section>
+    <div class="col" style="gap:16px">
+      <section class="panel" aria-labelledby="sys-h">
+        <div class="phead"><h2 id="sys-h">Systems updated</h2><span class="sub" id="sysCount">0 / 7</span></div>
+        <div class="pbody"><div class="sysgrid" id="sysgrid"></div></div>
+      </section>
+      <section class="panel" aria-labelledby="q-h">
+        <div class="phead"><h2 id="q-h">Exceptions queue</h2><span class="sub">front desk · retry</span></div>
+        <div class="pbody" id="queue"></div>
+      </section>
+      <section class="panel" aria-labelledby="log-h">
+        <div class="phead"><h2 id="log-h">Process log</h2><span class="sub">Notify steps</span></div>
+        <div class="pbody"><div class="plog" id="plog"></div></div>
+      </section>
+    </div>
+  </div>
+</main>
+
+<div class="wide">
+  <section class="card handoff" id="handoff" aria-live="polite"></section>
+  <div class="footnote">
+    <h3>What is real here</h3>
+    <p>When the demo server is running with Boomi credentials, <strong>Check in</strong> calls the deployed process
+      <span class="mono small">CR_P5_Guest_CheckIn_Orchestration</span> through <span class="mono small">/ws/simple/createGuestcheckin</span>.
+      The Data Hub steps are live: the golden record is resolved by loyalty id and the stay update is upserted with source
+      <span class="mono small">OPERA_PMS</span>. Opera, the door-lock system, Salesforce, Operations, Simphony and guest messaging are
+      <em>stub</em> sends: Message steps that build the exact payload, and the point where a real connector would be swapped in.
+      The pipeline then replays the step trace Boomi returned. Offline, or opened as a file, the page replays recorded traces of the same process.</p>
+  </div>
+</div>
+<footer class="foot"><div class="wrap">Boomi Connected Resort demo · sample data only · <a href="index.html" data-route="/">Next: Act 2, the concierge &rarr;</a></div></footer>
+
+<script src="mock-bundle.js"></script>
+<script src="common.js"></script>
+<script src="config.js"></script>
+<script src="online.js"></script>
+<script>
+(function () {
+  "use strict";
+  var CR = window.CR, esc = CR.esc, M = window.CR_MOCK || {};
+  CR.initTheme(document.getElementById("theme"));
+  if (CR.served) document.querySelectorAll("a[data-route]").forEach(function (a) { a.href = a.dataset.route; });
+  var $ = function (id) { return document.getElementById(id); };
+
+  /* ---------------- reference ---------------- */
+  var GUESTS = [
+    { id: "LOY-200101", name: "Elena Vance", tier: "Diamond" },
+    { id: "LOY-200102", name: "Marcus Thorne", tier: "Platinum" },
+    { id: "LOY-200103", name: "Sophia Lin", tier: "Standard" }
+  ];
+  var CHANNELS = [["MOBILE_APP", "Mobile app"], ["KIOSK", "Kiosk"], ["FRONT_DESK", "Front desk"]];
+  var SYSTEMS = [
+    { sys: "OPERA_PMS", label: "Opera PMS", action: "Check in + assign room" },
+    { sys: "DATA_HUB", label: "Data Hub", action: "Update golden record stay" },
+    { sys: "DOOR_LOCK", label: "Door lock", action: "Issue mobile key" },
+    { sys: "SALESFORCE_CRM", label: "Salesforce CRM", action: "Create stay + host task" },
+    { sys: "OPERATIONS", label: "Operations", action: "Housekeeping setup + host dispatch" },
+    { sys: "SIMPHONY_POS", label: "Simphony POS", action: "Link room for POS room charges" },
+    { sys: "GUEST_MESSAGING", label: "Guest messaging", action: "Send welcome + key" }
+  ];
+  var STAGES = [
+    { id: "receive", title: "Receive check-in request", shape: "Web Services Server listener (createGuestcheckin)", mode: "live", note: "JSON request from the guest app, validated against the request profile." },
+    { id: "resolve", title: "Resolve golden record", shape: "REST: CR_DataHub_GuestMaster_Query_Operation", mode: "live", note: "Data Hub Connected-Resorts / guestmaster, queried by loyaltyId." },
+    { id: "reservation", title: "Reservation + room rack", shape: "Message: OPERA reservation + room rack extract", mode: "stub", note: "Reservation due in today, plus the rack with housekeeping status." },
+    { id: "allocate", title: "Allocate room", shape: "Data Process: Allocate room (preference + housekeeping rules)", mode: "live", note: "Candidates are rooms of the reserved type that are not occupied or out of order." },
+    { id: "fanout", title: "Fan out to every system", shape: "Branch (7 paths)", mode: "live", note: "One Branch path per system. Paths run in order; a failure on one path does not stop the others." },
+    { id: "receipt", title: "Assemble receipt", shape: "Data Process: Assemble receipt", mode: "live", note: "One response back to the guest app, with warnings and next actions." }
+  ];
+  var RULES = ["preference match +3", "near lift -3 (quiet)", "VIP ocean view / beachfront +1", "INSPECTED +2", "CLEAN +1", "DIRTY -5 (ineligible)", "tie: rack order"];
+  var TYPE_LABEL = { SUITE: "Suites", PENTHOUSE: "Penthouse", VILLA: "Ocean villas", "DLX-TWIN": "Deluxe twin", "DLX-KING": "Deluxe king" };
+  var RACK = M.roomRack || [];
+
+  /* ---------------- state ---------------- */
+  var state = { guest: GUESTS[0].id, channel: "MOBILE_APP", lockOnline: true, roomReady: true, speed: 1,
+    busy: false, runId: 0, board: {}, queue: [], log: [], sys: {} };
+  var CANCEL = { cancelled: true };
+  function wait(ms) {
+    var id = state.runId;
+    return new Promise(function (res, rej) { setTimeout(function () { if (id === state.runId) res(); else rej(CANCEL); }, Math.max(16, ms / state.speed)); });
+  }
+  function pad(n) { return (n < 10 ? "0" : "") + n; }
+  function clock() { var d = new Date(); return pad(d.getHours()) + ":" + pad(d.getMinutes()) + ":" + pad(d.getSeconds()); }
+  function guestById(id) { return GUESTS.find(function (g) { return g.id === id; }); }
+  function tierTag(t) { return '<span class="tag ' + (t && t !== "Standard" ? "vip" : "") + '"' + (t === "Standard" || !t ? ' style="color:var(--muted);background:var(--bg-2)"' : "") + ">" + esc(t || "Standard") + "</span>"; }
+  function sysTag(s) { return '<span class="tag ' + esc(s) + '">' + esc(s) + "</span>"; }
+  function modeTag(mode, replay) {
+    if (mode === "live") return '<span class="mtag ' + (replay ? "replay" : "live") + '">' + (replay ? "LIVE · REPLAYED" : "LIVE") + "</span>";
+    return '<span class="mtag stub">STUB</span>';
+  }
+  function stateOf(status) { return status === "FAILED" ? "fail" : status === "WARN" ? "warn" : "done"; }
+  function parseMaybe(p) {
+    if (typeof p !== "string") return p;
+    var t = p.trim();
+    if (t.charAt(0) === "{" || t.charAt(0) === "[") { try { return JSON.parse(t); } catch (e) { return p; } }
+    return p;
+  }
+  function prettyXml(x) {
+    var depth = 0;
+    return String(x).replace(/>\s*</g, ">\n<").split("\n").map(function (tok) {
+      tok = tok.trim();
+      if (/^<\//.test(tok)) depth = Math.max(0, depth - 1);
+      var line = new Array(depth + 1).join("  ") + tok;
+      if (/^<[A-Za-z]/.test(tok) && !/<\//.test(tok) && !/\/>$/.test(tok)) depth++;
+      return line;
+    }).join("\n");
+  }
+  function xmlHTML(x) {
+    return esc(prettyXml(x)).replace(/(&quot;[^&]*&quot;)/g, '<span class="s">$1</span>')
+      .replace(/(&lt;\/?)([\w:.-]+)/g, '$1<span class="k">$2</span>');
+  }
+  function payloadHTML(p) {
+    p = parseMaybe(p);
+    if (p == null) return '<pre class="json sm">null</pre>';
+    if (typeof p === "string") return '<pre class="json sm">' + (p.trim().charAt(0) === "<" ? xmlHTML(p) : esc(p)) + "</pre>";
+    return '<pre class="json sm">' + CR.jsonHTML(p) + "</pre>";
+  }
+
+  /* ---------------- phone ---------------- */
+  function renderPhone() {
+    $("gpick").innerHTML = GUESTS.map(function (g) {
+      return '<button type="button" data-g="' + g.id + '" aria-pressed="' + (g.id === state.guest) + '"><span class="gn">' + esc(g.name) +
+        '</span>' + tierTag(g.tier) + '<span class="gid">' + g.id + "</span></button>";
+    }).join("");
+    $("chan").innerHTML = CHANNELS.map(function (c) {
+      return '<button type="button" data-c="' + c[0] + '" aria-pressed="' + (c[0] === state.channel) + '">' + c[1] + "</button>";
+    }).join("");
+    $("pclock").textContent = $("arr").value || "15:05";
+  }
+  function request() {
+    return { guest_id: state.guest, channel: state.channel, arrival_time: $("arr").value || "15:05",
+      simulate_key_system_down: state.lockOnline ? "false" : "true", simulate_room_not_ready: state.roomReady ? "false" : "true" };
+  }
+  function renderRequest() {
+    var lines = CR.jsonHTML(request()).split("\n").map(function (l) {
+      var m = /<span class="k">&quot;(\w+)&quot;<\/span>/.exec(l);
+      return m ? '<span class="fl" data-fld="' + m[1] + '">' + l + "</span>" : l;
+    });
+    $("req").innerHTML = lines.join("\n");
+  }
+  function lightReq(key, on) { var n = $("req").querySelector('[data-fld="' + key + '"]'); if (n) { if (on) n.setAttribute("data-lit", "1"); else n.removeAttribute("data-lit"); } }
+  function lightSrc(key, on) { var n = document.querySelector('[data-src="' + key + '"]'); if (n) n.classList.toggle("lit", !!on); }
+  function clearLit() {
+    document.querySelectorAll("[data-src].lit").forEach(function (n) { n.classList.remove("lit"); });
+    $("req").querySelectorAll("[data-lit]").forEach(function (n) { n.removeAttribute("data-lit"); });
+  }
+  function phoneDone(d) {
+    var el = $("pdone"), a = d.allocation || {}, msg = "", key = "";
+    (d.steps || []).forEach(function (s) {
+      var p = parseMaybe(s.payload);
+      if (s.system === "GUEST_MESSAGING" && p && (p.text || p.message)) msg = p.text || p.message;
+      if (s.system === "DOOR_LOCK") key = s.status === "FAILED" ? "⚠ Key: collect a key card at the front desk" : (a.ready === false ? "Mobile key: activates when the room is inspected" : "✓ Mobile key active in the app");
+    });
+    if (d.status === "REJECTED") {
+      el.className = "pdone on bad";
+      el.innerHTML = '<div class="ok">!</div><div class="big" style="font-size:20px">Please see the front desk</div><p class="small muted" style="margin:0">' + esc(d.error || "Check-in could not be completed") + "</p>";
+    } else {
+      el.className = "pdone on" + (d.status === "COMPLETED" ? "" : " warn");
+      el.innerHTML = '<div class="ok">' + (d.status === "COMPLETED" ? "✓" : "!") + '</div><div class="small muted">You are checked in</div><div class="big">' + esc(a.room || "") + "</div>" +
+        '<div class="small muted">' + esc((a.features || []).map(function (f) { return f.replace(/_/g, " "); }).join(" · ")) + "</div>" +
+        (a.ready === false ? '<div class="note warn" style="text-align:left">Room ready by <strong>' + esc(a.readyBy || "") + "</strong></div>" : "") +
+        (msg ? '<div class="msgb">' + esc(msg) + "</div>" : "") + '<div class="keyl">' + esc(key) + "</div>";
+    }
+    el.innerHTML += '<button class="btn" type="button" id="pnew" style="margin:auto auto 0">New check-in</button>';
+    $("pnew").addEventListener("click", function () { el.className = "pdone"; });
+  }
+
+  /* ---------------- pipeline scaffold ---------------- */
+  function buildPipeline() {
+    $("pipeline").innerHTML = STAGES.map(function (s, i) {
+      return '<div class="srow" data-state="idle" id="st-' + s.id + '"><div class="rail"><div class="dot"></div>' + (i < STAGES.length - 1 ? '<div class="ln"></div>' : "") + "</div>" +
+        '<div class="sbody"><div class="stitle"><h3>' + esc(s.title) + '</h3><span id="mt-' + s.id + '">' + modeTag(s.mode) + '</span></div>' +
+        '<div class="shape" id="sh-' + s.id + '">' + esc(s.shape) + "</div>" +
+        '<div class="snote">' + esc(s.note) + '</div><div class="detail" id="dt-' + s.id + '"></div></div></div>';
+    }).join("");
+  }
+  function setStage(id, st) { $("st-" + id).setAttribute("data-state", st); }
+  function detail(id, html) { $("dt-" + id).innerHTML = html; }
+  function meta(id, step, replay) {
+    if (!step) return;
+    if (step.boomiStep) $("sh-" + id).textContent = step.boomiStep;
+    if (step.mode) $("mt-" + id).innerHTML = modeTag(step.mode, replay && step.mode === "live" && step.system === "DATA_HUB");
+  }
+
+  /* ---------------- room board ---------------- */
+  function renderBoard(flash, scoring) {
+    var groups = [], by = {};
+    RACK.forEach(function (r) { if (!by[r.ROOM_TYPE]) { by[r.ROOM_TYPE] = []; groups.push(r.ROOM_TYPE); } by[r.ROOM_TYPE].push(r); });
+    if (!RACK.length) { $("board").innerHTML = '<p class="empty">Room rack not loaded (mock-bundle.js missing).</p>'; return; }
+    $("board").innerHTML = groups.map(function (t) {
+      var floors = by[t].map(function (r) { return r.FLOOR; }).filter(function (f, i, a) { return a.indexOf(f) === i; });
+      return '<div class="rgroup"><h4>' + esc(TYPE_LABEL[t] || t) + " · floor " + esc(floors.join(", ")) + '</h4><div class="rooms">' + by[t].map(function (r) {
+        var a = state.board[r.ROOM], hk = r.HK_STATUS, cls = "room";
+        if (a) { hk = a.ready ? hk : "DIRTY"; cls += a.ready ? " alloc" : " rush"; }
+        else if (hk === "OOO") cls += " ooo";
+        else if (hk === "OCCUPIED") cls += " occ";
+        if (flash === r.ROOM) cls += " flash";
+        if (scoring === r.ROOM) cls += " scoring";
+        var body = "";
+        if (a) {
+          body = '<div class="gname">' + esc(a.name) + " " + (a.isVip ? '<span class="tag vip">VIP · ' + esc(a.tier) + "</span>" : "") + "</div>" +
+            '<div class="rf">' + (a.key === "physical" ? "Key: physical ⚠" : a.key === "mobile" ? "Key: mobile ✓" : "Key: issuing…") +
+            (a.ready ? "" : "<br>Rush clean · ready " + esc(a.readyBy || "")) + "</div>";
+        } else if (hk === "OCCUPIED") {
+          body = '<div class="gname">' + esc(r.OCCUPIED_BY) + '</div><div class="rf">in house</div>';
+        } else if (hk === "OOO") {
+          body = '<div class="rf">' + esc(r.NOTE || "out of order") + "</div>";
+        } else {
+          body = '<div class="rf">vacant</div>';
+        }
+        return '<div class="' + cls + '" data-room="' + esc(r.ROOM) + '"><div class="rt"><span class="rn">' + esc(r.ROOM) + '</span><span class="hk ' + esc(hk) + '">' + esc(hk) + "</span></div>" +
+          '<div class="ty">' + esc(r.ROOM_TYPE) + " · fl " + esc(r.FLOOR) + '</div><div class="ft">' + (r.FEATURES || []).map(function (f) { return "<span>" + esc(f.replace(/_/g, " ")) + "</span>"; }).join("") + "</div>" + body + "</div>";
+      }).join("") + "</div></div>";
+    }).join("");
+  }
+
+  /* ---------------- systems / queue / log ---------------- */
+  function renderSystems() {
+    var n = 0;
+    $("sysgrid").innerHTML = SYSTEMS.map(function (s) {
+      var v = state.sys[s.sys] || { state: "idle", text: "waiting", detail: s.action };
+      if (v.state === "ok" || v.state === "warn") n++;
+      return '<div class="systile" data-state="' + v.state + '"><div class="sh"><span class="sn">' + esc(s.label) + '</span><span class="ss">' + esc(v.text) + '</span></div><div class="sd">' + esc(v.detail) + "</div></div>";
+    }).join("");
+    $("sysCount").textContent = n + " / " + SYSTEMS.length;
+  }
+  function addLog(level, msg) { state.log.unshift({ t: clock(), level: level, msg: msg }); if (state.log.length > 80) state.log.pop(); renderLog(); }
+  function renderLog() {
+    $("plog").innerHTML = state.log.length ? state.log.map(function (l) {
+      return '<div class="ll"><span class="t">' + l.t + '</span><span class="lv ' + l.level + '">' + l.level + '</span><span class="m">' + esc(l.msg) + "</span></div>";
+    }).join("") : '<p class="empty">No executions yet.</p>';
+  }
+  function renderQueue() {
+    $("queue").innerHTML = state.queue.length ? state.queue.map(function (q) {
+      return '<div class="qi ' + (q.kind || "") + '"><div class="fn">' + esc(q.file) + '</div><div class="why">' + esc(q.why) + "</div>" +
+        "<details><summary>Envelope</summary>" + payloadHTML(q.body) + "</details></div>";
+    }).join("") : '<p class="empty">Empty. Failed system calls land here with their fallback, for the front desk to action and Boomi to retry.</p>';
+  }
+
+  function laneSummary(s, d) {
+    var p = parseMaybe(s.payload) || {}, room = (d.allocation || {}).room || "";
+    if (typeof p !== "object") p = {};
+    switch (s.system) {
+      case "OPERA_PMS": return (p.reservationId || p.confirmationNo || (d.reservation || {}).confirmationNo || "Reservation") + " checked in · " + room;
+      case "DATA_HUB": return "Golden record stay: " + room;
+      case "DOOR_LOCK": return s.status === "FAILED" ? "Offline · physical key at the front desk" : "Mobile key issued" + ((d.allocation || {}).ready === false ? " · activates when inspected" : "");
+      case "SALESFORCE_CRM": var o = (p.task || {}).Owner; return "Stay + host task" + (o ? " · " + o : "");
+      case "OPERATIONS": var hk = p.housekeeping || {}, hd = p.hostDispatch; return "Housekeeping " + (hk.priority || "set up") + (hd && hd.host ? " · " + hd.host + " dispatched" : " · no host (Standard)");
+      case "SIMPHONY_POS": return "Room charges enabled" + (p.folioNumber ? " · folio " + p.folioNumber : "");
+      case "GUEST_MESSAGING": return (p.channel || "Message") + " sent" + (p.to ? " to " + p.to : "");
+      default: return s.detail || s.action || "";
+    }
+  }
+
+  /* ---------------- hand-off ---------------- */
+  function routeTo(page) { return CR.served ? (page === "index" ? "/" : "/" + page) : page + ".html"; }
+  function renderHandoff(d) {
+    var el = $("handoff");
+    if (d.status === "REJECTED") {
+      el.className = "card handoff on";
+      el.innerHTML = '<div><p class="eyebrow">Check-in result</p><h2>Check-in rejected</h2><p><span class="st REJECTED">REJECTED</span></p><p>' + esc(d.error || "") + "</p></div><div></div>";
+      return;
+    }
+    var g = d.guest || {}, h = d.handoff || {}, s = d.summary || {};
+    var prompt = h.conciergePrompt || (M.conciergeCalls || {})[g.guestId] || "";
+    var href = routeTo("index") + "?prompt=" + encodeURIComponent(prompt);
+    function list(xs, emptyText) { return xs && xs.length ? "<ul>" + xs.map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("") + "</ul>" : '<p class="none">' + emptyText + "</p>"; }
+    el.className = "card handoff on";
+    el.innerHTML = '<div><p class="eyebrow">Hand-off · Act 2</p><h2>' + esc(g.legalName || "") + " is in " + esc(h.room || (d.allocation || {}).room || "") + "</h2>" +
+      '<p style="margin:0 0 10px"><span class="st ' + esc(d.status) + '">' + esc(d.status) + '</span> <span class="small muted mono">' + esc(d.checkInId || "") + "</span></p>" +
+      '<p class="small muted" style="margin:0 0 6px">Later that afternoon the guest calls the concierge:</p>' +
+      "<blockquote>" + esc(prompt) + "</blockquote>" +
+      '<a class="btn primary" id="toAct2" href="' + esc(href) + '">Act 2 → Guest calls the concierge</a></div>' +
+      "<div><h4>Warnings</h4>" + list(s.warnings, "None. Every system confirmed.") + "<h4>Next actions</h4>" + list(s.nextActions, "Nothing for staff to action.") +
+      '<p class="small muted" style="margin:0">' + esc(String(s.systemsUpdated != null ? s.systemsUpdated : "?")) + " of 7 systems updated" + (s.systemsFailed ? ", " + s.systemsFailed + " failed with a fallback" : "") + ".</p></div>";
+  }
+
+  /* ---------------- the run ---------------- */
+  async function run() {
+    if (state.busy) return;
+    state.busy = true; $("goBtn").disabled = true; $("goBtn").textContent = "Checking in…";
+    var myRun = ++state.runId;
+    buildPipeline(); clearLit(); $("handoff").className = "card handoff"; $("pdone").className = "pdone";
+    state.sys = {}; renderSystems();
+    var req = request(); renderRequest();
+    var g0 = guestById(req.guest_id) || { name: req.guest_id };
+    setRunStatus("RUNNING");
+    var t0 = performance.now(), result = null;
+    var pending = CR.product("checkin", req).then(function (r) { result = r; return r; });
+    try {
+      /* 1. receive */
+      setStage("receive", "active");
+      var rows = [["guest_id", "Data Hub match key (loyaltyId)", "guest_id"], ["channel", "receipt + message routing", "channel"],
+        ["arrival_time", "key validity start", "arrival_time"], ["simulate_key_system_down", "door-lock path (demo toggle)", null],
+        ["simulate_room_not_ready", "housekeeping (demo toggle)", null]];
+      detail("receive", '<dl class="kv2"><dt>Facade</dt><dd>POST /api/v1/resort/checkin</dd><dt>Boomi</dt><dd>POST /ws/simple/createGuestcheckin · Basic auth held server-side</dd></dl>' +
+        '<div id="waitBox"></div><div id="rcvRows"></div>');
+      /* Boomi runs the whole orchestration and returns every step at once, so nothing is
+         animated until the response is back: just an honest in-flight indicator. */
+      var tick = null;
+      if (!result) {
+        var showWait = function () {
+          var sec = Math.round((performance.now() - t0) / 1000);
+          $("waitBox").innerHTML = '<div class="chipx wait"><span class="spin"></span><span>Waiting for Boomi… CR_P5_Guest_CheckIn_Orchestration is running (' + sec + " s)" +
+            (sec >= 15 ? " · first call after idle can take a minute or more" : "") + "</span></div>";
+        };
+        showWait(); tick = setInterval(showWait, 1000);
+      }
+      var res;
+      try { res = await pending; } finally { if (tick) clearInterval(tick); }
+      if (myRun !== state.runId) throw CANCEL;
+      $("rcvRows").innerHTML = '<table class="mt"><thead><tr><th>Field</th><th>Value</th><th>Used for</th></tr></thead><tbody>' + rows.map(function (r) {
+        return '<tr data-row="' + r[0] + '"><td>' + r[0] + '</td><td class="tgt">' + esc(req[r[0]]) + '</td><td class="rs">' + esc(r[1]) + "</td></tr>";
+      }).join("") + "</tbody></table>";
+      var d = res.data || {}, ms = Math.round(performance.now() - t0);
+      var live = d._servedBy === "boomi-live", replay = !live;
+      var sb = $("servedBadge"); sb.hidden = false;
+      CR.badge(sb, live ? "live" : "mock", live ? "Boomi live · " + (d._latencyMs != null ? d._latencyMs : ms) + " ms" : "replayed trace");
+      sb.title = live ? "Served by the deployed Boomi process" : (d._servedBy || "") + (d._traceSource ? " · " + d._traceSource : "") + (d._fallbackReason ? " · " + d._fallbackReason : "");
+      $("waitBox").innerHTML = '<div class="chipx ' + (live ? "ok" : "wait") + '"><span class="n">' + (live ? "Boomi" : "Replay") + "</span><span>" +
+        esc(live ? "Process answered in " + (d._latencyMs != null ? d._latencyMs : ms) + " ms; replaying its step trace" :
+          "Boomi not called (" + (d._fallbackReason || d._servedBy || "offline") + "); replaying " + (d._traceSource || "recorded trace")) + "</span></div>";
+      for (var i = 0; i < rows.length; i++) {
+        var tr = $("rcvRows").querySelector('[data-row="' + rows[i][0] + '"]');
+        tr.setAttribute("data-lit", "1"); lightReq(rows[i][0], true); if (rows[i][2]) lightSrc(rows[i][2], true);
+        await wait(300);
+        tr.removeAttribute("data-lit"); lightReq(rows[i][0], false); if (rows[i][2]) lightSrc(rows[i][2], false);
+      }
+      var steps = d.steps || [], byStage = {};
+      steps.forEach(function (s) { if (s.stage !== "fanout" && !byStage[s.stage]) byStage[s.stage] = s; });
+      var sr = byStage.receive;
+      meta("receive", sr, replay);
+      setStage("receive", d.status === "REJECTED" && !sr ? "done" : stateOf(sr ? sr.status : "OK"));
+      addLog("INFO", "Check-in request received. CheckInId=" + (d.checkInId || "-") + " GuestId=" + req.guest_id + " Channel=" + (d.channel || req.channel));
+
+      if (d.status === "REJECTED" || !steps.length) { await rejected(d, req); return; }
+
+      /* 2. resolve */
+      var gs = d.guest || {}, srs = byStage.resolve;
+      meta("resolve", srs, replay);
+      setStage("resolve", "active"); lightSrc("guest_id", true); lightSrc("id_scan", true); lightReq("guest_id", true);
+      await wait(700);
+      var links = gs.sourceLinks || {};
+      if (Array.isArray(links)) { var o = {}; links.forEach(function (l) { o[l.system] = l.recordId; }); links = o; }
+      detail("resolve", '<dl class="kv2"><dt>Golden record</dt><dd>' + esc(gs.goldenRecordId || "-") + "</dd><dt>Legal name</dt><dd>" + esc(gs.legalName || "") +
+        "</dd><dt>VIP tier</dt><dd>" + tierTag(gs.vipStatus) + (gs.isVip ? ' <span class="small muted">VIP handling</span>' : "") + "</dd><dt>Host</dt><dd>" + esc(gs.accountableHost || "none (Standard guest)") +
+        "</dd><dt>Preferences</dt><dd>" + esc(gs.preferences || "-") + "</dd><dt>Currency</dt><dd>" + esc(gs.preferredCurrency || "-") + "</dd></dl>" +
+        '<div class="links">' + ["OPERA_PMS", "SALESFORCE_CRM", "OPERATIONS"].map(function (k) {
+          return '<span class="lk' + (links[k] ? "" : " none") + '">' + sysTag(k) + esc(links[k] || "no record") + "</span>";
+        }).join("") + "</div>" + (srs && srs.detail ? '<div class="small muted">' + esc(srs.detail) + "</div>" : ""));
+      await wait(900);
+      lightSrc("guest_id", false); lightSrc("id_scan", false); lightReq("guest_id", false);
+      setStage("resolve", stateOf(srs ? srs.status : "OK"));
+      addLog("INFO", "Golden record resolved. GuestId=" + (gs.guestId || req.guest_id) + " VIP=" + (gs.vipStatus || "-") + " Host=" + (gs.accountableHost || "none") + " Sources=" + Object.keys(links).length);
+
+      /* 3. reservation */
+      var rv = d.reservation || {}, srv = byStage.reservation, al = d.allocation || {};
+      meta("reservation", srv, replay);
+      setStage("reservation", "active");
+      await wait(600);
+      var ofType = RACK.filter(function (r) { return r.ROOM_TYPE === (rv.roomType || al.roomType); });
+      var excl = ofType.filter(function (r) { return r.HK_STATUS === "OCCUPIED" || r.HK_STATUS === "OOO" || r.OCCUPIED_BY; });
+      detail("reservation", '<dl class="kv2"><dt>Confirmation</dt><dd>' + esc(rv.confirmationNo || "-") + "</dd><dt>Room type</dt><dd>" + esc(rv.roomType || "-") +
+        "</dd><dt>Rate plan</dt><dd>" + esc(rv.ratePlan || "-") + "</dd><dt>Stay</dt><dd>" + esc((rv.arrival || "") + " → " + (rv.departure || "")) + " · " + esc(rv.nights) + " nights · " + esc(rv.adults) + " adult(s)" +
+        "</dd>" + (ofType.length ? "<dt>Room rack</dt><dd>" + ofType.length + " " + esc(rv.roomType) + " rooms · " + excl.length + " occupied or out of order</dd>" : "") + "</dl>");
+      await wait(500);
+      setStage("reservation", stateOf(srv ? srv.status : "OK"));
+      addLog("INFO", "Reservation read. Conf=" + (rv.confirmationNo || "-") + " RoomType=" + (rv.roomType || "-") + " Nights=" + (rv.nights || "-"));
+
+      /* 4. allocate */
+      var sa = byStage.allocate, cands = (al.candidates || []).slice();
+      var idx = function (room) { var k = RACK.findIndex(function (r) { return r.ROOM === room; }); return k < 0 ? 999 : k; };
+      cands.sort(function (a, b) { return idx(a.room) - idx(b.room); });
+      meta("allocate", sa, replay);
+      setStage("allocate", "active"); lightSrc("guest_id", true);
+      var trs = cands.map(function (c, k) {
+        return '<tr class="pending" data-c="' + k + '"><td>' + esc(c.room) + '</td><td class="hkc">' + esc(c.hkStatus || "") + '</td><td class="rs">…</td><td class="num">·</td></tr>';
+      }).concat(excl.map(function (r) {
+        return '<tr class="out"><td>' + esc(r.ROOM) + '</td><td class="hkc">' + esc(r.HK_STATUS) + '</td><td class="rs">' + esc(r.HK_STATUS === "OOO" ? "out of order: " + (r.NOTE || "") : "occupied: " + r.OCCUPIED_BY) + '</td><td class="num">-</td></tr>';
+      }));
+      detail("allocate", '<div class="rules">' + RULES.map(function (r) { return "<span>" + esc(r) + "</span>"; }).join("") + "</div>" +
+        '<div class="tbl-wrap" style="border:0"><table class="mt"><thead><tr><th>Room</th><th>HK</th><th>Reasons</th><th class="num">Score</th></tr></thead><tbody>' + trs.join("") + "</tbody></table></div>" +
+        '<div id="allocNote"></div>');
+      for (var c = 0; c < cands.length; c++) {
+        var row = $("dt-allocate").querySelector('[data-c="' + c + '"]'), cd = cands[c];
+        row.className = ""; row.setAttribute("data-lit", "1");
+        renderBoard(null, cd.room);
+        row.cells[2].textContent = (cd.reasons || []).join(" · ") || "no matches";
+        await wait(380);
+        row.cells[3].textContent = (cd.score > 0 ? "+" : "") + cd.score;
+        await wait(300);
+        row.removeAttribute("data-lit");
+        if (cd.eligible === false) row.className = "out";
+      }
+      var win = cands.findIndex(function (x) { return x.room === al.room; });
+      if (win >= 0) { var wr = $("dt-allocate").querySelector('[data-c="' + win + '"]'); wr.className = "win"; wr.cells[0].innerHTML = esc(al.room) + ' <span class="tag ok">WINNER</span>'; }
+      lightSrc("guest_id", false);
+      // allocate on the board (any earlier room for this guest is released first)
+      Object.keys(state.board).forEach(function (k) { if (state.board[k].guestId === gs.guestId) delete state.board[k]; });
+      state.board[al.room] = { guestId: gs.guestId, name: gs.legalName, tier: gs.vipStatus, isVip: gs.isVip, key: "pending", ready: al.ready !== false, readyBy: al.readyBy };
+      renderBoard(al.room);
+      if (al.ready === false) {
+        lightReq("simulate_room_not_ready", true);
+        $("allocNote").innerHTML = '<div class="note warn"><strong>' + esc(al.room) + " is not ready.</strong> Best match held anyway; Operations gets a RUSH clean, ready by <strong>" + esc(al.readyBy || "") + "</strong>. The key activates once inspected.</div>";
+      } else {
+        $("allocNote").innerHTML = '<div class="note"><strong>' + esc(al.room) + "</strong> wins with score " + esc(al.score) + ": " + esc((al.reasons || []).join(" · ")) + "</div>";
+      }
+      setStage("allocate", stateOf(sa ? sa.status : (al.ready === false ? "WARN" : "OK")));
+      addLog(al.ready === false ? "WARN" : "INFO", "Room allocated. Room=" + al.room + " Score=" + al.score + " HK=" + (al.hkStatus || "-") + (al.ready === false ? " Ready=false ReadyBy=" + al.readyBy : ""));
+      await wait(500);
+      lightReq("simulate_room_not_ready", false);
+
+      /* 5. fan-out */
+      var fan = steps.filter(function (s) { return s.stage === "fanout"; }).sort(function (a, b) { return a.seq - b.seq; });
+      var order = SYSTEMS.map(function (s) { return s.sys; });
+      fan.forEach(function (s) { if (order.indexOf(s.system) < 0) order.push(s.system); });
+      setStage("fanout", "active");
+      detail("fanout", '<div class="fork-head"><span class="fork-node">Branch</span> ' + fan.length + " paths, executed 1 → " + fan.length + "</div>" +
+        '<div class="lanes">' + fan.map(function (s, k) {
+          var label = (SYSTEMS.find(function (x) { return x.sys === s.system; }) || {}).label || s.system;
+          return '<div class="lane" data-state="idle" data-lane="' + k + '"><div class="lt"><span class="lno">' + (k + 1) + "</span>" + sysTag(s.system) +
+            '<span class="la">' + esc(s.action || label) + "</span>" + modeTag(s.mode, replay && s.mode === "live") + '<span class="lst">WAITING</span></div>' +
+            '<div class="lsh">' + esc(s.boomiStep || "") + '</div><div class="lx"></div></div>';
+        }).join("") + '</div><div class="fork-join" id="join">↳ paths join · assemble receipt</div>');
+      for (var f = 0; f < fan.length; f++) {
+        var s = fan[f], lane = $("dt-fanout").querySelector('[data-lane="' + f + '"]'), lx = lane.querySelector(".lx");
+        lane.setAttribute("data-state", "active"); lane.querySelector(".lst").textContent = "SENDING";
+        state.sys[s.system] = { state: "active", text: "SENDING", detail: s.action || "" }; renderSystems();
+        if (s.system === "DOOR_LOCK") lightReq("simulate_key_system_down", true);
+        if (s.system === "SIMPHONY_POS") lightSrc("card", true);
+        if (s.system === "GUEST_MESSAGING") lightSrc("channel", true);
+        await wait(s.system === "DOOR_LOCK" && s.status === "FAILED" ? 1100 : 750);
+        var p = parseMaybe(s.payload), stt = s.status === "FAILED" ? "fail" : s.status === "WARN" ? "warn" : "ok";
+        var extra = "";
+        if (s.status === "FAILED") {
+          extra = '<div class="chips"><div class="chipx err"><span class="n">Try</span><span>' + esc((p && p.error) || s.detail || "call failed") + "</span></div>" +
+            '<div class="chipx wait"><span class="n">Catch</span><span>' + esc((p && p.fallback) || "fallback path") + "</span></div>" +
+            (p && p.retryQueue ? '<div class="chipx"><span class="n">Retry queue</span><span>' + esc(p.retryQueue) + "</span></div>" : "") + "</div>";
+        }
+        var resp = s.response ? '<div class="small muted">Response</div>' + payloadHTML(s.response) : "";
+        lx.innerHTML = extra + (s.payload != null ? "<details><summary>" + (typeof p === "string" && p.trim().charAt(0) === "<" ? "Payload (XML)" : "Payload") + (resp ? " + response" : "") + '</summary><div class="pl">' + payloadHTML(s.payload) + resp + "</div></details>" : "");
+        lane.setAttribute("data-state", stt); lane.querySelector(".lst").textContent = s.status || "OK";
+        state.sys[s.system] = { state: stt, text: s.status === "FAILED" ? "FAILED" : s.status || "OK", detail: laneSummary(s, d) }; renderSystems();
+        if (s.system === "DOOR_LOCK" && state.board[al.room]) { state.board[al.room].key = s.status === "FAILED" ? "physical" : "mobile"; renderBoard(); }
+        if (s.status === "FAILED") {
+          state.queue.unshift({ kind: "", file: ((p && p.retryQueue) ? p.retryQueue + "/" : "") + s.system + "_" + (d.checkInId || "") + "_" + String(al.room || "").replace(/\s+/g, "") + ".json",
+            why: ((p && p.fallback) || "System call failed") + ".", body: { checkInId: d.checkInId, system: s.system, action: s.action, room: al.room, guestId: gs.guestId, failedAt: new Date().toISOString(), error: p && p.error, fallback: p && p.fallback, payload: p } });
+          renderQueue();
+          addLog("ERR", s.system + " " + (s.action || "") + " failed. CheckInId=" + d.checkInId + " Error=" + ((p && p.error) || "-") + ". Fallback: " + ((p && p.fallback) || "-"));
+        } else {
+          addLog(s.status === "WARN" ? "WARN" : "INFO", s.system + " " + (s.action || "") + " " + (s.status || "OK") + ". " + laneSummary(s, d));
+        }
+        lightReq("simulate_key_system_down", false); lightSrc("card", false); lightSrc("channel", false);
+        await wait(220);
+      }
+      if (al.ready === false) {
+        state.queue.unshift({ kind: "warn", file: "HOUSEKEEPING_RUSH_" + String(al.room || "").replace(/\s+/g, "") + ".json", why: "Room not ready: rush clean and inspect " + al.room + " by " + (al.readyBy || "") + ". Key activates when inspected.",
+          body: { checkInId: d.checkInId, room: al.room, priority: "RUSH", readyBy: al.readyBy, guestId: gs.guestId } });
+        renderQueue();
+      }
+      var anyFail = fan.some(function (s) { return s.status === "FAILED"; }), anyWarn = fan.some(function (s) { return s.status === "WARN"; });
+      setStage("fanout", anyFail || anyWarn ? "warn" : "done");
+
+      /* 6. receipt */
+      var sre = byStage.receipt, sm = d.summary || {};
+      meta("receipt", sre, replay);
+      setStage("receipt", "active");
+      await wait(600);
+      var clean = JSON.parse(JSON.stringify(d));
+      detail("receipt", '<dl class="kv2"><dt>Status</dt><dd><span class="st ' + esc(d.status) + '">' + esc(d.status) + "</span></dd><dt>Check-in id</dt><dd>" + esc(d.checkInId || "-") +
+        "</dd><dt>Systems</dt><dd>" + esc(sm.systemsUpdated) + " updated · " + esc(sm.systemsFailed || 0) + " failed</dd><dt>Served by</dt><dd>" + esc(d._servedBy || "-") + (d._traceSource ? " · " + esc(d._traceSource) : "") + " · " + ms + " ms round trip</dd></dl>" +
+        ((sm.warnings || []).length ? '<div class="note warn">' + sm.warnings.map(esc).join("<br>") + "</div>" : "") +
+        "<details><summary class=\"small\" style=\"cursor:pointer\">Response JSON</summary>" + payloadHTML(clean) + "</details>" +
+        '<a class="btn primary" href="#handoff" id="jumpHo" style="align-self:flex-start;text-decoration:none">Continue to Act 2 ↓</a>');
+      setStage("receipt", d.status === "COMPLETED" ? "done" : "warn");
+      addLog(d.status === "COMPLETED" ? "INFO" : "WARN", "Check-in " + d.status + ". CheckInId=" + d.checkInId + " Guest=" + (gs.legalName || g0.name) + " Room=" + al.room + " Systems=" + sm.systemsUpdated + "/7");
+      setRunStatus(d.status);
+      phoneDone(d);
+      renderHandoff(d);
+    } catch (e) {
+      if (e !== CANCEL) { addLog("ERR", "Check-in page error: " + (e && e.message ? e.message : e)); console.error(e); }
+    } finally {
+      if (myRun === state.runId) { state.busy = false; $("goBtn").disabled = false; $("goBtn").textContent = "Check in"; clearLit(); }
+    }
+  }
+
+  async function rejected(d, req) {
+    setStage("resolve", "active");
+    await wait(600);
+    setStage("resolve", "fail");
+    detail("resolve", '<div class="note bad"><strong>REJECTED.</strong> ' + esc(d.error || "No governed guest profile") + "</div>");
+    setStage("receipt", "fail");
+    detail("receipt", payloadHTML(d));
+    state.queue.unshift({ kind: "", file: "CHECKIN_REJECTED_" + (req.guest_id || "unknown") + ".json", why: (d.error || "Rejected") + ".", body: d });
+    renderQueue();
+    addLog("ERR", "Check-in REJECTED. GuestId=" + (req.guest_id || "-") + " Error=" + (d.error || "-"));
+    setRunStatus("REJECTED"); phoneDone(d); renderHandoff(d);
+  }
+
+  function setRunStatus(s) {
+    var el = $("runStatus");
+    if (!s) { el.hidden = true; return; }
+    el.hidden = false; el.className = "st " + s; el.textContent = s === "RUNNING" ? "RUNNING" : s;
+  }
+
+  function reset() {
+    state.runId++; state.busy = false; state.board = {}; state.queue = []; state.log = []; state.sys = {};
+    $("goBtn").disabled = false; $("goBtn").textContent = "Check in";
+    buildPipeline(); renderBoard(); renderSystems(); renderQueue(); renderLog(); clearLit(); renderRequest();
+    $("handoff").className = "card handoff"; $("pdone").className = "pdone"; $("servedBadge").hidden = true; setRunStatus(null);
+  }
+
+  /* ---------------- controls ---------------- */
+  function pressed(a, b, on) { $(a).setAttribute("aria-pressed", on ? "true" : "false"); $(b).setAttribute("aria-pressed", on ? "false" : "true"); }
+  $("lockOn").addEventListener("click", function () { state.lockOnline = true; pressed("lockOn", "lockOff", true); renderRequest(); });
+  $("lockOff").addEventListener("click", function () { state.lockOnline = false; pressed("lockOn", "lockOff", false); renderRequest(); });
+  $("hkReady").addEventListener("click", function () { state.roomReady = true; pressed("hkReady", "hkNot", true); renderRequest(); });
+  $("hkNot").addEventListener("click", function () { state.roomReady = false; pressed("hkReady", "hkNot", false); renderRequest(); });
+  $("sp1").addEventListener("click", function () { state.speed = 1; pressed("sp1", "sp3", true); });
+  $("sp3").addEventListener("click", function () { state.speed = 3; pressed("sp1", "sp3", false); });
+  $("resetBtn").addEventListener("click", reset);
+  $("gpick").addEventListener("click", function (e) { var b = e.target.closest("[data-g]"); if (!b || state.busy) return; state.guest = b.dataset.g; renderPhone(); renderRequest(); });
+  $("chan").addEventListener("click", function (e) { var b = e.target.closest("[data-c]"); if (!b || state.busy) return; state.channel = b.dataset.c; renderPhone(); renderRequest(); });
+  $("arr").addEventListener("input", function () { $("pclock").textContent = $("arr").value || "15:05"; renderRequest(); });
+  $("goBtn").addEventListener("click", run);
+
+  /* ---------------- health ---------------- */
+  CR.health().then(function (h) {
+    var b = $("dpBadge");
+    if (!h) { CR.badge(b, "mock", "check-in: replay · sign in for live"); return; }
+    var c = (h.orchestrations || {}).checkin || {};
+    CR.badge(b, c.mode === "configured" ? "live" : "mock", c.mode === "configured" ? "check-in: Boomi" : "check-in: replay");
+    b.title = c.detail || "";
+  });
+
+  /* deep links for presenters: ?guest=LOY-200102&lock=offline&hk=notready&speed=3&autorun=1 */
+  var qp = {}; try { new URLSearchParams(location.search).forEach(function (v, k) { qp[k] = v; }); } catch (e) {}
+  if (guestById(String(qp.guest || "").toUpperCase())) state.guest = String(qp.guest).toUpperCase();
+  if (/^(MOBILE_APP|KIOSK|FRONT_DESK)$/i.test(qp.channel || "")) state.channel = qp.channel.toUpperCase();
+  if (/^off/i.test(qp.lock || "")) { state.lockOnline = false; pressed("lockOn", "lockOff", false); }
+  if (/^not/i.test(qp.hk || "")) { state.roomReady = false; pressed("hkReady", "hkNot", false); }
+  if (qp.speed === "3") { state.speed = 3; pressed("sp1", "sp3", false); }
+  reset(); renderPhone(); renderRequest();
+  if (qp.autorun) setTimeout(run, 300);
+})();
+</script>
+</body>
+</html>

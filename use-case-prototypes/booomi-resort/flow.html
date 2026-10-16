@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Data Product Flow Explorer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  .intro { background: var(--brand); color: var(--brand-ink); padding: 26px 0 22px; }
+  .intro h1 { font-size: clamp(26px, 4vw, 38px); margin: 4px 0 8px; }
+  .intro p { margin: 0; opacity: .85; max-width: 780px; }
+  .intro .eyebrow { color: #7fd0ea; }
+  .selector { position: sticky; top: 0; z-index: 10; background: var(--panel); background: color-mix(in srgb, var(--panel) 92%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+  .selector .wrap { display: flex; align-items: center; gap: 10px; padding-top: 10px; padding-bottom: 10px; flex-wrap: wrap; }
+  .selector .lbl { font: 600 12px var(--sans); text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+  .chip { font: 500 14px var(--sans); border: 1px solid var(--line-2); background: var(--panel); color: var(--ink); padding: 6px 14px; border-radius: 999px; cursor: pointer; }
+  .chip[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .stagenav { margin-left: auto; display: flex; gap: 4px; flex-wrap: wrap; }
+  .stagenav a { font-size: 13px; text-decoration: none; color: var(--ink-2); padding: 4px 8px; border-radius: 6px; }
+  .stagenav a:hover { background: var(--accent-soft); }
+  .stage { padding: 30px 0 6px; scroll-margin-top: 64px; }
+  .stage-h > div:last-child { min-width: 0; }
+  .stage-h { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 14px; }
+  .snum { flex: none; width: 36px; height: 36px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; font: 600 16px var(--serif); }
+  .stage-h h2 { margin: 2px 0 4px; font-size: 23px; }
+  .stage-h p { margin: 0; color: var(--ink-2); max-width: 820px; font-size: 14.5px; }
+  .meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .src4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+  .src { padding: 14px; font-size: 13px; min-width: 0; }
+  .src header { display: flex; justify-content: space-between; gap: 6px; align-items: center; margin-bottom: 8px; flex-wrap: wrap; }
+  .src header strong { font: 600 14.5px var(--serif); }
+  .kv { display: grid; grid-template-columns: minmax(90px, 40%) 1fr; gap: 3px 8px; }
+  .kv .k { color: var(--muted); font: 11.5px var(--mono); word-break: break-all; }
+  .kv .v { font: 12.5px var(--mono); word-break: break-word; }
+  .kv .fix { display: block; color: var(--good); font-size: 11.5px; }
+  .chk { border-top: 1px dashed var(--line); padding: 7px 0; font: 12px var(--mono); }
+  .chk:first-of-type { border-top: 0; }
+  .callout { padding: 12px 14px; border-radius: 10px; background: var(--hub-soft); border: 1px solid var(--line); margin-bottom: 12px; font-size: 14px; }
+  .tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 12px; }
+  .tile { padding: 12px 14px; }
+  .tile .v { font: 600 22px var(--serif); }
+  .tile .l { font-size: 12.5px; color: var(--muted); }
+  .runner { display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 14px; align-items: start; }
+  .calls { display: flex; flex-direction: column; gap: 10px; }
+  .call { padding: 12px; }
+  .call h4 { margin: 0 0 2px; font: 600 14px var(--mono); }
+  .call .p { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+  .call textarea { width: 100%; font: 12.5px var(--mono); padding: 7px 9px; border: 1px solid var(--line-2); border-radius: 7px; background: var(--panel-2); color: var(--ink); resize: vertical; min-height: 44px; }
+  .call .row { display: flex; gap: 8px; align-items: center; margin-top: 8px; }
+  .viewer { padding: 12px; min-width: 0; }
+  .viewer .bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; font-size: 13px; }
+  .viewer .bar .ep { font: 12.5px var(--mono); color: var(--ink-2); word-break: break-all; }
+  .spark { height: 8px; border-radius: 4px; background: var(--hub); display: inline-block; vertical-align: middle; }
+  @media (max-width: 980px) { .src4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } .runner { grid-template-columns: minmax(0, 1fr); } .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .topbar nav .act { opacity: .7; }
+  @media (max-width: 420px) { .topbar nav a { padding: 6px 7px; font-size: 13px; } }
+  @media (max-width: 600px) { .src4 { grid-template-columns: minmax(0, 1fr); } .tile .v { font-size: 17px; } .stagenav { margin-left: 0; } }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="wrap">
+    <div class="logo"><span class="mark">B</span> Connected Resort <span class="muted small" style="color:inherit;opacity:.7;font-family:var(--sans)">· Grand Horizon Island Resort</span></div>
+    <nav>
+      <a href="checkin.html" data-route="/checkin"><span class="act">Act 1 ·</span> Check-in</a>
+      <a href="index.html" data-route="/"><span class="act">Act 2 ·</span> Concierge</a>
+      <a href="checkout.html" data-route="/checkout"><span class="act">Act 3 ·</span> Check-out</a>
+      <a href="flow.html" class="on" data-route="/flow"><span class="act">Act 4 ·</span> Flow &amp; governance</a>
+      <span class="badge mock" id="dpBadge"><span class="dot"></span>data: checking</span>
+      <button class="iconbtn" id="theme" type="button">Dark mode</button>
+    </nav>
+  </div>
+</div>
+
+<div class="intro">
+  <div class="wrap">
+    <p class="eyebrow">Data Product Flow &amp; Governance Explorer</p>
+    <h1>From four dirty sources to three governed APIs</h1>
+    <p>Follow one guest through the pipeline: raw extracts, cleansing and identity resolution in Boomi Data Hub, currency
+      normalisation, the live data product calls, and the products that come out the other end.</p>
+  </div>
+</div>
+
+<div class="selector">
+  <div class="wrap">
+    <span class="lbl">Guest</span>
+    <div role="tablist" id="guestSel" style="display:flex;gap:6px;flex-wrap:wrap">
+      <button class="chip" role="tab" aria-selected="true" data-g="Elena Vance">Elena Vance</button>
+      <button class="chip" role="tab" aria-selected="false" data-g="Marcus Thorne">Marcus Thorne</button>
+      <button class="chip" role="tab" aria-selected="false" data-g="Sophia Lin">Sophia Lin</button>
+    </div>
+    <nav class="stagenav" aria-label="Stages">
+      <a href="#s1">1 Raw</a><a href="#s2">2 Match &amp; merge</a><a href="#s3">3 Currency</a><a href="#s4">4 APIs</a><a href="#s5">5 Products</a>
+    </nav>
+  </div>
+</div>
+
+<main class="wrap">
+  <section class="stage" id="s1">
+    <div class="stage-h"><div class="snum">1</div><div>
+      <h2>Raw records, side by side</h2>
+      <p>What each system actually holds for this guest before Boomi touches it. Dirty values are highlighted in red, with the
+        cleansing rule <span class="mono small">CR_P1_Guest_Profile_Ingest_Cleanse</span> applies shown underneath in green.</p>
+    </div></div>
+    <div class="src4" id="srcCards"></div>
+    <h3 style="font-size:16px;margin:20px 0 8px">Cleansing applied to the Opera PMS profile</h3>
+    <div class="tbl-wrap"><table id="cleanTbl"></table></div>
+  </section>
+
+  <section class="stage" id="s2">
+    <div class="stage-h"><div class="snum">2</div><div>
+      <h2>Data Hub match, merge &amp; survivorship</h2>
+      <p>Repository <strong>Connected-Resorts</strong>, model <strong>guestmaster</strong>, sources
+        <span class="tag OPERA_PMS">OPERA_PMS</span> <span class="tag SALESFORCE_CRM">SALESFORCE_CRM</span> <span class="tag OPERATIONS">OPERATIONS</span>.
+        Records match on <code>passportHash</code> or <code>loyaltyId</code>; each field then takes the value from the system that owns it.</p>
+    </div></div>
+    <div class="callout" id="matchBox"></div>
+    <div class="tbl-wrap"><table id="survTbl"></table></div>
+  </section>
+
+  <section class="stage" id="s3">
+    <div class="stage-h"><div class="snum">3</div><div>
+      <h2>Currency normalisation (local to USD)</h2>
+      <p>From the <code>resort_folio_consolidated</code> data product. Opera PMS and Simphony POS lines are converted at the
+        treasury mid-rate, rounded half-up to 2 dp per line, then summed. Lines in a currency that differs from the folio are flagged.</p>
+    </div></div>
+    <div id="fxCompare"></div>
+    <div class="tiles" id="fxTiles"></div>
+    <div class="tbl-wrap"><table id="fxTbl"></table></div>
+    <div id="unlinkedBox" style="margin-top:12px"></div>
+  </section>
+
+  <section class="stage" id="s4">
+    <div class="stage-h"><div class="snum">4</div><div>
+      <h2>Live data product calls</h2>
+      <p>Each button calls the local facade, which proxies to the Boomi Web Services endpoint with credentials held server-side.
+        If Boomi is unreachable it falls back to the mock implementation of the same contract; the response says which served it.</p>
+    </div></div>
+    <div class="runner">
+      <div class="calls" id="calls"></div>
+      <div class="card viewer">
+        <div class="bar" id="vBar"><span class="muted">Run a call to see the response.</span></div>
+        <pre class="json" id="vOut">{}</pre>
+      </div>
+    </div>
+  </section>
+
+  <section class="stage" id="s5">
+    <div class="stage-h"><div class="snum">5</div><div>
+      <h2>The three data products</h2>
+      <p>What was built, who owns it, and the rules each one enforces.</p>
+    </div></div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Data product</th><th>Owner / system of record</th><th>Boomi process</th><th>Endpoint</th><th>Refresh</th><th>Consumers</th><th>Data-quality rules</th></tr></thead>
+      <tbody>
+        <tr><td><strong>guest_master</strong><br><span class="small muted">golden guest profile</span></td>
+          <td>Guest Experience; Data Hub <em>Connected-Resorts / guestmaster</em>. VIP, email, preferences: SALESFORCE_CRM. Room, dates: OPERA_PMS. Host: OPERATIONS.</td>
+          <td class="mono small">CR_P1_Guest_Profile_Ingest_Cleanse (ingest)<br>CR_P4_Guest_Full_Picture_API (serve)</td>
+          <td class="mono small">POST /api/v1/resort/guest/full-picture<br>&rarr; /ws/simple/queryGuestfullpicture</td>
+          <td>Scheduled ingest from Opera and Salesforce; Data Hub merges on arrival; API reads golden record on request</td>
+          <td>Boomi Resort Concierge (<code>get_guest_full_picture</code>), front desk, guest relations</td>
+          <td>Trim and title-case names; email format validation; E.164 phones; loyalty-ID normalisation; VIP code decode; passport hashed and masked</td></tr>
+        <tr><td><strong>resort_folio_consolidated</strong><br><span class="small muted">one folio, all outlets</span></td>
+          <td>Finance / Front Office. Charges: OPERA_PMS and SIMPHONY_POS.</td>
+          <td class="mono small">CR_P2_Consolidated_Folio_API<br>uses [SUB] CR Folio Source Extract</td>
+          <td class="mono small">POST /api/v1/resort/folio/consolidated<br>&rarr; /ws/simple/queryConsolidatedfolio</td>
+          <td>Real time, on request</td>
+          <td>Boomi Resort Concierge (<code>get_consolidated_folio</code>), front office, check-out</td>
+          <td>FX to USD at treasury mid-rate, HALF_UP per line; <code>CURRENCY_MISMATCH</code>; <code>UNLINKED_GUEST_ID</code> surname suggestions kept out of totals</td></tr>
+        <tr><td><strong>open_receivables</strong><br><span class="small muted">per subsidiary</span></td>
+          <td>Finance (AR). Derived from the consolidated folio across a property.</td>
+          <td class="mono small">CR_P3_Open_Receivables_API<br>uses [SUB] CR Folio Source Extract</td>
+          <td class="mono small">POST /api/v1/resort/receivables<br>&rarr; /ws/simple/queryResortreceivables</td>
+          <td>Real time, on request; as-of date on every response</td>
+          <td>Boomi Resort Concierge (<code>get_open_receivables</code>), finance, night audit</td>
+          <td>Folios sorted by open balance; unlinked POS items counted in total open; issues by type; flagged amount</td></tr>
+      </tbody>
+    </table></div>
+    <p class="small muted" style="margin-top:12px">Agent guardrails on top of all three: passport hashes and card data are never revealed; folio adjustments over $200 USD require Front Office Manager approval.</p>
+  </section>
+</main>
+
+<footer class="foot"><div class="wrap">Boomi Connected Resort demo · sample data only · <a href="checkout.html" data-route="/checkout">&larr; Act 3: check-out</a> · <a href="checkin.html" data-route="/checkin">↺ Back to Act 1: guest check-in</a></div></footer>
+
+<script src="mock-bundle.js"></script>
+<script src="common.js"></script>
+<script src="config.js"></script>
+<script src="online.js"></script>
+<script>
+(function () {
+  "use strict";
+  var CR = window.CR, esc = CR.esc;
+  CR.initTheme(document.getElementById("theme"));
+  if (CR.served) document.querySelectorAll("a[data-route]").forEach(function (a) { a.href = a.dataset.route; });
+  var current = "Elena Vance", srcData = null;
+
+  CR.health().then(function (h) {
+    var b = document.getElementById("dpBadge");
+    if (!h) return CR.badge(b, "mock", "data: embedded");
+    var dp = h.dataProducts || {}, live = Object.keys(dp).filter(function (k) { return dp[k].mode === "live"; }).length;
+    CR.badge(b, live === 3 ? "live" : "mock", "data: " + (live === 3 ? "Boomi live" : live ? live + "/3 live" : "mock fallback"));
+  });
+
+  function v(x) { return x == null || x === "" ? '<span class="null">null</span>' : esc(x); }
+
+  /* ---------------- stage 1 ---------------- */
+  function stage1(s) {
+    var op = s.sources.OPERA_PMS, sf = s.sources.SALESFORCE_CRM, pos = s.sources.SIMPHONY_POS, ops = s.sources.OPERATIONS;
+    var fix = {};
+    op.issues.forEach(function (i) { i.field.split(" + ").forEach(function (f) { fix[f] = i; }); });
+    function kv(obj, fixes) {
+      return '<div class="kv">' + Object.keys(obj).map(function (k) {
+        var i = fixes && fixes[k];
+        var dirty = i && (i.kind === "CLEANSED" || i.kind === "REJECTED" || i.kind === "DECODED");
+        var shown = obj[k] === "" ? "(blank)" : obj[k];
+        return '<span class="k">' + esc(k) + '</span><span class="v">' + (dirty ? '<span class="dirty">' + esc(JSON.stringify(shown)) + "</span>" : v(obj[k])) +
+          (i ? '<span class="fix">→ ' + (i.cleansed == null ? "dropped" : esc(i.cleansed)) + "</span>" : "") + "</span>";
+      }).join("") + "</div>";
+    }
+    var opCard = '<div class="card src"><header><strong>Opera PMS</strong><span class="tag OPERA_PMS">OPERA_PMS</span></header>' + kv(op.raw, fix) + "</div>";
+    var sfCard = '<div class="card src"><header><strong>Salesforce CRM</strong><span class="tag SALESFORCE_CRM">SALESFORCE_CRM</span></header>' + kv(sf.raw) +
+      '<p class="small muted" style="margin:8px 0 0">No passport and no stay data in CRM.</p></div>';
+    function chk(c, flag) {
+      return '<div class="chk"><strong>#' + esc(c.checkNumber) + "</strong> " + esc(c.revenueCenter) + " · " + esc(c.businessDate) + "<br>" +
+        esc(c.tenderMedia) + " · room " + (c.roomNumber ? esc(c.roomNumber) : '<span class="dirty">""</span>') +
+        " · member " + (c.memberNumber ? esc(c.memberNumber) : '<span class="dirty">""</span>') + "<br>" +
+        (flag === "CURRENCY_MISMATCH" ? '<span class="dirty">' + esc(c.total + " " + c.currency) + "</span>" : esc(c.total + " " + c.currency)) +
+        ' · "' + esc(c.nameOnCheck) + '"' + (flag ? ' <span class="tag flag">' + flag + "</span>" : "") + "</div>";
+    }
+    var mm = {}; pos.issues.forEach(function (i) { mm[i.checkNumber] = i.flag; });
+    var posCard = '<div class="card src"><header><strong>Simphony POS</strong><span class="tag SIMPHONY_POS">SIMPHONY_POS</span></header>' +
+      (pos.linkedChecks.length ? pos.linkedChecks.map(function (c) { return chk(c, mm[c.checkNumber]); }).join("") : '<p class="muted">No linked checks.</p>') +
+      (pos.unlinkedCandidates.length ? '<p class="small" style="margin:10px 0 2px"><strong>Unlinked open tabs</strong> (name only)</p>' +
+        pos.unlinkedCandidates.map(function (c) { return chk(c, "UNLINKED_GUEST_ID"); }).join("") : "") +
+      '<p class="small muted" style="margin:8px 0 0">Folio currency: <strong>' + esc(s.folioCurrency) + "</strong></p></div>";
+    var opsCard = '<div class="card src"><header><strong>Operations</strong><span class="tag OPERATIONS">OPERATIONS</span></header>' +
+      (ops.raw ? kv(ops.raw) : '<p class="muted">' + esc(ops.note) + "</p>") + "</div>";
+    document.getElementById("srcCards").innerHTML = opCard + sfCard + posCard + opsCard;
+    document.getElementById("cleanTbl").innerHTML = "<thead><tr><th>Opera field</th><th>Raw value</th><th>Cleansed value</th><th>Rule</th><th>Result</th></tr></thead><tbody>" +
+      op.issues.map(function (i) {
+        var kindTag = { CLEANSED: "ok", REJECTED: "flag", DECODED: "HUB", MASKED: "vip" }[i.kind] || "HUB";
+        return "<tr><td class='mono small'>" + esc(i.field) + "</td><td class='mono small'><span class='" + (i.kind === "MASKED" ? "" : "dirty") + "'>" + esc(i.raw) +
+          "</span></td><td class='mono small'>" + v(i.cleansed) + "</td><td>" + esc(i.rule) + "</td><td><span class='tag " + kindTag + "'>" + i.kind + "</span></td></tr>";
+      }).join("") + "</tbody>";
+  }
+
+  /* ---------------- stage 2 ---------------- */
+  function stage2(s) {
+    document.getElementById("matchBox").innerHTML = "<strong>Match rule used: <span class='tag MATCH'>" + esc(s.match.rule) + "</span></strong> " +
+      esc(s.match.detail.replace(/^loyaltyId - /, "")) + ". Alternate rule <code>" + esc(s.match.alternateRule) + "</code> is available from " +
+      (s.match.passportHashAvailableIn.length ? esc(s.match.passportHashAvailableIn.join(", ")) + " only (CRM holds no passport)" : "no source") +
+      ". Golden record <span class='mono small'>" + esc(s.goldenRecordId) + "</span> links " +
+      ["OPERA_PMS", "SALESFORCE_CRM", "OPERATIONS"].filter(function (k) { return s.sources[k].recordId; })
+        .map(function (k) { return "<span class='tag " + k + "'>" + k + "</span> " + esc(s.sources[k].recordId); }).join(" · ") + ".";
+    var srcs = ["OPERA_PMS", "SALESFORCE_CRM", "OPERATIONS"];
+    document.getElementById("survTbl").innerHTML = "<thead><tr><th>Field</th><th>Opera PMS</th><th>Salesforce CRM</th><th>Operations</th><th>Golden value</th><th>Winning system</th></tr></thead><tbody>" +
+      s.survivorship.map(function (r) {
+        var key = r.winner === "MATCH KEY";
+        return "<tr><td class='mono small'>" + esc(r.field) + (r.contested ? " <span class='tag flag'>conflict</span>" : "") + "</td>" +
+          srcs.map(function (k) {
+            var x = r[k];
+            if (x == null || x === "") return "<td><span class='null'>-</span></td>";
+            var cls = key ? "" : (k === r.winner ? "win" : (String(x).toLowerCase() !== String(r.golden || "").toLowerCase() ? "lost" : ""));
+            return "<td class='" + cls + "'>" + esc(x) + "</td>";
+          }).join("") +
+          "<td><strong>" + v(r.golden) + "</strong></td><td><span class='tag " + (key ? "MATCH" : esc(r.winner)) + "'>" + esc(r.winner) + "</span></td></tr>";
+      }).join("") + "</tbody>";
+  }
+
+  /* ---------------- stage 3 ---------------- */
+  function stage3(fo) {
+    var tiles = document.getElementById("fxTiles"), tbl = document.getElementById("fxTbl"), box = document.getElementById("unlinkedBox");
+    if (!fo || !fo.matched) { tiles.innerHTML = ""; tbl.innerHTML = "<tbody><tr><td>No folio returned.</td></tr></tbody>"; box.innerHTML = ""; return; }
+    var t = fo.totals, flagged = fo.lines.filter(function (l) { return (l.dataQualityFlags || []).length; }).length;
+    fxCompare(fo);
+    tiles.innerHTML =
+      '<div class="card tile"><div class="v">' + esc(fo.folioCurrency) + '</div><div class="l">folio currency · ' + esc(fo.folioNumber) + "</div></div>" +
+      '<div class="card tile"><div class="v">' + CR.usd(t.balanceUSD) + '</div><div class="l">balance in USD (' + t.lineCount + " lines)</div></div>" +
+      '<div class="card tile"><div class="v">' + Object.keys(fo.fxRates || {}).map(function (c) { return esc(c) + " " + fo.fxRates[c]; }).join(" · ") + '</div><div class="l">rates to USD</div></div>' +
+      '<div class="card tile"><div class="v" style="color:' + (flagged ? "var(--bad)" : "var(--good)") + '">' + flagged + '</div><div class="l">lines flagged CURRENCY_MISMATCH</div></div>';
+    var max = Math.max.apply(null, fo.lines.map(function (l) { return Math.abs(l.amountUSD); }).concat([1]));
+    tbl.innerHTML = "<thead><tr><th>Line</th><th>Source</th><th>Date</th><th>Outlet / description</th><th class='num'>Local</th><th class='num'>Rate</th><th class='num'>USD</th><th></th><th>Flags</th></tr></thead><tbody>" +
+      fo.lines.map(function (l) {
+        var f = l.dataQualityFlags || [];
+        return "<tr><td class='mono small'>" + esc(l.lineId) + "</td><td><span class='tag " + esc(l.sourceSystem) + "'>" + esc(l.sourceSystem) + "</span></td><td>" + esc(l.postingDate) +
+          "</td><td>" + esc(l.outlet) + "<br><span class='small muted'>" + esc(l.description) + "</span></td><td class='num" + (f.length ? " " : "") + "'>" +
+          (f.length ? "<span class='dirty'>" + esc(CR.amt(l.amount, l.currency)) + "</span>" : esc(CR.amt(l.amount, l.currency))) + "</td><td class='num'>" + l.fxRate +
+          "</td><td class='num'><strong>" + CR.usd(l.amountUSD) + "</strong></td><td style='width:90px'><span class='spark' style='width:" + Math.round(Math.abs(l.amountUSD) / max * 80) + "px'></span></td><td>" +
+          (f.length ? f.map(function (x) { return "<span class='tag flag'>" + esc(x) + "</span>"; }).join(" ") : "<span class='tag ok'>clean</span>") + "</td></tr>";
+      }).join("") +
+      Object.keys(t.bySource).map(function (k) {
+        var s = t.bySource[k];
+        return "<tr><td colspan='4'><strong>Subtotal</strong> <span class='tag " + k + "'>" + k + "</span> · " + s.lineCount + " lines</td><td class='num'>" +
+          (s.localAmount == null ? "MIXED" : esc(CR.amt(s.localAmount, s.localCurrency))) + "</td><td></td><td class='num'><strong>" + CR.usd(s.amountUSD) + "</strong></td><td colspan='2'></td></tr>";
+      }).join("") +
+      (t.creditsUSD ? "<tr><td colspan='6'>Charges " + CR.usd(t.chargesUSD) + " less credits</td><td class='num'>-" + CR.usd(t.creditsUSD) + "</td><td colspan='2'></td></tr>" : "") +
+      "<tr><td colspan='6'><strong>Balance (USD)</strong></td><td class='num'><strong>" + CR.usd(t.balanceUSD) + "</strong></td><td colspan='2'><span class='small muted'>served by " + esc(fo._servedBy) + "</span></td></tr></tbody>";
+    var un = fo.possibleUnlinkedCharges || [];
+    box.innerHTML = un.length ? '<div class="callout" style="background:var(--warn-soft)"><strong>Possible unlinked charges (not in the balance):</strong> ' +
+      un.map(function (u) { return esc(u.outlet) + " " + esc(u.lineId) + " " + esc(u.postingDate) + ' "' + esc(u.nameOnCheck) + '" ' + CR.usd(u.amountUSD); }).join(" · ") +
+      " = <strong>" + CR.usd(un.reduce(function (a, u) { return a + u.amountUSD; }, 0)) + "</strong>. Flag <code>UNLINKED_GUEST_ID</code>: matched on surname only, so staff confirm before posting.</div>"
+      : "";
+  }
+
+  /* Naive vs governed: what you get adding the source systems' numbers as-is,
+     next to the data product's single USD balance. Only a folio that mixes
+     currencies produces a wrong naive total; single-currency folios say so. */
+  function fxCompare(fo) {
+    var el = document.getElementById("fxCompare"), byCcy = {}, order = [];
+    fo.lines.forEach(function (l) {
+      if (!(l.currency in byCcy)) { byCcy[l.currency] = { amt: 0, sys: {} }; order.push(l.currency); }
+      byCcy[l.currency].amt += Number(l.amount); byCcy[l.currency].sys[l.sourceSystem] = 1;
+    });
+    var bal = fo.totals.balanceUSD;
+    if (order.length < 2) {
+      var only = order[0];
+      el.innerHTML = '<div class="fxc fxc-ok"><strong>One currency on this folio (' + esc(only) + ').</strong> ' +
+        (only === "USD" ? "Adding the lines as-is already gives the right answer: " + CR.usd(bal) + "."
+                        : "The lines add up correctly in " + esc(only) + " (" + esc(CR.amt(byCcy[only].amt, only)) + "); the data product only converts that total to " + CR.usd(bal) + " for reporting.") +
+        " No CURRENCY_MISMATCH.</div>";
+      return;
+    }
+    var naive = order.reduce(function (a, c) { return a + byCcy[c].amt; }, 0);
+    var sysName = function (c) { return Object.keys(byCcy[c].sys).map(function (k) { return k === "OPERA_PMS" ? "Opera PMS" : k === "SIMPHONY_POS" ? "Simphony POS" : k; }).join(" + "); };
+    var parts = order.map(function (c) { return '<span class="fxc-part"><span class="small muted">' + esc(sysName(c)) + '</span><strong>' + esc(CR.amt(byCcy[c].amt, c)) + "</strong></span>"; });
+    var conv = order.map(function (c) {
+      var usd = fo.lines.filter(function (l) { return l.currency === c; }).reduce(function (a, l) { return a + Number(l.amountUSD); }, 0);
+      return esc(CR.amt(byCcy[c].amt, c)) + (c === "USD" ? "" : " &times; " + fo.fxRates[c]) + " = " + CR.usd(usd);
+    });
+    el.innerHTML =
+      '<div class="fxc">' +
+        '<div class="fxc-col fxc-bad"><div class="fxc-h">Adding the source systems as-is</div>' +
+          '<div class="fxc-sum">' + parts.join('<span class="fxc-op">+</span>') + '<span class="fxc-op">=</span>' +
+          '<span class="fxc-part"><span class="small muted">currency?</span><strong class="fxc-wrong">' +
+          naive.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " ???</strong></span></div>" +
+          '<p class="small">This bill mixes ' + order.map(esc).join(" and ") + ". The number is wrong in every currency, so nobody can quote " +
+          esc(fo.guestName.split(" ")[0]) + " a total at checkout and finance can't reconcile it.</p></div>" +
+        '<div class="fxc-col fxc-good"><div class="fxc-h">Governed data product (Boomi)</div>' +
+          '<div class="fxc-sum"><span class="fxc-part"><span class="small muted">one balance, one currency</span><strong class="fxc-right">' + CR.usd(bal) + "</strong></span></div>" +
+          '<p class="small">' + conv.join(" &middot; ") + ". The " + flagged(fo) + " lines posted in a different currency from the " + esc(fo.folioCurrency) +
+          " folio are tagged <code>CURRENCY_MISMATCH</code> so they get re-posted or converted before checkout.</p></div>" +
+      "</div>";
+  }
+  function flagged(fo) { return fo.lines.filter(function (l) { return (l.dataQualityFlags || []).indexOf("CURRENCY_MISMATCH") >= 0; }).length; }
+
+  /* ---------------- stage 4 ---------------- */
+  var CALLS = [
+    { kind: "guest", label: "get_guest_full_picture", body: function () { return { guest_name: current }; } },
+    { kind: "folio", label: "get_consolidated_folio", body: function () { return { guest_id: srcData ? srcData.guestId : current }; } },
+    { kind: "receivables", label: "get_open_receivables", body: function () { return { subsidiary: "Grand Horizon" }; } }
+  ];
+  function renderCalls() {
+    document.getElementById("calls").innerHTML = CALLS.map(function (c, i) {
+      var ep = CR.ENDPOINTS[c.kind];
+      return '<div class="card call"><h4>' + c.label + '</h4><div class="p">' + esc(ep.process) + "<br>" + esc(ep.facade) + "</div>" +
+        '<textarea id="body' + i + '" spellcheck="false" aria-label="Request body for ' + c.label + '">' + esc(JSON.stringify(c.body())) + "</textarea>" +
+        '<div class="row"><button class="btn primary" data-run="' + i + '">Run</button><span class="small muted" id="lat' + i + '"></span></div></div>';
+    }).join("");
+  }
+  document.getElementById("calls").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-run]"); if (!b) return;
+    var i = +b.dataset.run, c = CALLS[i], payload;
+    try { payload = JSON.parse(document.getElementById("body" + i).value || "{}"); }
+    catch (err) { document.getElementById("vBar").innerHTML = '<span class="tag flag">invalid JSON body</span>'; return; }
+    b.disabled = true;
+    document.getElementById("vBar").innerHTML = '<span class="muted">Calling ' + esc(CR.ENDPOINTS[c.kind].wss) + "…</span>";
+    CR.product(c.kind, payload).then(function (r) {
+      var d = r.data || {}, ep = CR.ENDPOINTS[c.kind], sb = d._servedBy || "unknown";
+      var ms = d._latencyMs != null && sb !== "embedded-mock" ? d._latencyMs : r.ms;
+      document.getElementById("lat" + i).textContent = sb + " · " + r.ms + " ms";
+      var bar = document.getElementById("vBar");
+      bar.innerHTML = '<span id="sb"></span><span class="ep">POST ' + esc(ep.facade) + " → " + esc(ep.wss) + "</span>" +
+        '<span class="small muted">' + "server " + ms + " ms · round trip " + r.ms + " ms</span>" +
+        (d._fallbackReason ? '<span class="small muted">fallback reason: ' + esc(d._fallbackReason) + "</span>" : "");
+      CR.badge(document.getElementById("sb"), sb, sb);
+      document.getElementById("vOut").innerHTML = CR.jsonHTML(d);
+    }).finally(function () { b.disabled = false; });
+  });
+
+  /* ---------------- wiring ---------------- */
+  function load(name) {
+    current = name;
+    document.querySelectorAll("#guestSel .chip").forEach(function (b) { b.setAttribute("aria-selected", b.dataset.g === name ? "true" : "false"); });
+    CR.sources(name).then(function (s) {
+      if (!s || !s.survivorship) return;
+      srcData = s; stage1(s); stage2(s); renderCalls();
+      return CR.product("folio", { guest_id: s.guestId }).then(function (r) { stage3(r.data); });
+    });
+  }
+  document.getElementById("guestSel").addEventListener("click", function (e) { var b = e.target.closest("[data-g]"); if (b) load(b.dataset.g); });
+  renderCalls();
+  load(current);
+})();
+</script>
+</body>
+</html>
