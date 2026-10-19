@@ -441,7 +441,7 @@ function formatNumber(n){ return String(n||0).replace(/\B(?=(\d{3})+(?!\d))/g, '
 var CANON_SYSTEMS    = ['Cloudflare','Coupa','Epic','Gmail','Jira','Magento','NetSuite','Oracle','QAD','Rauland','Salesforce','SAP','ServiceNow','Twilio','WhatsApp','Zendesk','Zoho'];
 var CANON_PRODUCTS   = ['Agentstudio','Boomi for SAP','Data Hub','Flow','Integration'];
 var CANON_PARTNERS   = ['Altria','Aware','Datacom','Valtatech'];
-var CANON_INDUSTRIES = ['Aviation','Cross-industry','Financial services','Healthcare','Insurance','Manufacturing','Retail'];
+var CANON_INDUSTRIES = ['Aviation','Cross-industry','Financial services','Healthcare','Hospitality','Insurance','Manufacturing','Retail'];
 // Who built it. The fifth controlled vocabulary and the sixth dropdown facet:
 // "who do I ask about this one?" is a question a shared SE portal should
 // answer in one click, and it gets more useful as more SEs contribute.
@@ -511,6 +511,42 @@ var USE_CASES = [
     originalPath: '',
     source: 'use-case-prototypes/boomi-airlines.html',
     added: '2026-10-14'
+  },
+  {
+    id: 'connected-resort',
+    title: 'Connected Resort – one governed guest across every resort system',
+    customer: 'Grand Horizon Island Resort (fictional resort)',
+    industry: 'Hospitality',
+    author: 'Richard Yang',
+    summary: 'A resort guest told as three acts on Boomi: check-in orchestrated across seven systems, a Boomi Agentstudio concierge answering from governed data products, and a check-out that fixes the bill, takes payment and turns the room around, plus a data product flow explorer, a guest app and a concierge desk.',
+    narrative: 'A resort runs on a property management system, a CRM, point-of-sale terminals and an operations roster, and each one holds its own version of the guest. The front desk, the concierge and finance each see a different person and a different bill.\n\nConnected Resort shows one governed guest across all of them, built on Boomi. Act 1 checks the guest in with one tap and updates seven systems through a Boomi orchestration. Act 2 is the guest calling the concierge: a Boomi Agentstudio agent answers from three governed data products (guest full picture, consolidated folio, open receivables). Act 3 checks the guest out: the bill is corrected, paid and the room is released to housekeeping.\n\nThe Data Product Flow Explorer follows one guest from four dirty sources through Boomi Data Hub match, merge and survivorship and currency normalisation to the three governed APIs. A guest app (Grand Horizon) and a concierge desk show the same journey from the guest\'s and the staff\'s side.',
+    impact: null,
+    impactModel: null,
+    demoFlow: ['Open the Connected Resort Concierge page. Without signing in the pages replay recorded Boomi results; sign in for live Boomi processes, Data Hub and Agentstudio (ask Richard Yang for access).',
+               'Act 1, check-in: one tap checks the guest in and updates seven systems through the Boomi orchestration.',
+               'Act 2, concierge: ask the concierge agent about the guest; it answers from the governed data products.',
+               'Act 3, check-out: the bill is fixed and paid and the room is turned around for housekeeping.',
+               'Data Product Flow Explorer: follow Elena Vance from four dirty sources to three governed APIs.',
+               'Guest app and concierge desk: the same journey from the guest\'s phone and the staff desk.'],
+    partners: [],
+    partnersNote: 'No partner named — generic hospitality demo by Richard Yang.',
+    systems: ['Oracle', 'Salesforce'],
+    adjacentSystems: ['Door-lock and digital key systems for the real key at check-in',
+                      'A payment gateway or card vault for check-out settlement',
+                      'Opera Cloud versus on-premise Opera — the integration route differs',
+                      'Housekeeping and maintenance tools'],
+    products: ['Integration', 'Data Hub', 'Agentstudio'],
+    conversations: ['Hotel or resort group with guest data split across PMS, CRM and POS — the golden guest record conversation',
+                    'Orchestrating check-in and check-out across many systems with one tap',
+                    'Governed AI agents answering only from data products',
+                    'Folio and receivables accuracy before the guest leaves'],
+    misc: 'Synthetic demo by Richard Yang; Grand Horizon Island Resort is fictional. Multi-page asset in its own subfolder, use-case-prototypes/Connected-Resort/: index.html (concierge, the tile opens it), checkin.html, checkout.html, flow.html, guest-app.html and concierge-app.html. Signed-in calls go through a Supabase Edge Function (connected-resort) in Richard\'s project to his Boomi tenant and Agentstudio; signed out, the pages replay recorded results.',
+    tags: ['hotel', 'resort', 'hospitality', 'guest 360', 'golden record', 'MDM', 'Opera PMS', 'Simphony POS', 'folio', 'receivables', 'check-in', 'check-out', 'housekeeping', 'concierge', 'Agentstudio', 'multi-page'],
+    url: 'https://saurabh1921.github.io/demo-companion/use-case-prototypes/Connected-Resort/index.html',
+    relatedPages: [],
+    originalPath: 'use-case-prototypes/Connected-Resort/ in this portal (supplied by Richard Yang)',
+    source: 'Connected-Resort folder from Richard Yang',
+    added: '2026-10-19'
   },
   {
     id: 'boomi-movie-ticketing',
