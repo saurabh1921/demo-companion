@@ -441,7 +441,7 @@ function formatNumber(n){ return String(n||0).replace(/\B(?=(\d{3})+(?!\d))/g, '
 var CANON_SYSTEMS    = ['Cloudflare','Coupa','Epic','Gmail','Jira','Magento','NetSuite','Oracle','QAD','Rauland','Salesforce','SAP','ServiceNow','Twilio','WhatsApp','Zendesk','Zoho'];
 var CANON_PRODUCTS   = ['Agentstudio','Boomi for SAP','Data Hub','Flow','Integration'];
 var CANON_PARTNERS   = ['Altria','Aware','Datacom','Valtatech'];
-var CANON_INDUSTRIES = ['Aviation','Cross-industry','Financial services','Healthcare','Hospitality','Insurance','Manufacturing','Retail'];
+var CANON_INDUSTRIES = ['Aviation','Cross-industry','Financial services','Healthcare','Insurance','Manufacturing','Retail'];
 // Who built it. The fifth controlled vocabulary and the sixth dropdown facet:
 // "who do I ask about this one?" is a question a shared SE portal should
 // answer in one click, and it gets more useful as more SEs contribute.
@@ -511,44 +511,6 @@ var USE_CASES = [
     originalPath: '',
     source: 'use-case-prototypes/boomi-airlines.html',
     added: '2026-10-14'
-  },
-  {
-    id: 'boomi-resort',
-    title: 'Boomi Resorts – connected guest journeys',
-    customer: 'Boomi Resorts (fictional resort)',
-    industry: 'Hospitality',
-    author: 'Richard Yang',
-    summary: 'One resort run end to end on Boomi: four guest systems cleansed and matched into a Data Hub golden guest record, three governed data products, check-in, check-out and housekeeping orchestrations, and a Boomi Agentstudio concierge, shown across five persona pages on live data.',
-    narrative: 'A resort guest exists four times over: once in the property management system, once in the CRM, once in operations and once on every point-of-sale cheque. The front desk cannot see spa and restaurant charges until check-out, the concierge cannot tell a returning VIP from a first-time walk-in, and finance chases receivables split across systems that disagree on who the guest even is.\n\nThis demo runs one resort end to end on Boomi. Opera PMS, Salesforce CRM, Operations and Simphony POS are ingested and cleansed (CR_P1), matched, merged and survived in Boomi Data Hub (Connected-Resorts universe, guestmaster domain), FX-normalised, and published as three data products — guest_master, resort_folio_consolidated and open_receivables — through Boomi web services (CR_P2, CR_P3, CR_P4). Check-in (CR_P5), check-out (CR_P6) and housekeeping room status (CR_P7) are orchestrations on top, and an Agentstudio agent, Boomi Resort Concierge, answers guest questions through three governed tools that can only see what those data products expose.\n\nFive personas, five pages: Isabel Reyes (operations manager) on the overview, Maya Santos at the front desk, Liam Carter with the AI concierge, the guest on the mobile app, and Priya Nair (integration architect) on the data flow.',
-    impact: null,
-    impactModel: null,
-    demoFlow: ['Sign in with the demo@Boomi.com account (ask Richard Yang or Saurabh Singh for the password). Every page calls live Boomi with no mock fallback, so you need network access.',
-               'Overview (Isabel Reyes, operations manager): live guests in house, open receivables, data-quality flags and integration health.',
-               'Data flow (Priya Nair, integration architect): pick Elena Vance and follow her through ingest and cleanse (CR_P1), Data Hub match, merge and survivorship, FX normalisation and the three data products served by CR_P2, CR_P3 and CR_P4.',
-               'Front desk (Maya Santos): check in Marcus Thorne through the CR_P5 orchestration, then try "Simulate key system down" to show the failure path. Guest, folio and receivables lookup sit alongside check-out (CR_P6) and housekeeping room status (CR_P7).',
-               'AI concierge (Liam Carter): ask "Who owns Suite 402?" and watch the Boomi Resort Concierge agent call its governed tools — get_guest_full_picture, get_consolidated_folio and get_open_receivables.',
-               'Guest app: show the live bill, then run express check-out. Mobile check-in with digital key and the concierge chat are on the same page.',
-               'Finish from the user menu with "Reset demo guests" so the next run starts clean.'],
-    partners: [],
-    partnersNote: 'No partner named — generic hospitality demo.',
-    systems: ['Oracle', 'Salesforce'],
-    adjacentSystems: ['Door-lock and digital key systems (ASSA ABLOY Vostio, dormakaba, Salto) for the real key at check-in',
-                      'A payment gateway or card vault for express check-out settlement',
-                      'Opera Cloud versus on-premise Opera — the integration route (OHIP APIs or OXI) differs',
-                      'A loyalty platform if the group runs its own programme',
-                      'Housekeeping and maintenance tools such as HotSOS or Optii'],
-    products: ['Integration', 'Data Hub', 'Agentstudio'],
-    conversations: ['Hotel or resort group with guest data split across PMS, CRM and POS — the golden guest record conversation',
-                    'Consolidated folio and receivables visibility for finance before check-out, not after',
-                    'Governed AI agents: a concierge that can only see what the data products expose',
-                    'Front-desk orchestration and failure handling when a downstream system such as door locks is down'],
-    misc: 'Synthetic demo: Boomi Resorts is fictional and no real guest data is used. Systems: Oracle covers Opera PMS and Simphony POS. Architecture: static pages on GitHub Pages, Supabase Auth sign-in, and one Supabase Edge Function (connected-resort) that holds the Boomi and Agentstudio credentials as secrets and fronts the Boomi web-service listeners and the agent, so the browser never sees a Boomi credential. Live data only, no mock fallback. Every page has light/dark, a mobile-view toggle and a persona strip to switch roles. This is a five-page asset in its own subfolder of use-case-prototypes: index.html (the overview, which the tile opens), front-desk.html, concierge.html, guest-app.html and data-flow.html, sharing br.css and br.js. The portal tests only accept flat use-case-prototypes/<name>.html paths, so the four companion pages are reached from the persona strip inside the demo rather than listed as related pages, and the tile points at the published Pages URL.',
-    tags: ['hotel', 'resort', 'hospitality', 'travel', 'guest 360', 'golden record', 'MDM', 'Opera PMS', 'Simphony POS', 'folio', 'receivables', 'check-in', 'check-out', 'housekeeping', 'digital key', 'concierge', 'Agentstudio', 'Supabase', 'multi-page'],
-    url: 'https://saurabh1921.github.io/demo-companion/use-case-prototypes/boomi-resort/index.html',
-    relatedPages: [],
-    originalPath: 'boomicompanion_projects/PAL- Phillipenes Airlines/boomi-resorts (local); live: https://saurabh1921.github.io/demo-companion/use-case-prototypes/boomi-resort/',
-    source: 'boomicompanion_projects/PAL- Phillipenes Airlines/boomi-resorts',
-    added: '2026-10-16'
   },
   {
     id: 'boomi-movie-ticketing',

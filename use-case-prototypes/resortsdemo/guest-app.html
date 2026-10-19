@@ -10,9 +10,9 @@
 <meta property="og:site_name" content="Boomi Resorts">
 <meta property="og:title" content="Guest app | Boomi Resorts live demo">
 <meta property="og:description" content="A guest&#x27;s phone: mobile check-in with a digital key, the live bill, express check-out and a chat with the AI concierge, all powered by Boomi APIs.">
-<meta property="og:url" content="https://saurabh1921.github.io/demo-companion/use-case-prototypes/boomi-resort/guest-app.html">
-<meta property="og:image" content="https://saurabh1921.github.io/demo-companion/use-case-prototypes/boomi-resort/og-image-v2.jpg">
-<meta property="og:image:secure_url" content="https://saurabh1921.github.io/demo-companion/use-case-prototypes/boomi-resort/og-image-v2.jpg">
+<meta property="og:url" content="https://saurabh1921.github.io/demo-companion/use-case-prototypes/resortsdemo/guest-app.html">
+<meta property="og:image" content="https://saurabh1921.github.io/demo-companion/use-case-prototypes/resortsdemo/og-image-v2.jpg">
+<meta property="og:image:secure_url" content="https://saurabh1921.github.io/demo-companion/use-case-prototypes/resortsdemo/og-image-v2.jpg">
 <meta property="og:image:type" content="image/jpeg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -20,7 +20,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Guest app | Boomi Resorts live demo">
 <meta name="twitter:description" content="A guest&#x27;s phone: mobile check-in with a digital key, the live bill, express check-out and a chat with the AI concierge, all powered by Boomi APIs.">
-<meta name="twitter:image" content="https://saurabh1921.github.io/demo-companion/use-case-prototypes/boomi-resort/og-image-v2.jpg">
+<meta name="twitter:image" content="https://saurabh1921.github.io/demo-companion/use-case-prototypes/resortsdemo/og-image-v2.jpg">
 <meta name="theme-color" content="#033d58">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23033d58'/%3E%3Cpath d='M6 19c3 0 3-2.5 6-2.5S15 19 18 19s3-2.5 6-2.5' fill='none' stroke='%23fff' stroke-width='2.4' stroke-linecap='round'/%3E%3Ccircle cx='21.5' cy='10.5' r='3.5' fill='%23c9a46a'/%3E%3C/svg%3E">
 <!-- /share -->
@@ -50,6 +50,7 @@
   .ga-hero::after { content: ""; position: absolute; right: -40px; top: -40px; width: 140px; height: 140px; border-radius: 50%; background: var(--sand); opacity: .22; }
   .ga-hero .eyebrow { color: inherit; opacity: .75; }
   .ga-hero h1 { margin-bottom: 4px; overflow-wrap: anywhere; }
+  .ga-hero .room-wait { font-size: 15px; font-weight: 600; color: var(--muted); margin: 10px 0 2px; }
   .ga-hero .room { font-size: 30px; font-weight: 800; letter-spacing: -.02em; margin: 10px 0 2px; overflow-wrap: anywhere; }
   .ga-hero .dates { opacity: .9; font-size: 13.5px; }
   .ga-hero .pills { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; position: relative; z-index: 1; }
@@ -223,12 +224,16 @@
   var sel = $("gaPersona");
   sel.innerHTML = PERSONAS.map(function (p) { return '<option value="' + esc(p.id) + '">' + esc(p.name) + "</option>"; }).join("");
   sel.value = persona.id;
+  // A room number is only shown once Boomi says the guest is checked in (in house).
+  function inHouse(st) { return /IN_HOUSE|CHECKED_IN|IN-HOUSE/i.test(String((st && st.status) || "")); }
+  function checkedOut(st) { return /CHECKED_OUT|DEPARTED/i.test(String((st && st.status) || "")); }
+  function roomIfIn(st) { return inHouse(st) ? (st.room || "") : ""; }
   function initials(n) { return String(n || "").split(/\s+/).filter(Boolean).slice(0, 2).map(function (w) { return w.charAt(0).toUpperCase(); }).join(""); }
   // the shared persona strip IS the selected guest; enriched with live data once the full picture arrives
   function paintWho(g) {
     var st = g && g.stay || {};
     BR.setPersona({ name: (g && g.legalName) || persona.name, role: "Guest · " + ((g && g.vipStatus) ? g.vipStatus + " member" : "mobile app"),
-      initials: initials((g && g.legalName) || persona.name), extra: [st.room, (g && g.guestId) || persona.id].filter(Boolean) });
+      initials: initials((g && g.legalName) || persona.name), extra: [roomIfIn(st) || (checkedOut(st) ? "Checked out" : (g ? "Not checked in yet" : "")), (g && g.guestId) || persona.id].filter(Boolean) });
   }
 
   /* ---------- tabs ---------- */
@@ -265,7 +270,9 @@
     var s = g.stay || {}, n = nights(s.checkIn, s.checkOut), first = String(g.legalName || persona.name).split(" ")[0];
     var prefs = String(g.preferences || "").split(/;\s*/).filter(Boolean);
     var html = '<div class="card ga-hero"><div class="eyebrow">Welcome back</div><h1>Hello, ' + esc(first) + "</h1>" +
-      (s.room ? '<div class="room">' + esc(s.room) + "</div>" : "") +
+      (roomIfIn(s) ? '<div class="room">' + esc(s.room) + "</div>"
+        : checkedOut(s) ? '<div class="room-wait">Checked out · thank you for staying</div>'
+        : '<div class="room-wait">Your room is assigned at check-in</div><button class="btn pri sm" type="button" id="gaGoCheckin" style="margin:6px 0 4px">Check in now</button>') +
       (s.checkIn || s.checkOut ? '<div class="dates">' + esc(fmtDate(s.checkIn)) + " → " + esc(fmtDate(s.checkOut)) + (n ? " · " + n + " night" + (n > 1 ? "s" : "") : "") + "</div>" : "") +
       '<div class="pills">' + (s.status ? BR.pill(nice(s.status)) : "") + (g.vipStatus ? BR.pill(g.vipStatus + " member") : "") + (g.isVip ? BR.pill("VIP") : "") + "</div></div>";
     var dl = "";
@@ -281,6 +288,8 @@
           (b.status ? " " + BR.pill(nice(b.status), BR.statusKind(b.status)) : "") + (b.note ? '<div class="small muted">' + esc(b.note) + "</div>" : "") + "</div></div>";
       }).join("") : "") + "</div>";
     $("gaWelcome").innerHTML = html;
+    var go = document.getElementById("gaGoCheckin");
+    if (go) go.onclick = function () { var b = $("gaCheckin"); b.scrollIntoView({ behavior: "smooth", block: "center" }); b.focus(); };
   }
 
   /* ---------- check-in ---------- */
@@ -290,7 +299,16 @@
     var arr = $("gaArr").value || "15:00";
     busy(btn, true); out.innerHTML = waiting("Checking you in with Boomi");
     BR.call("checkin", { guest_id: persona.id, channel: "MOBILE_APP", arrival_time: arr, simulate_key_system_down: "false", simulate_room_not_ready: "false" })
-      .then(function (r) { if (g0 === gen) out.innerHTML = renderCheckin(r.data || {}, r.ms); })
+      .then(function (r) {
+        if (g0 !== gen) return;
+        var d = r.data || {}; out.innerHTML = renderCheckin(d, r.ms);
+        // checked in: now the room can be shown on the welcome card and in the persona strip
+        var room = (d.allocation && d.allocation.room) || (d.handoff && d.handoff.room);
+        if (profile && room && !/FAIL/i.test(String(d.status || ""))) {
+          profile.stay = Object.assign({}, profile.stay || {}, { room: room, status: "IN_HOUSE" });
+          paintWho(profile); renderWelcome(profile, r.ms);
+        }
+      })
       .catch(function (e) { if (g0 === gen) out.innerHTML = bad("Check-in failed: " + e.message); })
       .then(function () { busy(btn, false, "Check in now"); });
   };
@@ -363,7 +381,7 @@
   function renderBill(d, ms) {
     var t = d.totals || {}, rep = d.reportingCurrency || "USD", lines = (d.lines || []).slice().sort(function (a, b) { return String(a.postingDate).localeCompare(String(b.postingDate)); });
     var html = '<div class="bill-tot"><div><div class="eyebrow">Balance due</div><div class="big">' + esc(BR.money(t.balanceUSD, rep)) + "</div>" +
-      '<div class="small muted">' + esc([d.folioNumber ? "Folio " + d.folioNumber : "", d.room, d.property].filter(Boolean).join(" · ")) + "</div></div>" + secs(ms) + "</div>";
+      '<div class="small muted">' + esc([d.folioNumber ? "Folio " + d.folioNumber : "", profile && !inHouse(profile.stay) ? "" : d.room, d.property].filter(Boolean).join(" · ")) + "</div></div>" + secs(ms) + "</div>";
     var dl = "";
     if (t.chargesUSD != null) dl += "<dt>Charges</dt><dd>" + esc(BR.money(t.chargesUSD, rep)) + "</dd>";
     if (t.creditsUSD) dl += "<dt>Credits</dt><dd>" + esc(BR.money(t.creditsUSD, rep)) + "</dd>";
@@ -422,7 +440,7 @@
     setChatBusy(true); renderChat();
     // first turn of a session tells the agent who the guest is
     var stay = profile && profile.stay ? profile.stay : null;
-    var msg = sid ? text : "[Guest app · " + persona.name + " (" + pid + ")" + (stay && stay.room ? ", " + stay.room : "") + "] " + text;
+    var msg = sid ? text : "[Guest app · " + persona.name + " (" + pid + ")" + (roomIfIn(stay) ? ", " + stay.room : ", not checked in yet") + "] " + text;
     ctrl = window.AbortController ? new AbortController() : null;
     var gotFinal = false;
     BR.chat(msg, sid, function (evt, o) {
