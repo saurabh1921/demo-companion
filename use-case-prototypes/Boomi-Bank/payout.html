@@ -1,0 +1,869 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Loan Payout and Release</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  .cpick { display: flex; flex-direction: column; gap: 6px; }
+  .cpick button { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1px 8px; text-align: left; border: 1px solid var(--line-2); background: var(--panel-2); color: var(--ink); border-radius: 10px; padding: 7px 10px; cursor: pointer; font: inherit; }
+  .cpick button .gn { font-weight: 600; font-size: 13.5px; }
+  .cpick button .gid { font: 11px var(--mono); color: var(--muted); grid-column: 1; }
+  .cpick button .tag { grid-row: 1 / span 2; grid-column: 2; align-self: center; }
+  .cpick button[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--accent); }
+  .pbill { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .pbill td { padding: 3px 0; border-bottom: 1px dashed var(--line); vertical-align: top; }
+  .pbill td.num { text-align: right; font: 500 12px var(--mono); white-space: nowrap; padding-left: 8px; }
+  .pbill tr.lh td { font-weight: 600; padding-top: 6px; border-bottom: 0; }
+  .pbill tr.bal td { font-weight: 600; border-top: 1px solid var(--line-2); border-bottom: 0; padding-top: 5px; }
+  .pbill .sm { color: var(--muted); font-size: 11px; }
+  .fixes { display: flex; flex-direction: column; gap: 7px; }
+  .fix { border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 9px; padding: 7px 9px; background: var(--accent-soft); font-size: 12.5px; display: flex; flex-direction: column; gap: 3px; }
+  .fix b { font-weight: 600; line-height: 1.3; }
+  .fix span { font: 11px var(--mono); color: var(--ink-2); }
+  .fix.info { border-left-color: var(--gold); background: var(--gold-soft); }
+  .fix.kyc { border-left-color: var(--bad); background: var(--bad-soft); }
+  .psrc { display: flex; justify-content: space-between; align-items: center; gap: 6px; font: 10.5px var(--mono); color: var(--muted); flex-wrap: wrap; }
+  .psrc .badge { font-size: 9.5px; padding: 2px 6px; }
+  .reuse { border: 1px dashed var(--accent); border-radius: 10px; padding: 9px 10px; background: var(--accent-soft); display: flex; flex-direction: column; gap: 6px; }
+  .reuse .rh { font-size: 12.5px; }
+  .reuse .rd { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 6px; }
+  .reuse .rb { font: 11px var(--mono); border: 1px solid var(--line-2); background: var(--panel); border-radius: 6px; padding: 4px 6px; overflow-wrap: anywhere; }
+  .reuse .rb.sub { grid-column: 1 / -1; justify-self: center; border-color: var(--accent); color: var(--accent); font-weight: 600; text-align: center; }
+  .reuse .rb.me { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+  .reuse .ar { font: 11px var(--mono); color: var(--muted); text-align: center; }
+  table.mt.loans td:first-child { min-width: 120px; }
+  table.mt.loans tr.adj td { padding-top: 0; }
+  table.mt.loans tr.adj:empty, table.mt.loans tr.adj td:empty { display: none; }
+  table.mt .rchip { display: inline-block; margin-top: 3px; font: 600 9.5px var(--mono); padding: 1px 5px; border-radius: 4px; background: var(--good-soft); color: var(--good); }
+  table.mt .rchip.flagc { background: var(--bad-soft); color: var(--bad); }
+  table.mt .was { text-decoration: line-through; text-decoration-color: var(--bad); color: var(--muted); }
+  .relapp { border: 1px solid var(--line-2); border-radius: 12px; background: var(--panel-2); padding: 10px 12px; display: flex; flex-direction: column; gap: 9px; }
+  .relapp .hh { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; align-items: baseline; }
+  .relapp .hh strong { font: 600 14px var(--serif); }
+  .relapp .hh span { font: 11px var(--mono); color: var(--muted); }
+  .rbtns { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+  .rbtns button { border: 1px solid var(--line-2); background: var(--panel); color: var(--ink); border-radius: 9px; padding: 8px 6px; font: 600 12.5px var(--sans); cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .rbtns button small { font: 10px var(--mono); color: var(--muted); font-weight: 400; }
+  .rbtns button.next:not(:disabled) { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+  .rbtns button.done { border-color: var(--good); background: var(--good-soft); color: var(--good); }
+  .rbtns button:disabled:not(.done) { opacity: .5; cursor: default; }
+  @media (max-width: 420px) { .rbtns { grid-template-columns: minmax(0, 1fr); } }
+  .events { display: flex; flex-direction: column; gap: 10px; }
+  .ev { border: 1px solid var(--line); border-radius: 10px; padding: 9px 10px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .ev .eh { display: flex; gap: 6px 8px; align-items: center; flex-wrap: wrap; }
+  .ev .eh h3 { font: 600 13.5px var(--sans); margin: 0; }
+  .ev .eh .mono { font-size: 11px; color: var(--muted); overflow-wrap: anywhere; }
+  .route { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 12px; color: var(--ink-2); }
+  .rpaths { display: flex; flex-wrap: wrap; gap: 5px; }
+  .rp { font: 600 10.5px var(--mono); padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line-2); color: var(--muted); background: var(--panel-2); transition: all .25s; }
+  .rp.fired { border-color: var(--accent); background: var(--accent); color: var(--accent-ink); }
+  .rp.dim { opacity: .45; text-decoration: line-through; }
+  .evsteps { display: flex; flex-direction: column; gap: 5px; }
+  .ev.old { background: var(--panel-2); }
+  .ev.old .codew, .ev.old .evwait, .ev.old .evsteps { display: none; }
+  .ev .eh .tg { margin-left: auto; font: 11px var(--mono); color: var(--accent); background: none; border: 0; cursor: pointer; padding: 0; }
+  .ev:not(.old) .eh .tg { display: none; }
+  .bgroup h4 { margin: 0 0 6px; font: 600 11px var(--sans); letter-spacing: .07em; text-transform: uppercase; color: var(--muted); }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+  .tile { border: 1px solid var(--line); border-radius: 9px; background: var(--panel-2); padding: 8px 9px; display: flex; flex-direction: column; gap: 4px; min-width: 0; transition: border-color .3s, background-color .3s; }
+  .tile .tt { display: flex; justify-content: space-between; gap: 6px; align-items: center; }
+  .tile .tn { font: 600 12.5px var(--mono); }
+  .tile .tp { font-size: 11.5px; color: var(--ink-2); line-height: 1.3; }
+  .tile .tv { font: 600 13px var(--mono); }
+  .tile .tf { font: 10.5px var(--mono); color: var(--muted); }
+  .tile .st { font-size: 9.5px; padding: 1px 6px; align-self: flex-start; }
+  .tile.chg { border: 2px solid var(--accent); background: var(--accent-soft); }
+  .tile.closed { border: 2px solid var(--good); background: var(--good-soft); }
+  .tile.flash { animation: flash 1.4s ease 2; }
+  @keyframes flash { 40% { box-shadow: 0 0 0 6px var(--accent-soft), 0 0 18px var(--accent); } }
+  .st.ACTIVE { color: var(--accent); background: var(--accent-soft); }
+  .st.CLOSED, .st.EVERYDAY { color: var(--good); background: var(--good-soft); }
+</style>
+</head>
+<body>
+<div class="topbar"><div class="wrap"><div class="logo"><span class="mark">BB</span> Boomi Bank <span class="sub">· connected banking demo</span></div><nav><a href="onboarding.html" data-route="/onboarding"><span class="act">Act 1 ·</span> Onboarding</a><a href="index.html" data-route="/"><span class="act">Act 2 ·</span> Relationship manager</a><a href="payout.html" class="on" data-route="/payout"><span class="act">Act 3 ·</span> Loan payout</a><a href="flow.html" data-route="/flow"><span class="act">Act 4 ·</span> Flow &amp; governance</a><span class="badge mock" id="dpBadge"><span class="dot"></span>payout: checking</span><button class="iconbtn" id="theme" type="button">Dark mode</button></nav></div></div>
+
+<div class="intro">
+  <div class="wide">
+    <p class="eyebrow">Act 3 · Loan payout and closure, orchestrated by Boomi</p>
+    <h1>One tap to pay off. The data fixed first, the money moved, the security released.</h1>
+    <p>The customer pays out their loans in the app. Boomi resolves them in Data Hub, checks compliance, builds the final payout with the
+      same subprocess the positions data product uses, fixes the data-quality problems before any money moves, transfers the funds and
+      tells nine systems the loans are closed. Then registry events release the security, step by step.</p>
+  </div>
+</div>
+
+<div class="ctlbar">
+  <div class="wide">
+    <div class="ctl"><span class="lbl">Payment</span>
+      <div class="seg" role="group" aria-label="Payment outcome">
+        <button type="button" id="payOk" aria-pressed="true">Approved</button>
+        <button type="button" id="payFail" class="bad" aria-pressed="false">Failed</button>
+      </div></div>
+    <div class="ctl"><span class="lbl">Playback</span>
+      <div class="seg" role="group" aria-label="Playback speed">
+        <button type="button" id="sp1" aria-pressed="true">×1</button>
+        <button type="button" id="sp3" aria-pressed="false">×3</button>
+      </div></div>
+    <span class="sp"></span>
+    <span class="st" id="runStatus" hidden></span>
+    <button class="btn" id="resetBtn" type="button">Reset</button>
+  </div>
+</div>
+
+<main class="wide stage3">
+  <div class="col col-app">
+    <section class="panel" aria-labelledby="app-h">
+      <div class="phead"><h2 id="app-h">Customer app</h2><span class="sub">source · payout request</span></div>
+      <div class="pbody">
+        <div class="phone">
+          <div class="notch" aria-hidden="true"></div>
+          <div class="pstatus"><span>10:40</span><span aria-hidden="true">5G ▮▮▮</span></div>
+          <div class="papp">
+            <div class="pbrand"><span class="mark">BB</span><div><strong>Boomi Bank</strong><span>Loans · Pay out early</span></div></div>
+            <div data-src="customer_id">
+              <div class="flbl">Customer</div>
+              <div class="cpick" id="cpick" role="group" aria-label="Customer"></div>
+            </div>
+            <div data-src="loans">
+              <div class="flbl">Your payout today</div>
+              <table class="pbill" id="pbill"></table>
+              <div class="psrc" id="psrc"></div>
+            </div>
+            <div data-src="fixes">
+              <div class="flbl">Before money moves, Boomi will fix</div>
+              <div class="fixes" id="pfix"></div>
+            </div>
+            <div class="ver" data-src="funding" id="pfund"><span aria-hidden="true">✓</span><b>Funding</b><span class="vs">offset first</span></div>
+            <button class="pcheck" id="goBtn" type="button">Pay out my loans</button>
+          </div>
+          <div class="pdone" id="pdone" aria-live="polite"></div>
+        </div>
+        <div class="codew">
+          <div class="codeh"><span>Outbound request</span><span class="mono">POST /api/v1/bank/loan-payout</span></div>
+          <pre class="json req" id="req"></pre>
+          <div class="codeh" style="border-top:1px solid rgba(255,255,255,.08);border-bottom:0"><span>proxied to</span><span class="mono">/ws/simple/createBbloanpayout</span></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="col col-boomi">
+    <section class="panel" aria-labelledby="boomi-h">
+      <div class="phead"><h2 id="boomi-h">Boomi</h2><span class="sub">BB_P6_Loan_Payout_Closure_Orchestration</span><span class="badge mock" id="servedBadge" hidden></span></div>
+      <div class="pbody"><div id="pipeline"></div></div>
+    </section>
+    <section class="panel" aria-labelledby="rel-h" id="relPanel">
+      <div class="phead"><h2 id="rel-h">Security release</h2><span class="sub">BB_P7_Security_Release_Status · event-driven</span><span class="badge mock" id="relBadge" hidden></span></div>
+      <div class="pbody">
+        <div class="relapp" id="relapp"></div>
+        <div class="events" id="events"></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="col col-board">
+    <section class="panel" aria-labelledby="board-h">
+      <div class="phead"><h2 id="board-h">Security &amp; accounts board</h2><span class="sub" id="boardSub">core banking · registry</span></div>
+      <div class="pbody" id="board"></div>
+    </section>
+    <div class="col" style="gap:16px">
+      <section class="panel" aria-labelledby="sys-h">
+        <div class="phead"><h2 id="sys-h">Systems updated</h2><span class="sub" id="sysCount">0 / 9</span></div>
+        <div class="pbody"><div class="sysgrid" id="sysgrid"></div></div>
+      </section>
+      <section class="panel" aria-labelledby="q-h">
+        <div class="phead"><h2 id="q-h">Exceptions queue</h2><span class="sub">banker · compliance</span></div>
+        <div class="pbody" id="queue"></div>
+      </section>
+      <section class="panel" aria-labelledby="log-h">
+        <div class="phead"><h2 id="log-h">Process log</h2><span class="sub">Notify steps</span></div>
+        <div class="pbody"><div class="plog" id="plog"></div></div>
+      </section>
+    </div>
+  </div>
+</main>
+
+<div class="wide">
+  <section class="card handoff" id="handoff" aria-live="polite"></section>
+  <div class="footnote">
+    <h3>What is real here</h3>
+    <p>The payout review in the app comes from the <strong>live</strong> positions data product
+      <span class="mono small">BB_P3_Consolidated_Positions_API</span> (<span class="mono small">/ws/simple/queryBbpositions</span>), and every
+      security-release button posts a <strong>live</strong> event to <span class="mono small">BB_P7_Security_Release_Status</span>
+      (<span class="mono small">/ws/simple/updateBbsecurityrelease</span>). <strong>Pay out my loans</strong> calls
+      <span class="mono small">BB_P6_Loan_Payout_Closure_Orchestration</span> through <span class="mono small">/ws/simple/createBbloanpayout</span>;
+      its Data Hub steps (resolve the customer, clear the active loans) are live once the Boomi-Bank repository credentials work, and until
+      then the page replays a trace of the same contract, labelled REPLAYED. The final payout is built by a Process Call to
+      <span class="mono small">[SUB] BB Account &amp; Loan Source Extract</span>, the same subprocess behind the positions product. Payments,
+      core banking, PEXA / PPSR, direct debits, the credit bureau, Salesforce, the ledger, documents and messaging are <em>stub</em> sends:
+      Message steps that build the exact payload, where a real connector would be swapped in.</p>
+  </div>
+</div>
+<footer class="foot"><div class="wrap">Boomi Bank demo · sample data only · <a href="index.html" data-route="/">&larr; Act 2: the relationship manager</a> · <a href="flow.html" data-route="/flow">Next: Act 4, flow &amp; governance &rarr;</a></div></footer>
+
+<script src="mock-bundle.js"></script>
+<script src="common.js"></script>
+<script src="config.js"></script>
+<script src="online.js"></script>
+<script>
+(function () {
+  "use strict";
+  var BB = window.BB, esc = BB.esc, M = window.BB_MOCK || {};
+  var $ = function (id) { return document.getElementById(id); };
+  BB.initTheme($("theme"));
+  BB.routes();
+
+  /* ---------------- reference ---------------- */
+  var CUSTOMERS = [
+    { id: "CIF-100201", name: "Olivia Bennett", seg: "Private", note: "Sydney · 2 home loan splits" },
+    { id: "CIF-100202", name: "Raj Patel", seg: "Premier", note: "Melbourne · equipment finance" },
+    { id: "CIF-100203", name: "Jack Morrison", seg: "Everyday", note: "Perth · car loan", kyc: true }
+  ];
+  var SYSTEMS = [
+    { sys: "CORE_BANKING", label: "Core banking", action: "Close loans + adjustments" },
+    { sys: "DATA_HUB", label: "Data Hub", action: "Active loans updated" },
+    { sys: "SECURITY_REGISTRY", label: "PEXA / PPSR", action: "Lodge discharge" },
+    { sys: "DIRECT_DEBITS", label: "Direct debits", action: "Cancel mandates" },
+    { sys: "CREDIT_BUREAU", label: "Credit bureau", action: "Report closed" },
+    { sys: "SALESFORCE_FSC", label: "Salesforce FSC", action: "Close + banker task" },
+    { sys: "FINANCE_GL", label: "Finance GL", action: "Payout journal" },
+    { sys: "DOCUMENTS", label: "Documents", action: "Archive statement" },
+    { sys: "CUSTOMER_MESSAGING", label: "Messaging", action: "Confirmation + statement" }
+  ];
+  var STAGES = [
+    { id: "receive", title: "Receive payout request", shape: "Web Services Server listener (createBbloanpayout)", mode: "live", note: "JSON request from the app, validated against the request profile." },
+    { id: "resolve", title: "Resolve the customer", shape: "REST: BB_DataHub_CustomerMaster_Query_Operation", mode: "live", note: "Data Hub Boomi-Bank / customermaster by customer number: the governed record, not any one system's copy." },
+    { id: "compliance", title: "Compliance check", shape: "Decision: KYC review due?", mode: "live", note: "A KYC review that is due holds the payout before any money moves." },
+    { id: "payout", title: "Final payout, data fixed first", shape: "Process Call: [SUB] BB Account & Loan Source Extract + Data Process: payout with data-quality fixes", mode: "live", note: "Principal + interest to today + break cost + discharge fee, then the flagged problems are resolved." },
+    { id: "payment", title: "Transfer the funds", shape: "Message: internal transfer (NPP)", mode: "stub", note: "Offset account first, then the repayment account. Decision: transfer failed? Yes → payout held, nothing is closed." },
+    { id: "fanout", title: "Fan out to every system", shape: "Branch (9 paths + receipt)", mode: "live", note: "One Branch path per system that needs to know the loans are paid out." },
+    { id: "receipt", title: "Assemble receipt", shape: "Data Process: Assemble receipt", mode: "live", note: "One response back to the app: payout, payment, systems, next steps." }
+  ];
+  var FIXTEXT = {
+    CURRENCY_MISMATCH: "USD repayment re-posted at its AUD value",
+    UNAPPLIED_PAYMENT: "Payment sitting in suspense applied to your loan",
+    DUPLICATE_DIRECT_DEBIT: "Duplicate direct debit cancelled",
+    UNLINKED_CARD: "Business card linked to your profile (not part of the payout)"
+  };
+  var REL = [
+    { status: "LODGED", label: "Discharge lodged", sub: "registry" },
+    { status: "SETTLED", label: "Settled", sub: "settlement" },
+    { status: "RELEASED", label: "Released", sub: "registry" }
+  ];
+  var SECSTAT = { LODGED: "DISCHARGE_LODGED", SETTLED: "DISCHARGE_SETTLED", RELEASED: "RELEASED" };
+
+  /* ---------------- state ---------------- */
+  var state = { cust: CUSTOMERS[0].id, failed: false, speed: 1, busy: false, runId: 0, pos: {}, queue: [], log: [], sys: {},
+    board: null, last: null, autoRel: false, evN: 0 };
+  var rs = { ids: [], stage: 0, busy: false, auto: false, times: [] };
+  var CANCEL = { cancelled: true };
+  function wait(ms) {
+    var id = state.runId;
+    return new Promise(function (res, rej) { setTimeout(function () { if (id === state.runId) res(); else rej(CANCEL); }, Math.max(16, ms / state.speed)); });
+  }
+  function pad(n) { return (n < 10 ? "0" : "") + n; }
+  function clock() { var d = new Date(); return pad(d.getHours()) + ":" + pad(d.getMinutes()) + ":" + pad(d.getSeconds()); }
+  function custById(id) { return CUSTOMERS.find(function (c) { return c.id === id; }); }
+  function sysTag(s) { return '<span class="tag ' + esc(s) + '">' + esc(s) + "</span>"; }
+  function modeTag(mode, replay) {
+    if (mode === "live") return '<span class="mtag ' + (replay ? "replay" : "live") + '">' + (replay ? "LIVE · REPLAYED" : "LIVE") + "</span>";
+    return '<span class="mtag stub">STUB</span>';
+  }
+  function stateOf(status) { return status === "FAILED" ? "fail" : status === "WARN" ? "warn" : "done"; }
+  var aud = BB.aud, P = BB.parseMaybe;
+  function segTag(s) { return '<span class="tag ' + (s === "Private" || s === "Premier" ? "warm" : "plain") + '">' + esc(s) + "</span>"; }
+
+  /* ---------------- phone ---------------- */
+  function renderPicker() {
+    $("cpick").innerHTML = CUSTOMERS.map(function (c) {
+      return '<button type="button" data-c="' + c.id + '" aria-pressed="' + (c.id === state.cust) + '"><span class="gn">' + esc(c.name) + "</span>" +
+        (c.kyc ? '<span class="tag flag">KYC review due</span>' : segTag(c.seg)) + '<span class="gid">' + c.id + " · " + esc(c.note) + "</span></button>";
+    }).join("");
+  }
+  function loadPositions(cif) {
+    if (state.pos[cif]) { renderReview(); return Promise.resolve(); }
+    $("pbill").innerHTML = '<tr><td class="sm">Loading your loans from Boomi…</td></tr>'; $("pfix").innerHTML = ""; $("psrc").innerHTML = "";
+    return BB.product("positions", { customer_id: cif }).then(function (r) {
+      state.pos[cif] = { d: r.data, ms: r.ms };
+      if (state.board && state.board.cif === cif && !state.last) initBoard(cif);
+      if (cif === state.cust) renderReview();
+    });
+  }
+  function renderReview() {
+    var p = state.pos[state.cust]; if (!p) return;
+    var d = p.d || {}, loans = d.loans || [], rows = [];
+    if (!d.matched) { $("pbill").innerHTML = '<tr><td class="sm">' + esc(d.message || d.error || "No loans returned") + "</td></tr>"; return; }
+    loans.forEach(function (l) {
+      var days = Math.round((Date.parse(d.asOf) - Date.parse(l.interestFrom)) / 864e5);
+      rows.push('<tr class="lh"><td>' + esc(l.loanId) + ' <span class="sm">' + esc(l.product) + "</span></td><td></td></tr>");
+      rows.push('<tr><td>Principal</td><td class="num">' + esc(BB.dollars(l.balance)) + "</td></tr>");
+      rows.push("<tr><td>Interest · " + days + ' days at ' + esc(l.rate) + '%</td><td class="num">' + esc(BB.dollars(l.accruedInterest)) + "</td></tr>");
+      if (l.breakCost) rows.push('<tr><td>Fixed-rate break cost</td><td class="num">' + esc(BB.dollars(l.breakCost)) + "</td></tr>");
+      if (l.dischargeFee) rows.push('<tr><td>Discharge fee</td><td class="num">' + esc(BB.dollars(l.dischargeFee)) + "</td></tr>");
+    });
+    var t = d.totals || {};
+    rows.push('<tr class="bal"><td>Indicative payout</td><td class="num">' + esc(BB.dollars(t.indicativePayoutAUD)) + "</td></tr>");
+    if (Math.abs((t.adjustedPayoutAUD || 0) - (t.indicativePayoutAUD || 0)) > 0.001)
+      rows.push('<tr class="bal"><td>After Boomi\'s fixes</td><td class="num">' + esc(BB.dollars(t.adjustedPayoutAUD)) + "</td></tr>");
+    $("pbill").innerHTML = rows.join("");
+    $("psrc").innerHTML = "<span>consolidated_positions · BB_P3 · " + esc(p.ms) + " ms</span>" + BB.srcBadge(d);
+    var fx = [], c = custById(state.cust);
+    if (c && c.kyc) fx.push('<div class="fix kyc"><b>Your identity review is overdue</b><span>Update your ID in the app first: payouts wait until the KYC review is done.</span></div>');
+    ((d.dataQuality || {}).issues || []).forEach(function (i) {
+      fx.push('<div class="fix' + (i.flag === "UNLINKED_CARD" ? " info" : "") + '"><b>' + esc(FIXTEXT[i.flag] || i.flag) + "</b><span>" + esc(i.recordId + " · " + i.effect) + "</span></div>");
+    });
+    $("pfix").innerHTML = fx.length ? fx.join("") : '<p class="empty">Nothing to fix: your loan records are clean.</p>';
+    var off = (d.deposits || []).find(function (x) { return x.type === "OFFSET"; });
+    $("pfund").querySelector(".vs").textContent = off ? "offset " + off.masked + " first" : "from your linked account";
+  }
+  function request() {
+    return { customer_id: state.cust, loan_ids: "", channel: "MOBILE_APP", simulate_payment_failed: state.failed ? "true" : "false" };
+  }
+  function renderRequest() {
+    $("req").innerHTML = BB.jsonHTML(request()).split("\n").map(function (l) {
+      var m = /<span class="k">&quot;(\w+)&quot;<\/span>/.exec(l);
+      return m ? '<span class="fl" data-fld="' + m[1] + '">' + l + "</span>" : l;
+    }).join("\n");
+  }
+  function lightReq(key, on) { var n = $("req").querySelector('[data-fld="' + key + '"]'); if (n) { if (on) n.setAttribute("data-lit", "1"); else n.removeAttribute("data-lit"); } }
+  function lightSrc(key, on) { var n = document.querySelector('[data-src="' + key + '"]'); if (n) n.classList.toggle("lit", !!on); }
+  function clearLit() {
+    document.querySelectorAll("[data-src].lit").forEach(function (n) { n.classList.remove("lit"); });
+    $("req").querySelectorAll("[data-lit]").forEach(function (n) { n.removeAttribute("data-lit"); });
+  }
+  function stepPayload(d, sys) { var s = (d.steps || []).find(function (x) { return x.system === sys; }); return s ? P(s.payload) : null; }
+  function phoneDone(d) {
+    var el = $("pdone"), po = d.payout || {}, t = po.totals || {}, pay = d.payment || {};
+    if (d.status === "REJECTED") {
+      el.className = "pdone on bad";
+      el.innerHTML = '<div class="ok">!</div><div class="big" style="font-size:20px">Please call us</div><p class="small muted" style="margin:0">' + esc(d.error || "Payout could not be started") + "</p>";
+    } else if (d.status === "PAYOUT_HELD" && d.holdReason === "KYC_REVIEW_DUE") {
+      el.className = "pdone on bad";
+      el.innerHTML = '<div class="ok">!</div><div class="small muted">Payout on hold</div><div class="big" style="font-size:21px">Update your ID first</div>' +
+        '<div class="msgb">Your identity review was due on ' + esc(BB.day(((d.customer || {}).kyc || {}).reviewDate, true)) + '. Update your ID in the app and we can pay out your loan straight away. Nothing has been moved.</div>' +
+        '<button class="btn primary" type="button" style="margin:0 auto">Update my ID</button>';
+    } else if (d.status === "PAYOUT_HELD") {
+      el.className = "pdone on bad";
+      el.innerHTML = '<div class="ok">!</div><div class="small muted">Transfer did not go through</div><div class="big" style="font-size:22px">' + esc(BB.dollars(pay.amount)) + "</div>" +
+        '<div class="msgb">We could not move the funds, so your loans are still open and nothing was closed. Your banker will call you to arrange another way to pay.</div>';
+    } else {
+      var msg = (stepPayload(d, "CUSTOMER_MESSAGING") || {}).text || "";
+      el.className = "pdone on";
+      el.innerHTML = '<div class="ok">✓</div><div class="small muted">Your loans are paid out</div><div class="big">' + esc(BB.dollars(t.finalPayoutAUD)) + "</div>" +
+        '<table class="pbill" style="text-align:left">' + (po.funding || []).map(function (f) {
+          return "<tr><td>" + esc(f.product) + ' <span class="sm">' + esc(f.masked) + '</span></td><td class="num">' + esc(BB.dollars(f.amount)) + "</td></tr>";
+        }).join("") + "</table>" + (msg ? '<div class="msgb">' + esc(msg) + "</div>" : "") +
+        '<div class="small muted">Security discharge lodged · we will tell you when it is released</div>';
+    }
+    el.innerHTML += '<button class="btn" type="button" id="pnew" style="margin:auto auto 0">Back</button>';
+    $("pnew").addEventListener("click", function () { el.className = "pdone"; });
+  }
+
+  /* ---------------- pipeline ---------------- */
+  function buildPipeline() {
+    $("pipeline").innerHTML = STAGES.map(function (s, i) {
+      return '<div class="srow" data-state="idle" id="st-' + s.id + '"><div class="rail"><div class="dot"></div>' + (i < STAGES.length - 1 ? '<div class="ln"></div>' : "") + "</div>" +
+        '<div class="sbody"><div class="stitle"><h3>' + esc(s.title) + '</h3><span id="mt-' + s.id + '">' + modeTag(s.mode) + "</span></div>" +
+        '<div class="shape" id="sh-' + s.id + '">' + esc(s.shape) + "</div>" +
+        '<div class="snote">' + esc(s.note) + '</div><div class="detail" id="dt-' + s.id + '"></div></div></div>';
+    }).join("");
+  }
+  function setStage(id, st) { $("st-" + id).setAttribute("data-state", st); }
+  function detail(id, html) { $("dt-" + id).innerHTML = html; }
+  function meta(id, step, replay) {
+    if (!step) return;
+    if (step.boomiStep) $("sh-" + id).textContent = step.boomiStep;
+    if (step.mode) $("mt-" + id).innerHTML = modeTag(step.mode, replay && step.mode === "live");
+  }
+
+  /* ---------------- board ---------------- */
+  function initBoard(cif) {
+    var p = (state.pos[cif] || {}).d || {}, secs = {}, b = { cif: cif, loans: {}, accounts: {}, secs: {} };
+    (p.loans || []).forEach(function (l) {
+      b.loans[l.loanId] = { id: l.loanId, product: l.product, balance: l.balance, status: "ACTIVE" };
+      if (l.security) secs[l.security.securityId] = l.security;
+    });
+    Object.keys(secs).forEach(function (k) { var s = secs[k]; b.secs[k] = { id: k, type: s.type, desc: s.description, channel: s.releaseChannel, status: s.status || "REGISTERED" }; });
+    (p.deposits || []).forEach(function (a) { b.accounts[a.accountId] = { id: a.accountId, product: a.product, masked: a.masked, type: a.type, balance: a.balanceAUD, ccy: a.currency, raw: a.balance }; });
+    state.board = b; renderBoard();
+  }
+  function renderBoard(flash) {
+    var b = state.board;
+    if (!b) { $("board").innerHTML = '<p class="empty">Pick a customer.</p>'; return; }
+    $("boardSub").textContent = b.cif + " · core banking · registry";
+    function tile(cls, id, head, st, body) {
+      return '<div class="tile ' + cls + (flash === id ? " flash" : "") + '"><div class="tt"><span class="tn">' + esc(head) + '</span><span class="st ' + esc(st) + '">' + esc(st.replace(/_/g, " ")) + "</span></div>" + body + "</div>";
+    }
+    var secs = Object.keys(b.secs).map(function (k) {
+      var s = b.secs[k], cls = s.status === "RELEASED" ? "closed" : s.status === "REGISTERED" ? "" : "chg";
+      return tile(cls, k, s.id, s.status, '<div class="tp">' + esc(s.desc) + '</div><div class="tf">' + esc(s.type + " · " + s.channel) + "</div>");
+    }).join("");
+    var loans = Object.keys(b.loans).map(function (k) {
+      var l = b.loans[k];
+      return tile(l.status === "CLOSED" ? "closed" : "", k, l.id, l.status, '<div class="tp">' + esc(l.product) + '</div><div class="tv">' + esc(l.status === "CLOSED" ? "$0.00" : BB.dollars(l.balance)) + "</div>");
+    }).join("");
+    var accts = Object.keys(b.accounts).map(function (k) {
+      var a = b.accounts[k], st = a.everyday ? "EVERYDAY" : a.type;
+      return tile(a.everyday ? "closed" : a.changed ? "chg" : "", k, a.id + " " + a.masked, st,
+        '<div class="tp">' + esc(a.everyday ? "Everyday Saver (was " + a.product + ")" : a.product) + '</div><div class="tv">' + esc(a.ccy !== "AUD" ? BB.amt(a.raw, a.ccy) : BB.dollars(a.balance)) + "</div>" +
+        (a.note ? '<div class="tf">' + esc(a.note) + "</div>" : ""));
+    }).join("");
+    $("board").innerHTML = '<div class="bgroup"><h4>Securities</h4><div class="tiles">' + (secs || '<p class="empty">None</p>') + "</div></div>" +
+      '<div class="bgroup"><h4>Loans</h4><div class="tiles">' + (loans || '<p class="empty">None</p>') + "</div></div>" +
+      '<div class="bgroup"><h4>Accounts</h4><div class="tiles">' + (accts || '<p class="empty">None</p>') + "</div></div>";
+  }
+
+  /* ---------------- systems / queue / log ---------------- */
+  function renderSystems() {
+    var n = 0;
+    $("sysgrid").innerHTML = SYSTEMS.map(function (s) {
+      var v = state.sys[s.sys] || { state: "idle", text: "waiting", detail: s.action };
+      if (v.state === "ok" || v.state === "warn") n++;
+      return '<div class="systile" data-state="' + v.state + '"><div class="sh"><span class="sn">' + esc(s.label) + '</span><span class="ss">' + esc(v.text) + '</span></div><div class="sd">' + esc(v.detail) + "</div></div>";
+    }).join("");
+    $("sysCount").textContent = n + " / " + SYSTEMS.length;
+  }
+  function sysNote(sys, txt) { if (state.sys[sys]) { state.sys[sys].detail = txt; renderSystems(); } }
+  function addLog(level, msg) { state.log.unshift({ t: clock(), level: level, msg: msg }); if (state.log.length > 100) state.log.pop(); renderLog(); }
+  function renderLog() {
+    $("plog").innerHTML = state.log.length ? state.log.map(function (l) {
+      return '<div class="ll"><span class="t">' + l.t + '</span><span class="lv ' + l.level + '">' + l.level + '</span><span class="m">' + esc(l.msg) + "</span></div>";
+    }).join("") : '<p class="empty">No executions yet.</p>';
+  }
+  function renderQueue() {
+    $("queue").innerHTML = state.queue.length ? state.queue.map(function (q) {
+      return '<div class="qi ' + (q.kind || "") + '"><div class="fn">' + esc(q.file) + '</div><div class="why">' + esc(q.why) + "</div><details><summary>Envelope</summary>" + BB.payloadHTML(q.body) + "</details></div>";
+    }).join("") : '<p class="empty">Empty. A compliance hold or a failed transfer lands here for the banker.</p>';
+  }
+  function laneSummary(s, d) {
+    var p = P(s.payload) || {}, po = d.payout || {}, t = po.totals || {};
+    if (typeof p !== "object") p = {};
+    switch (s.system) {
+      case "CORE_BANKING": return (po.loans || []).length + " loan(s) CLOSED · " + (po.resolutions || []).length + " adjustment(s) posted";
+      case "DATA_HUB": return "Golden record: active loans " + ((po.remainingLoans || []).join(", ") || "cleared");
+      case "SECURITY_REGISTRY": return "Discharge LODGED · " + (p.securities || "");
+      case "DIRECT_DEBITS": return "Cancelled " + (p.mandates || "");
+      case "CREDIT_BUREAU": return "CCR: account closed, repayments up to date";
+      case "SALESFORCE_FSC": return "Closed · task for " + ((p.task || {}).Owner || "banker");
+      case "FINANCE_GL": return "Journal " + aud(t.finalPayoutAUD);
+      case "DOCUMENTS": return "Statement + discharge authority archived";
+      case "CUSTOMER_MESSAGING": return "Confirmation sent" + (p.to ? " to " + p.to : "");
+      default: return s.detail || s.action || "";
+    }
+  }
+
+  /* ---------------- payout stage ---------------- */
+  function reuseHTML() {
+    return '<div class="reuse"><div class="rh"><strong>Reuse, not rebuild.</strong> The final payout comes from a Process Call to the same subprocess the positions data product uses.</div>' +
+      '<div class="rd"><span class="rb">BB_P3_Consolidated_Positions_API<br><span class="muted">positions data product (Acts 2 + 4)</span></span><span class="ar">and</span>' +
+      '<span class="rb me">BB_P6_Loan_Payout_Closure_Orchestration<br><span class="muted">this payout</span></span>' +
+      '<span class="ar" style="grid-column:1/-1">↓ Process Call ↓</span><span class="rb sub">[SUB] BB Account &amp; Loan Source Extract<br><span style="font-weight:400">core accounts + loans + cards + servicing (repayments, suspense, direct debits, securities)</span></span></div></div>';
+  }
+  async function payoutStage(d, replay, sp) {
+    var po = d.payout || {}, t = po.totals || {}, loans = po.loans || [];
+    meta("payout", sp, replay);
+    setStage("payout", "active"); lightSrc("loans", true);
+    detail("payout", reuseHTML() + '<div class="tbl-wrap" style="border:0"><table class="mt loans"><thead><tr><th>Loan</th><th class="num">Principal</th><th class="num">Interest</th><th class="num">Break + fee</th><th class="num">Payout</th></tr></thead><tbody>' +
+      loans.map(function (l, k) {
+        return '<tr class="pending" data-l="' + k + '"><td>' + esc(l.loanId) + '<br><span class="rs">' + esc(l.product) + '</span></td><td class="num">…</td><td class="num">…</td><td class="num">…</td><td class="num">…</td></tr><tr class="adj"><td colspan="5" class="rx" data-x="' + k + '"></td></tr>';
+      }).join("") + '</tbody><tfoot><tr id="poTot"><td>Total · ' + loans.length + ' loan(s)</td><td></td><td></td><td></td><td class="num">…</td></tr></tfoot></table></div><div id="poRes"></div>');
+    var host = $("dt-payout");
+    for (var k = 0; k < loans.length; k++) {
+      var l = loans[k], tr = host.querySelector('[data-l="' + k + '"]'), money = BB.dollars;
+      tr.className = ""; tr.setAttribute("data-lit", "1");
+      tr.cells[1].textContent = money(l.principal); await wait(200);
+      tr.cells[2].textContent = money(l.accruedInterest) + " (" + l.interestDays + "d)"; await wait(200);
+      tr.cells[3].textContent = money((l.breakCost || 0) + (l.dischargeFee || 0)); await wait(200);
+      tr.cells[4].textContent = money(l.payout);
+      var rx = host.querySelector('[data-x="' + k + '"]');
+      for (var a = 0; a < (l.adjustments || []).length; a++) {
+        var ad = l.adjustments[a];
+        lightSrc("fixes", true);
+        rx.insertAdjacentHTML("beforeend", '<span class="rchip flagc">' + esc(ad.flag) + "</span> ");
+        await wait(600);
+        tr.cells[4].innerHTML = '<span class="was">' + esc(money(l.payout)) + "</span><br><strong>" + esc(money(l.finalPayout)) + "</strong>";
+        rx.insertAdjacentHTML("beforeend", '<span class="rchip">' + esc(ad.action + " (" + aud(ad.amount) + ")") + "</span>");
+        lightSrc("fixes", false);
+      }
+      await wait(300);
+      tr.removeAttribute("data-lit");
+    }
+    var ft = $("poTot"); ft.setAttribute("data-lit", "1");
+    ft.cells[4].textContent = BB.dollars(t.finalPayoutAUD);
+    var res = po.resolutions || [];
+    $("poRes").innerHTML = '<div class="totbig"><b>' + esc(aud(t.finalPayoutAUD)) + "</b><span>gross " + esc(aud(t.grossPayoutAUD)) + " · adjustments " + esc(aud(t.adjustmentsAUD)) + "</span></div>" +
+      (res.length ? '<div class="chips">' + res.map(function (r) {
+        return '<div class="chipx ok"><span class="n">' + esc(r.flag) + "</span><span>" + esc(r.recordId + ": " + r.action + " (" + r.from + " → " + r.to + ")") + "</span></div>";
+      }).join("") + "</div>" : '<div class="note">No data-quality fixes needed.</div>') +
+      '<table class="mt"><thead><tr><th>Funding</th><th class="num">Before</th><th class="num">Takes</th><th class="num">After</th></tr></thead><tbody>' +
+      (po.funding || []).map(function (f) { return "<tr><td>" + esc(f.product + " " + f.masked) + '<br><span class="rs">' + esc(f.accountId + " · " + f.type) + '</span></td><td class="num">' + esc(aud(f.balanceBefore)) + '</td><td class="num">' + esc(aud(f.amount)) + '</td><td class="num">' + esc(aud(f.balanceAfter)) + "</td></tr>"; }).join("") +
+      "</tbody></table>" + (po.shortfallAUD ? '<div class="note bad">Shortfall ' + esc(aud(po.shortfallAUD)) + "</div>" : "");
+    lightSrc("funding", true);
+    await wait(700);
+    ft.removeAttribute("data-lit"); lightSrc("loans", false); lightSrc("funding", false);
+    setStage("payout", stateOf(sp ? sp.status : "OK"));
+    addLog("INFO", "Final payout via [SUB] BB Account & Loan Source Extract. Loans=" + loans.length + " Fixes=" + res.length + " Gross=" + t.grossPayoutAUD + " Final=" + t.finalPayoutAUD);
+  }
+
+  /* ---------------- the payout run ---------------- */
+  async function run() {
+    if (state.busy) return;
+    state.busy = true; $("goBtn").disabled = true; $("goBtn").textContent = "Paying out…";
+    var myRun = ++state.runId;
+    resetRelease();
+    buildPipeline(); clearLit(); $("handoff").className = "card handoff"; $("pdone").className = "pdone";
+    state.sys = {}; state.last = null; renderSystems();
+    var req = request(); renderRequest();
+    await loadPositions(req.customer_id).catch(function () {});
+    initBoard(req.customer_id);
+    setRunStatus("RUNNING");
+    var t0 = performance.now(), result = null;
+    var pending = BB.product("payout", req).then(function (r) { result = r; state.last = r.data; return r; });
+    try {
+      setStage("receive", "active");
+      var rows = [["customer_id", "Data Hub match key (customer number)", "customer_id"], ["loan_ids", "empty = all of the customer's loans", "loans"],
+        ["channel", "receipt routing", null], ["simulate_payment_failed", "payments (demo toggle)", null]];
+      detail("receive", '<dl class="kv2"><dt>Facade</dt><dd>POST /api/v1/bank/loan-payout</dd><dt>Boomi</dt><dd>POST /ws/simple/createBbloanpayout · Basic auth held server-side</dd></dl><div id="waitBox"></div><div id="rcvRows"></div>');
+      var tick = null;
+      if (!result) {
+        var showWait = function () {
+          var sec = Math.round((performance.now() - t0) / 1000), wb = $("waitBox"); if (!wb) return;
+          wb.innerHTML = '<div class="chipx wait"><span class="spin"></span><span>Waiting for Boomi… BB_P6_Loan_Payout_Closure_Orchestration is running (' + sec + " s)" + (sec >= 15 ? " · first call after idle can take a minute or more" : "") + "</span></div>";
+        };
+        showWait(); tick = setInterval(showWait, 1000);
+      }
+      var res;
+      try { res = await pending; } finally { if (tick) clearInterval(tick); }
+      if (myRun !== state.runId) throw CANCEL;
+      $("rcvRows").innerHTML = '<table class="mt"><thead><tr><th>Field</th><th>Value</th><th>Used for</th></tr></thead><tbody>' + rows.map(function (r) {
+        return '<tr data-row="' + r[0] + '"><td>' + r[0] + '</td><td class="tgt">' + esc(req[r[0]] === "" ? '""' : req[r[0]]) + '</td><td class="rs">' + esc(r[1]) + "</td></tr>";
+      }).join("") + "</tbody></table>";
+      var d = res.data || {}, ms = Math.round(performance.now() - t0);
+      var live = d._servedBy === "boomi-live", replay = !live;
+      var sb = $("servedBadge"); sb.hidden = false;
+      BB.badge(sb, live ? "live" : "mock", live ? "Boomi live · " + (d._latencyMs != null ? d._latencyMs : ms) + " ms" : "replayed trace",
+        live ? "Served by the deployed Boomi process" : (d._servedBy || "") + (d._traceSource ? " · " + d._traceSource : "") + (d._fallbackReason ? " · " + d._fallbackReason : ""));
+      $("waitBox").innerHTML = '<div class="chipx ' + (live ? "ok" : "wait") + '"><span class="n">' + (live ? "Boomi" : "Replay") + "</span><span>" +
+        esc(live ? "Process answered in " + (d._latencyMs != null ? d._latencyMs : ms) + " ms; replaying its step trace" :
+          "Boomi not called (" + (d._fallbackReason || d._servedBy || "offline") + "); replaying " + (d._traceSource || "recorded trace")) + "</span></div>";
+      for (var i = 0; i < rows.length; i++) {
+        var tr = $("rcvRows").querySelector('[data-row="' + rows[i][0] + '"]');
+        tr.setAttribute("data-lit", "1"); lightReq(rows[i][0], true); if (rows[i][2]) lightSrc(rows[i][2], true);
+        await wait(280);
+        tr.removeAttribute("data-lit"); lightReq(rows[i][0], false); if (rows[i][2]) lightSrc(rows[i][2], false);
+      }
+      var steps = d.steps || [], by = {};
+      steps.forEach(function (s) { if (s.stage !== "fanout" && !by[s.stage]) by[s.stage] = s; });
+      meta("receive", by.receive, replay);
+      setStage("receive", stateOf(by.receive ? by.receive.status : "OK"));
+      addLog("INFO", "Payout request received. PayoutId=" + (d.payoutId || "-") + " Customer=" + req.customer_id + " SimulateFail=" + req.simulate_payment_failed);
+      if (d.status === "REJECTED" || !steps.length) { await rejected(d, req); return; }
+
+      /* resolve */
+      var g = d.customer || {}, sr = by.resolve, k = g.kyc || {};
+      meta("resolve", sr, replay);
+      setStage("resolve", "active"); lightSrc("customer_id", true); lightReq("customer_id", true);
+      await wait(700);
+      var links = g.sourceLinks || {};
+      detail("resolve", '<dl class="kv2"><dt>Golden record</dt><dd>' + esc(g.goldenRecordId || "-") + "</dd><dt>Legal name</dt><dd>" + esc(g.legalName || "") +
+        "</dd><dt>Segment</dt><dd>" + segTag(g.segment || "Everyday") + "</dd><dt>Banker</dt><dd>" + esc(g.relationshipManager || "none (Digital Banking team)") +
+        "</dd><dt>KYC</dt><dd>" + '<span class="st ' + esc(k.status || "") + '">' + esc(k.status || "-") + "</span> review " + esc(k.reviewDate || "-") +
+        "</dd><dt>Active loans</dt><dd>" + esc((g.activeLoans || []).join(", ") || "-") + "</dd></dl>" +
+        '<div class="links">' + ["CORE_BANKING", "SALESFORCE_FSC", "AML_KYC", "RM_ROSTER"].map(function (s) {
+          return '<span class="lk' + (links[s] ? "" : " none") + '">' + sysTag(s) + esc(links[s] || "no record") + "</span>";
+        }).join("") + "</div>" + (sr && sr.detail ? '<div class="small muted">' + esc(sr.detail) + "</div>" : ""));
+      await wait(800);
+      lightSrc("customer_id", false); lightReq("customer_id", false);
+      setStage("resolve", stateOf(sr ? sr.status : "OK"));
+      addLog("INFO", "Golden record resolved. Customer=" + (g.customerId || "-") + " Segment=" + (g.segment || "-") + " KYC=" + (k.status || "-"));
+
+      /* compliance */
+      var sc = by.compliance;
+      meta("compliance", sc, replay);
+      setStage("compliance", "active");
+      await wait(700);
+      var kycHold = d.holdReason === "KYC_REVIEW_DUE";
+      detail("compliance", kycHold ? '<div class="note bad"><strong>Compliance hold.</strong> ' + esc((sc && sc.detail) || "KYC review due") + "</div>" :
+        '<div class="note">' + esc((sc && sc.detail) || "KYC current") + ". Payout may proceed.</div>");
+      if (kycHold) { await heldKyc(d); return; }
+      setStage("compliance", "done");
+      addLog("INFO", "Compliance check passed. " + ((sc && sc.detail) || ""));
+
+      /* payout */
+      await payoutStage(d, replay, by.payout);
+
+      /* payment */
+      var pay = d.payment || {}, spay = by.payment, ok = pay.status === "SETTLED" && d.status !== "PAYOUT_HELD";
+      meta("payment", spay, replay);
+      setStage("payment", "active"); lightSrc("funding", true); lightReq("simulate_payment_failed", true);
+      detail("payment", '<div class="chipx wait"><span class="spin"></span><span>' + esc((pay.rail || "Payments") + ": transferring " + aud(pay.amount)) + "</span></div>");
+      await wait(1000);
+      detail("payment", '<dl class="kv2"><dt>Rail</dt><dd>' + esc(pay.rail || "-") + "</dd><dt>Reference</dt><dd>" + esc(pay.reference || "-") + "</dd><dt>From</dt><dd>" + esc(pay.from || "-") +
+        "</dd><dt>To</dt><dd>" + esc(pay.to || "-") + "</dd><dt>Amount</dt><dd>" + esc(aud(pay.amount)) + '</dd><dt>Result</dt><dd><span class="st ' + esc(pay.status || "") + '">' + esc(pay.status || "-") + "</span></dd>" +
+        (pay.reason ? "<dt>Reason</dt><dd>" + esc(pay.reason) + "</dd>" : "") + "</dl>" + '<div id="payNote"></div>');
+      lightSrc("funding", false); lightReq("simulate_payment_failed", false);
+      if (!ok) { await heldPayment(d); return; }
+      setStage("payment", stateOf(spay ? spay.status : "OK"));
+      addLog("INFO", "Funds transferred. " + (pay.reference || "") + " " + aud(pay.amount));
+      var b = state.board;
+      ((d.payout || {}).funding || []).forEach(function (f) { var a = b.accounts[f.accountId]; if (a) { a.balance = f.balanceAfter; a.changed = true; a.note = "−" + BB.dollars(f.amount) + " to the payout"; } });
+      renderBoard();
+
+      /* fan-out */
+      var fan = steps.filter(function (s) { return s.stage === "fanout"; }).sort(function (a, c) { return a.seq - c.seq; });
+      setStage("fanout", "active");
+      detail("fanout", '<div class="fork-head"><span class="fork-node">Branch</span> ' + fan.length + " paths, executed 1 → " + fan.length + "</div>" +
+        '<div class="lanes">' + fan.map(function (s, n) {
+          return '<div class="lane" data-state="idle" data-lane="' + n + '"><div class="lt"><span class="lno">' + (n + 1) + "</span>" + sysTag(s.system) +
+            '<span class="la">' + esc(s.action || s.system) + "</span>" + modeTag(s.mode, replay && s.mode === "live") + '<span class="lst">WAITING</span></div>' +
+            '<div class="lsh">' + esc(s.boomiStep || "") + '</div><div class="lx"></div></div>';
+        }).join("") + '</div><div class="fork-join">↳ paths join · assemble receipt</div>');
+      for (var f = 0; f < fan.length; f++) {
+        var s = fan[f], lane = $("dt-fanout").querySelector('[data-lane="' + f + '"]'), lx = lane.querySelector(".lx");
+        lane.setAttribute("data-state", "active"); lane.querySelector(".lst").textContent = "SENDING";
+        state.sys[s.system] = { state: "active", text: "SENDING", detail: s.action || "" }; renderSystems();
+        await wait(650);
+        var p = P(s.payload), stt = s.status === "FAILED" ? "fail" : s.status === "WARN" ? "warn" : "ok";
+        var resp = s.response ? '<div class="small muted">Response</div>' + BB.payloadHTML(s.response) : "";
+        lx.innerHTML = s.payload != null ? "<details><summary>" + (typeof p === "string" && p.trim().charAt(0) === "<" ? "Payload (XML)" : "Payload") + (resp ? " + response" : "") + '</summary><div class="pl">' + BB.payloadHTML(s.payload) + resp + "</div></details>" : "";
+        lane.setAttribute("data-state", stt); lane.querySelector(".lst").textContent = s.status || "OK";
+        state.sys[s.system] = { state: stt, text: s.status || "OK", detail: laneSummary(s, d) }; renderSystems();
+        if (s.system === "CORE_BANKING") { Object.keys(b.loans).forEach(function (x) { b.loans[x].status = "CLOSED"; }); renderBoard(Object.keys(b.loans)[0]); }
+        if (s.system === "SECURITY_REGISTRY") { ((d.payout || {}).securities || []).forEach(function (x) { if (b.secs[x.securityId]) b.secs[x.securityId].status = x.status; }); renderBoard(((d.payout || {}).securities || [{}])[0].securityId); }
+        addLog(s.status === "FAILED" ? "ERR" : "INFO", s.system + " " + (s.action || "") + " " + (s.status || "OK") + ". " + laneSummary(s, d));
+        await wait(180);
+      }
+      setStage("fanout", fan.some(function (x) { return x.status === "FAILED" || x.status === "WARN"; }) ? "warn" : "done");
+
+      /* receipt */
+      var sre = by.receipt, sm = d.summary || {}, po = d.payout || {}, t = po.totals || {};
+      meta("receipt", sre, replay);
+      setStage("receipt", "active");
+      await wait(500);
+      detail("receipt", '<dl class="kv2"><dt>Status</dt><dd><span class="st ' + esc(d.status) + '">' + esc(d.status) + "</span></dd><dt>Payout id</dt><dd>" + esc(d.payoutId || "-") +
+        "</dd><dt>Paid</dt><dd>" + esc(aud(t.finalPayoutAUD)) + " · " + esc(pay.reference || "") + "</dd><dt>Securities</dt><dd>" + esc(((d.handoff || {}).securityIds || []).join(", ") || "-") + " · discharge lodged" +
+        "</dd><dt>Systems</dt><dd>" + esc(sm.systemsUpdated) + " of 9 updated</dd><dt>Served by</dt><dd>" + esc(d._servedBy || "-") + (d._traceSource ? " · " + esc(d._traceSource) : "") + " · " + ms + " ms round trip</dd></dl>" +
+        ((sm.nextActions || []).length ? '<div class="note warn">' + sm.nextActions.map(esc).join("<br>") + "</div>" : "") +
+        '<details><summary class="small" style="cursor:pointer">Response JSON</summary>' + BB.payloadHTML(d) + "</details>" +
+        '<a class="btn primary" href="#relPanel" style="align-self:flex-start">Release the security ↓</a>');
+      setStage("receipt", "done");
+      addLog("INFO", "Payout " + d.status + ". PayoutId=" + d.payoutId + " Customer=" + (g.legalName || "") + " Final=" + t.finalPayoutAUD + " Systems=" + sm.systemsUpdated + "/9");
+      setRunStatus(d.status);
+      phoneDone(d);
+      unlockRelease(d);
+      state.busy = false; $("goBtn").disabled = false; $("goBtn").textContent = "Pay out my loans"; clearLit();
+      if (state.autoRel) { state.autoRel = false; await wait(900); $("relPanel").scrollIntoView({ behavior: "smooth", block: "start" }); autoRelease(); }
+    } catch (e) {
+      if (e !== CANCEL) { addLog("ERR", "Payout page error: " + (e && e.message ? e.message : e)); console.error(e); }
+    } finally {
+      if (myRun === state.runId) { state.busy = false; $("goBtn").disabled = false; $("goBtn").textContent = "Pay out my loans"; clearLit(); }
+    }
+  }
+
+  function holdLater(ids, text) { ids.forEach(function (id) { setStage(id, "held"); detail(id, '<div class="note warn">' + text + "</div>"); }); }
+  async function finishHeld(d, label) {
+    var sm = d.summary || {};
+    meta("receipt", (d.steps || []).find(function (s) { return s.stage === "receipt"; }), d._servedBy !== "boomi-live");
+    setStage("receipt", "active");
+    await wait(500);
+    detail("receipt", '<dl class="kv2"><dt>Status</dt><dd><span class="st PAYOUT_HELD">PAYOUT_HELD</span></dd><dt>Hold reason</dt><dd>' + esc(d.holdReason || "-") +
+      "</dd><dt>Payout id</dt><dd>" + esc(d.payoutId || "-") + "</dd><dt>Systems</dt><dd>0 of 9 updated · loans stay open</dd></dl>" +
+      ((sm.warnings || []).length ? '<div class="note bad">' + sm.warnings.map(esc).join("<br>") + "</div>" : "") +
+      ((sm.nextActions || []).length ? '<div class="note warn">' + sm.nextActions.map(esc).join("<br>") + "</div>" : "") +
+      '<details><summary class="small" style="cursor:pointer">Response JSON</summary>' + BB.payloadHTML(d) + "</details>");
+    setStage("receipt", "warn");
+    state.queue.unshift({ kind: label === "KYC" ? "warn" : "", file: (label === "KYC" ? "COMPLIANCE_HOLD_" : "PAYMENT_FAILED_") + ((d.customer || {}).customerId || "") + "_" + (d.payoutId || "") + ".json",
+      why: ((sm.warnings || [])[0] || "Payout held") + ". " + ((sm.nextActions || []).join(" · ")), body: { payoutId: d.payoutId, holdReason: d.holdReason, customer: d.customer, payment: d.payment, summary: sm } });
+    renderQueue();
+    setRunStatus("PAYOUT_HELD"); phoneDone(d); renderRelApp(label === "KYC" ? "kyc" : "failed");
+  }
+  async function heldKyc(d) {
+    setStage("compliance", "fail");
+    holdLater(["payout", "payment", "fanout"], "Not run. Decision <em>KYC review due?</em> took the Yes path: nothing is calculated for settlement, no money moves and no system is told.");
+    addLog("WARN", "Compliance hold. " + ((d.summary || {}).warnings || [""])[0]);
+    await finishHeld(d, "KYC");
+  }
+  async function heldPayment(d) {
+    setStage("payment", "fail");
+    $("payNote").innerHTML = '<div class="note bad"><strong>Payout held.</strong> ' + esc(((d.summary || {}).nextActions || [])[0] || "Arrange another funding source.") + "</div>";
+    holdLater(["fanout"], "Not run. Decision <em>payment failed?</em> took the Yes path, so no loan is closed and no security is released.");
+    addLog("ERR", "Transfer FAILED. " + ((d.payment || {}).reason || "") + ". Payout held.");
+    await finishHeld(d, "PAY");
+  }
+  async function rejected(d, req) {
+    setStage("resolve", "active"); await wait(500); setStage("resolve", "fail");
+    detail("resolve", '<div class="note bad"><strong>REJECTED.</strong> ' + esc(d.error || "No governed customer") + "</div>");
+    setStage("receipt", "fail"); detail("receipt", BB.payloadHTML(d));
+    state.queue.unshift({ kind: "", file: "PAYOUT_REJECTED_" + (req.customer_id || "unknown") + ".json", why: (d.error || "Rejected") + ".", body: d });
+    renderQueue(); addLog("ERR", "Payout REJECTED. " + (d.error || "")); setRunStatus("REJECTED"); phoneDone(d);
+  }
+  function setRunStatus(s) { var el = $("runStatus"); if (!s) { el.hidden = true; return; } el.hidden = false; el.className = "st " + s; el.textContent = s; }
+
+  /* ---------------- security release (BB_P7) ---------------- */
+  function resetRelease() { rs = { ids: [], stage: 0, busy: false, auto: false, times: [], desc: {} }; $("events").innerHTML = ""; $("relBadge").hidden = true; renderRelApp(); }
+  function unlockRelease(d) {
+    rs.ids = ((d.handoff || {}).securityIds || []).slice(); rs.stage = 0;
+    ((d.payout || {}).securities || []).forEach(function (s) { rs.desc[s.securityId] = s; });
+    renderRelApp();
+  }
+  function renderRelApp(mode) {
+    var el = $("relapp");
+    if (!rs.ids.length) {
+      el.innerHTML = mode === "kyc" ? '<p class="empty">Held for compliance: no payout, so there is no discharge to release.</p>' :
+        mode === "failed" ? '<p class="empty">Held: the transfer failed, so the loans stay open and the security stays registered.</p>' :
+        '<p class="empty">Locked until a payout completes: Boomi lodges the discharge on the security-registry path of the fan-out above. Each button then posts a registry status event to <span class="mono">/ws/simple/updateBbsecurityrelease</span>.</p>';
+      return;
+    }
+    var s0 = rs.desc[rs.ids[0]] || {};
+    el.innerHTML = '<div class="hh"><strong>Registry events · ' + esc(rs.ids.join(", ")) + "</strong><span>" + esc((s0.releaseChannel || "") + " · " + (s0.registry || "")) + "</span></div>" +
+      '<div class="rbtns">' + REL.map(function (r, i) {
+        var done = rs.stage > i, next = rs.stage === i;
+        return '<button type="button" data-rs="' + r.status + '" class="' + (done ? "done" : next ? "next" : "") + '"' + (done || !next || rs.busy || rs.auto ? " disabled" : "") + ">" +
+          (done ? "✓ " : "") + esc(r.label) + "<small>" + esc(r.status) + "</small></button>";
+      }).join("") + "</div>" +
+      '<button class="btn" type="button" id="autoRel"' + (rs.stage >= 3 || rs.busy || rs.auto ? " disabled" : "") + ">" + (rs.auto ? "Auto-running…" : rs.stage >= 3 ? "Security released" : "▶ Auto-run release") + "</button>";
+  }
+  async function postStatus(status) {
+    if (!rs.ids.length || rs.busy) return;
+    var myRun = state.runId;
+    rs.busy = true; renderRelApp();
+    for (var q = 0; q < rs.ids.length; q++) {
+      var sid = rs.ids[q], req = { security_id: sid, status: status }, id = "ev" + (++state.evN), t0 = performance.now();
+      $("events").querySelectorAll(".ev").forEach(function (n) { n.classList.add("old"); });
+      $("events").insertAdjacentHTML("beforeend", '<div class="ev" id="' + id + '"><div class="eh"><h3>Event ' + (rs.stage + 1) + " · " + esc(sid) + " " + esc(status) + '</h3><span class="mono">POST /api/v1/bank/security-release → /ws/simple/updateBbsecurityrelease</span><span class="evb"></span><button type="button" class="tg">show steps</button></div>' +
+        '<div class="codew"><pre class="json req sm">' + BB.jsonHTML(req) + '</pre></div><div class="evwait"></div><div class="evbody"></div></div>');
+      var ev = $(id), wbox = ev.querySelector(".evwait"), done = false;
+      var pending = BB.product("release", req).then(function (r) { done = true; return r; });
+      var show = function () { if (!done) wbox.innerHTML = '<div class="chipx wait"><span class="spin"></span><span>Waiting for Boomi… BB_P7_Security_Release_Status is running (' + Math.round((performance.now() - t0) / 1000) + " s)</span></div>"; };
+      show(); var tick = setInterval(show, 1000);
+      var r;
+      try { r = await pending; } finally { clearInterval(tick); }
+      if (myRun !== state.runId) throw CANCEL;
+      var d = r.data || {}, live = d._servedBy === "boomi-live", replay = !live, ms = Math.round(performance.now() - t0);
+      var tb = $("relBadge"); tb.hidden = false;
+      BB.badge(tb, live ? "live" : "mock", live ? "Boomi live · " + (d._latencyMs != null ? d._latencyMs : ms) + " ms" : "replayed trace",
+        live ? "Served by the deployed Boomi process" : (d._servedBy || "") + (d._traceSource ? " · " + d._traceSource : "") + (d._fallbackReason ? " · " + d._fallbackReason : ""));
+      ev.querySelector(".evb").innerHTML = BB.srcBadge(d);
+      wbox.innerHTML = '<div class="chipx ' + (live ? "ok" : "wait") + '"><span class="n">' + (live ? "Boomi" : "Replay") + "</span><span>" +
+        esc(live ? "Process answered in " + (d._latencyMs != null ? d._latencyMs : ms) + " ms" : "Boomi not called (" + (d._fallbackReason || d._servedBy || "offline") + "); replaying " + (d._traceSource || "recorded trace")) + "</span></div>";
+      var body = ev.querySelector(".evbody");
+      if (d.status === "REJECTED" || !(d.steps || []).length) {
+        body.innerHTML = '<div class="note bad"><strong>REJECTED.</strong> ' + esc(d.error || "Event rejected") + "</div>";
+        addLog("ERR", "Security release REJECTED. " + sid + " " + status);
+        continue;
+      }
+      var paths = ["LODGED", "SETTLED", "RELEASED", "default"], fired = d.status || status;
+      var steps = (d.steps || []).slice().sort(function (a, c) { return a.seq - c.seq; });
+      body.innerHTML = '<div class="route"><span class="fork-node">Route</span> on <code>status</code> <div class="rpaths">' + paths.map(function (p) { return '<span class="rp" data-p="' + p + '">' + p + "</span>"; }).join("") + "</div></div>" +
+        '<div class="evsteps">' + steps.map(function (s, k) {
+          return '<div class="lane" data-state="idle" data-k="' + k + '"><div class="lt"><span class="lno">' + esc(s.seq) + "</span>" + sysTag(s.system) + '<span class="la">' + esc(s.action || "") + "</span>" +
+            modeTag(s.mode, false) + '<span class="lst">WAITING</span></div><div class="lsh">' + esc(s.boomiStep || "") + (s.detail ? " · " + esc(s.detail) : "") + '</div><div class="lx"></div></div>';
+        }).join("") + "</div>";
+      for (var k = 0; k < steps.length; k++) {
+        var s = steps[k], lane = body.querySelector('[data-k="' + k + '"]');
+        lane.setAttribute("data-state", "active"); lane.querySelector(".lst").textContent = "RUNNING";
+        if (s.stage === "route") { await wait(320); body.querySelectorAll(".rp").forEach(function (n) { n.classList.add(n.getAttribute("data-p") === fired ? "fired" : "dim"); }); }
+        await wait(340);
+        if (s.payload != null) lane.querySelector(".lx").innerHTML = '<details><summary>Payload</summary><div class="pl">' + BB.payloadHTML(s.payload) + "</div></details>";
+        lane.setAttribute("data-state", s.status === "FAILED" ? "fail" : "ok"); lane.querySelector(".lst").textContent = s.status || "OK";
+        if (s.system !== "BOOMI") addLog("INFO", "[BB_P7] " + s.system + " " + (s.action || "") + " " + (s.status || "OK") + ". " + sid);
+      }
+      applyRelease(d, sid, status);
+    }
+    rs.stage = REL.findIndex(function (x) { return x.status === status; }) + 1;
+    rs.times.push({ status: status, at: clock() });
+    if (status === "RELEASED") renderHandoff();
+    rs.busy = false; renderRelApp();
+  }
+  function applyRelease(d, sid, status) {
+    var b = state.board; if (!b) return;
+    if (b.secs[sid]) b.secs[sid].status = d.securityStatus || SECSTAT[status];
+    sysNote("SECURITY_REGISTRY", sid + " " + (d.securityStatus || SECSTAT[status]));
+    if (status === "RELEASED" && d.offsetAccount && b.accounts[d.offsetAccount.accountId]) {
+      var a = b.accounts[d.offsetAccount.accountId]; a.everyday = true; a.note = "Offset closed: now an everyday account";
+      sysNote("CORE_BANKING", "Loans closed · " + d.offsetAccount.masked + " now Everyday Saver");
+    }
+    if (status === "RELEASED") { rs.last = d; sysNote("CUSTOMER_MESSAGING", "Security released message sent"); sysNote("SALESFORCE_FSC", "Banker briefed: security released"); }
+    renderBoard(sid);
+    addLog("INFO", "Security " + sid + " -> " + (d.securityStatus || status) + (d.offsetAccount && status === "RELEASED" ? " · offset " + d.offsetAccount.accountId + " to everyday use" : ""));
+  }
+  async function autoRelease() {
+    if (!rs.ids.length || rs.busy || rs.auto || rs.stage >= 3) return;
+    rs.auto = true; renderRelApp();
+    try {
+      for (var i = rs.stage; i < 3; i++) { await postStatus(REL[i].status); rs.auto = true; renderRelApp(); if (i < 2) await wait(800); }
+    } catch (e) { if (e !== CANCEL) { addLog("ERR", "Release error: " + (e && e.message ? e.message : e)); console.error(e); } }
+    finally { rs.auto = false; renderRelApp(); }
+  }
+
+  /* ---------------- hand-off ---------------- */
+  function renderHandoff() {
+    var el = $("handoff"), d = state.last || {}, rl = rs.last || {}, po = d.payout || {}, t = po.totals || {}, g = d.customer || {};
+    var msgStep = (rl.steps || []).find(function (s) { return s.system === "CUSTOMER_MESSAGING"; }), msg = msgStep ? (P(msgStep.payload) || {}).text : "";
+    var off = rl.offsetAccount;
+    el.className = "card handoff on";
+    el.innerHTML = '<div><p class="eyebrow">Security released · the loop closes</p><h2>' + esc(g.legalName || "The customer") + (rl.type === "MORTGAGE" ? "'s title is clear" : "'s security is released") + "</h2>" +
+      "<p>" + esc(rl.description || "") + " is released." + (off ? " The offset account " + esc(off.masked) + " is now an everyday account; balance and card stay as they are." : "") + " " +
+      esc((rl.customer || {}).relationshipManager || "The Digital Banking team") + " has been briefed.</p>" +
+      (msg ? "<blockquote>" + esc(msg) + "</blockquote>" : "") +
+      '<div class="hlinks"><a class="btn primary" href="' + esc(BB.routeTo("onboarding")) + '">↺ Act 1: onboard the next customer</a><a class="btn" href="' + esc(BB.routeTo("flow")) + '">Act 4: flow &amp; governance →</a></div></div>' +
+      "<div><h4>Paid out</h4><ul>" + (po.loans || []).map(function (l) { return "<li>" + esc(l.loanId + " " + l.product) + ": " + esc(aud(l.finalPayout)) + "</li>"; }).join("") +
+      "<li><strong>Total " + esc(aud(t.finalPayoutAUD)) + "</strong></li><li>9 of 9 systems told the loans are closed</li></ul>" +
+      "<h4>Release events</h4><ul>" + rs.times.map(function (x) { return "<li>" + esc(x.at) + " · " + esc(x.status) + "</li>"; }).join("") + "</ul>" +
+      '<p class="small muted" style="margin:0">Data Hub: ' + esc(g.legalName || "the customer") + "'s golden record now has no active loans, so the assistant in Act 2 and the positions product in Act 4 see the same answer.</p></div>";
+  }
+
+  /* ---------------- reset + controls ---------------- */
+  function reset() {
+    state.runId++; state.busy = false; state.queue = []; state.log = []; state.sys = {}; state.last = null; state.autoRel = false;
+    resetRelease();
+    $("goBtn").disabled = false; $("goBtn").textContent = "Pay out my loans";
+    buildPipeline(); renderSystems(); renderQueue(); renderLog(); clearLit(); renderRequest();
+    $("handoff").className = "card handoff"; $("pdone").className = "pdone"; $("servedBadge").hidden = true; setRunStatus(null);
+    state.board = null;
+    if (state.pos[state.cust]) initBoard(state.cust); else { state.board = { cif: state.cust, loans: {}, accounts: {}, secs: {} }; renderBoard(); }
+  }
+  function pressed(a, b, on) { $(a).setAttribute("aria-pressed", on ? "true" : "false"); $(b).setAttribute("aria-pressed", on ? "false" : "true"); }
+  $("payOk").addEventListener("click", function () { state.failed = false; pressed("payOk", "payFail", true); renderRequest(); });
+  $("payFail").addEventListener("click", function () { state.failed = true; pressed("payOk", "payFail", false); renderRequest(); });
+  $("sp1").addEventListener("click", function () { state.speed = 1; pressed("sp1", "sp3", true); });
+  $("sp3").addEventListener("click", function () { state.speed = 3; pressed("sp1", "sp3", false); });
+  $("resetBtn").addEventListener("click", reset);
+  $("cpick").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-c]"); if (!b || state.busy) return;
+    state.cust = b.dataset.c; renderPicker(); renderRequest(); reset(); loadPositions(state.cust).then(function () { if (!state.last) initBoard(state.cust); });
+  });
+  $("goBtn").addEventListener("click", run);
+  $("events").addEventListener("click", function (e) { var b = e.target.closest(".tg"); if (b) b.closest(".ev").classList.remove("old"); });
+  $("relapp").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-rs]");
+    if (b && !b.disabled) { postStatus(b.dataset.rs).catch(function (x) { if (x !== CANCEL) console.error(x); }); return; }
+    if (e.target.closest("#autoRel")) autoRelease();
+  });
+
+  /* ---------------- health ---------------- */
+  BB.health().then(function (h) {
+    var b = $("dpBadge");
+    if (!h) { BB.badge(b, "mock", "payout: replay · sign in for live", "Not signed in: replays recorded live Boomi runs"); return; }
+    var c = (h.orchestrations || {}).payout || {};
+    var ok = c.mode === "configured" && !c.lastError;
+    BB.badge(b, ok ? "live" : "mock", ok ? "payout: Boomi" : "payout: replay", c.detail || "");
+  });
+
+  /* presenter params (no customer in the URL): ?payment=failed&speed=3&autorun=1&release=1 */
+  var qp = {}; try { new URLSearchParams(location.search).forEach(function (v, k) { qp[k] = v; }); } catch (e) {}
+  if (/^fail/i.test(qp.payment || "")) { state.failed = true; pressed("payOk", "payFail", false); }
+  if (qp.speed === "3") { state.speed = 3; pressed("sp1", "sp3", false); }
+  renderPicker(); reset();
+  var first = loadPositions(state.cust).then(function () { if (!state.last) initBoard(state.cust); });
+  if (qp.autorun) first.then(function () { state.autoRel = !!qp.release; setTimeout(run, 300); });
+})();
+</script>
+</body>
+</html>

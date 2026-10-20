@@ -1,0 +1,748 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Digital Onboarding Orchestration</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  /* phone: application form */
+  .pseg { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; }
+  .pseg button { border: 1px solid var(--line-2); background: var(--panel-2); color: var(--ink-2); border-radius: 8px; padding: 6px 4px; font: 500 12px var(--sans); cursor: pointer; }
+  .pseg button[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+  .fgrid { display: flex; flex-direction: column; gap: 5px; }
+  .goals { border: 1px solid var(--line); border-radius: 9px; padding: 7px 9px; background: var(--panel-2); font-size: 12.5px; }
+  .goals .gl { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+  .goals .gl span { font: 500 11.5px var(--sans); padding: 2px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--ink); }
+  .pdone .accts { display: flex; flex-direction: column; gap: 6px; text-align: left; }
+  .pdone .acct { display: flex; justify-content: space-between; gap: 8px; border: 1px solid var(--line); border-radius: 10px; padding: 7px 10px; font-size: 13px; background: var(--panel-2); }
+  .pdone .acct b { font-weight: 600; }
+  .pdone .acct .id { font: 11px var(--mono); color: var(--muted); }
+  .pdone .acct .st { align-self: center; flex: none; white-space: nowrap; font-size: 9.5px; padding: 2px 7px; }
+  .wallet { border-radius: 14px; padding: 12px 14px; color: #fff; text-align: left; position: relative; overflow: hidden; min-height: 112px;
+    background: radial-gradient(120% 120% at 100% 0%, rgba(240, 163, 94, .55), transparent 55%), linear-gradient(135deg, #0a1f3c, #0d766f 75%, #2ec4b4); box-shadow: 0 8px 20px rgba(10, 31, 60, .3); }
+  .wallet .wb { font: 600 13px var(--serif); display: flex; justify-content: space-between; }
+  .wallet .wn { font: 500 14px var(--mono); letter-spacing: .12em; margin-top: 22px; }
+  .wallet .wf { display: flex; justify-content: space-between; font-size: 11px; opacity: .85; margin-top: 6px; }
+  .wallet.locked { filter: grayscale(.6); }
+  .wallet.locked::after { content: "LOCKED UNTIL CHECKS CLEAR"; position: absolute; inset: auto 0 0 0; background: rgba(154, 97, 0, .85); font: 600 10px var(--sans); letter-spacing: .08em; text-align: center; padding: 3px 0; }
+
+  /* product shelf (Act 1 analogue of the room board) */
+  .shelf { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+  .prod { border: 1px solid var(--line); border-radius: 10px; background: var(--panel-2); padding: 9px 10px; display: flex; flex-direction: column; gap: 4px; min-height: 104px; min-width: 0; transition: border-color .3s, background-color .3s, box-shadow .3s; }
+  .prod .pt { display: flex; justify-content: space-between; gap: 6px; align-items: center; }
+  .prod .pk { font: 600 9.5px var(--mono); letter-spacing: .06em; color: var(--muted); }
+  .prod .pn { font-weight: 600; font-size: 13px; line-height: 1.25; }
+  .prod .pw { font-size: 11.5px; color: var(--ink-2); }
+  .prod .ps { margin-top: auto; font: 600 10.5px var(--mono); color: var(--muted); }
+  .prod.scoring { border-color: var(--gold); box-shadow: 0 0 0 2px var(--gold-soft); }
+  .prod.rec { border-color: var(--accent); background: var(--accent-soft); }
+  .prod.rec .ps { color: var(--accent); }
+  .prod.open { border: 2px solid var(--good); background: var(--good-soft); }
+  .prod.open .ps { color: var(--good); }
+  .prod.restricted { border: 2px solid var(--warn); background: var(--warn-soft); }
+  .prod.restricted .ps { color: var(--warn); }
+  .prod.no { opacity: .55; }
+  .prod.no .pn { text-decoration: line-through; text-decoration-color: var(--line-2); }
+  .prod.flash { animation: flash 1.4s ease 2; }
+  @keyframes flash { 0%, 100% { box-shadow: 0 0 0 0 transparent; } 40% { box-shadow: 0 0 0 6px var(--accent-soft), 0 0 18px var(--accent); } }
+  .custcard { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px; align-items: center; }
+  .custcard .av { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; font: 600 14px var(--sans); color: #fff; background: linear-gradient(135deg, #2ec4b4, #0a1f3c); }
+  .custcard .cn { font: 600 15px var(--serif); }
+  .custcard .cs { font: 11.5px var(--mono); color: var(--muted); overflow-wrap: anywhere; }
+  .legend { display: flex; flex-wrap: wrap; gap: 10px; font-size: 11.5px; color: var(--muted); }
+  .legend span { display: inline-flex; align-items: center; gap: 5px; }
+  .legend i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="wrap">
+    <div class="logo"><span class="mark">BB</span> Boomi Bank <span class="sub">· connected banking demo</span></div>
+    <nav>
+      <a href="onboarding.html" class="on" data-route="/onboarding"><span class="act">Act 1 ·</span> Onboarding</a>
+      <a href="index.html" data-route="/"><span class="act">Act 2 ·</span> Relationship manager</a>
+      <a href="payout.html" data-route="/payout"><span class="act">Act 3 ·</span> Loan payout</a>
+      <a href="flow.html" data-route="/flow"><span class="act">Act 4 ·</span> Flow &amp; governance</a>
+      <span class="badge mock" id="dpBadge"><span class="dot"></span>onboarding: checking</span>
+      <button class="iconbtn" id="theme" type="button">Dark mode</button>
+    </nav>
+  </div>
+</div>
+
+<div class="intro">
+  <div class="wide">
+    <p class="eyebrow">Act 1 · Digital onboarding, orchestrated by Boomi</p>
+    <h1>One application in the app. Seven systems set up.</h1>
+    <p>Mia Nguyen applies on her phone. Boomi checks whether she is already a customer in Data Hub, verifies her driver licence,
+      screens her for sanctions and PEPs, scores her risk, recommends products from her own goals, then opens everything she needs:
+      accounts, a card in her phone wallet, PayID, her Salesforce record, monitoring and a welcome, and copes when the screening service is down.</p>
+  </div>
+</div>
+
+<div class="ctlbar">
+  <div class="wide">
+    <div class="ctl"><span class="lbl">Screening service</span>
+      <div class="seg" role="group" aria-label="Screening service availability">
+        <button type="button" id="scrOn" aria-pressed="true">Online</button>
+        <button type="button" id="scrOff" class="bad" aria-pressed="false">Offline</button>
+      </div></div>
+    <div class="ctl"><span class="lbl">ID document</span>
+      <div class="seg" role="group" aria-label="ID document verification">
+        <button type="button" id="idOk" aria-pressed="true">Match</button>
+        <button type="button" id="idBad" class="bad" aria-pressed="false">Mismatch</button>
+      </div></div>
+    <div class="ctl"><span class="lbl">Playback</span>
+      <div class="seg" role="group" aria-label="Playback speed">
+        <button type="button" id="sp1" aria-pressed="true">×1</button>
+        <button type="button" id="sp3" aria-pressed="false">×3</button>
+      </div></div>
+    <span class="sp"></span>
+    <span class="st" id="runStatus" hidden></span>
+    <button class="btn" id="resetBtn" type="button">Reset</button>
+  </div>
+</div>
+
+<main class="wide stage3">
+  <!-- ================= LEFT: customer app ================= -->
+  <div class="col col-app">
+    <section class="panel" aria-labelledby="app-h">
+      <div class="phead"><h2 id="app-h">Boomi Bank app</h2><span class="sub">source · application APP-55821</span></div>
+      <div class="pbody">
+        <div class="phone">
+          <div class="notch" aria-hidden="true"></div>
+          <div class="pstatus"><span>09:12</span><span aria-hidden="true">5G ▮▮▮</span></div>
+          <div class="papp">
+            <div class="pbrand"><span class="mark">BB</span><div><strong>Boomi Bank</strong><span>Open an account · step 3 of 3</span></div></div>
+            <div data-src="application_id">
+              <div class="flbl">Your application</div>
+              <div class="fgrid" id="form"></div>
+            </div>
+            <div class="goals" data-src="goals"><div class="flbl" style="margin:0">Your goals</div><div class="gl" id="goals"></div></div>
+            <div data-src="channel">
+              <div class="flbl">Applying from</div>
+              <div class="pseg" id="chan" role="group" aria-label="Channel"></div>
+            </div>
+            <div class="ver" data-src="id_doc" id="idDoc"><span aria-hidden="true">✓</span><b>Driver licence scanned</b><span class="vs">QLD · number hashed</span></div>
+            <button class="pcheck" id="goBtn" type="button">Open my accounts</button>
+          </div>
+          <div class="pdone" id="pdone" aria-live="polite"></div>
+        </div>
+        <div class="codew">
+          <div class="codeh"><span>Outbound request</span><span class="mono">POST /api/v1/bank/onboarding</span></div>
+          <pre class="json req" id="req"></pre>
+          <div class="codeh" style="border-top:1px solid rgba(255,255,255,.08);border-bottom:0"><span>proxied to</span><span class="mono">/ws/simple/createBbonboarding</span></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ================= MIDDLE: Boomi ================= -->
+  <div class="col col-boomi">
+    <section class="panel" aria-labelledby="boomi-h">
+      <div class="phead"><h2 id="boomi-h">Boomi</h2><span class="sub">BB_P5_Digital_Onboarding_Orchestration</span><span class="badge mock" id="servedBadge" hidden></span></div>
+      <div class="pbody"><div id="pipeline"></div></div>
+    </section>
+  </div>
+
+  <!-- ================= RIGHT: board ================= -->
+  <div class="col col-board">
+    <section class="panel" aria-labelledby="board-h">
+      <div class="phead"><h2 id="board-h">Customer &amp; products</h2><span class="sub">what Mia ends up with</span></div>
+      <div class="pbody">
+        <div class="custcard" id="cust"></div>
+        <div class="shelf" id="shelf"></div>
+        <div class="legend"><span><i style="background:var(--gold)"></i>Scoring</span><span><i style="background:var(--accent)"></i>Recommended</span><span><i style="background:var(--good)"></i>Opened</span><span><i style="background:var(--warn)"></i>Restricted</span><span><i style="background:var(--muted)"></i>Not offered</span></div>
+      </div>
+    </section>
+    <div class="col" style="gap:16px">
+      <section class="panel" aria-labelledby="sys-h">
+        <div class="phead"><h2 id="sys-h">Systems updated</h2><span class="sub" id="sysCount">0 / 7</span></div>
+        <div class="pbody"><div class="sysgrid" id="sysgrid"></div></div>
+      </section>
+      <section class="panel" aria-labelledby="q-h">
+        <div class="phead"><h2 id="q-h">Exceptions queue</h2><span class="sub">financial crime · onboarding team</span></div>
+        <div class="pbody" id="queue"></div>
+      </section>
+      <section class="panel" aria-labelledby="log-h">
+        <div class="phead"><h2 id="log-h">Process log</h2><span class="sub">Notify steps</span></div>
+        <div class="pbody"><div class="plog" id="plog"></div></div>
+      </section>
+    </div>
+  </div>
+</main>
+
+<div class="wide">
+  <section class="card handoff" id="handoff" aria-live="polite"></section>
+  <div class="footnote">
+    <h3>What is real here</h3>
+    <p>When the demo server is running with Boomi credentials, <strong>Open my accounts</strong> calls the deployed process
+      <span class="mono small">BB_P5_Digital_Onboarding_Orchestration</span> through <span class="mono small">/ws/simple/createBbonboarding</span>.
+      The Data Hub steps are live: Mia is looked up by email in the <span class="mono small">Boomi-Bank / customermaster</span> repository, and her
+      golden record is created with two batches, sources <span class="mono small">CORE_BANKING</span> and <span class="mono small">AML_KYC</span>.
+      Her driver licence number is hashed by the process and never returned. Document verification, screening, core banking, the card
+      platform, NPP, Salesforce and messaging are <em>stub</em> sends: Message steps that build the exact payload, the point where a
+      real connector is swapped in. Until the Data Hub repository credentials are in place, or offline, or opened as a file, the page
+      replays recorded traces of the same process (computed from the contract until live ones are recorded), and the badge says why.</p>
+  </div>
+</div>
+<footer class="foot"><div class="wrap">Boomi Bank demo · sample data only · <a href="index.html" data-route="/">Next: Act 2, the relationship manager &rarr;</a> · <a href="customer-app.html" data-route="/customer-app" target="_blank" rel="noopener">Customer app</a> · <a href="rm-desk.html" data-route="/rm-desk" target="_blank" rel="noopener">RM desk</a></div></footer>
+
+<script src="mock-bundle.js"></script>
+<script src="common.js"></script>
+<script src="config.js"></script>
+<script src="online.js"></script>
+<script>
+(function () {
+  "use strict";
+  var BB = window.BB, esc = BB.esc, M = window.BB_MOCK || {};
+  BB.initTheme(document.getElementById("theme"));
+  BB.routes();
+  var $ = function (id) { return document.getElementById(id); };
+
+  /* ---------------- reference ---------------- */
+  var APP = (M.applications || [])[0] || { APPLICATION_ID: "APP-55821", CIF_TO_ASSIGN: "CIF-100204", FIRST_NAME: "Mia", LAST_NAME: "Nguyen",
+    EMAIL: "mia.nguyen@example.com.au", MOBILE: "0423 555 019", DATE_OF_BIRTH: "1998-04-17", ADDRESS: "Unit 5, 22 Wharf St, Brisbane City QLD 4000",
+    RESIDENCY: "AU_CITIZEN", ID_TYPE: "DRIVER_LICENCE_QLD", OCCUPATION: "UX designer", EMPLOYMENT: "FULL_TIME", ANNUAL_INCOME: "92000",
+    GOALS: "Saving for my first home; everyday banking; pay with my phone", SOURCE_OF_FUNDS: "Salary" };
+  var PRODUCTS = M.products || [];
+  var CHANNELS = [["MOBILE_APP", "Mobile app"], ["BRANCH", "Branch tablet"]];
+  var SYSTEMS = [
+    { sys: "CORE_BANKING", label: "Core banking", action: "Open accounts" },
+    { sys: "DATA_HUB", label: "Data Hub", action: "Create golden record" },
+    { sys: "CARD_PLATFORM", label: "Card platform", action: "Virtual debit card" },
+    { sys: "NPP_PAYID", label: "NPP PayID", action: "Register PayID" },
+    { sys: "SALESFORCE_FSC", label: "Salesforce FSC", action: "Person account + task" },
+    { sys: "AML_KYC", label: "AML / KYC", action: "Ongoing monitoring" },
+    { sys: "CUSTOMER_MESSAGING", label: "Messaging", action: "Welcome + in-app prompt" }
+  ];
+  var STAGES = [
+    { id: "receive", title: "Receive application", shape: "Web Services Server listener (createBbonboarding)", mode: "live", note: "JSON request from the app, validated against the request profile." },
+    { id: "resolve", title: "Resolve in Data Hub", shape: "REST: BB_DataHub_CustomerMaster_Query_Operation", mode: "live", note: "Boomi-Bank / customermaster, queried by email: an existing golden record means an existing customer." },
+    { id: "application", title: "Read application", shape: "Message: application + product catalogue extract", mode: "stub", note: "Application, product catalogue and any session held for the customer. The ID number is hashed straight away." },
+    { id: "verify", title: "Verify ID document", shape: "Data Process: Document Verification Service check", mode: "stub", note: "Licence details checked against the issuing state. No match → referred for enhanced due diligence, nothing opened." },
+    { id: "screening", title: "Sanctions + PEP screening", shape: "Try/Catch: screening provider", mode: "stub", note: "If the provider does not respond, the Catch path queues a manual review and the accounts open restricted." },
+    { id: "assess", title: "Risk score + product bundle", shape: "Data Process: risk rules + bundle scoring", mode: "live", note: "Risk from screening and residency; products scored against the customer's own goals." },
+    { id: "fanout", title: "Fan out to every system", shape: "Branch (7 paths + receipt)", mode: "live", note: "One Branch path per system; each leaves its result in a process property for the receipt." },
+    { id: "receipt", title: "Assemble receipt", shape: "Data Process: Assemble receipt", mode: "live", note: "One response back to the app: accounts, card, risk, warnings, next actions and the in-app prompt." }
+  ];
+  var RISK_RULES = ["base 10", "PEP +40", "sanctions hit +100", "non-resident +20", "LOW < 30 ≤ MEDIUM < 60 ≤ HIGH", "PENDING if screening deferred"];
+  var BUNDLE_RULES = ["core account +5", "goal word matched +3 each", "recommended if score ≥ 3", "credit card never offered at onboarding"];
+
+  /* ---------------- state ---------------- */
+  var state = { channel: "MOBILE_APP", screenOnline: true, idMatch: true, speed: 1, busy: false, runId: 0,
+    queue: [], log: [], sys: {}, shelf: {}, scoring: null, cust: null };
+  var CANCEL = { cancelled: true };
+  function wait(ms) {
+    var id = state.runId;
+    return new Promise(function (res, rej) { setTimeout(function () { if (id === state.runId) res(); else rej(CANCEL); }, Math.max(16, ms / state.speed)); });
+  }
+  function pad(n) { return (n < 10 ? "0" : "") + n; }
+  function clock() { var d = new Date(); return pad(d.getHours()) + ":" + pad(d.getMinutes()) + ":" + pad(d.getSeconds()); }
+  function sysTag(s) { return '<span class="tag ' + esc(s) + '">' + esc(s) + "</span>"; }
+  function modeTag(mode, replay) {
+    if (mode === "live") return '<span class="mtag ' + (replay ? "replay" : "live") + '">' + (replay ? "LIVE · REPLAYED" : "LIVE") + "</span>";
+    return '<span class="mtag stub">STUB</span>';
+  }
+  function stateOf(status) { return status === "FAILED" ? "fail" : status === "WARN" ? "warn" : "done"; }
+  function nice(s) { s = String(s || "").replace(/_/g, " ").toLowerCase(); return s.charAt(0).toUpperCase() + s.slice(1); }
+
+  /* ---------------- phone ---------------- */
+  function renderPhone() {
+    var rows = [["Name", APP.FIRST_NAME + " " + APP.LAST_NAME], ["Email", APP.EMAIL], ["Mobile", APP.MOBILE], ["Date of birth", BB.day(APP.DATE_OF_BIRTH, true)],
+      ["Address", APP.ADDRESS], ["Residency", nice(APP.RESIDENCY)], ["Work", APP.OCCUPATION + " · " + nice(APP.EMPLOYMENT)],
+      ["Income", "AUD " + Number(APP.ANNUAL_INCOME || 0).toLocaleString("en-AU") + " a year"], ["Source of funds", APP.SOURCE_OF_FUNDS]];
+    $("form").innerHTML = rows.map(function (r) { return '<div class="pfield"><span class="k">' + esc(r[0]) + '</span><span class="v">' + esc(r[1]) + "</span></div>"; }).join("");
+    $("goals").innerHTML = String(APP.GOALS || "").split(/;\s*/).filter(Boolean).map(function (g) { return "<span>" + esc(g) + "</span>"; }).join("");
+    $("chan").innerHTML = CHANNELS.map(function (c) { return '<button type="button" data-c="' + c[0] + '" aria-pressed="' + (c[0] === state.channel) + '">' + c[1] + "</button>"; }).join("");
+  }
+  function request() {
+    return { application_id: APP.APPLICATION_ID, channel: state.channel,
+      simulate_screening_down: state.screenOnline ? "false" : "true", simulate_id_mismatch: state.idMatch ? "false" : "true" };
+  }
+  function renderRequest() {
+    $("req").innerHTML = BB.jsonHTML(request()).split("\n").map(function (l) {
+      var m = /<span class="k">&quot;(\w+)&quot;<\/span>/.exec(l);
+      return m ? '<span class="fl" data-fld="' + m[1] + '">' + l + "</span>" : l;
+    }).join("\n");
+  }
+  function lightReq(key, on) { var n = $("req").querySelector('[data-fld="' + key + '"]'); if (n) { if (on) n.setAttribute("data-lit", "1"); else n.removeAttribute("data-lit"); } }
+  function lightSrc(key, on) { var n = document.querySelector('[data-src="' + key + '"]'); if (n) n.classList.toggle("lit", !!on); }
+  function clearLit() {
+    document.querySelectorAll("[data-src].lit").forEach(function (n) { n.classList.remove("lit"); });
+    $("req").querySelectorAll("[data-lit]").forEach(function (n) { n.removeAttribute("data-lit"); });
+  }
+  function stepPayload(d, sys) { var s = (d.steps || []).find(function (x) { return x.system === sys && x.stage === "fanout"; }); return s ? BB.parseMaybe(s.payload) : null; }
+
+  function promptsHTML(ps) {
+    return (ps || []).map(function (a, i) {
+      return '<div class="aprompt" data-ap="' + i + '"><div class="apk">' + esc(nice(a.type)) + " · held for you</div>" +
+        "<strong>" + esc(a.title || "Held for you") + "</strong>" +
+        '<p class="apd">' + esc(a.description || "") + "<br>" + esc(BB.when(a.start)) + "</p>" +
+        (a.note ? '<p class="apn">' + esc(a.note) + "</p>" : "") +
+        '<div class="apb">' + (a.actions || ["Confirm"]).map(function (t, k) {
+          return '<button type="button" class="btn' + (k === 0 ? " primary" : "") + '" data-apa="' + k + '">' + esc(t) + "</button>";
+        }).join("") + "</div></div>";
+    }).join("");
+  }
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest && e.target.closest("[data-apa]");
+    if (!b) return;
+    var card = b.closest(".aprompt"), yes = b.getAttribute("data-apa") === "0";
+    card.querySelector(".apb").outerHTML = '<div class="apdone">' + (yes ? "✓ Session confirmed. The lending specialist has been told." : "No problem. The slot has been released.") + "</div>";
+    addLog("INFO", "Customer app: home-buying session " + (yes ? "confirmed" : "declined") + " (" + ((card.querySelector("strong") || {}).textContent || "") + ")");
+  });
+
+  function phoneDone(d) {
+    var el = $("pdone"), msg = (stepPayload(d, "CUSTOMER_MESSAGING") || {}).text || "", sm = d.summary || {};
+    if (d.status === "REJECTED" || d.status === "FAILED") {
+      el.className = "pdone on bad";
+      el.innerHTML = '<div class="ok">!</div><div class="big" style="font-size:20px">We could not open your accounts</div><p class="small muted" style="margin:0">' + esc(d.error || "Please try again") + "</p>";
+    } else if (d.status === "REFERRED") {
+      el.className = "pdone on bad";
+      el.innerHTML = '<div class="ok">!</div><div class="small muted">One more step</div><div class="big" style="font-size:21px">Let\'s confirm it\'s you</div>' +
+        '<div class="msgb">We couldn\'t verify your driver licence automatically, so nothing has been opened yet. You can finish in two minutes on a video call, or at any Boomi Bank branch with your licence.</div>' +
+        '<div class="ver bad" style="justify-content:center"><b>ID check: NO MATCH</b></div>' +
+        '<button class="btn primary" type="button" style="align-self:center">Book a video call</button>';
+    } else {
+      var restricted = d.status !== "COMPLETED", card = d.card || {};
+      el.className = "pdone on" + (restricted ? " warn" : "");
+      el.innerHTML = '<div class="ok">' + (restricted ? "!" : "✓") + '</div><div class="small muted">' + (restricted ? "Accounts open, payments switch on soon" : "Welcome to Boomi Bank") +
+        '</div><div class="big">' + esc((d.customer || {}).legalName || "") + '</div><div class="small muted mono">' + esc((d.customer || {}).customerId || "") + "</div>" +
+        '<div class="accts">' + (d.accounts || []).map(function (a) {
+          return '<div class="acct"><span><b>' + esc(a.product) + '</b><br><span class="id">' + esc(a.accountId) + '</span></span><span class="st ' + esc(a.status) + '">' + esc(a.status.replace("_", " ")) + "</span></div>";
+        }).join("") + "</div>" +
+        (card.product ? '<div class="wallet' + (card.status === "ISSUED_LOCKED" ? " locked" : "") + '"><div class="wb"><span>Boomi Bank</span><span>Debit</span></div><div class="wn">•••• •••• •••• 2041</div>' +
+          '<div class="wf"><span>' + esc(((d.customer || {}).legalName || "").toUpperCase()) + '</span><span>in your phone wallet</span></div></div>' : "") +
+        (msg ? '<div class="msgb">' + esc(msg) + "</div>" : "") + promptsHTML(d.appPrompts) +
+        ((sm.warnings || []).length ? '<div class="note warn" style="text-align:left">' + sm.warnings.map(esc).join("<br>") + "</div>" : "");
+    }
+    el.innerHTML += '<button class="btn" type="button" id="pnew" style="margin:auto auto 0">Back to application</button>';
+    $("pnew").addEventListener("click", function () { el.className = "pdone"; });
+  }
+
+  /* ---------------- pipeline scaffold ---------------- */
+  function buildPipeline() {
+    $("pipeline").innerHTML = STAGES.map(function (s, i) {
+      return '<div class="srow" data-state="idle" id="st-' + s.id + '"><div class="rail"><div class="dot"></div>' + (i < STAGES.length - 1 ? '<div class="ln"></div>' : "") + "</div>" +
+        '<div class="sbody"><div class="stitle"><h3>' + esc(s.title) + '</h3><span id="mt-' + s.id + '">' + modeTag(s.mode) + "</span></div>" +
+        '<div class="shape" id="sh-' + s.id + '">' + esc(s.shape) + "</div>" +
+        '<div class="snote">' + esc(s.note) + '</div><div class="detail" id="dt-' + s.id + '"></div></div></div>';
+    }).join("");
+  }
+  function setStage(id, st) { $("st-" + id).setAttribute("data-state", st); }
+  function detail(id, html) { $("dt-" + id).innerHTML = html; }
+  function meta(id, step, replay) {
+    if (!step) return;
+    if (step.boomiStep) $("sh-" + id).textContent = step.boomiStep;
+    if (step.mode) $("mt-" + id).innerHTML = modeTag(step.mode, replay && step.mode === "live" && step.system === "DATA_HUB");
+  }
+
+  /* ---------------- board: customer + product shelf ---------------- */
+  function renderCust() {
+    var c = state.cust;
+    if (!c) {
+      $("cust").innerHTML = '<span class="av">MN</span><div><div class="cn">' + esc(APP.FIRST_NAME + " " + APP.LAST_NAME) + '</div><div class="cs">applicant · ' + esc(APP.APPLICATION_ID) + " · not yet a customer</div></div>";
+      return;
+    }
+    $("cust").innerHTML = '<span class="av">' + esc(BB.initials(c.legalName)) + '</span><div><div class="cn">' + esc(c.legalName) + ' <span class="st ' + esc(c.kyc || "PENDING") + '">KYC ' + esc(c.kyc || "PENDING") + "</span></div>" +
+      '<div class="cs">' + esc(c.customerId || "") + " · " + esc(c.newToBank === false ? "existing customer" : "new to bank") + " · " + esc(c.segment || "Everyday") + " · " + esc(c.servedBy || "") +
+      (c.risk ? " · risk " + esc(c.risk) : "") + "</div></div>";
+  }
+  function renderShelf(flash) {
+    if (!PRODUCTS.length) { $("shelf").innerHTML = '<p class="empty">Product catalogue not loaded (mock-bundle.js missing).</p>'; return; }
+    $("shelf").innerHTML = PRODUCTS.map(function (p) {
+      var v = state.shelf[p.CODE] || {}, cls = "prod", status = "in catalogue";
+      if (state.scoring === p.CODE) cls += " scoring";
+      if (v.state === "rec") { cls += " rec"; status = "recommended · score " + v.score; }
+      if (v.state === "skip") { status = "score " + v.score + " · not recommended"; }
+      if (v.state === "no") { cls += " no"; status = "not offered at onboarding"; }
+      if (v.state === "open") { cls += " open"; status = v.label || "OPEN"; }
+      if (v.state === "restricted") { cls += " restricted"; status = v.label || "OPEN RESTRICTED"; }
+      if (flash === p.CODE) cls += " flash";
+      return '<div class="' + cls + '"><div class="pt"><span class="pk">' + esc(p.KIND) + "</span>" + (p.CORE ? '<span class="tag plain">core</span>' : "") + '</div><div class="pn">' + esc(p.NAME) +
+        '</div><div class="pw">' + esc(p.WHY) + '</div><div class="ps">' + esc(status) + "</div></div>";
+    }).join("");
+  }
+
+  /* ---------------- systems / queue / log ---------------- */
+  function renderSystems() {
+    var n = 0;
+    $("sysgrid").innerHTML = SYSTEMS.map(function (s) {
+      var v = state.sys[s.sys] || { state: "idle", text: "waiting", detail: s.action };
+      if (v.state === "ok" || v.state === "warn") n++;
+      return '<div class="systile" data-state="' + v.state + '"><div class="sh"><span class="sn">' + esc(s.label) + '</span><span class="ss">' + esc(v.text) + '</span></div><div class="sd">' + esc(v.detail) + "</div></div>";
+    }).join("");
+    $("sysCount").textContent = n + " / " + SYSTEMS.length;
+  }
+  function addLog(level, msg) { state.log.unshift({ t: clock(), level: level, msg: msg }); if (state.log.length > 80) state.log.pop(); renderLog(); }
+  function renderLog() {
+    $("plog").innerHTML = state.log.length ? state.log.map(function (l) {
+      return '<div class="ll"><span class="t">' + l.t + '</span><span class="lv ' + l.level + '">' + l.level + '</span><span class="m">' + esc(l.msg) + "</span></div>";
+    }).join("") : '<p class="empty">No executions yet.</p>';
+  }
+  function renderQueue() {
+    $("queue").innerHTML = state.queue.length ? state.queue.map(function (q) {
+      return '<div class="qi ' + (q.kind || "") + '"><div class="fn">' + esc(q.file) + '</div><div class="why">' + esc(q.why) + "</div>" +
+        "<details><summary>Envelope</summary>" + BB.payloadHTML(q.body) + "</details></div>";
+    }).join("") : '<p class="empty">Empty. A screening outage lands here as a manual review, and an ID mismatch as an enhanced due-diligence referral.</p>';
+  }
+  function laneSummary(s, d) {
+    var p = BB.parseMaybe(s.payload) || {};
+    if (typeof p !== "object") p = {};
+    switch (s.system) {
+      case "CORE_BANKING": return (d.accounts || []).map(function (a) { return a.accountId; }).join(", ") + " " + (p.status || "OPEN");
+      case "DATA_HUB": return "Golden record " + ((d.customer || {}).customerId || "") + " (CORE_BANKING + AML_KYC)";
+      case "CARD_PLATFORM": return "Virtual debit card " + (p.status || "") + " · wallet token";
+      case "NPP_PAYID": return "PayID " + (p.payId || "") + " " + (p.status || "");
+      case "SALESFORCE_FSC": return "Person account + task · " + ((p.task || {}).Owner || "");
+      case "AML_KYC": return (p.action || "").replace(/_/g, " ").toLowerCase() + " · next review " + (p.nextReview || "");
+      case "CUSTOMER_MESSAGING": return "Welcome sent to " + (p.to || "") + (p.inAppPrompt ? " + in-app prompt" : "");
+      default: return s.detail || s.action || "";
+    }
+  }
+
+  /* ---------------- hand-off ---------------- */
+  function renderHandoff(d) {
+    var el = $("handoff");
+    if (d.status === "REJECTED" || d.status === "FAILED") {
+      el.className = "card handoff on";
+      el.innerHTML = '<div><p class="eyebrow">Onboarding result</p><h2>Application rejected</h2><p><span class="st REJECTED">' + esc(d.status) + "</span></p><p>" + esc(d.error || "") + "</p></div><div></div>";
+      return;
+    }
+    var c = d.customer || {}, h = d.handoff || {}, s = d.summary || {};
+    function list(xs, emptyText) { return xs && xs.length ? "<ul>" + xs.map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("") + "</ul>" : '<p class="none">' + emptyText + "</p>"; }
+    if (d.status === "REFERRED") {
+      el.className = "card handoff on";
+      el.innerHTML = '<div><p class="eyebrow">Onboarding result</p><h2>' + esc(c.legalName || "") + " is referred, nothing opened</h2>" +
+        '<p style="margin:0 0 10px"><span class="st REFERRED">REFERRED</span> <span class="small muted mono">' + esc(d.onboardingId || "") + "</span></p>" +
+        "<p>The ID document did not verify, so Boomi stopped before screening: no accounts, no card, no golden record. Switch <strong>ID document</strong> back to <em>Match</em> and run it again for the happy path.</p></div>" +
+        "<div><h4>Warnings</h4>" + list(s.warnings, "None.") + "<h4>Next actions</h4>" + list(s.nextActions, "None.") + "</div>";
+      return;
+    }
+    var prompt = h.callPrompt || (M.rmCalls || {})[c.customerId] || "";
+    var href = BB.routeTo("index") + "?prompt=" + encodeURIComponent(prompt);
+    var ap = (d.appPrompts || [])[0];
+    el.className = "card handoff on";
+    el.innerHTML = '<div><p class="eyebrow">Hand-off · Act 2</p><h2>' + esc(c.legalName || "") + " is a Boomi Bank customer</h2>" +
+      '<p style="margin:0 0 10px"><span class="st ' + esc(d.status) + '">' + esc(d.status) + '</span> <span class="small muted mono">' + esc(d.onboardingId || "") + " · " + esc(c.customerId || "") + "</span></p>" +
+      (ap ? '<p class="small" style="margin:0 0 10px">In the app: <strong>' + esc(ap.title) + "</strong>, " + esc(ap.description) + " (" + esc(BB.when(ap.start)) + ")</p>" : "") +
+      '<p class="small muted" style="margin:0 0 6px">A little later she calls the bank:</p>' +
+      "<blockquote>" + esc(prompt) + "</blockquote>" +
+      '<div class="hlinks"><a class="btn primary" id="toAct2" href="' + esc(href) + '">Act 2 → the call reaches a banker</a>' +
+      '<a class="btn" id="toDesk" href="' + esc(BB.routeTo("rm-desk")) + '" target="_blank" rel="noopener">RM desk view</a></div></div>' +
+      "<div><h4>Warnings</h4>" + list(s.warnings, "None. Every system confirmed.") + "<h4>Next actions</h4>" + list(s.nextActions, "Nothing for staff to action.") +
+      '<p class="small muted" style="margin:0">' + esc(String(s.systemsUpdated != null ? s.systemsUpdated : "?")) + " of 7 systems updated" + (s.systemsWithWarnings ? ", " + s.systemsWithWarnings + " with warnings (restricted until screening clears)" : "") + ".</p></div>";
+  }
+  /* the RM desk opens on the customer just onboarded (its Caller toggle remembers the choice) */
+  document.addEventListener("click", function (e) {
+    var a = e.target.closest && e.target.closest("#toDesk");
+    if (a) BB.persona(APP.CIF_TO_ASSIGN || "CIF-100204");
+  });
+
+  /* ---------------- the run ---------------- */
+  async function run() {
+    if (state.busy) return;
+    state.busy = true; $("goBtn").disabled = true; $("goBtn").textContent = "Opening your accounts…";
+    var myRun = ++state.runId;
+    buildPipeline(); clearLit(); $("handoff").className = "card handoff"; $("pdone").className = "pdone";
+    state.sys = {}; state.shelf = {}; state.cust = null; renderSystems(); renderShelf(); renderCust();
+    var req = request(); renderRequest();
+    setRunStatus("RUNNING");
+    var t0 = performance.now(), result = null;
+    var pending = BB.product("onboarding", req).then(function (r) { result = r; return r; });
+    try {
+      /* 1. receive */
+      setStage("receive", "active");
+      var rows = [["application_id", "application lookup → Data Hub match by email", "application_id"], ["channel", "receipt + Salesforce onboarding channel", "channel"],
+        ["simulate_screening_down", "screening provider path (demo toggle)", null], ["simulate_id_mismatch", "document verification (demo toggle)", "id_doc"]];
+      detail("receive", '<dl class="kv2"><dt>Facade</dt><dd>POST /api/v1/bank/onboarding</dd><dt>Boomi</dt><dd>POST /ws/simple/createBbonboarding · Basic auth held server-side</dd></dl>' +
+        '<div id="waitBox"></div><div id="rcvRows"></div>');
+      /* Boomi runs the whole orchestration and returns every step at once: just an honest in-flight indicator until then. */
+      var tick = null;
+      if (!result) {
+        var showWait = function () {
+          var sec = Math.round((performance.now() - t0) / 1000), wb = $("waitBox"); if (!wb) return;
+          wb.innerHTML = '<div class="chipx wait"><span class="spin"></span><span>Waiting for Boomi… BB_P5_Digital_Onboarding_Orchestration is running (' + sec + " s)" +
+            (sec >= 15 ? " · first call after idle can take a minute or more" : "") + "</span></div>";
+        };
+        showWait(); tick = setInterval(showWait, 1000);
+      }
+      var res;
+      try { res = await pending; } finally { if (tick) clearInterval(tick); }
+      if (myRun !== state.runId) throw CANCEL;
+      $("rcvRows").innerHTML = '<table class="mt"><thead><tr><th>Field</th><th>Value</th><th>Used for</th></tr></thead><tbody>' + rows.map(function (r) {
+        return '<tr data-row="' + r[0] + '"><td>' + r[0] + '</td><td class="tgt">' + esc(req[r[0]]) + '</td><td class="rs">' + esc(r[1]) + "</td></tr>";
+      }).join("") + "</tbody></table>";
+      var d = res.data || {}, ms = Math.round(performance.now() - t0);
+      var live = BB.isLive(d), replay = !live;
+      var sb = $("servedBadge"); sb.hidden = false;
+      BB.badge(sb, live ? "live" : "mock", live ? "Boomi live · " + (d._latencyMs != null ? d._latencyMs : ms) + " ms" : "replayed trace · " + BB.whyNot(d),
+        live ? "Served by the deployed Boomi process" : (d._servedBy || "") + (d._traceSource ? " · " + d._traceSource : "") + (d._fallbackReason ? " · " + d._fallbackReason : ""));
+      $("waitBox").innerHTML = '<div class="chipx ' + (live ? "ok" : "wait") + '"><span class="n">' + (live ? "Boomi" : "Replay") + "</span><span>" +
+        esc(live ? "Process answered in " + (d._latencyMs != null ? d._latencyMs : ms) + " ms; replaying its step trace" :
+          "Boomi not called (" + (d._fallbackReason || d._servedBy || "offline") + "); replaying " + (d._traceSource || "recorded trace")) + "</span></div>";
+      for (var i = 0; i < rows.length; i++) {
+        var tr = $("rcvRows").querySelector('[data-row="' + rows[i][0] + '"]');
+        tr.setAttribute("data-lit", "1"); lightReq(rows[i][0], true); if (rows[i][2]) lightSrc(rows[i][2], true);
+        await wait(280);
+        tr.removeAttribute("data-lit"); lightReq(rows[i][0], false); if (rows[i][2]) lightSrc(rows[i][2], false);
+      }
+      var steps = d.steps || [], byStage = {};
+      steps.forEach(function (s) { if (s.stage !== "fanout" && !byStage[s.stage]) byStage[s.stage] = s; });
+      meta("receive", byStage.receive, replay);
+      setStage("receive", stateOf(byStage.receive ? byStage.receive.status : "OK"));
+      addLog("INFO", "Application received. OnboardingId=" + (d.onboardingId || "-") + " ApplicationId=" + req.application_id + " Channel=" + (d.channel || req.channel));
+      if (d.status === "REJECTED" || d.status === "FAILED" || !steps.length) { await rejected(d, req); return; }
+
+      /* 2. resolve */
+      var c = d.customer || {}, sr = byStage.resolve;
+      meta("resolve", sr, replay);
+      setStage("resolve", "active"); lightSrc("application_id", true); lightReq("application_id", true);
+      await wait(700);
+      detail("resolve", '<dl class="kv2"><dt>Lookup</dt><dd>EMAIL = ' + esc(c.email || APP.EMAIL) + "</dd><dt>Result</dt><dd>" +
+        (c.newToBank === false ? '<span class="tag ok">existing customer</span> golden record ' + esc(c.goldenRecordId || "") : '<span class="tag warm">new to bank</span> no golden record yet') +
+        "</dd><dt>Customer no.</dt><dd>" + esc(c.customerId || "") + (c.newToBank === false ? " (kept)" : " (reserved for this application)") + "</dd></dl>" +
+        (sr && sr.detail ? '<div class="small muted">' + esc(sr.detail) + "</div>" : ""));
+      state.cust = { legalName: c.legalName, customerId: c.customerId, newToBank: c.newToBank, segment: c.segment, servedBy: c.servedBy || "Digital Banking team", kyc: "PENDING" };
+      renderCust();
+      await wait(800);
+      lightSrc("application_id", false); lightReq("application_id", false);
+      setStage("resolve", stateOf(sr ? sr.status : "OK"));
+      addLog("INFO", "Data Hub lookup by email. NewToBank=" + (c.newToBank !== false) + " CIF=" + (c.customerId || "-"));
+
+      /* 3. application */
+      var sa = byStage.application, ap = d.application || {};
+      meta("application", sa, replay);
+      setStage("application", "active"); lightSrc("goals", true);
+      await wait(600);
+      detail("application", '<dl class="kv2"><dt>Application</dt><dd>' + esc(ap.applicationId || req.application_id) + " · submitted " + esc(BB.when(ap.submitted)) +
+        "</dd><dt>Applicant</dt><dd>" + esc(c.legalName || "") + (ap.occupation ? ", " + esc(ap.occupation) : "") + "</dd><dt>Goals</dt><dd>" + esc(ap.goals || "") +
+        "</dd><dt>ID number</dt><dd>hashed (SHA-256) on read · never stored or returned</dd></dl>");
+      await wait(500);
+      lightSrc("goals", false);
+      setStage("application", stateOf(sa ? sa.status : "OK"));
+
+      /* 4. verify */
+      var sv = byStage.verify, dvs = BB.parseMaybe((sv || {}).payload) || {}, ok = (d.verification || {}).result === "MATCH";
+      meta("verify", sv, replay);
+      setStage("verify", "active"); lightSrc("id_doc", true); lightReq("simulate_id_mismatch", true);
+      detail("verify", '<div class="chipx wait"><span class="spin"></span><span>' + esc(dvs.system || "Document Verification Service") + ": checking " + esc(nice(dvs.documentType || APP.ID_TYPE)) + "</span></div>");
+      await wait(900);
+      detail("verify", '<dl class="kv2"><dt>Document</dt><dd>' + esc(nice(dvs.documentType || "")) + "</dd><dt>Name</dt><dd>" + (dvs.nameMatch ? "match" : '<span class="dirty">no match</span>') +
+        "</dd><dt>Date of birth</dt><dd>" + (dvs.dateOfBirthMatch ? "match" : '<span class="dirty">no match</span>') + "</dd><dt>Number</dt><dd>" + (dvs.documentNumberMatch ? "match" : '<span class="dirty">no match</span>') +
+        '</dd><dt>Result</dt><dd><span class="st ' + esc(dvs.result || "") + '">' + esc(dvs.result || "-") + "</span> " + esc(dvs.reference || "") + "</dd></dl>" +
+        (ok ? "" : '<div class="note bad"><strong>Decision: ID verified? No.</strong> Referred for enhanced due diligence; nothing is screened, scored or opened.</div>'));
+      lightSrc("id_doc", false); lightReq("simulate_id_mismatch", false);
+      if (!ok) { await referred(d, sv); return; }
+      setStage("verify", "done");
+      addLog("INFO", "ID document verified. DVS=" + (dvs.result || "MATCH") + " Ref=" + (dvs.reference || "-"));
+      state.cust.kyc = "PENDING"; renderCust();
+
+      /* 5. screening (Try/Catch) */
+      var ss = byStage.screening, scr = BB.parseMaybe((ss || {}).payload) || {}, deferred = (d.screening || {}).status === "DEFERRED";
+      meta("screening", ss, replay);
+      setStage("screening", "active"); lightReq("simulate_screening_down", true);
+      detail("screening", '<div class="chipx wait"><span class="spin"></span><span>Try: screening provider · DFAT consolidated sanctions, UN, PEP</span></div>');
+      await wait(deferred ? 1300 : 900);
+      if (deferred) {
+        detail("screening", '<div class="chips"><div class="chipx err"><span class="n">Try</span><span>' + esc(scr.error || "screening provider did not respond") + "</span></div>" +
+          '<div class="chipx wait"><span class="n">Catch</span><span>' + esc(scr.fallback || "manual review") + "</span></div>" +
+          (scr.reviewQueue ? '<div class="chipx"><span class="n">Queue</span><span>' + esc(scr.reviewQueue) + "</span></div>" : "") + "</div>");
+        state.queue.unshift({ kind: "warn", file: (scr.reviewQueue || "work/fincrime/manual-review") + "/SCREEN_" + (c.customerId || "") + ".json",
+          why: "Screening provider did not respond. Manual sanctions + PEP review for " + (c.legalName || "") + "; accounts open restricted until it clears.",
+          body: { onboardingId: d.onboardingId, customerId: c.customerId, legalName: c.legalName, error: scr.error, fallback: scr.fallback, queuedAt: new Date().toISOString() } });
+        renderQueue();
+        addLog("ERR", "Screening provider timeout. Try/Catch → manual review queued. CIF=" + (c.customerId || "-"));
+        setStage("screening", "warn");
+      } else {
+        detail("screening", '<div class="chips"><div class="chipx ok"><span class="n">Try</span><span>' + esc((scr.lists || []).join(" · ")) + " → " + esc(scr.result || "CLEAR") +
+          " · PEP " + (scr.pep ? "yes" : "no") + " · sanctions " + (scr.sanctionsHit ? "HIT" : "clear") + "</span></div></div>" +
+          (scr.reference ? '<div class="small muted mono">' + esc(scr.reference) + "</div>" : ""));
+        addLog("INFO", "Screening CLEAR. PEP=" + !!scr.pep + " Sanctions=" + !!scr.sanctionsHit);
+        setStage("screening", "done");
+      }
+      lightReq("simulate_screening_down", false);
+
+      /* 6. assess: risk + bundle scoring (the room-allocation analogue) */
+      var sx = byStage.assess, risk = d.risk || {}, cands = (d.candidates || []).slice();
+      var order = PRODUCTS.map(function (p) { return p.CODE; });
+      cands.sort(function (a, b) { return order.indexOf(a.code) - order.indexOf(b.code); });
+      meta("assess", sx, replay);
+      setStage("assess", "active"); lightSrc("goals", true);
+      detail("assess", '<div class="flbl" style="margin:0">Risk score</div><div class="rules">' + RISK_RULES.map(function (r) { return "<span>" + esc(r) + "</span>"; }).join("") + "</div>" +
+        '<div id="riskBox"></div><div class="flbl" style="margin:4px 0 0">Product bundle</div><div class="rules">' + BUNDLE_RULES.map(function (r) { return "<span>" + esc(r) + "</span>"; }).join("") + "</div>" +
+        '<div class="tbl-wrap" style="border:0"><table class="mt"><thead><tr><th>Product</th><th>Kind</th><th>Reasons</th><th class="num">Score</th></tr></thead><tbody>' +
+        cands.map(function (x, k) { return '<tr class="pending" data-c="' + k + '"><td>' + esc(x.name) + '</td><td class="rs" style="white-space:nowrap">' + esc(x.kind) + '</td><td class="rs">…</td><td class="num">·</td></tr>'; }).join("") +
+        '</tbody></table></div><div id="bundleNote"></div>');
+      await wait(500);
+      $("riskBox").innerHTML = '<div class="note' + (risk.rating === "PENDING" ? " warn" : "") + '"><strong>Risk ' + esc(risk.rating || "-") + "</strong> (score " + esc(risk.score) + "): " + esc((risk.reasons || []).join(" · ")) + "</div>";
+      state.cust.risk = risk.rating; renderCust();
+      await wait(500);
+      for (var k = 0; k < cands.length; k++) {
+        var row = $("dt-assess").querySelector('[data-c="' + k + '"]'), cd = cands[k];
+        row.className = ""; row.setAttribute("data-lit", "1");
+        state.scoring = cd.code; renderShelf();
+        row.cells[2].textContent = (cd.reasons || []).join(" · ") || "no goal matched";
+        await wait(380);
+        row.cells[3].textContent = (cd.score > 0 ? "+" : "") + cd.score;
+        await wait(260);
+        row.removeAttribute("data-lit");
+        if (cd.recommended) { row.className = "win"; row.cells[0].innerHTML = esc(cd.name) + ' <span class="tag ok">BUNDLE</span>'; state.shelf[cd.code] = { state: "rec", score: cd.score }; }
+        else if (cd.offered === false) { row.className = "out"; state.shelf[cd.code] = { state: "no", score: cd.score }; }
+        else state.shelf[cd.code] = { state: "skip", score: cd.score };
+      }
+      state.scoring = null; renderShelf();
+      var bundle = d.bundle || [];
+      $("bundleNote").innerHTML = '<div class="note"><strong>Bundle:</strong> ' + esc(bundle.map(function (b) { return b.name + " (" + b.score + ")"; }).join(" · ")) +
+        ". Built from her own words: <em>" + esc(ap.goals || APP.GOALS) + "</em>.</div>";
+      lightSrc("goals", false);
+      setStage("assess", stateOf(sx ? sx.status : "OK"));
+      addLog(deferred ? "WARN" : "INFO", "Risk " + (risk.rating || "-") + " (" + risk.score + "). Bundle=" + bundle.map(function (b) { return b.code; }).join(","));
+      await wait(400);
+
+      /* 7. fan-out */
+      var fan = steps.filter(function (s) { return s.stage === "fanout"; }).sort(function (a, b) { return a.seq - b.seq; });
+      setStage("fanout", "active");
+      detail("fanout", '<div class="fork-head"><span class="fork-node">Branch</span> ' + fan.length + " system paths, executed 1 → " + fan.length + ", then the receipt path</div>" +
+        '<div class="lanes">' + fan.map(function (s, n) {
+          return '<div class="lane" data-state="idle" data-lane="' + n + '"><div class="lt"><span class="lno">' + (n + 1) + "</span>" + sysTag(s.system) +
+            '<span class="la">' + esc(s.action || s.system) + "</span>" + modeTag(s.mode, replay && s.mode === "live") + '<span class="lst">WAITING</span></div>' +
+            '<div class="lsh">' + esc(s.boomiStep || "") + '</div><div class="lx"></div></div>';
+        }).join("") + '</div><div class="fork-join">↳ path 8 · assemble receipt</div>');
+      for (var f = 0; f < fan.length; f++) {
+        var s = fan[f], lane = $("dt-fanout").querySelector('[data-lane="' + f + '"]'), lx = lane.querySelector(".lx");
+        lane.setAttribute("data-state", "active"); lane.querySelector(".lst").textContent = "SENDING";
+        state.sys[s.system] = { state: "active", text: "SENDING", detail: s.action || "" }; renderSystems();
+        if (s.system === "NPP_PAYID" || s.system === "CUSTOMER_MESSAGING") lightSrc("channel", true);
+        await wait(720);
+        var p = BB.parseMaybe(s.payload), stt = s.status === "FAILED" ? "fail" : s.status === "WARN" ? "warn" : "ok";
+        var resp = s.response ? '<div class="small muted">Response</div>' + BB.payloadHTML(s.response) : "";
+        lx.innerHTML = (s.payload != null ? "<details><summary>" + (typeof p === "string" && p.trim().charAt(0) === "<" ? "Payload (Data Hub batches, XML)" : "Payload") + (resp ? " + response" : "") +
+          '</summary><div class="pl">' + BB.payloadHTML(s.payload) + resp + "</div></details>" : "");
+        lane.setAttribute("data-state", stt); lane.querySelector(".lst").textContent = s.status || "OK";
+        state.sys[s.system] = { state: stt, text: s.status || "OK", detail: laneSummary(s, d) }; renderSystems();
+        if (s.system === "CORE_BANKING") (d.accounts || []).forEach(function (a) { state.shelf[a.code] = { state: a.status === "OPEN" ? "open" : "restricted", label: a.accountId + " " + a.status.replace("_", " ") }; renderShelf(a.code); });
+        if (s.system === "CARD_PLATFORM" && d.card) { var cc = (d.bundle || []).find(function (b) { return b.kind === "CARD"; }); if (cc) { state.shelf[cc.code] = { state: d.card.status === "ISSUED" ? "open" : "restricted", label: "VIRTUAL " + d.card.status.replace("_", " ") }; renderShelf(cc.code); } }
+        if (s.system === "DATA_HUB") { state.cust.newToBank = c.newToBank; renderCust(); }
+        if (s.system === "AML_KYC") { state.cust.kyc = (p && p.kycStatus) || (deferred ? "PENDING" : "VERIFIED"); renderCust(); }
+        addLog(s.status === "WARN" ? "WARN" : s.status === "FAILED" ? "ERR" : "INFO", s.system + " " + (s.action || "") + " " + (s.status || "OK") + ". " + laneSummary(s, d));
+        lightSrc("channel", false);
+        await wait(200);
+      }
+      var anyWarn = fan.some(function (x) { return x.status === "WARN" || x.status === "FAILED"; });
+      setStage("fanout", anyWarn ? "warn" : "done");
+
+      /* 8. receipt */
+      var sre = byStage.receipt, sm = d.summary || {};
+      meta("receipt", sre, replay);
+      setStage("receipt", "active");
+      await wait(500);
+      detail("receipt", '<dl class="kv2"><dt>Status</dt><dd><span class="st ' + esc(d.status) + '">' + esc(d.status) + "</span></dd><dt>Onboarding id</dt><dd>" + esc(d.onboardingId || "-") +
+        "</dd><dt>Customer</dt><dd>" + esc(c.legalName || "") + " · " + esc(c.customerId || "") + "</dd><dt>Accounts</dt><dd>" + esc((d.accounts || []).map(function (a) { return a.accountId + " " + a.status; }).join(", ")) +
+        "</dd><dt>Card</dt><dd>" + esc(((d.card || {}).product || "-") + " " + ((d.card || {}).status || "")) + "</dd><dt>Systems</dt><dd>" + esc(sm.systemsUpdated) + " updated · " + esc(sm.systemsWithWarnings || 0) + " with warnings" +
+        "</dd><dt>Served by</dt><dd>" + esc(d._servedBy || "-") + (d._traceSource ? " · " + esc(d._traceSource) : "") + " · " + ms + " ms round trip</dd></dl>" +
+        ((sm.warnings || []).length ? '<div class="note warn">' + sm.warnings.map(esc).join("<br>") + "</div>" : "") +
+        "<details><summary class=\"small\" style=\"cursor:pointer\">Response JSON</summary>" + BB.payloadHTML(d) + "</details>" +
+        '<a class="btn primary" href="#handoff" style="align-self:flex-start">Continue to Act 2 ↓</a>');
+      setStage("receipt", d.status === "COMPLETED" ? "done" : "warn");
+      addLog(d.status === "COMPLETED" ? "INFO" : "WARN", "Onboarding " + d.status + ". OnboardingId=" + d.onboardingId + " CIF=" + (c.customerId || "-") + " Systems=" + sm.systemsUpdated + "/7");
+      (d.appPrompts || []).forEach(function (a) { addLog("INFO", "In-app prompt sent: " + a.description + " (" + a.id + ", " + a.start + ")"); });
+      setRunStatus(d.status);
+      phoneDone(d);
+      renderHandoff(d);
+    } catch (e) {
+      if (e !== CANCEL) { addLog("ERR", "Onboarding page error: " + (e && e.message ? e.message : e)); console.error(e); }
+    } finally {
+      if (myRun === state.runId) { state.busy = false; $("goBtn").disabled = false; $("goBtn").textContent = "Open my accounts"; clearLit(); }
+    }
+  }
+
+  async function referred(d, sv) {
+    setStage("verify", "fail");
+    ["screening", "assess", "fanout"].forEach(function (id) { setStage(id, "held"); detail(id, '<div class="note warn">Not run: the ID document did not verify.</div>'); });
+    state.queue.unshift({ kind: "", file: "EDD_REFERRAL_" + ((d.application || {}).applicationId || "APP") + ".json",
+      why: "ID document did not verify (DVS NO_MATCH). Enhanced due diligence; customer to verify at a branch or on a video call.",
+      body: { onboardingId: d.onboardingId, customer: d.customer, verification: d.verification, nextActions: (d.summary || {}).nextActions } });
+    renderQueue();
+    addLog("ERR", "ID document NO_MATCH. Application referred for enhanced due diligence; nothing opened.");
+    PRODUCTS.forEach(function (p) { state.shelf[p.CODE] = { state: "no" }; }); renderShelf();
+    var sre = (d.steps || []).find(function (s) { return s.stage === "receipt"; });
+    meta("receipt", sre, true);
+    setStage("receipt", "active");
+    await wait(500);
+    detail("receipt", '<dl class="kv2"><dt>Status</dt><dd><span class="st REFERRED">REFERRED</span></dd><dt>Onboarding id</dt><dd>' + esc(d.onboardingId || "-") +
+      "</dd><dt>Systems</dt><dd>0 of 7 updated</dd></dl>" + '<div class="note bad">' + ((d.summary || {}).nextActions || []).map(esc).join("<br>") + "</div>" +
+      "<details><summary class=\"small\" style=\"cursor:pointer\">Response JSON</summary>" + BB.payloadHTML(d) + "</details>");
+    setStage("receipt", "warn");
+    setRunStatus("REFERRED"); phoneDone(d); renderHandoff(d);
+  }
+
+  async function rejected(d, req) {
+    setStage("resolve", "active");
+    await wait(600);
+    setStage("resolve", "fail");
+    detail("resolve", '<div class="note bad"><strong>' + esc(d.status || "REJECTED") + ".</strong> " + esc(d.error || "Application not found") + "</div>");
+    setStage("receipt", "fail");
+    detail("receipt", BB.payloadHTML(d));
+    state.queue.unshift({ kind: "", file: "ONBOARDING_REJECTED_" + (req.application_id || "unknown") + ".json", why: (d.error || "Rejected") + ".", body: d });
+    renderQueue();
+    addLog("ERR", "Onboarding " + (d.status || "REJECTED") + ". ApplicationId=" + (req.application_id || "-") + " Error=" + (d.error || "-"));
+    setRunStatus(d.status || "REJECTED"); phoneDone(d); renderHandoff(d);
+  }
+
+  function setRunStatus(s) {
+    var el = $("runStatus");
+    if (!s) { el.hidden = true; return; }
+    el.hidden = false; el.className = "st " + s; el.textContent = s;
+  }
+
+  function reset() {
+    state.runId++; state.busy = false; state.queue = []; state.log = []; state.sys = {}; state.shelf = {}; state.cust = null; state.scoring = null;
+    $("goBtn").disabled = false; $("goBtn").textContent = "Open my accounts";
+    buildPipeline(); renderShelf(); renderCust(); renderSystems(); renderQueue(); renderLog(); clearLit(); renderRequest();
+    $("handoff").className = "card handoff"; $("pdone").className = "pdone"; $("servedBadge").hidden = true; setRunStatus(null);
+  }
+
+  /* ---------------- controls ---------------- */
+  function pressed(a, b, on) { $(a).setAttribute("aria-pressed", on ? "true" : "false"); $(b).setAttribute("aria-pressed", on ? "false" : "true"); }
+  function idDoc() {
+    var el = $("idDoc");
+    el.className = "ver" + (state.idMatch ? "" : " bad");
+    el.innerHTML = state.idMatch ? '<span aria-hidden="true">✓</span><b>Driver licence scanned</b><span class="vs">QLD · number hashed</span>'
+      : '<span aria-hidden="true">!</span><b>Licence photo unclear</b><span class="vs">details may not match</span>';
+  }
+  $("scrOn").addEventListener("click", function () { state.screenOnline = true; pressed("scrOn", "scrOff", true); renderRequest(); });
+  $("scrOff").addEventListener("click", function () { state.screenOnline = false; pressed("scrOn", "scrOff", false); renderRequest(); });
+  $("idOk").addEventListener("click", function () { state.idMatch = true; pressed("idOk", "idBad", true); idDoc(); renderRequest(); });
+  $("idBad").addEventListener("click", function () { state.idMatch = false; pressed("idOk", "idBad", false); idDoc(); renderRequest(); });
+  $("sp1").addEventListener("click", function () { state.speed = 1; pressed("sp1", "sp3", true); });
+  $("sp3").addEventListener("click", function () { state.speed = 3; pressed("sp1", "sp3", false); });
+  $("resetBtn").addEventListener("click", reset);
+  $("chan").addEventListener("click", function (e) { var b = e.target.closest("[data-c]"); if (!b || state.busy) return; state.channel = b.dataset.c; renderPhone(); renderRequest(); });
+  $("goBtn").addEventListener("click", run);
+
+  /* ---------------- health ---------------- */
+  BB.health().then(function (h) {
+    var b = $("dpBadge");
+    if (!h) { BB.badge(b, "mock", "onboarding: replay · sign in for live", "Not signed in: replays recorded live Boomi runs"); return; }
+    var o = (h.orchestrations || {}).onboarding || {};
+    BB.badge(b, o.mode === "configured" && !o.lastError ? "live" : "mock",
+      o.mode !== "configured" ? "onboarding: replay" : o.lastError ? "onboarding: replay · Data Hub pending" : "onboarding: Boomi", o.detail || "");
+  });
+
+  /* presenter deep links (no customer in the URL): ?screening=down&id=mismatch&channel=branch&speed=3&autorun=1 */
+  var qp = {}; try { new URLSearchParams(location.search).forEach(function (v, k) { qp[k] = v; }); } catch (e) {}
+  if (/^(down|off)/i.test(qp.screening || "")) { state.screenOnline = false; pressed("scrOn", "scrOff", false); }
+  if (/^(mis|no|bad)/i.test(qp.id || "")) { state.idMatch = false; pressed("idOk", "idBad", false); }
+  if (/^branch/i.test(qp.channel || "")) state.channel = "BRANCH";
+  if (qp.speed === "3") { state.speed = 3; pressed("sp1", "sp3", false); }
+  idDoc(); reset(); renderPhone(); renderRequest();
+  if (qp.autorun) setTimeout(run, 300);
+})();
+</script>
+</body>
+</html>

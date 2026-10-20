@@ -1,0 +1,406 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Boomi Bank Flow Explorer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  .intro { padding: 26px 0 22px; }
+  .selector { position: sticky; top: 0; z-index: 10; background: var(--panel); background: color-mix(in srgb, var(--panel) 92%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+  .selector .wrap { display: flex; align-items: center; gap: 10px; padding-top: 10px; padding-bottom: 10px; flex-wrap: wrap; }
+  .selector .lbl { font: 600 12px var(--sans); text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+  .chip { font: 500 14px var(--sans); border: 1px solid var(--line-2); background: var(--panel); color: var(--ink); padding: 6px 14px; border-radius: 999px; cursor: pointer; }
+  .chip[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .stagenav { margin-left: auto; display: flex; gap: 4px; flex-wrap: wrap; }
+  .stagenav a { font-size: 13px; text-decoration: none; color: var(--ink-2); padding: 4px 8px; border-radius: 6px; }
+  .stagenav a:hover { background: var(--accent-soft); }
+  .stage { padding: 30px 0 6px; scroll-margin-top: 64px; }
+  .stage-h { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 14px; }
+  .stage-h > div:last-child { min-width: 0; }
+  .snum { flex: none; width: 36px; height: 36px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; font: 600 16px var(--serif); }
+  .stage-h h2 { margin: 2px 0 4px; font-size: 23px; }
+  .stage-h p { margin: 0; color: var(--ink-2); max-width: 840px; font-size: 14.5px; }
+  .src5 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .src { padding: 14px; font-size: 13px; min-width: 0; }
+  .src header { display: flex; justify-content: space-between; gap: 6px; align-items: center; margin-bottom: 8px; flex-wrap: wrap; }
+  .src header strong { font: 600 14.5px var(--serif); }
+  .kv { display: grid; grid-template-columns: minmax(90px, 40%) 1fr; gap: 3px 8px; }
+  .kv .k { color: var(--muted); font: 11.5px var(--mono); word-break: break-all; }
+  .kv .v { font: 12.5px var(--mono); word-break: break-word; }
+  .kv .fix { display: block; color: var(--good); font-size: 11.5px; }
+  .chk { border-top: 1px dashed var(--line); padding: 7px 0; font: 12px var(--mono); }
+  .chk:first-of-type { border-top: 0; }
+  .callout { padding: 12px 14px; border-radius: 10px; background: var(--hub-soft); border: 1px solid var(--line); margin-bottom: 12px; font-size: 14px; }
+  .callout.warn { background: var(--warn-soft); }
+  .callout.bad { background: var(--bad-soft); }
+  .tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 12px; }
+  .tile { padding: 12px 14px; }
+  .tile .v { font: 600 21px var(--serif); }
+  .tile .l { font-size: 12.5px; color: var(--muted); }
+  .hashrow { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1.2fr); gap: 8px; align-items: center; margin-bottom: 12px; }
+  .hashrow .hb { border: 1px solid var(--line); border-radius: 10px; padding: 9px 11px; background: var(--panel); font: 12px var(--mono); min-width: 0; overflow-wrap: anywhere; }
+  .hashrow .hb .l { display: block; font: 600 10.5px var(--sans); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin-bottom: 3px; }
+  .hashrow .ar { color: var(--muted); font-size: 18px; text-align: center; }
+  .hashrow .hb.eq { border-color: var(--good); background: var(--good-soft); }
+  .runner { display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 14px; align-items: start; }
+  .calls { display: flex; flex-direction: column; gap: 10px; }
+  .call { padding: 12px; }
+  .call h4 { margin: 0 0 2px; font: 600 14px var(--mono); }
+  .call .p { font-size: 12px; color: var(--muted); margin-bottom: 8px; overflow-wrap: anywhere; }
+  .call textarea { width: 100%; font: 12.5px var(--mono); padding: 7px 9px; border: 1px solid var(--line-2); border-radius: 7px; background: var(--panel-2); color: var(--ink); resize: vertical; min-height: 44px; }
+  .call .row { display: flex; gap: 8px; align-items: center; margin-top: 8px; flex-wrap: wrap; }
+  .viewer { padding: 12px; min-width: 0; }
+  .viewer .bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; font-size: 13px; }
+  .viewer .bar .ep { font: 12.5px var(--mono); color: var(--ink-2); word-break: break-all; }
+  .spark { height: 8px; border-radius: 4px; background: var(--hub); display: inline-block; vertical-align: middle; }
+  .fxc { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 0 0 14px; }
+  .fxc-col { border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; min-width: 0; }
+  .fxc-bad { background: var(--bad-soft); border-color: var(--bad); }
+  .fxc-good { background: var(--good-soft); border-color: var(--good); }
+  .fxc-h { font-weight: 600; font-size: .8rem; letter-spacing: .04em; text-transform: uppercase; margin-bottom: 8px; }
+  .fxc-bad .fxc-h { color: var(--bad); } .fxc-good .fxc-h { color: var(--good); }
+  .fxc-sum { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 6px 10px; font-family: var(--mono); }
+  .fxc-part { display: flex; flex-direction: column; } .fxc-part strong { font-size: 1.15rem; }
+  .fxc-op { font-size: 1.2rem; padding-bottom: 2px; }
+  .fxc-wrong { color: var(--bad); text-decoration: line-through wavy; } .fxc-right { color: var(--good); font-size: 1.5rem !important; }
+  .fxc p { margin: 10px 0 0; }
+  .lineage { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-top: 14px; }
+  .lineage .card { padding: 12px; font-size: 13px; }
+  .lineage h4 { margin: 0 0 6px; font: 600 11.5px var(--sans); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+  .lineage .mono { font-size: 11px; }
+  #s5 .tbl-wrap td.mono { white-space: normal; overflow-wrap: anywhere; min-width: 190px; }
+  @media (max-width: 1000px) { .src5 { grid-template-columns: repeat(2, minmax(0, 1fr)); } .runner { grid-template-columns: minmax(0, 1fr); } .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } .lineage { grid-template-columns: repeat(2, minmax(0, 1fr)); } .hashrow { grid-template-columns: minmax(0, 1fr); } .hashrow .ar { transform: rotate(90deg); } }
+  @media (max-width: 600px) { .src5, .lineage { grid-template-columns: minmax(0, 1fr); } .tile .v { font-size: 17px; } .stagenav { margin-left: 0; } .fxc { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="topbar"><div class="wrap"><div class="logo"><span class="mark">BB</span> Boomi Bank <span class="sub">· connected banking demo</span></div><nav><a href="onboarding.html" data-route="/onboarding"><span class="act">Act 1 ·</span> Onboarding</a><a href="index.html" data-route="/"><span class="act">Act 2 ·</span> Relationship manager</a><a href="payout.html" data-route="/payout"><span class="act">Act 3 ·</span> Loan payout</a><a href="flow.html" class="on" data-route="/flow"><span class="act">Act 4 ·</span> Flow &amp; governance</a><span class="badge mock" id="dpBadge"><span class="dot"></span>data: checking</span><button class="iconbtn" id="theme" type="button">Dark mode</button></nav></div></div>
+
+<div class="intro">
+  <div class="wrap">
+    <p class="eyebrow">Act 4 · Data Product Flow &amp; Governance Explorer</p>
+    <h1>From five messy sources to three governed banking APIs</h1>
+    <p>Follow one customer through the pipeline: raw extracts, cleansing and identity resolution in Boomi Data Hub, AUD
+      normalisation of every account, loan and card, the live data product calls, and the products the assistant and the orchestrations are built on.</p>
+  </div>
+</div>
+
+<div class="selector">
+  <div class="wrap">
+    <span class="lbl">Customer</span>
+    <div role="tablist" id="custSel" style="display:flex;gap:6px;flex-wrap:wrap">
+      <button class="chip" role="tab" aria-selected="true" data-c="Olivia Bennett">Olivia Bennett</button>
+      <button class="chip" role="tab" aria-selected="false" data-c="Raj Patel">Raj Patel</button>
+      <button class="chip" role="tab" aria-selected="false" data-c="Jack Morrison">Jack Morrison</button>
+    </div>
+    <nav class="stagenav" aria-label="Stages">
+      <a href="#s1">1 Raw</a><a href="#s2">2 Match &amp; merge</a><a href="#s3">3 AUD</a><a href="#s4">4 APIs</a><a href="#s5">5 Products</a>
+    </nav>
+  </div>
+</div>
+
+<main class="wrap">
+  <section class="stage" id="s1">
+    <div class="stage-h"><div class="snum">1</div><div>
+      <h2>Raw records, side by side</h2>
+      <p>What each system holds for this customer before Boomi touches it. Dirty values are red, with the cleansing rule
+        <span class="mono small">BB_P1_Customer_Ingest_Cleanse</span> applies shown underneath in green. ID numbers and the TFN are shown masked here too: the raw values never leave Boomi.</p>
+    </div></div>
+    <div class="src5" id="srcCards"></div>
+    <h3 style="font-size:16px;margin:20px 0 8px">Cleansing applied to the core banking customer record</h3>
+    <div class="tbl-wrap"><table id="cleanTbl"></table></div>
+    <div id="rejBox" style="margin-top:12px"></div>
+  </section>
+
+  <section class="stage" id="s2">
+    <div class="stage-h"><div class="snum">2</div><div>
+      <h2>Data Hub match, merge &amp; survivorship</h2>
+      <p>Repository <strong>Boomi-Bank</strong>, model <strong>customermaster</strong>, sources
+        <span class="tag CORE_BANKING">CORE_BANKING</span> <span class="tag SALESFORCE_FSC">SALESFORCE_FSC</span> <span class="tag AML_KYC">AML_KYC</span> <span class="tag RM_ROSTER">RM_ROSTER</span>.
+        Records match on <code>customerId</code> or <code>idDocumentHash</code>; each field then takes the value from the system that owns it.</p>
+    </div></div>
+    <div class="callout" id="matchBox"></div>
+    <div class="hashrow" id="hashRow"></div>
+    <div class="tbl-wrap"><table id="survTbl"></table></div>
+  </section>
+
+  <section class="stage" id="s3">
+    <div class="stage-h"><div class="snum">3</div><div>
+      <h2>AUD normalisation of positions</h2>
+      <p>From the <code>consolidated_positions</code> data product (<span class="mono small">BB_P3_Consolidated_Positions_API</span>, live).
+        Every deposit, loan and card is converted to AUD at the treasury mid-rate, rounded half-up to 2 dp; loans carry interest accrued to today and an indicative payout.</p>
+    </div></div>
+    <div id="fxCompare"></div>
+    <div class="tiles" id="fxTiles"></div>
+    <div class="tbl-wrap"><table id="posTbl"></table></div>
+    <div id="dqBox" style="margin-top:12px"></div>
+  </section>
+
+  <section class="stage" id="s4">
+    <div class="stage-h"><div class="snum">4</div><div>
+      <h2>Live data product calls</h2>
+      <p>Each button calls the local facade, which proxies to the Boomi Web Services endpoint with credentials held server-side.
+        If Boomi is unreachable or answers with its own error (Data Hub credentials pending), it falls back to the mock implementation of the same contract; the response says which served it and why.</p>
+    </div></div>
+    <div class="runner">
+      <div class="calls" id="calls"></div>
+      <div class="card viewer">
+        <div class="bar" id="vBar"><span class="muted">Run a call to see the response.</span></div>
+        <pre class="json" id="vOut">{}</pre>
+      </div>
+    </div>
+  </section>
+
+  <section class="stage" id="s5">
+    <div class="stage-h"><div class="snum">5</div><div>
+      <h2>The three data products, and what is built on them</h2>
+      <p>What was built, who owns it, and the rules each one enforces.</p>
+    </div></div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Data product</th><th>Owner / system of record</th><th>Boomi process</th><th>Endpoint</th><th>Refresh</th><th>Consumers</th><th>Data-quality rules</th></tr></thead>
+      <tbody>
+        <tr><td><strong>customer_360</strong><br><span class="small muted">governed customer</span></td>
+          <td>Customer data office; Data Hub <em>Boomi-Bank / customermaster</em>. Segment, email, preferences: SALESFORCE_FSC. Legal name, address, loans: CORE_BANKING. KYC, risk: AML_KYC. Banker: RM_ROSTER.</td>
+          <td class="mono small">BB_P1_Customer_Ingest_Cleanse (ingest)<br>BB_P2_Customer_360_API (serve)</td>
+          <td class="mono small">POST /api/v1/bank/customer/360<br>&rarr; /ws/simple/queryBbcustomer360</td>
+          <td>Scheduled ingest; Data Hub merges on arrival; API reads the golden record on request</td>
+          <td>Boomi Banking Assistant (<code>get_customer_360</code>), RM desk, onboarding and payout orchestrations</td>
+          <td>Title-case names and addresses; email validation; E.164 (+61) phones; CIF normalisation; ID numbers hashed; TFN withheld; nameless records rejected</td></tr>
+        <tr><td><strong>consolidated_positions</strong><br><span class="small muted">accounts, loans, cards</span></td>
+          <td>Lending &amp; deposits. CORE_BANKING accounts, loans, servicing; CARD_PLATFORM cards.</td>
+          <td class="mono small">BB_P3_Consolidated_Positions_API<br>uses [SUB] BB Account &amp; Loan Source Extract</td>
+          <td class="mono small">POST /api/v1/bank/positions<br>&rarr; /ws/simple/queryBbpositions</td>
+          <td>Real time, on request; as-of date on every response</td>
+          <td>Boomi Banking Assistant (<code>get_consolidated_positions</code>), customer app, RM desk</td>
+          <td>FX to AUD HALF_UP; interest = balance × rate × days / 365; <code>CURRENCY_MISMATCH</code>, <code>UNAPPLIED_PAYMENT</code>, <code>UNLINKED_CARD</code>, <code>DUPLICATE_DIRECT_DEBIT</code></td></tr>
+        <tr><td><strong>data_quality_alerts</strong><br><span class="small muted">per segment</span></td>
+          <td>Operations / customer data office. Golden records (live) plus the shared extract.</td>
+          <td class="mono small">BB_P4_Data_Quality_Alerts_API<br>uses [SUB] BB Account &amp; Loan Source Extract</td>
+          <td class="mono small">POST /api/v1/bank/alerts<br>&rarr; /ws/simple/queryBbdataqualityalerts</td>
+          <td>Real time, on request</td>
+          <td>Boomi Banking Assistant (<code>get_data_quality_alerts</code>), operations</td>
+          <td>Customers by alert count then exposure; <code>KYC_REVIEW_DUE</code> from Data Hub; owner per alert (banker or Digital Banking team)</td></tr>
+      </tbody>
+    </table></div>
+    <div class="lineage">
+      <div class="card"><h4>Shared subprocess</h4><div class="mono">[SUB] BB Account &amp; Loan Source Extract</div><p class="small muted" style="margin:6px 0 0">One extract, one set of banking rules (interest, payout, DQ flags) reused by P3, P4 and P6, so the assistant, the alerts and the payout always agree.</p></div>
+      <div class="card"><h4>Act 1 · onboarding</h4><div class="mono">BB_P5_Digital_Onboarding_Orchestration</div><p class="small muted" style="margin:6px 0 0">Resolves in Data Hub, verifies ID, screens (Try/Catch), scores risk + bundle, fans out to 7 systems incl. a live Data Hub upsert.</p></div>
+      <div class="card"><h4>Act 3a · payout</h4><div class="mono">BB_P6_Loan_Payout_Closure_Orchestration</div><p class="small muted" style="margin:6px 0 0">Compliance hold, payout via the shared extract, fixes the DQ flags before money moves, 9-way fan-out.</p></div>
+      <div class="card"><h4>Act 3b · security release</h4><div class="mono">BB_P7_Security_Release_Status</div><p class="small muted" style="margin:6px 0 0">Route on LODGED / SETTLED / RELEASED; RELEASED returns the offset account to everyday use.</p></div>
+    </div>
+    <p class="small muted" style="margin-top:12px"><strong>Agent guardrails</strong> on top of all three: the Boomi Banking Assistant never reveals ID document numbers or hashes, the TFN, or full card and account numbers; fee or break-cost waivers over <strong>AUD 200</strong> need supervisor approval; personal financial advice is a denied topic (general information only).</p>
+  </section>
+</main>
+
+<footer class="foot"><div class="wrap">Boomi Bank demo · sample data only · <a href="payout.html" data-route="/payout">&larr; Act 3: loan payout</a> · <a href="onboarding.html" data-route="/onboarding">↺ Back to Act 1: onboarding</a> · <a href="rm-desk.html" data-route="/rm-desk">RM desk</a></div></footer>
+
+<script src="mock-bundle.js"></script>
+<script src="common.js"></script>
+<script src="config.js"></script>
+<script src="online.js"></script>
+<script>
+(function () {
+  "use strict";
+  var BB = window.BB, esc = BB.esc;
+  BB.initTheme(document.getElementById("theme"));
+  BB.routes();
+  var $ = function (id) { return document.getElementById(id); };
+  var CIF = { "Olivia Bennett": "CIF-100201", "Raj Patel": "CIF-100202", "Jack Morrison": "CIF-100203" };
+  var current = "Olivia Bennett", srcData = null;
+
+  BB.health().then(function (h) {
+    var b = $("dpBadge");
+    if (!h) return BB.badge(b, "mock", "data: embedded", "Not signed in: recorded live Boomi data");
+    var dp = h.dataProducts || {}, keys = Object.keys(dp), live = keys.filter(function (k) { return dp[k].mode === "live"; }).length;
+    BB.badge(b, live === keys.length ? "live" : "mock", "data: " + (live === keys.length ? "Boomi live" : live ? live + "/" + keys.length + " live" : "mock fallback"),
+      keys.map(function (k) { return dp[k].process + ": " + dp[k].mode + " (" + dp[k].detail + ")"; }).join("\n"));
+  });
+
+  function v(x) { return x == null || x === "" ? '<span class="null">null</span>' : esc(x); }
+
+  /* ---------------- stage 1 ---------------- */
+  function kv(obj, fixes) {
+    if (!obj) return '<p class="muted">No record.</p>';
+    return '<div class="kv">' + Object.keys(obj).map(function (k) {
+      var i = fixes && fixes[k];
+      var dirty = i && (i.kind === "CLEANSED" || i.kind === "REJECTED" || i.kind === "DECODED");
+      var shown = obj[k] === "" ? "(blank)" : obj[k];
+      var val = Array.isArray(obj[k]) ? obj[k].join(", ") : shown;
+      return '<span class="k">' + esc(k) + '</span><span class="v">' + (dirty ? '<span class="dirty">' + esc(JSON.stringify(val)) + "</span>" : v(val)) +
+        (i ? '<span class="fix">→ ' + (i.cleansed == null ? (i.kind === "WITHHELD" ? "withheld, never sent to Data Hub" : "dropped") : esc(i.cleansed)) + "</span>" : "") + "</span>";
+    }).join("") + "</div>";
+  }
+  function stage1(s) {
+    var S = s.sources, core = S.CORE_BANKING, sf = S.SALESFORCE_FSC, aml = S.AML_KYC, rm = S.RM_ROSTER, cards = S.CARD_PLATFORM;
+    var fix = {};
+    core.issues.forEach(function (i) { i.field.split(" + ").forEach(function (f) { fix[f] = i; }); });
+    var sfFix = {}; (sf.issues || []).forEach(function (i) { sfFix[i.field] = i; });
+    var amlFix = {}; (aml.issues || []).forEach(function (i) { amlFix[i.field] = i; });
+    function card(title, tag, body, note) {
+      return '<div class="card src"><header><strong>' + title + '</strong><span class="tag ' + tag + '">' + tag + "</span></header>" + body +
+        (note ? '<p class="small muted" style="margin:8px 0 0">' + note + "</p>" : "") + "</div>";
+    }
+    function cardRow(c, flag) {
+      return '<div class="chk"><strong>' + esc(c.CARD_ID) + "</strong> " + esc(c.PRODUCT) + " · " + esc(c.MASKED) + "<br>" +
+        "CIF " + (c.CIF ? esc(c.CIF) : '<span class="dirty">""</span>') + ' · "' + esc(c.NAME_ON_CARD) + '"<br>' +
+        esc(c.CURRENCY + " " + c.BALANCE) + (flag ? ' <span class="tag flag">' + flag + "</span>" : "") + "</div>";
+    }
+    var cardBody = (cards.linkedCards.length ? cards.linkedCards.map(function (c) { return cardRow(c); }).join("") : '<p class="muted">No cards linked by customer number.</p>') +
+      (cards.unlinkedCandidates.length ? '<p class="small" style="margin:10px 0 2px"><strong>Unlinked card</strong> (name only)</p>' +
+        cards.unlinkedCandidates.map(function (c) { return cardRow(c, "UNLINKED_CARD"); }).join("") : "");
+    $("srcCards").innerHTML =
+      card("Core banking", "CORE_BANKING", kv(core.raw, fix), "Record " + esc(core.recordId) + ". Accounts, loans and servicing come from the same system.") +
+      card("Salesforce FSC", "SALESFORCE_FSC", kv(sf.raw, sfFix), "System of engagement: no ID numbers, no balances.") +
+      card("AML / KYC screening", "AML_KYC", kv(aml.raw, amlFix), "Owns KYC status, review date and risk rating.") +
+      card("RM roster", "RM_ROSTER", rm.raw ? kv(rm.raw) : '<p class="muted">' + esc(rm.note) + "</p>") +
+      card("Card platform", "CARD_PLATFORM", cardBody, cards.unlinkedCandidates.length ? "A company-issued card carries no CIF: only the name on the card links it to this customer." : "Cards linked by customer number.");
+    var kindTag = { CLEANSED: "ok", REJECTED: "flag", DECODED: "HUB", MASKED: "warm", WITHHELD: "warm" };
+    $("cleanTbl").innerHTML = "<thead><tr><th>Field</th><th>Raw value</th><th>Cleansed value</th><th>Rule</th><th>Result</th></tr></thead><tbody>" +
+      core.issues.concat(aml.issues.map(function (i) { return Object.assign({}, i, { field: "AML " + i.field }); })).map(function (i) {
+        var masked = i.kind === "MASKED" || i.kind === "WITHHELD";
+        return "<tr><td class='mono small'>" + esc(i.field) + "</td><td class='mono small'><span class='" + (masked ? "" : "dirty") + "'>" + esc(i.raw) +
+          "</span></td><td class='mono small'>" + (i.cleansed == null ? '<span class="null">' + (i.kind === "WITHHELD" ? "withheld" : "dropped") + "</span>" : esc(i.cleansed)) +
+          "</td><td>" + esc(i.rule) + "</td><td><span class='tag " + (kindTag[i.kind] || "HUB") + "'>" + i.kind + "</span></td></tr>";
+      }).join("") + "</tbody>";
+    $("rejBox").innerHTML = (s.rejectedAtIngest || []).map(function (r) {
+      return '<div class="callout bad"><strong>Rejected at ingest:</strong> <span class="tag ' + esc(r.source) + '">' + esc(r.source) + "</span> " + esc(r.record) +
+        ' <span class="tag flag">' + esc(r.reason) + "</span> " + esc(r.detail) + ".</div>";
+    }).join("");
+  }
+
+  /* ---------------- stage 2 ---------------- */
+  function stage2(s) {
+    var m = s.match, srcs = ["CORE_BANKING", "SALESFORCE_FSC", "AML_KYC", "RM_ROSTER"];
+    $("matchBox").innerHTML = "<strong>Match rule used: <span class='tag MATCH'>" + esc(m.rule) + "</span></strong> " +
+      esc(m.detail.replace(/^customerId - /, "")) + ". Alternate rule <code>" + esc(m.alternateRule) + "</code> is available from " +
+      (m.hashAvailableIn.length ? esc(m.hashAvailableIn.join(" and ")) + " (Salesforce holds no ID)" : "no source") +
+      ". Golden record <span class='mono small'>" + esc(s.goldenRecordId) + "</span> links " +
+      srcs.filter(function (k) { return s.sources[k].recordId; }).map(function (k) { return "<span class='tag " + k + "'>" + k + "</span> " + esc(s.sources[k].recordId); }).join(" · ") + ".";
+    $("hashRow").innerHTML = m.amlIdFormat ?
+      '<div class="hb"><span class="l">Core banking ID format</span>' + esc(m.coreIdFormat) + '</div><div class="ar">→</div>' +
+      '<div class="hb"><span class="l">AML / KYC ID format</span>' + esc(m.amlIdFormat) + '</div><div class="ar">→</div>' +
+      '<div class="hb ' + (m.hashesEqual ? "eq" : "") + '"><span class="l">Normalised + SHA-256 (masked)</span>' + esc(m.hashMasked) +
+      (m.hashesEqual ? " · <strong>identical in both sources</strong>: second match key" : " · hashes differ") + "</div>" : "";
+    $("survTbl").innerHTML = "<thead><tr><th>Field</th><th>Core banking</th><th>Salesforce FSC</th><th>AML / KYC</th><th>RM roster</th><th>Golden value</th><th>Winning system</th></tr></thead><tbody>" +
+      s.survivorship.map(function (r) {
+        var key = r.winner === "MATCH KEY";
+        return "<tr><td class='mono small'>" + esc(r.field) + (r.contested ? " <span class='tag flag'>conflict</span>" : "") + "</td>" +
+          srcs.map(function (k) {
+            var x = r[k];
+            if (x == null || x === "") return "<td><span class='null'>-</span></td>";
+            var cls = key ? "" : (k === r.winner ? "win" : (String(x).toLowerCase() !== String(r.golden || "").toLowerCase() ? "lost" : ""));
+            return "<td class='" + cls + "'>" + esc(x) + "</td>";
+          }).join("") +
+          "<td><strong>" + v(r.golden) + "</strong></td><td><span class='tag " + (key ? "MATCH" : esc(r.winner)) + "'>" + esc(r.winner) + "</span></td></tr>";
+      }).join("") + "</tbody>";
+  }
+
+  /* ---------------- stage 3 ---------------- */
+  function stage3(pos) {
+    var tiles = $("fxTiles"), tbl = $("posTbl"), box = $("dqBox");
+    if (!pos || !pos.matched) { $("fxCompare").innerHTML = ""; tiles.innerHTML = ""; tbl.innerHTML = "<tbody><tr><td>No positions returned.</td></tr></tbody>"; box.innerHTML = ""; return; }
+    var t = pos.totals, issues = (pos.dataQuality || {}).issues || [];
+    fxCompare(pos);
+    tiles.innerHTML =
+      '<div class="card tile"><div class="v">' + BB.aud(t.depositsAUD) + '</div><div class="l">deposits in AUD</div></div>' +
+      '<div class="card tile"><div class="v">' + BB.aud(t.loansAUD) + '</div><div class="l">loan balances</div></div>' +
+      '<div class="card tile"><div class="v">' + BB.aud(t.adjustedPayoutAUD) + '</div><div class="l">adjusted payout today (gross ' + BB.aud(t.indicativePayoutAUD) + ')</div></div>' +
+      '<div class="card tile"><div class="v" style="color:' + (issues.length ? "var(--bad)" : "var(--good)") + '">' + issues.length + '</div><div class="l">data-quality findings · ' +
+      esc(Object.keys(pos.fxRates || {}).map(function (c) { return c + " " + pos.fxRates[c]; }).join(" · ")) + "</div></div>";
+    var rows = [];
+    (pos.deposits || []).forEach(function (d) { rows.push({ type: "Deposit", id: d.accountId, desc: d.product + " · " + d.masked + (d.linkedLoan ? " · offset for " + d.linkedLoan : ""), amt: d.balance, ccy: d.currency, rate: d.fxRate, audv: d.balanceAUD, flags: [] }); });
+    (pos.loans || []).forEach(function (l) { rows.push({ type: "Loan", id: l.loanId, desc: l.product + " · " + l.rateType.toLowerCase() + " " + l.rate + "% · interest " + BB.aud(l.accruedInterest) + " · payout " + BB.aud(l.adjustedPayout), amt: l.balance, ccy: l.currency, rate: 1, audv: l.balance, flags: l.dataQualityFlags || [] }); });
+    (pos.cards || []).forEach(function (c) { rows.push({ type: "Card", id: c.cardId, desc: c.product + " · " + c.masked, amt: c.balance, ccy: c.currency, rate: (pos.fxRates || {})[c.currency], audv: c.balanceAUD, flags: [] }); });
+    var max = Math.max.apply(null, rows.map(function (r) { return Math.abs(r.audv); }).concat([1]));
+    tbl.innerHTML = "<thead><tr><th>Type</th><th>Id</th><th>Product</th><th class='num'>Local</th><th class='num'>Rate</th><th class='num'>AUD</th><th></th><th>Flags</th></tr></thead><tbody>" +
+      rows.map(function (r) {
+        var foreign = r.ccy !== "AUD";
+        return "<tr><td>" + esc(r.type) + "</td><td class='mono small'>" + esc(r.id) + "</td><td>" + esc(r.desc) + "</td><td class='num'>" +
+          (foreign ? "<span class='dirty'>" + esc(BB.amt(r.amt, r.ccy)) + "</span>" : esc(BB.amt(r.amt, r.ccy))) + "</td><td class='num'>" + esc(r.rate) +
+          "</td><td class='num'><strong>" + BB.aud(r.audv) + "</strong></td><td style='width:90px'><span class='spark' style='width:" + Math.round(Math.abs(r.audv) / max * 80) + "px'></span></td><td>" +
+          (r.flags.length ? r.flags.map(function (x) { return "<span class='tag flag'>" + esc(x) + "</span>"; }).join(" ") : "<span class='tag ok'>clean</span>") + "</td></tr>";
+      }).join("") +
+      "<tr><td colspan='5'><strong>Net position</strong> (deposits − loans − cards)</td><td class='num'><strong>" + BB.aud(t.netPositionAUD) + "</strong></td><td colspan='2'>" + BB.srcBadge(pos) + "</td></tr></tbody>";
+    var un = pos.possibleUnlinkedCards || [];
+    box.innerHTML = (issues.length ? issues.map(function (i) {
+      return '<div class="callout ' + (i.flag === "UNLINKED_CARD" ? "warn" : "bad") + '"><span class="tag flag">' + esc(i.flag) + "</span> <span class='mono small'>" + esc(i.recordId) + "</span> " +
+        esc(i.detail) + ". <strong>" + esc(i.effect) + ".</strong>" + (i.amountAUD ? " (" + BB.aud(i.amountAUD) + ")" : "") + "</div>";
+    }).join("") : '<div class="callout">No data-quality findings for this customer.</div>') +
+      (un.length ? '<p class="small muted">Possible unlinked cards are kept out of the card total until a banker links them: ' + un.map(function (u) { return esc(u.cardId + " " + u.holderName + " " + BB.aud(u.balanceAUD)); }).join(" · ") + ".</p>" : "");
+  }
+  function fxCompare(pos) {
+    var el = $("fxCompare"), byCcy = {}, order = [];
+    (pos.deposits || []).forEach(function (d) { if (!(d.currency in byCcy)) { byCcy[d.currency] = 0; order.push(d.currency); } byCcy[d.currency] += Number(d.balance); });
+    var gov = pos.totals.depositsAUD;
+    if (order.length < 2) {
+      el.innerHTML = '<div class="callout" style="background:var(--good-soft);border-color:var(--good)"><strong>One currency (' + esc(order[0] || "AUD") + ').</strong> Adding the deposit balances as-is already gives ' + BB.aud(gov) +
+        ". The governed product still normalises every line, so mixed-currency customers report correctly." + "</div>";
+      return;
+    }
+    var naive = order.reduce(function (a, c) { return a + byCcy[c]; }, 0);
+    var parts = [];
+    (pos.deposits || []).forEach(function (d) { parts.push('<span class="fxc-part"><span class="small muted">' + esc(d.product.replace(/ Account.*$/, "")) + "</span><strong>" + esc(BB.amt(d.balance, d.currency)) + "</strong></span>"); });
+    var conv = (pos.deposits || []).filter(function (d) { return d.currency !== "AUD"; }).map(function (d) { return esc(BB.amt(d.balance, d.currency)) + " × " + d.fxRate + " = " + BB.aud(d.balanceAUD); });
+    var mm = ((pos.dataQuality || {}).issues || []).filter(function (i) { return i.flag === "CURRENCY_MISMATCH"; });
+    el.innerHTML = '<div class="fxc">' +
+      '<div class="fxc-col fxc-bad"><div class="fxc-h">Adding the source balances as-is</div><div class="fxc-sum">' + parts.join('<span class="fxc-op">+</span>') +
+      '<span class="fxc-op">=</span><span class="fxc-part"><span class="small muted">currency?</span><strong class="fxc-wrong">' + naive.toLocaleString("en-AU", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " ???</strong></span></div>" +
+      '<p class="small">These balances mix ' + order.map(esc).join(" and ") + ", so the sum is wrong in every currency." +
+      (mm.length ? " The same mistake hit a repayment: " + esc(mm[0].detail) + "." : "") + "</p></div>" +
+      '<div class="fxc-col fxc-good"><div class="fxc-h">Governed data product (Boomi)</div><div class="fxc-sum"><span class="fxc-part"><span class="small muted">deposits, one currency</span><strong class="fxc-right">' + BB.aud(gov) + "</strong></span></div>" +
+      '<p class="small">' + conv.join(" · ") + "." + (mm.length ? " The mis-posted repayment is flagged <code>CURRENCY_MISMATCH</code>: " + esc(mm[0].effect) + ", and the payout orchestration re-posts it before money moves." : "") + "</p></div></div>";
+  }
+
+  /* ---------------- stage 4 ---------------- */
+  var CALLS = [
+    { kind: "c360", body: function () { return { customer_id: CIF[current] }; } },
+    { kind: "positions", body: function () { return { customer_id: CIF[current] }; } },
+    { kind: "alerts", body: function () { return { segment: "All" }; } }
+  ];
+  function renderCalls() {
+    $("calls").innerHTML = CALLS.map(function (c, i) {
+      var ep = BB.ENDPOINTS[c.kind];
+      return '<div class="card call"><h4>' + esc(ep.tool) + '</h4><div class="p">' + esc(ep.process) + "<br>" + esc(ep.facade) + "</div>" +
+        '<textarea id="body' + i + '" spellcheck="false" aria-label="Request body for ' + esc(ep.tool) + '">' + esc(JSON.stringify(c.body())) + "</textarea>" +
+        '<div class="row"><button class="btn primary" type="button" data-run="' + i + '">Run</button><span class="small muted" id="lat' + i + '"></span></div></div>';
+    }).join("");
+  }
+  $("calls").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-run]"); if (!b) return;
+    var i = +b.dataset.run, c = CALLS[i], payload;
+    try { payload = JSON.parse($("body" + i).value || "{}"); }
+    catch (err) { $("vBar").innerHTML = '<span class="tag flag">invalid JSON body</span>'; return; }
+    b.disabled = true;
+    $("vBar").innerHTML = '<span class="muted">Calling ' + esc(BB.ENDPOINTS[c.kind].wss) + "…</span>";
+    BB.product(c.kind, payload).then(function (r) {
+      var d = r.data || {}, ep = BB.ENDPOINTS[c.kind], sb = d._servedBy || "unknown";
+      var ms = d._latencyMs != null && sb !== "embedded-mock" ? d._latencyMs : r.ms;
+      $("lat" + i).textContent = sb + " · " + r.ms + " ms";
+      $("vBar").innerHTML = BB.srcBadge(d, "boomi live", sb === "embedded-mock" ? "embedded" : "mock fallback") + '<span class="ep">POST ' + esc(ep.facade) + " → " + esc(ep.wss) + "</span>" +
+        '<span class="small muted">server ' + ms + " ms · round trip " + r.ms + " ms</span>" +
+        (d._fallbackReason ? '<span class="small muted">fallback reason: ' + esc(d._fallbackReason) + "</span>" : "");
+      $("vOut").innerHTML = BB.jsonHTML(d);
+    }).finally(function () { b.disabled = false; });
+  });
+
+  /* ---------------- wiring ---------------- */
+  function load(name) {
+    current = name;
+    document.querySelectorAll("#custSel .chip").forEach(function (b) { b.setAttribute("aria-selected", b.dataset.c === name ? "true" : "false"); });
+    renderCalls();
+    BB.sources(name).then(function (s) {
+      if (!s || !s.survivorship || current !== name) return;
+      srcData = s; stage1(s); stage2(s);
+    });
+    BB.product("positions", { customer_id: CIF[name] }).then(function (r) { if (current === name) stage3(r.data); });
+  }
+  $("custSel").addEventListener("click", function (e) { var b = e.target.closest("[data-c]"); if (b) load(b.dataset.c); });
+  load(current);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Boomi Bank Relationship Manager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  .hero { background: linear-gradient(180deg, var(--brand) 0%, var(--brand) 62%, var(--bg) 62%); color: var(--brand-ink); padding: 30px 0 0; }
+  .hero h1 { font-size: clamp(28px, 4.4vw, 44px); margin: 6px 0 10px; max-width: 860px; }
+  .hero .eyebrow { color: var(--brand-hi); }
+  .hero p.lede { color: var(--brand-ink); opacity: .85; max-width: 780px; font-size: 16.5px; margin: 0 0 24px; }
+  .facts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+  .fact { padding: 16px; }
+  .fact .v { font: 600 26px var(--serif); color: var(--ink); }
+  .fact .l { font-size: 13px; color: var(--muted); }
+  .context { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+  .context .card { padding: 18px; }
+  .context h3 { font-size: 17px; margin: 0 0 6px; }
+  .context p { margin: 0; color: var(--ink-2); font-size: 14px; }
+  .arch { display: grid; grid-template-columns: 1.15fr auto 1.25fr auto 1fr auto 1.1fr; gap: 10px; align-items: stretch; margin-top: 18px; }
+  .arch .col { padding: 14px; display: flex; flex-direction: column; gap: 6px; }
+  .arch .col h4 { margin: 0 0 4px; font: 600 12px var(--sans); text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+  .arch .item { font-size: 13.5px; }
+  .arch .arrow { display: grid; place-items: center; color: var(--muted); font-size: 20px; }
+  .tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+  .chip { font: 500 14px var(--sans); border: 1px solid var(--line-2); background: var(--panel); color: var(--ink); padding: 7px 14px; border-radius: 999px; cursor: pointer; }
+  .chip[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .compare { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.15fr); gap: 14px; }
+  .sys { padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+  .sys header { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .sys header strong { font-family: var(--serif); font-size: 16px; }
+  .sys.golden { border: 2px solid var(--hub); }
+  .fld { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 8px; font-size: 13.5px; align-items: baseline; padding: 6px 0; border-top: 1px dashed var(--line); }
+  .fld .n { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+  .fld .val { overflow-wrap: anywhere; }
+  .fld .conf { color: var(--bad); }
+  .fld .why { display: block; font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+  .impact { margin-top: 14px; padding: 14px 16px; border-left: 4px solid var(--gold); background: var(--gold-soft); border-radius: 8px; color: var(--ink); font-size: 14px; }
+  .chatgrid { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 16px; align-items: start; }
+  .side .card { padding: 16px; margin-bottom: 14px; }
+  .side h3 { font-size: 16px; margin: 0 0 8px; }
+  .side ul { margin: 0; padding-left: 18px; font-size: 13.5px; color: var(--ink-2); }
+  .side li { margin: 5px 0; }
+  .side code { font-size: 11.5px; }
+  @media (max-width: 960px) {
+    .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .context, .compare, .chatgrid { grid-template-columns: minmax(0, 1fr); }
+    .arch { grid-template-columns: minmax(0, 1fr); }
+    .arch .arrow { transform: rotate(90deg); height: 18px; }
+  }
+  @media (max-width: 520px) { .fact .v { font-size: 21px; } }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="wrap">
+    <div class="logo"><span class="mark">BB</span> Boomi Bank <span class="sub">· connected banking demo</span></div>
+    <nav>
+      <a href="onboarding.html" data-route="/onboarding"><span class="act">Act 1 ·</span> Onboarding</a>
+      <a href="index.html" class="on" data-route="/"><span class="act">Act 2 ·</span> Relationship manager</a>
+      <a href="payout.html" data-route="/payout"><span class="act">Act 3 ·</span> Loan payout</a>
+      <a href="flow.html" data-route="/flow"><span class="act">Act 4 ·</span> Flow &amp; governance</a>
+      <span class="badge mock" id="dpBadge"><span class="dot"></span>data: checking</span>
+      <button class="iconbtn" id="theme" type="button">Dark mode</button>
+    </nav>
+  </div>
+</div>
+
+<section class="hero">
+  <div class="wrap">
+    <p class="eyebrow">Boomi Bank · Boomi data products for banking</p>
+    <h1>One governed customer, across every system the bank runs on.</h1>
+    <p class="lede">Core banking, Salesforce Financial Services Cloud, the card platform, identity and AML screening and the banker roster
+      each hold their own version of the customer. Boomi integrates them, resolves one golden record in Data Hub, and publishes governed
+      data products that bankers and the <strong>Boomi Banking Assistant</strong> agent can trust.</p>
+    <div class="facts">
+      <div class="card fact"><div class="v">5</div><div class="l">source systems feeding one customer record</div></div>
+      <div class="card fact"><div class="v" id="fSeg">1 of 3</div><div class="l">customers whose core banking segment disagrees with Salesforce</div></div>
+      <div class="card fact"><div class="v" id="fFx">AUD 1,040.00</div><div class="l">USD repayment posted at face value to an AUD loan</div></div>
+      <div class="card fact"><div class="v" id="fDq">AUD 6,585.40</div><div class="l">flagged by the data-quality alerts product</div></div>
+    </div>
+    <p class="small muted" style="margin:8px 0 0">Figures computed from this demo's sample data for Boomi Bank, as of 20 Oct 2026, reported in AUD.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <p class="eyebrow">Market context</p>
+    <h2>Why banking customer data fragments</h2>
+    <p class="lede">Banks buy systems for different jobs at different times, and each one keeps its own customer: the ledger, the CRM, the cards, compliance.</p>
+    <div class="context">
+      <div class="card"><h3>Systems of record grew up apart</h3><p>Core banking owns the legal name, address and loans; Salesforce owns segment, contact and preferences; AML/KYC owns the review date and risk rating; the roster owns who the banker is.</p></div>
+      <div class="card"><h3>Identity is the weak link</h3><p>Free-text customer numbers, local phone formats, mistyped emails and differently formatted licence numbers make one customer look like several. A business card or a BPAY payment arrives with only a name.</p></div>
+      <div class="card"><h3>AI raises the stakes</h3><p>An assistant reading raw systems repeats their contradictions. Governed data products give it one answer, with ID numbers withheld, waivers routed for approval and personal advice off limits.</p></div>
+    </div>
+    <div class="arch">
+      <div class="card col"><h4>Sources</h4>
+        <div class="item"><span class="tag CORE_BANKING">CORE_BANKING</span> customers, accounts, loans</div>
+        <div class="item"><span class="tag SALESFORCE_FSC">SALESFORCE_FSC</span> segment, email, appointments</div>
+        <div class="item"><span class="tag AML_KYC">AML_KYC</span> KYC status, risk, ID</div>
+        <div class="item"><span class="tag RM_ROSTER">RM_ROSTER</span> relationship managers</div>
+        <div class="item"><span class="tag CARD_PLATFORM">CARD_PLATFORM</span> cards</div>
+      </div>
+      <div class="arrow" aria-hidden="true">&rarr;</div>
+      <div class="card col"><h4>Boomi Integration</h4>
+        <div class="item mono small">BB_P1_Customer_Ingest_Cleanse</div>
+        <div class="item mono small">BB_P2_Customer_360_API</div>
+        <div class="item mono small">BB_P3_Consolidated_Positions_API</div>
+        <div class="item mono small">BB_P4_Data_Quality_Alerts_API</div>
+        <div class="item mono small">BB_P5 / P6 / P7 orchestrations</div>
+        <div class="item muted small">shared: [SUB] BB Account &amp; Loan Source Extract</div>
+      </div>
+      <div class="arrow" aria-hidden="true">&rarr;</div>
+      <div class="card col"><h4>Boomi Data Hub</h4>
+        <div class="item">Repository <strong>Boomi-Bank</strong></div>
+        <div class="item">Model <strong>customermaster</strong></div>
+        <div class="item small muted">Match on customer number or ID document hash; field-level survivorship; TFN never stored</div>
+      </div>
+      <div class="arrow" aria-hidden="true">&rarr;</div>
+      <div class="card col"><h4>Data products &amp; agent</h4>
+        <div class="item"><code>customer_360</code></div>
+        <div class="item"><code>consolidated_positions</code></div>
+        <div class="item"><code>data_quality_alerts</code></div>
+        <div class="item small">consumed by <strong>Boomi Banking Assistant</strong> (Agent Studio)</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="background:var(--bg-2)">
+  <div class="wrap">
+    <p class="eyebrow">The problem, customer by customer</p>
+    <h2>Core banking and Salesforce disagree. Data Hub decides.</h2>
+    <p class="lede">Pick a customer. Values that conflict between systems are marked in red; the governed record shows which system won each field and why.</p>
+    <div class="tabs" role="tablist" id="custTabs">
+      <button class="chip" role="tab" aria-selected="true" data-c="Olivia Bennett">Olivia Bennett</button>
+      <button class="chip" role="tab" aria-selected="false" data-c="Raj Patel">Raj Patel</button>
+      <button class="chip" role="tab" aria-selected="false" data-c="Jack Morrison">Jack Morrison</button>
+    </div>
+    <div class="compare" id="compare"><div class="card sys muted">Loading…</div></div>
+    <div class="impact" id="impact"></div>
+  </div>
+</section>
+
+<section class="section" id="chat">
+  <div class="wrap">
+    <p class="eyebrow">Act 2 · Agentic relationship manager</p>
+    <h2>Olivia calls her banker. Ask the Boomi Banking Assistant</h2>
+    <p class="lede">The agent answers only from the three governed data products. Watch the status chips: each one is the agent calling a Boomi endpoint, or a guardrail firing.</p>
+    <div class="chatgrid">
+      <div class="card chatbox">
+        <div class="chathead">
+          <span class="who">Boomi Banking Assistant</span>
+          <span class="badge mock" id="agentBadge"><span class="dot"></span>checking</span>
+          <span class="sid">session <code id="sid">new</code></span>
+        </div>
+        <div class="quick" id="quick"></div>
+        <div class="log" id="log" aria-live="polite">
+          <div class="empty" id="empty">Pick a prompt above, or ask about a customer, a payout or data-quality alerts.<br>
+            <em>Try a follow-up like "can we waive her break cost?" to see session memory and the approval guardrail.</em></div>
+        </div>
+        <form class="ask" id="form" autocomplete="off">
+          <input type="text" id="input" placeholder="Ask the assistant…" aria-label="Your question">
+          <button class="btn primary" id="send" type="submit">Send</button>
+          <button class="btn" id="reset" type="button" title="Start a new conversation">Reset</button>
+        </form>
+      </div>
+      <aside class="side">
+        <div class="card">
+          <h3>Tools (Boomi data products)</h3>
+          <ul>
+            <li><code>get_customer_360(customer_name | customer_id)</code><br><span class="muted small">customer_360 · BB_P2</span></li>
+            <li><code>get_consolidated_positions(customer_id)</code><br><span class="muted small">consolidated_positions · BB_P3</span></li>
+            <li><code>get_data_quality_alerts(segment)</code><br><span class="muted small">data_quality_alerts · BB_P4</span></li>
+            <li><code>request_fee_waiver</code><br><span class="muted small">prompt tool · requires approval</span></li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Guardrails</h3>
+          <ul>
+            <li>Never reveals full account or card numbers, TFNs or ID document numbers (tool output is screened too).</li>
+            <li>Fee or break-cost waivers over <strong>AUD 200</strong> need supervisor approval.</li>
+            <li>Denied topic: personal financial advice. General information only (ASIC general vs personal advice).</li>
+          </ul>
+        </div>
+        <div class="card small muted" id="modeNote">Checking which backends are live…</div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<footer class="foot"><div class="wrap">Boomi Bank demo · credentials stay in the Supabase edge function · sample data only. <a href="onboarding.html" data-route="/onboarding">&larr; Act 1: digital onboarding</a> · <a href="payout.html" data-route="/payout">Act 3: loan payout &amp; security release &rarr;</a> · <a href="rm-desk.html" data-route="/rm-desk" target="_blank" rel="noopener">RM desk</a></div></footer>
+
+<script src="mock-bundle.js"></script>
+<script src="common.js"></script>
+<script src="config.js"></script>
+<script src="online.js"></script>
+<script>
+(function () {
+  "use strict";
+  var BB = window.BB, esc = BB.esc, M = window.BB_MOCK || {};
+  BB.initTheme(document.getElementById("theme"));
+  BB.routes();
+  var $ = function (id) { return document.getElementById(id); };
+  var CALLS = M.rmCalls || {};
+  var OLIVIA_CALL = CALLS["CIF-100201"] || "Olivia Bennett just called her relationship manager: she wants to pay off both splits of her home loan this week. What can we tell her?";
+
+  /* ---------------- facts from the data ---------------- */
+  (function facts() {
+    if (!M.sources) return;
+    var n = 0, diff = 0;
+    Object.keys(M.sources).forEach(function (k) {
+      var r = (M.sources[k].survivorship || []).find(function (x) { return x.field === "segment"; });
+      if (r) { n++; if (r.CORE_BANKING && r.SALESFORCE_FSC && r.CORE_BANKING !== r.SALESFORCE_FSC) diff++; }
+    });
+    $("fSeg").textContent = diff + " of " + n;
+    var al = (M.alerts || {}).All;
+    if (al && al.alerts) {
+      var fx = al.alerts.filter(function (a) { return a.flag === "CURRENCY_MISMATCH"; }).reduce(function (s, a) { return s + a.amountAUD; }, 0);
+      $("fFx").textContent = BB.aud(fx);
+      $("fDq").textContent = BB.aud(al.summary.flaggedAmountAUD);
+    }
+  })();
+
+  /* ---------------- conflict cards ---------------- */
+  var IMPACT = {
+    "Olivia Bennett": "<strong>Impact:</strong> core banking codes her <code>PRM</code> (Premier) but Salesforce FSC says <strong>Private</strong>, so a banker reading core would put a Private client on the wrong service tier. Her core email is a personal Gmail; Salesforce's work email wins. One loan repayment of <strong>USD 2,000</strong> from her US income account was posted as AUD 2,000: <code>CURRENCY_MISMATCH</code>, worth <strong>AUD 1,040</strong> off her payout once re-posted. That is the call in Act 2.",
+    "Raj Patel": "<strong>Impact:</strong> core banking holds a free-text customer number <code>cif 100202</code> that only matches after cleansing, and an invalid email <code>raj.patel@@patelfreight</code> that is dropped: Salesforce's email wins. His business card has no customer number (<code>UNLINKED_CARD</code>, AUD 2,315.40), a BPAY payment of AUD 1,250 sits in suspense (<code>UNAPPLIED_PAYMENT</code>), and a second direct debit from the 2025 migration took AUD 1,980 twice (<code>DUPLICATE_DIRECT_DEBIT</code>).",
+    "Jack Morrison": "<strong>Impact:</strong> the systems agree on who Jack is, but only AML/KYC knows his identity review was due on <strong>30 Sep 2026</strong>. Data Hub surfaces <code>KYC_REVIEW_DUE</code> on the golden record, so his car-loan payout is <strong>held for compliance</strong> in Act 3 before any money moves. He is an Everyday customer with no named banker: the Digital Banking team owns the follow-up."
+  };
+  var SHOW = [["segment", "Segment"], ["email", "Email"], ["phone", "Phone"], ["address", "Address"], ["kycStatus", "KYC"], ["relationshipManager", "Banker"]];
+  var cache = {};
+  function val(v) { return v == null || v === "" ? '<span class="muted">-</span>' : esc(v); }
+  function renderCompare(s) {
+    var row = {}; (s.survivorship || []).forEach(function (r) { row[r.field] = r; });
+    var core = (s.sources.CORE_BANKING || {}).raw || {}, sf = (s.sources.SALESFORCE_FSC || {}).raw || {};
+    var coreRaw = { segment: (core.SEGMENT_CODE || "") + " → " + ((row.segment || {}).CORE_BANKING || "?"), email: core.EMAIL, phone: core.PHONE, address: core.ADDRESS, kycStatus: null, relationshipManager: null };
+    var sfRaw = { segment: sf.Segment__c, email: sf.Email, phone: sf.Phone, address: null, kycStatus: null, relationshipManager: null };
+    var hints = { kycStatus: "owned by AML/KYC", relationshipManager: "owned by the RM roster", address: "not held in Salesforce" };
+    function differs(f, side) {
+      var r = row[f]; if (!r) return false;
+      var mine = side === "core" ? r.CORE_BANKING : r.SALESFORCE_FSC;
+      if (f === "email" && side === "core" && !r.CORE_BANKING && core.EMAIL) return "invalid - dropped at cleanse";
+      if (mine == null || mine === "") return false;
+      return String(mine).toLowerCase() !== String(r.golden || "").toLowerCase() ? "lost to " + r.winner : false;
+    }
+    function sysCard(title, tag, raw, side, note) {
+      return '<div class="card sys"><header><strong>' + title + '</strong><span class="tag ' + tag + '">' + tag + "</span></header>" +
+        SHOW.map(function (p) {
+          var d = differs(p[0], side), v = raw[p[0]];
+          var hint = (v == null || v === "") && hints[p[0]] ? hints[p[0]] : "";
+          return '<div class="fld"><span class="n">' + p[1] + '</span><span class="val' + (d ? " conf" : "") + '">' + val(v) +
+            (d ? '<span class="why">' + esc(d) + "</span>" : hint ? '<span class="why">' + esc(hint) + "</span>" : "") + "</span></div>";
+        }).join("") + (note ? '<div class="small muted">' + note + "</div>" : "") + "</div>";
+    }
+    var gold = '<div class="card sys golden"><header><strong>Governed golden record</strong><span class="tag HUB">DATA HUB</span></header>' +
+      SHOW.map(function (p) {
+        var r = row[p[0]] || {}, g = r.golden || (p[0] === "relationshipManager" ? "None (Digital Banking team)" : "");
+        var overdue = p[0] === "kycStatus" && g === "REVIEW_DUE";
+        return '<div class="fld"><span class="n">' + p[1] + '</span><span class="val"><strong' + (overdue ? ' class="conf"' : "") + ">" + val(g) + "</strong> " +
+          (r.winner ? '<span class="tag ' + esc(r.winner) + '">' + esc(r.winner) + "</span>" : "") + (overdue ? '<span class="why">review was due ' + esc((row.kycReviewDate || {}).golden || "") + "</span>" : "") + "</span></div>";
+      }).join("") +
+      '<div class="small muted">Matched on <strong>' + esc(s.match.rule) + "</strong> · " + esc(String(s.match.detail || "").replace(/^customerId - /, "")) + "</div></div>";
+    $("compare").innerHTML = sysCard("Core banking", "CORE_BANKING", coreRaw, "core", "Customer " + esc(s.sources.CORE_BANKING.recordId)) +
+      sysCard("Salesforce FSC", "SALESFORCE_FSC", sfRaw, "sf", "Person account " + esc(s.sources.SALESFORCE_FSC.recordId || "-")) + gold;
+    $("impact").innerHTML = IMPACT[s.customer] || "";
+  }
+  function showCustomer(name) {
+    document.querySelectorAll("#custTabs .chip").forEach(function (b) { b.setAttribute("aria-selected", b.dataset.c === name ? "true" : "false"); });
+    if (cache[name]) return renderCompare(cache[name]);
+    BB.sources(name).then(function (s) { if (s && s.survivorship) { cache[name] = s; renderCompare(s); } });
+  }
+  $("custTabs").addEventListener("click", function (e) { var b = e.target.closest("[data-c]"); if (b) showCustomer(b.dataset.c); });
+  showCustomer("Olivia Bennett");
+
+  /* ---------------- quick prompts ---------------- */
+  var QUICK = [
+    ["lead", "Olivia's call: payout + break-cost waiver", OLIVIA_CALL],
+    ["", "What will Olivia Bennett's payout be?"],
+    ["", "Why did Raj Patel get two direct debits this month?"],
+    ["", "Is anything blocking Jack Morrison's payout?"],
+    ["", "Show data-quality alerts"],
+    ["guard", "Waive Olivia's break cost of $1,840"],
+    ["guard", "Should Olivia put the leftover money into shares?"]
+  ];
+  $("quick").innerHTML = QUICK.map(function (q, i) {
+    return '<button type="button"' + (q[0] ? ' class="' + q[0] + '"' : "") + ' data-i="' + i + '" title="' + esc(q[2] || q[1]) + '">' + esc(q[1]) + "</button>";
+  }).join("");
+
+  /* ---------------- health ---------------- */
+  BB.health().then(function (h) {
+    var note = $("modeNote");
+    if (!h) {
+      BB.badge($("dpBadge"), "mock", "data: embedded");
+      BB.badge($("agentBadge"), "mock", "offline · sign in for the live assistant");
+      note.innerHTML = "Not signed in: answers come from recorded live data. Sign in (top right) for the live Boomi endpoints and agent.";
+      return;
+    }
+    var dp = h.dataProducts || {}, keys = Object.keys(dp), live = keys.filter(function (k) { return dp[k].mode === "live"; }).length;
+    BB.badge($("dpBadge"), live === keys.length ? "live" : "mock", "data: " + (live === keys.length ? "Boomi live" : live ? live + "/" + keys.length + " live" : "mock fallback"),
+      keys.map(function (k) { return dp[k].process + ": " + dp[k].mode + " (" + dp[k].detail + ")"; }).join("\n"));
+    BB.badge($("agentBadge"), h.agent.mode, h.agent.mode === "live" ? "live agent" : "offline mode", h.agent.detail);
+    note.innerHTML = "<strong>Agent:</strong> " + esc(h.agent.detail) + "<br><strong>Data products:</strong> " +
+      keys.map(function (k) { return esc(dp[k].process) + " - " + esc(dp[k].mode) + (dp[k].mode === "live" ? "" : " (" + esc(dp[k].detail) + ")"); }).join("; ");
+  });
+
+  /* ---------------- chat ---------------- */
+  var log = $("log"), form = $("form"), input = $("input"), send = $("send"), quick = $("quick"), sidEl = $("sid");
+  var sessionId = null, busy = false, offlineCtx = {};
+  function scroll() { log.scrollTop = log.scrollHeight; }
+  function clearEmpty() { var e = $("empty"); if (e) e.remove(); }
+  function bubble(cls, text) {
+    clearEmpty();
+    var el = document.createElement("div");
+    el.className = "msg " + cls;
+    if (cls === "agent") el.innerHTML = '<div class="md">' + BB.md(text) + "</div>"; else el.textContent = text;
+    log.appendChild(el); scroll(); return el;
+  }
+  function Turn() {
+    clearEmpty();
+    var trail = document.createElement("div"); trail.className = "trail"; log.appendChild(trail);
+    var t = { trail: trail, bubble: null, text: "", done: false };
+    t.step = function (txt) {
+      trail.querySelectorAll(".step.on").forEach(function (s) { s.classList.remove("on"); });
+      var s = document.createElement("span");
+      s.className = "step on" + (/^Guardrail/.test(txt) ? " guard" : "");
+      s.innerHTML = '<span class="d"></span>' + esc(txt);
+      trail.appendChild(s); scroll();
+    };
+    t.delta = function (txt) {
+      if (!t.bubble) { t.bubble = bubble("agent", ""); t.bubble.classList.add("streaming"); }
+      t.text += txt; t.bubble.innerHTML = '<div class="md">' + BB.md(t.text) + "</div>"; scroll();
+    };
+    t.message = function (txt) {
+      if (t.bubble && !t.done) { t.bubble.classList.remove("streaming"); t.bubble.innerHTML = '<div class="md">' + BB.md(txt) + "</div>"; }
+      else bubble("agent", txt);
+      t.done = true; scroll();
+    };
+    t.finish = function () {
+      trail.querySelectorAll(".step.on").forEach(function (s) { s.classList.remove("on"); });
+      if (t.bubble) t.bubble.classList.remove("streaming");
+    };
+    return t;
+  }
+  function setBusy(b) { busy = b; send.disabled = b; input.disabled = b; quick.querySelectorAll("button").forEach(function (x) { x.disabled = b; }); }
+  function handle(t, evt, obj) {
+    if (evt === "mode") {
+      BB.badge($("agentBadge"), obj.mode, obj.mode === "live" ? "live agent" : "offline mode");
+      if (obj.reason) t.step("Agent Studio unavailable (" + obj.reason + ") - offline assistant");
+    } else if (evt === "start" && obj.session_id) {
+      sessionId = obj.session_id; sidEl.textContent = sessionId.slice(0, 14) + "…";
+    } else if (evt === "progress_notification") {
+      t.step(obj.content || obj.type || "Working…");
+    } else if (evt === "delta" && obj.content) {
+      t.delta(obj.content);
+    } else if (evt === "message" && obj.content) {
+      t.message(obj.content);
+    } else if (evt === "error") {
+      bubble("error", obj.content || obj.message || "Agent error"); t.done = true;
+    }
+  }
+  async function askServer(q, t) {
+    var ctl = new AbortController(), timer = setTimeout(function () { ctl.abort(); }, 300000);
+    try {
+      var res = await fetch(BB.apiUrl("/api/chat"), { method: "POST", headers: BB.authHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify({ message: q, session_id: sessionId }), signal: ctl.signal });
+      if (res.status === 503 || res.status === 401) { await askOffline(q, t); return; }
+      if (!res.ok) {
+        var msg = "HTTP " + res.status;
+        try { var j = await res.json(); msg = j.error + (j.detail ? " - " + j.detail : ""); } catch (e) {}
+        bubble("error", msg); return;
+      }
+      var reader = res.body.getReader(), dec = new TextDecoder(), buf = "";
+      while (true) {
+        var r = await reader.read();
+        if (r.done) break;
+        buf += dec.decode(r.value, { stream: true }).replace(/\r\n/g, "\n");
+        var cut;
+        while ((cut = buf.indexOf("\n\n")) !== -1) {
+          var block = buf.slice(0, cut); buf = buf.slice(cut + 2);
+          var evt = "", data = "";
+          block.split("\n").forEach(function (line) {
+            if (line.indexOf("event:") === 0) evt = line.slice(6).trim();
+            else if (line.indexOf("data:") === 0) data += line.slice(5).trim();
+          });
+          if (!evt || !data || data === "null") continue;
+          var obj; try { obj = JSON.parse(data); } catch (e) { continue; }
+          handle(t, evt, obj);
+        }
+      }
+      if (!t.done) bubble("error", "The agent returned no message. Check the server console.");
+    } finally { clearTimeout(timer); }
+  }
+
+  /* File mode: a client-side version of the scripted assistant, using answers pre-computed by server.py into mock-bundle.js. */
+  function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+  var NAMES = { olivia: "Olivia Bennett", bennett: "Olivia Bennett", raj: "Raj Patel", patel: "Raj Patel", jack: "Jack Morrison", morrison: "Jack Morrison", mia: "Mia Nguyen", nguyen: "Mia Nguyen" };
+  var CIF = { "Olivia Bennett": "CIF-100201", "Raj Patel": "CIF-100202", "Jack Morrison": "CIF-100203", "Mia Nguyen": "CIF-100204" };
+  function offlineRoute(q) {
+    var C = M.chat || {}, s = q.toLowerCase().trim();
+    if (C[q]) return C[q];
+    var hit = Object.keys(C).find(function (k) { return k.toLowerCase() === s; });
+    if (hit) return C[hit];
+    var g = null; (s.match(/[a-z]+/g) || []).some(function (w) { if (NAMES[w]) { g = NAMES[w]; return true; } return false; });
+    if (!g && /\b(she|her|he|him|his|they|their|the customer)\b/.test(s)) g = offlineCtx.customer || null;
+    var withG = function (r) { return r ? Object.assign({ customer: g }, r) : null; };
+    if (/tfn|tax file/.test(s)) return withG(C["What is Olivia Bennett's tax file number?"]);
+    if (/licen[cs]e|passport|id number|hash/.test(s)) return withG(C["Show me Raj Patel's driver licence number"]);
+    if (/card number|full card|cvv|account number|bsb/.test(s)) return withG(C["Show me Olivia's full card number"]);
+    if (/shares?|stocks?|invest|crypto|super(annuation)?|financial advice|leftover/.test(s)) return withG(C["Should Olivia put the leftover money into shares?"]);
+    if (/\b(waive|waiver|refund|reverse|discount|write.?off|rebate)\b/.test(s)) {
+      var m = /\$\s?(\d[\d,]*(?:\.\d+)?)|aud\s?(\d[\d,]*(?:\.\d+)?)/i.exec(q), amt = m ? parseFloat((m[1] || m[2]).replace(/,/g, "")) : null;
+      if (amt != null && amt <= (M.waiverThresholdAUD || 200)) return withG(C["Waive Olivia's break cost of $150"]);
+      return withG(C["Waive Olivia's break cost of $1,840"]);
+    }
+    if (!g && /alert|data.?quality|exception|portfolio|segment/.test(s)) return C[/premier/.test(s) ? "Show data-quality alerts for Premier" : "Show data-quality alerts"];
+    if (g) {
+      var call = CALLS[CIF[g]];
+      if (g === "Raj Patel" && /direct debit|two|twice|debits/.test(s)) return withG(C["Why did Raj Patel get two direct debits this month?"]);
+      if (g === "Jack Morrison" && /block|held|hold|kyc|payout|pay out/.test(s)) return withG(C["Is anything blocking Jack Morrison's payout?"]);
+      if (g === "Olivia Bennett" && /payout|pay off|pay out|owe|break/.test(s)) return withG(C["What will Olivia Bennett's payout be?"]);
+      return withG(C["What is the full picture for " + g + "?"] || C[call]);
+    }
+    return C.help;
+  }
+  async function askOffline(q, t) {
+    BB.badge($("agentBadge"), "mock", "offline · sign in for the live assistant");
+    if (!sessionId) { sessionId = "offline-file-" + Math.random().toString(16).slice(2, 8); sidEl.textContent = sessionId; }
+    var r = offlineRoute(q) || { steps: [], answer: "Sample data is not loaded (mock-bundle.js missing)." };
+    t.step("Understanding the request…");
+    for (var i = 0; i < (r.steps || []).length; i++) { await sleep(450); t.step(r.steps[i]); }
+    await sleep(350); t.step("Composing answer…");
+    var toks = r.answer.match(/\S+\s*|\s+/g) || [];
+    for (var k = 0; k < toks.length; k++) { t.delta(toks[k]); if (k % 2 === 0) await sleep(12); }
+    t.message(r.answer);
+    if (r.customer) offlineCtx.customer = r.customer;
+  }
+  async function ask(q) {
+    if (busy || !q || !q.trim()) return;
+    bubble("user", q); input.value = ""; setBusy(true);
+    var t = Turn();
+    try {
+      if (BB.live()) await askServer(q, t); else await askOffline(q, t);
+    } catch (err) {
+      if (BB.live() && err.name !== "AbortError" && !t.bubble) { try { await askOffline(q, t); } catch (e2) { bubble("error", "Request failed: " + e2.message); } }
+      else bubble("error", err.name === "AbortError" ? "Timed out after 5 minutes. Press Reset and try again." : "Request failed: " + err.message);
+    } finally { t.finish(); setBusy(false); try { input.focus({ preventScroll: true }); } catch (e) { input.focus(); } }
+  }
+  form.addEventListener("submit", function (e) { e.preventDefault(); ask(input.value); });
+  quick.addEventListener("click", function (e) { var b = e.target.closest("button[data-i]"); if (b && !busy) { var q = QUICK[+b.dataset.i]; ask(q[2] || q[1]); } });
+  $("reset").addEventListener("click", function () {
+    sessionId = null; offlineCtx = {}; sidEl.textContent = "new";
+    log.innerHTML = '<div class="empty" id="empty">New conversation. Pick a prompt above, or ask anything.</div>';
+  });
+
+  /* ---------------- hand-off from Act 1: ?prompt=... sent once ---------------- */
+  (function handoff() {
+    var params, pre;
+    try { params = new URLSearchParams(location.search); pre = (params.get("prompt") || "").trim(); } catch (e) { return; }
+    if (!pre) return;
+    params.delete("prompt");
+    try { history.replaceState(null, "", location.pathname + (params.toString() ? "?" + params.toString() : "") + location.hash); } catch (e) { /* file:// */ }
+    input.value = pre;
+    var chat = $("chat");
+    if (chat && chat.scrollIntoView) chat.scrollIntoView({ block: "start" });
+    setTimeout(function () { if (!busy) ask(pre); }, 350);
+  })();
+})();
+</script>
+</body>
+</html>
