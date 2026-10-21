@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prince Express on WhatsApp</title>
+<meta name="description" content="Boomi demo: WhatsApp ordering and delivery updates for Prince Hypermart, with a live view of the Boomi agent and integration steps. Synthetic data.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --red:#c8102e; --red-d:#9e0b23; --gold:#ffc72c; --ink:#1d1f24; --mute:#6b7080; --line:#e6e3dc;
+  --bg:#f6f3ec; --card:#fff; --wa-bg:#efe7dd; --wa-out:#d9fdd3; --wa-in:#fff; --wa-head:#075e54;
+  --k-agent:#7c3aed; --k-boomi:#0b7bd6; --k-logic:#0f9d76; --k-data:#d97706; --k-guard:#c8102e;
+  --panel:#101521; --panel-2:#171d2c; --panel-line:#263049; --panel-ink:#e7ebf5; --panel-mute:#8d97b0;
+}
+*{box-sizing:border-box} html,body{margin:0;height:100%}
+body{font-family:"Plus Jakarta Sans",system-ui,sans-serif;background:var(--bg);color:var(--ink);overflow:hidden}
+button{font:inherit;cursor:pointer}
+/* top bar */
+.top{height:64px;display:flex;align-items:center;gap:16px;padding:0 20px;background:var(--red);color:#fff;box-shadow:0 2px 0 var(--gold)}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.3px;font-size:20px}
+.brand .crown{width:36px;height:36px;border-radius:10px;background:var(--gold);color:var(--red);display:grid;place-items:center;font-size:20px}
+.brand small{display:block;font-weight:500;font-size:12px;opacity:.85;letter-spacing:0}
+.top .sp{flex:1}
+.pill{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.28);color:#fff;border-radius:999px;padding:7px 14px;font-weight:600;font-size:13px}
+.pill:hover{background:rgba(255,255,255,.24)}
+select.pill option{color:var(--ink)}
+.demo-tag{font-size:11px;background:var(--gold);color:var(--red-d);padding:3px 8px;border-radius:6px;font-weight:800}
+/* layout */
+.wrap{display:flex;height:calc(100% - 64px)}
+.stage{flex:1;overflow:auto;padding:18px 26px;display:flex;flex-direction:column;gap:16px;align-items:center}
+.row{display:flex;gap:26px;justify-content:center;align-items:flex-start;width:100%}
+/* script stepper */
+.col{display:flex;flex-direction:column;gap:18px;min-width:0}
+.steps{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.step{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 12px;font-size:13px;color:var(--mute)}
+.step b{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:#eee;color:var(--mute);font-size:12px}
+.step.done{color:var(--ink)} .step.done b{background:var(--logic,#0f9d76);background:#0f9d76;color:#fff}
+.step.now{border-color:var(--red);color:var(--ink);box-shadow:0 0 0 3px rgba(200,16,46,.12)} .step.now b{background:var(--red);color:#fff}
+/* phone */
+.phone{width:380px;height:min(760px,calc(100vh - 160px));min-height:560px;border-radius:44px;background:#111;padding:12px;box-shadow:0 30px 60px -20px rgba(0,0,0,.35);flex:none}
+.screen{width:100%;height:100%;border-radius:34px;overflow:hidden;display:flex;flex-direction:column;background:var(--wa-bg)}
+.wa-head{background:var(--wa-head);color:#fff;padding:14px 14px 10px;display:flex;align-items:center;gap:10px}
+.wa-head .av{width:38px;height:38px;border-radius:50%;background:var(--red);display:grid;place-items:center;font-weight:800;color:var(--gold);border:2px solid var(--gold)}
+.wa-head .nm{font-weight:700;font-size:15px} .wa-head .st{font-size:12px;opacity:.85}
+.wa-head .who{margin-left:auto;text-align:right;font-size:11px;opacity:.8}
+.log{flex:1;overflow:auto;padding:12px 10px;display:flex;flex-direction:column;gap:6px;
+  background-image:radial-gradient(rgba(0,0,0,.035) 1px,transparent 1px);background-size:14px 14px}
+.b{max-width:84%;padding:7px 10px 18px;border-radius:10px;font-size:14px;line-height:1.38;position:relative;box-shadow:0 1px .5px rgba(0,0,0,.13);white-space:pre-wrap;word-wrap:break-word;animation:pop .18s ease-out}
+.b:after{content:"";display:inline-block;width:56px}
+.b .t{position:absolute;right:8px;bottom:3px;font-size:10.5px;color:#667}
+.b.out{align-self:flex-end;background:var(--wa-out);border-top-right-radius:2px}
+.b.in{align-self:flex-start;background:var(--wa-in);border-top-left-radius:2px}
+.b.note{align-self:flex-start;background:#fff8e1;border:1px solid #f3d27a}
+.b.note .tag{display:block;font-size:11px;font-weight:700;color:#8a6100;margin-bottom:3px}
+.b.err{align-self:center;background:#fde8eb;color:var(--red-d);font-size:12.5px}
+.sys{align-self:center;background:#e1f2fb;color:#3b5566;font-size:11.5px;padding:4px 10px;border-radius:8px}
+.typing{align-self:flex-start;background:#fff;border-radius:10px;padding:10px 14px;display:flex;gap:4px}
+.typing i{width:7px;height:7px;border-radius:50%;background:#9aa;animation:blink 1.2s infinite}
+.typing i:nth-child(2){animation-delay:.2s}.typing i:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,80%,100%{opacity:.25}40%{opacity:1}} @keyframes pop{from{transform:scale(.96);opacity:0}to{transform:none;opacity:1}}
+.chips{display:flex;gap:6px;padding:6px 8px 0;overflow-x:auto}
+.chip{flex:none;background:#fff;border:1px solid #cfe9df;color:#075e54;border-radius:999px;padding:5px 11px;font-size:12.5px;font-weight:600}
+.chip:hover{background:#e8f7f1}
+.compose{display:flex;gap:8px;padding:8px;align-items:center}
+.compose input{flex:1;border:0;border-radius:22px;padding:11px 14px;font:inherit;font-size:14px;outline:none}
+.send{width:42px;height:42px;border-radius:50%;border:0;background:#00a884;color:#fff;font-size:18px}
+.send:disabled{opacity:.5}
+/* store console */
+.console{width:440px;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;flex:none}
+.console h3{margin:0 0 2px;font-size:16px} .console .sub{color:var(--mute);font-size:12.5px;margin-bottom:12px}
+.ord{border:1px solid var(--line);border-radius:12px;padding:11px 12px;margin-bottom:10px;animation:pop .2s}
+.ord .r1{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.ord .no{font-weight:800} .ord .meta{font-size:12px;color:var(--mute);margin-top:3px}
+.badge{font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;background:#eef;color:#334}
+.badge.CONFIRMED{background:#e6f0ff;color:#1a4fa0}.badge.PICKING{background:#fff4d6;color:#8a6100}
+.badge.READY_FOR_PICKUP,.badge.OUT_FOR_DELIVERY{background:#dcf7ec;color:#0b6b4f}.badge.COLLECTED,.badge.DELIVERED{background:#eceff3;color:#59606e}
+.acts{display:flex;gap:6px;margin-top:9px}
+.act{border:1px solid var(--line);background:#fafafa;border-radius:9px;padding:6px 10px;font-size:12.5px;font-weight:600}
+.act.primary{background:var(--red);border-color:var(--red);color:#fff}
+.act:disabled{opacity:.4;cursor:default}
+.empty{color:var(--mute);font-size:13px;padding:16px;text-align:center;border:1px dashed var(--line);border-radius:12px}
+.about{font-size:12.5px;color:var(--mute);line-height:1.5;margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+.about b{color:var(--ink)}
+/* inside boomi panel */
+.panel{width:460px;flex:none;background:var(--panel);color:var(--panel-ink);display:flex;flex-direction:column;transition:width .25s ease;position:relative;border-left:3px solid var(--gold)}
+.panel.closed{width:46px}
+.ph{display:flex;align-items:center;gap:10px;padding:14px 14px 10px;border-bottom:1px solid var(--panel-line)}
+.ph .tg{width:30px;height:30px;border-radius:8px;border:1px solid var(--panel-line);background:var(--panel-2);color:var(--panel-ink)}
+.ph h2{margin:0;font-size:15px;white-space:nowrap} .ph .live{margin-left:auto;font-size:11px;color:#7ee2b8;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.ph .live i{width:8px;height:8px;border-radius:50%;background:#2ed39a;box-shadow:0 0 0 0 rgba(46,211,154,.6);animation:pulse 1.8s infinite}
+@keyframes pulse{to{box-shadow:0 0 0 8px rgba(46,211,154,0)}}
+.panel.closed .ph h2,.panel.closed .ph .live,.panel.closed .legend,.panel.closed .feed,.panel.closed .pf{display:none}
+.panel.closed .ph{flex-direction:column;border:0}
+.vlabel{display:none;writing-mode:vertical-rl;transform:rotate(180deg);font-weight:700;font-size:13px;letter-spacing:.5px;margin:16px auto;color:var(--gold)}
+.panel.closed .vlabel{display:block}
+.legend{display:flex;gap:10px;flex-wrap:wrap;padding:8px 14px;font-size:11px;color:var(--panel-mute);border-bottom:1px solid var(--panel-line)}
+.legend span{display:flex;align-items:center;gap:5px} .legend i{width:8px;height:8px;border-radius:2px}
+.feed{flex:1;overflow:auto;padding:12px 12px 30px}
+.ev{background:var(--panel-2);border:1px solid var(--panel-line);border-radius:12px;padding:11px 12px;margin-bottom:10px;animation:pop .25s}
+.ev.agent{border-style:dashed;padding:8px 12px;background:transparent}
+.ev .h{display:flex;align-items:center;gap:8px}
+.ev .who{font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:5px;text-transform:uppercase;letter-spacing:.4px}
+.who.agent{background:rgba(124,58,237,.2);color:#c4a7ff}.who.store{background:rgba(255,199,44,.18);color:var(--gold)}.who.boomi{background:rgba(11,123,214,.2);color:#8cc8ff}
+.ev .ti{font-weight:700;font-size:13.5px} .ev .ms{margin-left:auto;font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--panel-mute)}
+.ev.bad{border-color:#7a2232}
+.sl{list-style:none;margin:9px 0 0;padding:0 0 0 4px;position:relative}
+.sl:before{content:"";position:absolute;left:8px;top:4px;bottom:6px;width:2px;background:var(--panel-line)}
+.sl li{position:relative;padding:3px 0 5px 22px;font-size:12.5px;opacity:0;transform:translateX(-4px);transition:all .25s}
+.sl li.on{opacity:1;transform:none}
+.sl li:before{content:"";position:absolute;left:4px;top:7px;width:10px;height:10px;border-radius:3px;background:var(--c)}
+.sl li b{font-weight:600} .sl li .d{display:block;color:var(--panel-mute);font-size:11.5px;font-family:"JetBrains Mono",monospace;word-break:break-word}
+.k-agent{--c:var(--k-agent)}.k-boomi{--c:var(--k-boomi)}.k-logic{--c:var(--k-logic)}.k-data{--c:var(--k-data)}.k-guard{--c:var(--k-guard)}
+.ev .ex{margin-top:6px;font-family:"JetBrains Mono",monospace;font-size:10.5px;color:#5f6a86}
+.pf{border-top:1px solid var(--panel-line);padding:10px 14px;font-size:11.5px;color:var(--panel-mute)}
+.pf code{font-family:"JetBrains Mono",monospace;color:#b9c3dc}
+.hint{color:var(--panel-mute);font-size:12.5px;text-align:center;padding:30px 10px;line-height:1.6}
+.gate{position:fixed;inset:0;background:rgba(16,21,33,.72);backdrop-filter:blur(4px);display:grid;place-items:center;z-index:50}
+.gate.hide{display:none}
+.gcard{width:min(400px,calc(100vw - 32px));background:#fff;border-radius:18px;padding:26px;box-shadow:0 30px 60px -20px rgba(0,0,0,.5);border-top:6px solid var(--red)}
+.gcard h2{margin:0 0 4px;font-size:20px}.gcard p{margin:0 0 16px;color:var(--mute);font-size:13.5px;line-height:1.5}
+.gcard label{display:block;font-size:12px;font-weight:700;margin:10px 0 4px}
+.gcard input{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;font:inherit}
+.gcard button{width:100%;margin-top:16px;padding:12px;border:0;border-radius:10px;background:var(--red);color:#fff;font-weight:700}
+.gerr{margin-top:10px;color:var(--red-d);font-size:13px}
+@media (max-width:1300px){.console{width:360px}.panel{width:400px}}
+@media (max-width:1080px){body{overflow:auto}.wrap{flex-direction:column;height:auto}.stage{flex-wrap:wrap}.panel,.panel.closed{width:100%;min-height:420px}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand"><div class="crown">♛</div><div>PRINCE Express<small>Order on WhatsApp · Prince Hypermart Cebu</small></div></div>
+  <span class="demo-tag">DEMO</span>
+  <div class="sp"></div>
+  <select class="pill" id="persona" title="Customer">
+    <option value="+639171234567">Aling Nena · sari-sari owner</option>
+    <option value="+639189876543">Mark · Royalty Gold</option>
+  </select>
+  <button class="pill" id="reset" title="Restore demo data">↺ Reset demo</button>
+  <button class="pill" id="whoami" title="Sign out">Sign in</button>
+</header>
+<div class="wrap">
+  <main class="stage">
+   <div class="steps" id="steps">
+     <div class="step" data-s="1"><b>1</b>Customer sends REORDER</div>
+     <div class="step" data-s="2"><b>2</b>Customer replies YES</div>
+     <div class="step" data-s="3"><b>3</b>Store: Out for delivery</div>
+     <div class="step" data-s="4"><b>4</b>“Where is my order?”</div>
+     <div class="step" data-s="5"><b>5</b>Store: Delivered</div>
+   </div>
+   <div class="row">
+    <div class="col">
+      <div class="phone"><div class="screen">
+        <div class="wa-head"><div class="av">P</div><div><div class="nm">Prince Hypermart</div><div class="st" id="presence">online</div></div>
+          <div class="who" id="who">Aling Nena<br>+63 917 123 4567</div></div>
+        <div class="log" id="log"></div>
+        <div class="chips">
+          <button class="chip" data-m="REORDER">REORDER</button>
+          <button class="chip" data-m="YES">YES</button>
+          <button class="chip" data-m="Where is my order?">Where is my order?</button>
+          <button class="chip" data-m="Hi! I need 2 cases of Coke and 3 packs of Nescafe 3in1">Coke + Nescafe</button>
+        </div>
+        <div class="compose"><input id="q" placeholder="Message" autocomplete="off"><button class="send" id="send">➤</button></div>
+      </div></div>
+    </div>
+    <section class="console">
+      <h3>🏬 Store Ops console</h3>
+      <div class="sub">Prince Hypermart staff · picking, delivery & pickup counter</div>
+      <div id="orders"><div class="empty">Loading orders…</div></div>
+      <div class="about"><b>What happens here:</b> staff update an order's status. Boomi records the status event and only then sends the customer a WhatsApp update. Free-form text inside the 24-hour window, an approved template outside it.</div>
+    </section>
+   </div>
+  </main>
+  <aside class="panel" id="panel">
+    <div class="ph"><button class="tg" id="tg" title="Collapse / expand">⟩</button><h2>Inside Boomi</h2><span class="live"><i></i>live from runtime</span></div>
+    <div class="vlabel">INSIDE BOOMI ⟨</div>
+    <div class="legend">
+      <span><i style="background:var(--k-agent)"></i>AI agent</span><span><i style="background:var(--k-boomi)"></i>Boomi process</span>
+      <span><i style="background:var(--k-logic)"></i>business logic</span><span><i style="background:var(--k-data)"></i>data / stock</span><span><i style="background:var(--k-guard)"></i>control</span>
+    </div>
+    <div class="feed" id="feed"><div class="hint">Every step the AI agent and the Boomi process <b>Prince Retail WhatsApp Commerce API</b> perform will appear here as it happens.<br><br>Start with <b>REORDER</b> on the phone.</div></div>
+    <div class="pf">Agentstudio: <code>Prince Order Assistant</code> · Integration: <code>Prince Retail WhatsApp Commerce API</code></div>
+  </aside>
+</div>
+<div class="gate hide" id="gate"><form class="gcard" id="gform">
+  <h2>♛ Prince Express demo</h2>
+  <p>Sign in to run the live demo: WhatsApp ordering with a Boomi AI agent and integration process. Synthetic data only.</p>
+  <label for="gemail">Email</label><input id="gemail" type="email" autocomplete="username" required>
+  <label for="gpass">Password</label><input id="gpass" type="password" autocomplete="current-password" required>
+  <button id="ggo" type="submit">Sign in</button><div class="gerr" id="gerr"></div>
+</form></div>
+<script>
+const $ = s => document.querySelector(s);
+const NAMES = {"+639171234567": ["Aling Nena", "+63 917 123 4567"], "+639189876543": ["Mark Villanueva", "+63 918 987 6543"]};
+const TOOL_LABEL = {CUSTOMER: "Prince Customer Lookup", CATALOG: "Prince Catalogue and Stock", PREPARE: "Prince Prepare Order Summary", CONFIRM: "Prince Place Order", STATUS: "Prince Order Status"};
+let phone = "+639171234567", sessions = {}, busy = false, feedSeq = 0, msgSeq = {}, lastOrdersKey = "", fast = 0, progress = {s1: false, s2: false, s3: false, s4: false, s5: false};
+const hhmm = () => new Date().toLocaleTimeString([], {hour: "2-digit", minute: "2-digit"});
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
+const fmt = s => esc(s).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/\*(.+?)\*/g, "<b>$1</b>").replace(/^#+\s*/gm, "");
+const peso = v => "₱" + Number(v || 0).toLocaleString("en-PH", {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+function store() { try { return JSON.parse(sessionStorage.getItem("prince_demo") || "{}"); } catch { return {}; } }
+function save() { try { sessionStorage.setItem("prince_demo", JSON.stringify({sessions, progress})); } catch {} }
+
+function bubble(cls, html, extra) {
+  const d = document.createElement("div"); d.className = "b " + cls; d.innerHTML = (extra || "") + html + `<span class="t">${hhmm()}${cls === "out" ? " ✓✓" : ""}</span>`;
+  $("#log").appendChild(d); $("#log").scrollTop = $("#log").scrollHeight; return d;
+}
+function sys(t) { const d = document.createElement("div"); d.className = "sys"; d.textContent = t; $("#log").appendChild(d); }
+function setStep() {
+  const done = [progress.s1, progress.s2, progress.s3, progress.s4, progress.s5]; let now = done.indexOf(false);
+  document.querySelectorAll(".step").forEach((el, i) => { el.classList.toggle("done", done[i]); el.classList.toggle("now", i === now); });
+}
+
+/* ---------- Supabase auth (password grant) + Edge Function "prince-retail" ---------- */
+const SB = "https://hfovtnceicailrkshvqg.supabase.co", ANON = "sb_publishable_-CP2yRvCsH6NTvpulcYfVA_oZZrKyxV", FN = SB + "/functions/v1/prince-retail";
+let auth = null; try { auth = JSON.parse(localStorage.getItem("prince_auth") || "null"); } catch {}
+const keepAuth = j => { auth = {access: j.access_token, refresh: j.refresh_token, email: (j.user && j.user.email) || (auth && auth.email), exp: Date.now() + (j.expires_in || 3600) * 1000}; try { localStorage.setItem("prince_auth", JSON.stringify(auth)); } catch {} };
+const dropAuth = () => { auth = null; try { localStorage.removeItem("prince_auth"); } catch {} };
+async function authPost(path, body) {
+  const r = await fetch(SB + "/auth/v1/" + path, {method: "POST", headers: {apikey: ANON, "Content-Type": "application/json"}, body: JSON.stringify(body)});
+  return {ok: r.ok, j: await r.json().catch(() => ({}))};
+}
+async function token() {
+  if (!auth) return null;
+  if (auth.exp - Date.now() > 60000) return auth.access;
+  const r = await authPost("token?grant_type=refresh_token", {refresh_token: auth.refresh});
+  if (!r.ok) { dropAuth(); return null; } keepAuth(r.j); return auth.access;
+}
+function showGate() { $("#gate").classList.remove("hide"); setTimeout(() => $("#gemail").focus(), 50); }
+function paintWho() { $("#whoami").textContent = auth ? "● " + (auth.email || "").split("@")[0] + " · Sign out" : "Sign in"; }
+async function fnFetch(path, body) {
+  const t = await token(); if (!t) { showGate(); throw new Error("Please sign in."); }
+  const r = await fetch(FN + path, {method: "POST", headers: {"Content-Type": "application/json", apikey: ANON, Authorization: "Bearer " + t}, body: JSON.stringify(body)});
+  if (r.status === 401) { dropAuth(); paintWho(); showGate(); throw new Error("Please sign in again."); }
+  return r;
+}
+async function boomi(body) {
+  const r = await fnFetch("/boomi", body);
+  return r.json();
+}
+
+/* ---------- Inside Boomi feed ---------- */
+function clearHint() { const h = $("#feed .hint"); if (h) h.remove(); }
+function addCard(html, cls) {
+  clearHint(); const d = document.createElement("div"); d.className = "ev " + (cls || ""); d.innerHTML = html;
+  $("#feed").appendChild(d); $("#feed").scrollTop = $("#feed").scrollHeight; return d;
+}
+function agentNote(text) {
+  addCard(`<div class="h"><span class="who agent">AI agent</span><span class="ti" style="font-weight:600;font-size:12.5px">${esc(text)}</span></div>`, "agent");
+}
+function renderEvent(e) {
+  const who = e.actor === "store" ? `<span class="who store">Store staff</span>` : `<span class="who agent">Agent tool</span>`;
+  const tool = TOOL_LABEL[e.action] ? `<div class="ex" style="color:#a99be0">tool: ${esc(TOOL_LABEL[e.action])}</div>` : "";
+  const steps = (e.steps || []).map(s => `<li class="k-${esc(s.kind)}"><b>${esc(s.label)}</b><span class="d">${esc(s.detail)}</span></li>`).join("");
+  const card = addCard(`<div class="h">${who}<span class="ti">${esc(e.title)}</span><span class="ms">${e.ms} ms</span></div>${tool}
+    <ul class="sl">${steps}</ul><div class="ex">${esc(e.process || "")} · ${esc(e.execution_id || "")}</div>`, e.ok ? "" : "bad");
+  card.querySelectorAll(".sl li").forEach((li, i) => setTimeout(() => { li.classList.add("on"); $("#feed").scrollTop = $("#feed").scrollHeight; }, 140 * i + 60));
+}
+
+async function poll() {
+  try {
+    const r = await boomi({action: "FEED", since: feedSeq, phone, msg_since: msgSeq[phone] || 0});
+    if (r.ok) {
+      (r.events || []).forEach(e => { renderEvent(e); if (e.action === "SET_STATUS" && /OUT FOR DELIVERY/.test(e.title)) { progress.s3 = true; setStep(); save(); }
+        if (e.action === "SET_STATUS" && /DELIVERED/.test(e.title) && !/OUT/.test(e.title)) { progress.s5 = true; setStep(); save(); } });
+      if ((r.events || []).length || r.last < feedSeq) loadOrders();
+      feedSeq = r.last;
+      (r.messages || []).forEach(m => {
+        const tag = m.mode === "TEMPLATE" ? `🔔 Status update · approved template <i>${esc(m.template)}</i>` : "🔔 Status update · free-form (customer wrote within 24 h)";
+        bubble("note", fmt(m.text), `<span class="tag">${tag}</span>`);
+      });
+      msgSeq[phone] = r.msg_last;
+    }
+  } catch (e) { /* runtime asleep or offline - next poll retries */ }
+  const wait = (busy || fast > 0) ? 1200 : 3500; if (fast > 0) fast--;
+  setTimeout(poll, document.hidden ? 8000 : wait);
+}
+
+/* ---------- Store console ---------- */
+const NEXT = {
+  PICKUP: {CONFIRMED: ["PICKING", "Start picking"], PICKING: ["READY_FOR_PICKUP", "Ready for pickup"], READY_FOR_PICKUP: ["COLLECTED", "Collected"]},
+  DELIVERY: {CONFIRMED: ["PICKING", "Start picking"], PICKING: ["OUT_FOR_DELIVERY", "🚚 Out for delivery"], OUT_FOR_DELIVERY: ["DELIVERED", "✅ Delivered"]}};
+const PRIMARY = ["OUT_FOR_DELIVERY", "DELIVERED", "READY_FOR_PICKUP"];
+async function loadOrders() {
+  const r = await boomi({action: "ORDERS"}).catch(() => null);
+  if (!r || !r.ok) { $("#orders").innerHTML = `<div class="empty">Boomi runtime not reachable yet - retrying…</div>`; return; }
+  const key = JSON.stringify(r.orders.map(o => o.order_no + o.status)); if (key === lastOrdersKey) return; lastOrdersKey = key;
+  const list = r.orders.slice(0, 5);
+  $("#orders").innerHTML = list.map(o => {
+    const nx = (NEXT[o.fulfilment || "PICKUP"] || {})[o.status];
+    const where = o.fulfilment === "DELIVERY" ? "🚚 Deliver to " + o.deliver_to : "🏬 Pickup at " + o.store_name;
+    const items = o.lines.map(l => l.qty + "× " + l.name).join(", ");
+    return `<div class="ord"><div class="r1"><span class="no">${esc(o.order_no)}</span><span class="badge ${esc(o.status)}">${esc(o.status.replace(/_/g, " "))}</span></div>
+      <div class="meta">${esc(o.customer)} · ${peso(o.total)} · code ${esc(o.pickup_code)}</div>
+      <div class="meta">${esc(where)}</div>
+      <div class="meta">${esc(items)}</div>
+      ${nx ? `<div class="acts"><button class="act ${PRIMARY.includes(nx[0]) ? "primary" : ""}" data-o="${esc(o.order_no)}" data-s="${nx[0]}">${nx[1]}</button></div>` : ""}</div>`;
+  }).join("") || `<div class="empty">No orders yet</div>`;
+  document.querySelectorAll(".act[data-o]").forEach(b => b.onclick = async () => {
+    b.disabled = true; b.textContent = "Updating Boomi…"; fast = 10;
+    const r = await boomi({action: "SET_STATUS", order_no: b.dataset.o, status: b.dataset.s}).catch(e => ({ok: false, error: String(e)}));
+    if (!r.ok) { b.textContent = r.error || "Failed"; }
+    lastOrdersKey = ""; loadOrders();
+  });
+}
+
+/* ---------- Chat with the agent ---------- */
+async function ask(text) {
+  text = text.trim(); if (busy || !text) return;
+  busy = true; $("#send").disabled = true;
+  bubble("out", esc(text));
+  if (/^reorder$/i.test(text)) progress.s1 = true;
+  if (/^(yes|oo|sige|confirm)\b/i.test(text)) progress.s2 = true;
+  if (/where.*order/i.test(text)) progress.s4 = true;
+  setStep(); save();
+  const typing = document.createElement("div"); typing.className = "typing"; typing.innerHTML = "<i></i><i></i><i></i>";
+  $("#log").appendChild(typing); $("#log").scrollTop = $("#log").scrollHeight;
+  $("#presence").textContent = "typing…";
+  agentNote("Reading the message: “" + (text.length > 60 ? text.slice(0, 60) + "…" : text) + "”");
+  let answer = "";
+  try {
+    const res = await fnFetch("/chat", {message: text, phone, session_id: sessions[phone]});
+    if (!(res.headers.get("Content-Type") || "").includes("event-stream")) { const j = await res.json().catch(() => ({})); throw new Error(j.error || "HTTP " + res.status); }
+    const reader = res.body.getReader(), dec = new TextDecoder(); let buf = "", ev = null;
+    while (true) {
+      const {value, done} = await reader.read(); if (done) break;
+      buf += dec.decode(value, {stream: true}); let i;
+      while ((i = buf.indexOf("\n")) >= 0) {
+        const line = buf.slice(0, i).trim(); buf = buf.slice(i + 1);
+        if (line.startsWith("event:")) { ev = line.slice(6).trim(); continue; }
+        if (!line.startsWith("data:")) continue;
+        const raw = line.slice(5).trim(); if (!raw || raw === "null") continue;
+        let d; try { d = JSON.parse(raw); } catch { continue; }
+        if (d.session_id) { sessions[phone] = d.session_id; save(); }
+        if (ev === "progress_notification") {
+          const t = d.content || d.message || d.text || d.type; if (t && typeof t === "string" && t.length < 200) agentNote(t);
+          $("#presence").textContent = "checking with Prince systems…";
+        } else if (ev === "message" && d.role === "agent") answer += (answer ? "\n\n" : "") + d.content;
+        else if (ev === "portal_error") {
+          if (/could not find the requested session/i.test(d.error || "")) { delete sessions[phone]; save(); answer = "Our previous chat expired - please send your message again."; }
+          else answer = "⚠️ " + (d.error || "Something went wrong.");
+        }
+      }
+    }
+  } catch (e) { answer = "⚠️ " + String(e.message || e); }
+  typing.remove();
+  bubble(answer.startsWith("⚠️") ? "err" : "in", fmt(answer || "Sorry, no reply. Please try again."));
+  if (answer && !answer.startsWith("⚠️")) agentNote("Replied on WhatsApp");
+  $("#presence").textContent = "online"; busy = false; $("#send").disabled = false; fast = 4;
+}
+
+function switchPersona(p) {
+  phone = p; const n = NAMES[p]; $("#who").innerHTML = esc(n[0]) + "<br>" + esc(n[1]);
+  $("#log").innerHTML = ""; sys("Messages are end-to-end encrypted · DEMO"); msgSeq[p] = msgSeq[p] || 0;
+}
+$("#send").onclick = () => { const v = $("#q").value; $("#q").value = ""; ask(v); };
+$("#q").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); $("#send").click(); } });
+document.querySelectorAll(".chip").forEach(c => c.onclick = () => ask(c.dataset.m));
+$("#persona").onchange = e => switchPersona(e.target.value);
+$("#tg").onclick = () => { $("#panel").classList.toggle("closed"); $("#tg").textContent = $("#panel").classList.contains("closed") ? "⟨" : "⟩"; };
+$("#reset").onclick = async () => {
+  if (!confirm("Reset demo data (orders, stock, chat)?")) return;
+  $("#reset").disabled = true; $("#reset").textContent = "Resetting…";
+  const r = await boomi({action: "RESET"}).catch(e => ({ok: false, error: String(e)}));
+  sessions = {}; progress = {s1: false, s2: false, s3: false, s4: false, s5: false}; save(); setStep();
+  $("#feed").innerHTML = ""; feedSeq = 0; msgSeq = {}; lastOrdersKey = ""; switchPersona(phone);
+  // skip the backlog: the next FEED shows only the reset event onwards
+  $("#reset").disabled = false; $("#reset").textContent = "↺ Reset demo"; if (!r.ok) alert(r.error || "Reset failed"); loadOrders();
+};
+
+$("#whoami").onclick = () => { if (auth) { dropAuth(); location.reload(); } else showGate(); };
+$("#gform").onsubmit = async e => {
+  e.preventDefault(); const b = $("#ggo"); b.disabled = true; b.textContent = "Signing in…"; $("#gerr").textContent = "";
+  try {
+    const r = await authPost("token?grant_type=password", {email: $("#gemail").value.trim(), password: $("#gpass").value});
+    if (!r.ok) { $("#gerr").textContent = r.j.msg || r.j.error_description || "Sign-in failed"; return; }
+    keepAuth(r.j); paintWho(); $("#gate").classList.add("hide"); if (!started) init();
+  } catch { $("#gerr").textContent = "Could not reach Supabase."; } finally { b.disabled = false; b.textContent = "Sign in"; }
+};
+let started = false;
+paintWho();
+if (auth) init(); else showGate();
+async function init() {
+  started = true;
+  const s = store(); sessions = s.sessions || {}; progress = s.progress || progress; setStep();
+  switchPersona(phone);
+  // start feed at the current end so an old backlog does not flood the panel
+  const r = await boomi({action: "FEED", since: 1e9, phone, msg_since: 1e9}).catch(() => null);
+  if (r && r.ok) { feedSeq = r.last; msgSeq[phone] = r.msg_last; }
+  loadOrders(); poll();
+}
+</script>
+</body>
+</html>
