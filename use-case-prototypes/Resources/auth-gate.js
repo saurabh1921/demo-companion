@@ -16,7 +16,8 @@
     "#br-gate .card{width:min(380px,100%);background:#fff;border-radius:14px;padding:26px 24px;box-shadow:0 24px 60px rgba(0,0,0,.35);border-top:5px solid #f0a020}" +
     "#br-gate h1{margin:0 0 4px;font-size:21px;color:#0f2a3f}#br-gate p{margin:0 0 16px;color:#5b6773;font-size:13.5px;line-height:1.45}" +
     "#br-gate label{display:block;font-size:12px;font-weight:600;color:#33414d;margin:10px 0 4px}" +
-    "#br-gate input{width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid #cfd6dc;border-radius:8px;font:inherit;font-size:14px}" +
+    "#br-gate input{width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid #cfd6dc;border-radius:8px;font:inherit;font-size:14px;background:#fff!important;color:#14212b!important;color-scheme:light}" +
+    "#br-gate input:focus{outline:2px solid #f0a020;outline-offset:1px;border-color:#f0a020}" +
     "#br-gate button{width:100%;margin-top:16px;padding:11px;border:0;border-radius:8px;background:#173f5f;color:#fff;font:inherit;font-weight:600;cursor:pointer}" +
     "#br-gate button:disabled{opacity:.6}#br-gate .err{color:#b42318;font-size:13px;min-height:18px;margin-top:8px}" +
     "#br-gate .foot{margin-top:14px;font-size:11.5px;color:#8a96a1;text-align:center}";
