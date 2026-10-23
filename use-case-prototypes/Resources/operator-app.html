@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Operator Cab Tablet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  :root { --bezel: #1a2026; --hero-a: #1d252c; --hero-b: #6e2c14; --hero-ink: #f3f5f6; --sheet-scrim: rgba(10, 13, 16, .5); }
+  html, body { height: 100%; }
+  .stage { min-height: 100%; }
+  .tab { position: relative; width: 100%; height: 100vh; height: 100dvh; background: var(--bg); overflow: hidden; }
+  .caption { display: none; }
+  @media (min-width: 900px) and (min-height: 640px) {
+    body { background: var(--bg-2); }
+    .stage { display: flex; align-items: center; justify-content: center; gap: 44px; padding: 24px; min-height: 100vh; }
+    .tab { width: 560px; height: min(820px, calc(100vh - 48px)); flex: none; border: 14px solid var(--bezel); border-radius: 28px;
+      box-shadow: 0 30px 80px rgba(16, 20, 24, .3), 0 0 0 1px rgba(255, 255, 255, .06) inset; }
+    .tab::before { content: ""; position: absolute; top: 50%; left: -10px; transform: translateY(-50%); width: 5px; height: 46px; border-radius: 3px; background: #2c353d; z-index: 40; }
+    .caption { display: block; max-width: 360px; }
+  }
+  .caption .eyebrow { margin-bottom: 8px; }
+  .caption h1 { font-size: 30px; margin: 0 0 10px; }
+  .caption p { color: var(--ink-2); margin: 0 0 12px; font-size: 14.5px; }
+  .caption ul { margin: 0 0 14px; padding-left: 18px; color: var(--ink-2); font-size: 13.5px; }
+  .caption li { margin: 4px 0; }
+  .caption .links { display: flex; flex-wrap: wrap; gap: 8px; }
+  .pseg { display: inline-flex; border: 1px solid var(--line-2); border-radius: 10px; overflow: hidden; margin: 0 0 14px; }
+  .pseg button { font: 500 13.5px var(--sans); padding: 7px 12px; border: 0; background: var(--panel); color: var(--ink); cursor: pointer; }
+  .pseg button + button { border-left: 1px solid var(--line-2); }
+  .pseg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+  .sheet .pseg { margin: 4px 0 10px; }
+
+  .app { position: absolute; inset: 0; display: flex; flex-direction: column; background: var(--bg); }
+  .apphead { display: flex; align-items: center; gap: 10px; padding: 10px 16px; background: var(--brand); color: var(--brand-ink); flex: none; position: relative; }
+  .apphead::after { content: ""; position: absolute; left: 0; right: 0; bottom: -3px; height: 3px; background: repeating-linear-gradient(135deg, var(--safety) 0 8px, #1d252c 8px 16px); }
+  .brandmark { display: flex; align-items: center; gap: 9px; font: 600 15px var(--serif); letter-spacing: -.01em; }
+  .brandmark .mark::after { box-shadow: 0 0 0 2px var(--brand); }
+  .apphead .sp { flex: 1; }
+  .apphead .clk { font: 600 12px var(--mono); opacity: .8; }
+  .gear { width: 34px; height: 34px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, .25); background: transparent; color: var(--brand-ink); display: grid; place-items: center; cursor: pointer; padding: 0; }
+  .gear:hover { background: rgba(255, 255, 255, .1); }
+  .gear svg { width: 17px; height: 17px; }
+  .screens { flex: 1; overflow-y: auto; overflow-x: hidden; position: relative; -webkit-overflow-scrolling: touch; padding-top: 3px; }
+  .screen { padding: 0 0 28px; }
+  .screen.in { animation: slidein .38s cubic-bezier(.2, .7, .2, 1); }
+  @keyframes slidein { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+
+  .acard { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); padding: 16px; margin: 14px 16px 0; min-width: 0; }
+  .acard h3 { font: 600 12px var(--sans); letter-spacing: .07em; text-transform: uppercase; color: var(--muted); margin: 0 0 10px; display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+  .kv { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; font-size: 13.5px; margin: 0; }
+  .kv dt { color: var(--muted); }
+  .kv dd { margin: 0; text-align: right; overflow-wrap: anywhere; }
+  .src { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--line); font-size: 11.5px; color: var(--muted); }
+  .src .badge { font-size: 10px; padding: 2px 7px; }
+  .primary-cta { display: block; width: calc(100% - 32px); margin: 18px 16px 0; padding: 16px; border: 0; border-radius: 14px; background: var(--accent); color: var(--accent-ink); font: 600 18px var(--sans); cursor: pointer; box-shadow: 0 6px 18px rgba(163, 64, 28, .28); }
+  .primary-cta:disabled { opacity: .55; cursor: default; }
+  .ghost { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 14px; border-radius: 12px; border: 1px solid var(--line-2); background: var(--panel); color: var(--ink); font: 500 14px var(--sans); cursor: pointer; text-decoration: none; }
+  .ghost:hover { border-color: var(--accent); background: var(--accent-soft); }
+  .ghost.solid { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .ghost:disabled { opacity: .5; cursor: default; }
+  .btnrow { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+  .btnrow .ghost { flex: 1 1 120px; padding: 10px; font-size: 13.5px; }
+
+  .hero { margin: 0; padding: 20px 18px 50px; color: var(--hero-ink); background:
+      radial-gradient(120% 80% at 85% 0%, rgba(242, 164, 119, .35), transparent 55%), linear-gradient(160deg, var(--hero-a), var(--hero-b)); }
+  .hero .hi { font-size: 13px; opacity: .8; margin: 0 0 4px; }
+  .hero h1 { font-size: 26px; margin: 0 0 10px; color: #fff; }
+  .hero .meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 12.5px; opacity: .92; }
+  .pill { display: inline-flex; align-items: center; gap: 5px; font: 600 11px var(--sans); letter-spacing: .06em; text-transform: uppercase; color: #1d252c; background: var(--safety); padding: 3px 9px; border-radius: 999px; }
+  .lift { margin-top: -34px; position: relative; }
+  .check { list-style: none; margin: 0; padding: 0; }
+  .check li { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--line); font-size: 14px; }
+  .check li:first-child { border-top: 0; padding-top: 2px; }
+  .check .tick { width: 24px; height: 24px; border-radius: 50%; background: var(--good-soft); color: var(--good); display: grid; place-items: center; font-weight: 700; font-size: 13px; flex: none; }
+  .check .tick.bad { background: var(--bad-soft); color: var(--bad); }
+  .check .tick.unk { background: var(--bg-2); color: var(--muted); }
+  .check .txt { flex: 1; min-width: 0; }
+  .check .sub { font-size: 12px; color: var(--muted); }
+
+  .progress { min-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 40px 24px; }
+  .orb { position: relative; width: 132px; height: 132px; margin-bottom: 26px; }
+  .orb span { position: absolute; inset: 0; border-radius: 50%; border: 2px solid var(--accent); opacity: 0; animation: ripple 2.6s ease-out infinite; }
+  .orb span:nth-child(2) { animation-delay: .85s; }
+  .orb span:nth-child(3) { animation-delay: 1.7s; }
+  .orb i { position: absolute; inset: 34px; border-radius: 50%; background: radial-gradient(circle at 70% 30%, #f2b705 0 14%, transparent 15%), linear-gradient(160deg, #e8774a, #1d252c); box-shadow: 0 8px 24px rgba(163, 64, 28, .35); animation: bob 2.6s ease-in-out infinite; }
+  @keyframes ripple { 0% { transform: scale(.45); opacity: .7; } 100% { transform: scale(1.1); opacity: 0; } }
+  @keyframes bob { 50% { transform: translateY(-4px); } }
+  .rot { font: 600 21px var(--serif); min-height: 30px; transition: opacity .35s; }
+  .rot.fade { opacity: 0; }
+  .progress .sub { color: var(--muted); font-size: 13.5px; margin: 8px 0 0; max-width: 300px; }
+  .progress .elapsed { font: 500 12px var(--mono); color: var(--muted); margin-top: 18px; }
+
+  .replay { margin: 12px 16px 0; padding: 8px 12px; border-radius: 12px; background: var(--warn-soft); color: var(--warn); border: 1px solid currentColor; font-size: 12.5px; display: flex; gap: 8px; align-items: flex-start; }
+  .replay strong { letter-spacing: .06em; }
+  .ready { padding: 20px 18px 50px; color: var(--hero-ink); background: radial-gradient(120% 80% at 85% 0%, rgba(242, 164, 119, .32), transparent 55%), linear-gradient(160deg, #1d252c, #1d6b45); }
+  .ready.warn { background: radial-gradient(120% 80% at 85% 0%, rgba(242, 183, 5, .35), transparent 55%), linear-gradient(160deg, #1d252c, #7a4c00); }
+  .ready .ok { width: 34px; height: 34px; border-radius: 50%; background: rgba(255, 255, 255, .18); display: grid; place-items: center; font-weight: 700; margin-bottom: 10px; }
+  .ready h1 { font-size: 22px; margin: 0 0 4px; color: #fff; }
+  .ready .tk { font: 700 54px/1.05 var(--mono); color: #fff; margin: 6px 0 2px; letter-spacing: .02em; }
+  .ready .sm { font-size: 13px; opacity: .88; }
+  .notice { margin: 0 0 12px; padding: 10px 12px; border-radius: 12px; background: var(--warn-soft); color: var(--ink); border-left: 3px solid var(--warn); font-size: 13.5px; }
+  .welcome { background: var(--panel-2); border: 1px solid var(--line); border-radius: 14px 14px 14px 4px; padding: 11px 13px; font: 15px/1.5 var(--serif); }
+  .welcome-from { font-size: 11.5px; color: var(--muted); margin-top: 6px; }
+  .route { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .route div { border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; background: var(--panel-2); font-size: 12px; }
+  .route b { display: block; font: 600 14px var(--mono); margin-top: 2px; }
+  details.what summary { cursor: pointer; list-style: none; display: flex; align-items: center; gap: 10px; }
+  details.what summary::-webkit-details-marker { display: none; }
+  details.what summary .chev { margin-left: auto; color: var(--muted); transition: transform .2s; }
+  details.what[open] summary .chev { transform: rotate(90deg); }
+  .what .big { font: 600 15.5px var(--serif); }
+  .what .sm { font-size: 12px; color: var(--muted); }
+  .steps { list-style: none; margin: 12px 0 0; padding: 0; }
+  .steps li { display: grid; grid-template-columns: 18px minmax(0, 1fr) auto; gap: 4px 10px; align-items: start; padding: 8px 0; border-top: 1px solid var(--line); font-size: 13px; }
+  .steps .dot { width: 10px; height: 10px; border-radius: 50%; margin-top: 4px; background: var(--good); }
+  .steps .dot.WARN { background: var(--warn); }
+  .steps .dot.FAILED { background: var(--bad); }
+  .steps .sys { font-weight: 600; }
+  .steps .act { color: var(--ink-2); }
+  .steps .tags { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
+  .mt2 { font: 600 9.5px var(--mono); letter-spacing: .04em; padding: 2px 6px; border-radius: 5px; background: var(--bg-2); color: var(--muted); }
+  .mt2.LIVE, .mt2.OK { background: var(--good-soft); color: var(--good); }
+  .mt2.WARN { background: var(--warn-soft); color: var(--warn); }
+  .mt2.FAILED { background: var(--bad-soft); color: var(--bad); }
+  .what .notes { margin: 10px 0 0; padding: 8px 10px; border-radius: 10px; background: var(--warn-soft); font-size: 12.5px; }
+
+  .failed { text-align: center; padding: 50px 24px 24px; }
+  .failed .ic { width: 64px; height: 64px; border-radius: 50%; margin: 0 auto 16px; background: var(--bad-soft); color: var(--bad); display: grid; place-items: center; font: 700 28px var(--sans); }
+  .failed h1 { font-size: 23px; margin: 0 0 8px; }
+  .failed p { color: var(--ink-2); margin: 0 auto 8px; max-width: 360px; }
+  .failed .err { font: 12px var(--mono); color: var(--muted); margin: 10px auto 22px; max-width: 360px; overflow-wrap: anywhere; }
+
+  .scrim { position: absolute; inset: 0; background: var(--sheet-scrim); z-index: 50; opacity: 0; pointer-events: none; transition: opacity .2s; }
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; z-index: 51; background: var(--panel); border-radius: 22px 22px 0 0; padding: 10px 18px 22px; transform: translateY(105%); transition: transform .25s cubic-bezier(.2, .7, .2, 1); box-shadow: 0 -10px 30px rgba(0, 0, 0, .2); }
+  .open .scrim { opacity: 1; pointer-events: auto; }
+  .open .sheet { transform: none; }
+  .sheet .grab { width: 40px; height: 4px; border-radius: 2px; background: var(--line-2); margin: 0 auto 12px; }
+  .sheet h2 { font-size: 17px; margin: 0 0 2px; }
+  .sheet .sub { font-size: 12px; color: var(--muted); margin: 0 0 10px; }
+  .tog { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-top: 1px solid var(--line); cursor: pointer; font-size: 14px; position: relative; }
+  .tog .txt { flex: 1; }
+  .tog .sub { margin: 0; }
+  .tog input { position: absolute; opacity: 0; pointer-events: none; }
+  .sw { width: 44px; height: 26px; border-radius: 13px; background: var(--line-2); position: relative; flex: none; transition: background .15s; }
+  .sw::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: transform .15s; box-shadow: 0 1px 3px rgba(0, 0, 0, .25); }
+  .tog input:checked + .sw { background: var(--bad); }
+  .tog input:checked + .sw::after { transform: translateX(18px); }
+  .tog input:focus-visible + .sw { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .sheet .row { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+  .sheet .row .ghost { flex: 1 1 100px; }
+  @media (prefers-reduced-motion: reduce) { .screen.in { animation: none; } }
+</style>
+</head>
+<body>
+<div class="stage">
+  <aside class="caption">
+    <p class="eyebrow">Operator cab tablet · powered by Boomi</p>
+    <div class="pseg" role="group" aria-label="Operator" data-pseg></div>
+    <h1 id="capH">Sam's cab tablet</h1>
+    <p id="capP"></p>
+    <ul id="capL"></ul>
+    <div class="links">
+      <a class="btn" href="shift-start.html" data-route="/shift-start">Act 1 · Shift start pipeline</a>
+      <a class="btn" href="supervisor-desk.html" data-route="/supervisor-desk" target="_blank" rel="noopener">Supervisor desk</a>
+    </div>
+  </aside>
+
+  <div class="tab">
+    <div class="app" id="app">
+      <header class="apphead">
+        <div class="brandmark"><span class="mark" aria-hidden="true">BR</span>Red Ridge · cab</div>
+        <span class="sp"></span>
+        <span class="clk">05:58 AWST</span>
+        <span id="brAuthSlot"></span>
+        <button class="gear" id="gear" type="button" aria-label="Presenter controls" aria-haspopup="dialog">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </button>
+      </header>
+      <main class="screens" id="screens">
+        <section class="screen" id="sWelcome" aria-label="Badge in"></section>
+        <section class="screen" id="sProgress" hidden aria-label="Working">
+          <div class="progress" aria-live="polite">
+            <div class="orb" aria-hidden="true"><span></span><span></span><span></span><i></i></div>
+            <div class="rot" id="rot">Working…</div>
+            <p class="sub" id="progSub"></p>
+            <div class="elapsed" id="elapsed">0 s</div>
+          </div>
+        </section>
+        <section class="screen" id="sDone" hidden aria-label="Assignment"></section>
+        <section class="screen" id="sFailed" hidden aria-label="Not cleared"></section>
+      </main>
+      <div class="scrim" id="scrim"></div>
+      <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetH">
+        <div class="grab" aria-hidden="true"></div>
+        <h2 id="sheetH">Presenter controls</h2>
+        <p class="sub">Operator</p>
+        <div class="pseg" role="group" aria-label="Operator" data-pseg></div>
+        <p class="sub">Simulated outcomes are sent to Boomi as request flags.</p>
+        <label class="tog"><span class="txt">Fitness for work not passed<p class="sub">simulate_fitness_fail</p></span><input type="checkbox" id="tFit"><span class="sw" aria-hidden="true"></span></label>
+        <label class="tog"><span class="txt">Pre-start fails on the best truck<p class="sub">simulate_prestart_fail</p></span><input type="checkbox" id="tPre"><span class="sw" aria-hidden="true"></span></label>
+        <div class="row">
+          <button class="ghost solid" id="restart" type="button">Restart</button>
+          <button class="ghost" id="theme" type="button">Dark mode</button>
+          <button class="ghost" id="closeSheet" type="button">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="mock-bundle.js"></script>
+<script src="common.js"></script>
+<script src="config.js"></script>
+<script src="online.js"></script>
+<script>
+(function () {
+  "use strict";
+  var BR = window.BR, esc = BR.esc, M = window.BR_MOCK || {};
+  var $ = function (id) { return document.getElementById(id); };
+  BR.initTheme($("theme"));
+  BR.routes();
+
+  /* Operator toggle (caption + gear menu): Sam (employee) or Tom (contractor, induction expired). Remembered as br.operator. */
+  var ROSTER = {}; (M.operators || []).forEach(function (o) { ROSTER[o.BADGE] = o; });
+  var PLAN = M.shiftPlan || { shift: "Day shift 22 Oct 2026, 06:00-18:00", pit: "North Pit", loader: "EX-07", supervisor: "Dana Brooks" };
+  var CAP = {
+    "RR-40211": { cap: "What Sam Taylor (Boomi Resources, B crew) sees on the cab tablet at the North Pit crib. <strong>Badge in</strong> runs <span class=\"mono small\">BR_P5_Shift_Start_Orchestration</span>: operator checks, the governed fleet read live from Data Hub, the best truck scored, then dispatch, Data Hub, access control and SAP time in one tap.",
+      list: ["Switch operator with the toggle above (also in the gear menu on small screens).", "Gear (top right of the tablet): fitness not passed, pre-start fail, restart.", "Presenter link: <code>?autorun=1</code>, <code>&amp;fitness=fail</code> or <code>&amp;prestart=fail</code>", "A failed pre-start tags the truck out and moves Sam to the next best truck."] },
+    "RR-C7734": { cap: "What Tom Walker (Haulmax Contracting) sees. His site induction expired on 15 Oct 2026, so Boomi stands him down before any truck is considered and opens a ServiceNow case for the shift supervisor, with the outcome only.",
+      list: ["Switch operator with the toggle above (also in the gear menu).", "The tablet only shows the outcome and who to see. No health detail is ever recorded.", "Presenter link: <code>?autorun=1</code>"] }
+  };
+  var BADGE, OP;
+  document.querySelectorAll("[data-pseg]").forEach(function (g) {
+    g.innerHTML = Object.keys(BR.OPERATORS).map(function (k) { return '<button type="button" data-p="' + k + '" aria-pressed="false">' + esc(BR.OPERATORS[k].name) + "</button>"; }).join("");
+  });
+  var state = { fitFail: false, preFail: false, busy: false, runId: 0, rotTimer: null, tickTimer: null };
+  function setOperator(b) {
+    BADGE = ROSTER[b] ? b : "RR-40211"; OP = ROSTER[BADGE] || {};
+    BR.operator(BADGE);
+    document.querySelectorAll("[data-pseg] button").forEach(function (x) { x.setAttribute("aria-pressed", String(x.dataset.p === BADGE)); });
+    $("capH").textContent = BR.OPERATORS[BADGE].first + "'s cab tablet";
+    $("capP").innerHTML = CAP[BADGE].cap;
+    $("capL").innerHTML = CAP[BADGE].list.map(function (x) { return "<li>" + x + "</li>"; }).join("");
+  }
+  setOperator(BR.operator());
+
+  function show(id) {
+    ["sWelcome", "sProgress", "sDone", "sFailed"].forEach(function (s) { var el = $(s); el.hidden = s !== id; el.classList.toggle("in", s === id); });
+    $("screens").scrollTop = 0;
+  }
+  function replayBanner(d) {
+    if (BR.isLive(d)) return "";
+    return '<div class="replay" role="status"><strong>REPLAYED</strong><span>Recorded Boomi run, not a live call (' + esc(d._fallbackReason || d._servedBy || "offline") + ").</span></div>";
+  }
+  function whatHappened(d) {
+    var steps = (d.steps || []).slice().sort(function (a, b) { return (a.seq || 0) - (b.seq || 0); });
+    var fan = steps.filter(function (s) { return s.stage === "fanout"; }), live = BR.isLive(d), sm = d.summary || {};
+    return '<div class="acard"><details class="what"' + (state.whatOpen ? " open" : "") + '><summary><span><div class="big">What just happened</div><div class="sm">' +
+      fan.length + " systems told by Boomi" + (live ? " in " + ((d._latencyMs || 0) / 1000).toFixed(1) + " s" : " · replayed run") +
+      '</div></span><span class="chev" aria-hidden="true">&#8250;</span></summary><ul class="steps">' + steps.map(function (s) {
+        var mode = String(s.mode || "").toLowerCase() === "live" ? "LIVE" : "STUB";
+        return '<li><span class="dot ' + esc(s.status) + '" aria-hidden="true"></span><span><div class="sys">' + esc(BR.SYSNAME[s.system] || s.system) + '</div><div class="act">' + esc(s.action || "") + "</div></span>" +
+          '<span class="tags"><span class="mt2 ' + esc(s.status) + '">' + esc(s.status) + '</span><span class="mt2 ' + mode + '">' + mode + "</span></span></li>";
+      }).join("") + "</ul>" + ((sm.warnings || []).length ? '<div class="notes">' + sm.warnings.map(esc).join("<br>") + "</div>" : "") +
+      '<div class="src"><span>BR_P5_Shift_Start_Orchestration · ' + esc(d.status || "") + "</span>" + BR.srcBadge(d) + "</div></details></div>";
+  }
+  function payloadOf(d, sys) { var s = (d.steps || []).find(function (x) { return x.system === sys && x.stage === "fanout"; }); return s ? BR.parseMaybe(s.payload) : null; }
+
+  /* =============== waiting screen =============== */
+  var ROT = ["Checking your induction…", "Checking your licence…", "Fitness-for-work gate…", "Reading the fleet from Data Hub…", "Finding your truck…", "Almost there…"];
+  function startWaiting(sub) {
+    var i = 0, t0 = performance.now();
+    $("rot").textContent = ROT[0]; $("rot").classList.remove("fade"); $("progSub").textContent = sub; $("elapsed").textContent = "0 s";
+    state.rotTimer = setInterval(function () { i = (i + 1) % ROT.length; $("rot").classList.add("fade"); setTimeout(function () { $("rot").textContent = ROT[i]; $("rot").classList.remove("fade"); }, 350); }, 2400);
+    state.tickTimer = setInterval(function () { var s = Math.round((performance.now() - t0) / 1000); $("elapsed").textContent = s + " s"; if (s === 15) $("progSub").textContent = "This can take up to a minute after a quiet spell. Stay at the crib."; }, 1000);
+  }
+  function stopWaiting() { clearInterval(state.rotTimer); clearInterval(state.tickTimer); }
+
+  /* =============== badge in =============== */
+  function renderWelcome() {
+    var o = OP, ok = o.INDUCTION_EXPIRY >= (M.asOf || "2026-10-22");
+    $("sWelcome").innerHTML =
+      '<div class="hero"><p class="hi">Boomi Resources · Red Ridge · ' + esc(PLAN.pit) + ' crib</p><h1>Morning, ' + esc(BR.OPERATORS[BADGE].first) + '</h1><div class="meta"><span class="pill">' + esc(o.CREW || "") + "</span><span>" + esc(PLAN.shift) + "</span></div></div>" +
+      '<div class="acard lift"><h3>Your badge</h3><dl class="kv"><dt>Name</dt><dd>' + esc(o.NAME) + "</dd><dt>Badge</dt><dd class='mono'>" + esc(o.BADGE) + "</dd><dt>Employer</dt><dd>" + esc(o.EMPLOYER) +
+      "</dd><dt>Role</dt><dd>" + esc(o.ROLE) + "</dd><dt>Licences</dt><dd>" + esc((o.LICENCES || []).join(", ")) + "</dd></dl></div>" +
+      '<div class="acard"><h3>Before your shift</h3><ul class="check">' +
+      '<li><span class="tick' + (ok ? "" : " bad") + '" aria-hidden="true">' + (ok ? "&#10003;" : "!") + '</span><span class="txt">Site induction<div class="sub">' + (ok ? "valid to " : "expired on ") + esc(BR.day(o.INDUCTION_EXPIRY, true)) + "</div></span></li>" +
+      '<li><span class="tick" aria-hidden="true">&#10003;</span><span class="txt">Haul truck licence<div class="sub">' + esc((o.LICENCES || []).filter(function (l) { return /cat|komatsu/i.test(l); }).join(", ")) + "</div></span></li>" +
+      '<li><span class="tick unk" aria-hidden="true">?</span><span class="txt">Fitness for work<div class="sub">checked at the gate when you badge in; only the outcome is kept</div></span></li></ul></div>' +
+      '<div class="acard"><h3>Today\'s plan</h3><div class="route"><div>Pit<b>' + esc(PLAN.pit) + "</b></div><div>Loader<b>" + esc(PLAN.loader) + "</b></div><div>Supervisor<b style=\"font-family:var(--sans)\">" + esc(PLAN.supervisor) + "</b></div></div></div>" +
+      '<button class="primary-cta" id="goBtn" type="button">Badge in</button><p class="small muted" style="text-align:center;margin:10px 16px 0">Boomi checks you in and assigns your truck.</p>';
+    $("goBtn").addEventListener("click", runShift);
+  }
+  function runShift() {
+    if (state.busy) return;
+    state.busy = true;
+    var my = ++state.runId;
+    show("sProgress"); startWaiting("Hang tight, " + BR.OPERATORS[BADGE].first + ". Boomi is checking you in.");
+    BR.product("shiftstart", { badge_id: BADGE, shift: "DAY", simulate_fitness_fail: state.fitFail ? "true" : "false", simulate_prestart_fail: state.preFail ? "true" : "false" })
+      .then(function (r) { return r; }, function (e) { return { data: { status: "ERROR", error: e && e.message } }; })
+      .then(function (r) {
+        if (my !== state.runId) return;
+        stopWaiting(); state.busy = false;
+        var d = r.data || {};
+        if (d.status === "STOOD_DOWN") renderStood(d);
+        else if (!(d.allocation || {}).assigned) renderFailed(d, "See your supervisor", "Badge-in did not complete.");
+        else renderDone(d);
+      });
+  }
+  function renderDone(d) {
+    var a = d.allocation || {}, msg = (payloadOf(d, "OPERATOR_APP") || {}).text || "", tag = a.taggedOut;
+    $("sDone").innerHTML =
+      '<div class="ready' + (tag ? " warn" : "") + '"><div class="ok" aria-hidden="true">' + (tag ? "!" : "&#10003;") + "</div><h1>You're cleared. Your truck is</h1><div class=\"tk\">" + esc(a.assigned) + '</div><div class="sm">' +
+      esc((a.model || "") + " · " + a.pit + " · loading at " + a.loadingAt) + (d.shiftStartId ? ' · <span class="mono">' + esc(d.shiftStartId) + "</span>" : "") + "</div></div>" + replayBanner(d) +
+      '<div class="acard ' + (BR.isLive(d) ? "lift" : "") + '">' + (tag ? '<div class="notice"><strong>' + esc(tag.fleetId) + " failed its pre-start:</strong> " + esc(tag.defect) + ". It is tagged out and the tyre bay has a ServiceNow incident. You have been moved to " + esc(a.assigned) + ".</div>" : "") +
+      '<div class="route"><div>Truck<b>' + esc(a.assigned) + "</b></div><div>Loading at<b>" + esc(a.loadingAt) + "</b></div><div>Parked at<b style=\"font-family:var(--sans);font-size:12.5px\">" + esc(a.location || "") + "</b></div></div>" +
+      '<p class="small muted" style="margin:10px 0 0">Access to ' + esc(a.assigned) + " and the North Pit haul roads is active for your shift; time recording has started.</p></div>" +
+      (msg ? '<div class="acard"><h3>Message from dispatch</h3><div class="welcome">' + esc(msg) + '</div><div class="welcome-from">Sent to your tablet by Boomi</div></div>' : "") +
+      whatHappened(d) + '<p class="small muted" style="text-align:center;margin:16px">Have a safe shift.</p>';
+    show("sDone");
+  }
+  function renderStood(d) {
+    var msg = (payloadOf(d, "OPERATOR_APP") || {}).text || "Please see your supervisor before starting your shift.";
+    $("sFailed").innerHTML = '<div class="failed"><div class="ic" aria-hidden="true">!</div><h1>' + esc(msg) + "</h1>" +
+      "<p>" + esc(d.standDownReason || "You are not cleared to start this shift") + ". " + esc(PLAN.supervisor) + " has been told and will find you at the crib.</p>" +
+      '<p class="small muted">Only the outcome is recorded, never any health detail.</p>' +
+      '<div class="btnrow" style="justify-content:center"><button class="ghost solid" type="button" id="callSup">Call ' + esc(PLAN.supervisor) + '</button><button class="ghost" type="button" id="tryAgain">Back</button></div>' +
+      '<div class="src" style="justify-content:center;gap:10px"><span>BR_P5 · ' + esc(d.status) + "</span>" + BR.srcBadge(d) + "</div></div>" + replayBanner(d) + whatHappened(d);
+    show("sFailed");
+    $("tryAgain").addEventListener("click", restart);
+    $("callSup").addEventListener("click", function () { this.textContent = PLAN.supervisor + " is on the way to the crib"; this.disabled = true; });
+  }
+  function renderFailed(d, title, text) {
+    $("sFailed").innerHTML = '<div class="failed"><div class="ic" aria-hidden="true">!</div><h1>' + esc(title) + "</h1><p>" + esc(text) + "</p>" +
+      (d && d.error ? '<div class="err">' + esc(d.error) + "</div>" : "") +
+      '<div class="btnrow" style="justify-content:center"><button class="ghost" type="button" id="tryAgain">Back</button></div>' +
+      (d && d._servedBy ? '<div class="src" style="justify-content:center;gap:10px"><span>' + esc(d.status || "") + "</span>" + BR.srcBadge(d) + "</div>" : "") + "</div>";
+    show("sFailed");
+    $("tryAgain").addEventListener("click", restart);
+  }
+
+  /* =============== shell =============== */
+  function restart() { state.runId++; state.busy = false; stopWaiting(); renderWelcome(); show("sWelcome"); }
+  function sheet(open) { $("app").classList.toggle("open", open); }
+  $("gear").addEventListener("click", function () { sheet(true); });
+  $("scrim").addEventListener("click", function () { sheet(false); });
+  $("closeSheet").addEventListener("click", function () { sheet(false); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") sheet(false); });
+  $("tFit").addEventListener("change", function () { state.fitFail = this.checked; });
+  $("tPre").addEventListener("change", function () { state.preFail = this.checked; });
+  $("restart").addEventListener("click", function () { sheet(false); restart(); });
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest && e.target.closest("[data-pseg] button");
+    if (!b || b.dataset.p === BADGE) return;
+    setOperator(b.dataset.p); restart();
+  });
+
+  /* presenter params (no operator in the URL): ?autorun=1&fitness=fail&prestart=fail&what=open */
+  var qp = {}; try { new URLSearchParams(location.search).forEach(function (v, k) { qp[k] = v; }); } catch (e) {}
+  if (/^(fail|no|not)/i.test(qp.fitness || "")) { state.fitFail = true; $("tFit").checked = true; }
+  if (/^(fail|no|bad)/i.test(qp.prestart || "")) { state.preFail = true; $("tPre").checked = true; }
+  state.whatOpen = /^(1|open|true)$/i.test(qp.what || "");
+  restart();
+  if (qp.autorun) setTimeout(runShift, 900);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Boomi Resources Flow Explorer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  .intro { padding: 26px 0 22px; }
+  .selector { position: sticky; top: 0; z-index: 10; background: var(--panel); background: color-mix(in srgb, var(--panel) 92%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+  .selector .wrap { display: flex; align-items: center; gap: 10px; padding-top: 10px; padding-bottom: 10px; flex-wrap: wrap; }
+  .selector .lbl { font: 600 12px var(--sans); text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+  .chip { font: 500 14px var(--sans); border: 1px solid var(--line-2); background: var(--panel); color: var(--ink); padding: 6px 14px; border-radius: 999px; cursor: pointer; }
+  .chip[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .stagenav { margin-left: auto; display: flex; gap: 4px; flex-wrap: wrap; }
+  .stagenav a { font-size: 13px; text-decoration: none; color: var(--ink-2); padding: 4px 8px; border-radius: 6px; }
+  .stagenav a:hover { background: var(--accent-soft); }
+  .stage { padding: 30px 0 6px; scroll-margin-top: 64px; }
+  .stage-h { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 14px; }
+  .stage-h > div:last-child { min-width: 0; }
+  .snum { flex: none; width: 36px; height: 36px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; font: 600 16px var(--serif); }
+  .stage-h h2 { margin: 2px 0 4px; font-size: 23px; }
+  .stage-h p { margin: 0; color: var(--ink-2); max-width: 860px; font-size: 14.5px; }
+  .src5 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .src { padding: 14px; font-size: 13px; min-width: 0; }
+  .src header { display: flex; justify-content: space-between; gap: 6px; align-items: center; margin-bottom: 8px; flex-wrap: wrap; }
+  .src header strong { font: 600 14.5px var(--serif); }
+  .src.SERVICENOW { border-top: 3px solid var(--sn); } .src.SAP_PM { border-top: 3px solid var(--sap); } .src.FLEET_MGMT { border-top: 3px solid var(--fleet); }
+  .src.OEM_TELEMATICS { border-top: 3px solid var(--oem); } .src.CREW_ROSTER { border-top: 3px solid var(--crew); }
+  .kv { display: grid; grid-template-columns: minmax(90px, 40%) 1fr; gap: 3px 8px; }
+  .kv .k { color: var(--muted); font: 11.5px var(--mono); word-break: break-all; }
+  .kv .v { font: 12.5px var(--mono); word-break: break-word; }
+  .kv .fix { display: block; color: var(--good); font-size: 11.5px; }
+  .callout { padding: 12px 14px; border-radius: 10px; background: var(--hub-soft); border: 1px solid var(--line); margin-bottom: 12px; font-size: 14px; }
+  .callout.warn { background: var(--warn-soft); }
+  .callout.bad { background: var(--bad-soft); }
+  .callout.sn { background: var(--sn-soft); border-left: 4px solid var(--sn); }
+  .tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 12px; }
+  .tile { padding: 12px 14px; }
+  .tile .v { font: 600 21px var(--serif); }
+  .tile .l { font-size: 12.5px; color: var(--muted); }
+  .tile.SERVICENOW { border-top: 3px solid var(--sn); } .tile.SAP_PM { border-top: 3px solid var(--sap); } .tile.FLEET_MGMT { border-top: 3px solid var(--fleet); }
+  .runner { display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 14px; align-items: start; }
+  .calls { display: flex; flex-direction: column; gap: 10px; }
+  .call { padding: 12px; }
+  .call h4 { margin: 0 0 2px; font: 600 14px var(--mono); }
+  .call .p { font-size: 12px; color: var(--muted); margin-bottom: 8px; overflow-wrap: anywhere; }
+  .call textarea { width: 100%; font: 12.5px var(--mono); padding: 7px 9px; border: 1px solid var(--line-2); border-radius: 7px; background: var(--panel-2); color: var(--ink); resize: vertical; min-height: 44px; }
+  .call .row { display: flex; gap: 8px; align-items: center; margin-top: 8px; flex-wrap: wrap; }
+  .viewer { padding: 12px; min-width: 0; }
+  .viewer .bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; font-size: 13px; }
+  .viewer .bar .ep { font: 12.5px var(--mono); color: var(--ink-2); word-break: break-all; }
+  .spark { height: 8px; border-radius: 4px; background: var(--hub); display: inline-block; vertical-align: middle; }
+  .fxc { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 0 0 14px; }
+  .fxc-col { border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; min-width: 0; }
+  .fxc-bad { background: var(--bad-soft); border-color: var(--bad); }
+  .fxc-good { background: var(--good-soft); border-color: var(--good); }
+  .fxc-h { font-weight: 600; font-size: .8rem; letter-spacing: .04em; text-transform: uppercase; margin-bottom: 8px; }
+  .fxc-bad .fxc-h { color: var(--bad); } .fxc-good .fxc-h { color: var(--good); }
+  .fxc-sum { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 6px 10px; font-family: var(--mono); }
+  .fxc-part { display: flex; flex-direction: column; } .fxc-part strong { font-size: 1.1rem; }
+  .fxc-op { font-size: 1.2rem; padding-bottom: 2px; }
+  .fxc-wrong { color: var(--bad); text-decoration: line-through wavy; } .fxc-right { color: var(--good); font-size: 1.45rem !important; }
+  .fxc p { margin: 10px 0 0; }
+  .lineage { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-top: 14px; }
+  .lineage .card { padding: 12px; font-size: 13px; }
+  .lineage h4 { margin: 0 0 6px; font: 600 11.5px var(--sans); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+  .lineage .mono { font-size: 11px; }
+  .syncbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+  .synccols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .synccols .card { padding: 12px; min-width: 0; }
+  .synccols h4 { margin: 0 0 8px; display: flex; gap: 8px; align-items: center; justify-content: space-between; flex-wrap: wrap; font: 600 14px var(--serif); }
+  .synccols table { font: 11.5px var(--mono); }
+  .synccols td { padding: 5px 6px; overflow-wrap: anywhere; }
+  .synccols tr.create td { background: var(--sn-soft); font-weight: 600; }
+  .synccols .was { color: var(--bad); text-decoration: line-through; }
+  .synccols .set { color: var(--good); }
+  .loop { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 10px; align-items: center; margin-bottom: 12px; }
+  .loop .card { padding: 12px 14px; font-size: 13.5px; }
+  .loop .ar { font: 600 22px var(--serif); color: var(--hub); text-align: center; }
+  #s6 .tbl-wrap td.mono { white-space: normal; overflow-wrap: anywhere; min-width: 190px; }
+  .idm td { font: 11.5px var(--mono); white-space: nowrap; }
+  .idm td.g { background: var(--hub-soft); font-weight: 600; }
+  @media (max-width: 1000px) { .src5, .synccols { grid-template-columns: repeat(2, minmax(0, 1fr)); } .runner { grid-template-columns: minmax(0, 1fr); } .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } .lineage { grid-template-columns: repeat(2, minmax(0, 1fr)); } .loop { grid-template-columns: minmax(0, 1fr); } .loop .ar { transform: rotate(90deg); } }
+  @media (max-width: 600px) { .src5, .lineage, .synccols { grid-template-columns: minmax(0, 1fr); } .tile .v { font-size: 17px; } .stagenav { margin-left: 0; } .fxc { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="topbar"><div class="wrap"><div class="logo"><span class="mark">BR</span> Boomi Resources <span class="sub">· Red Ridge</span></div><nav><a href="shift-start.html" data-route="/shift-start"><span class="act">Act 1 ·</span> Shift start</a><a href="index.html" data-route="/"><span class="act">Act 2 ·</span> Supervisor</a><a href="breakdown.html" data-route="/breakdown"><span class="act">Act 3 ·</span> Breakdown &amp; repair</a><a href="flow.html" class="on" data-route="/flow"><span class="act">Act 4 ·</span> Flow &amp; governance</a><span class="badge mock" id="dpBadge"><span class="dot"></span>data: checking</span><button class="iconbtn" id="theme" type="button">Dark mode</button></nav></div></div>
+
+<div class="intro">
+  <div class="wrap">
+    <p class="eyebrow">Act 4 · Data Product Flow &amp; Governance Explorer</p>
+    <h1>From five messy systems to one governed machine, and back again</h1>
+    <p>Follow one machine through the pipeline: raw extracts with four kinds of ID, cleansing, match and merge in Boomi Data Hub with a winning
+      system for every field, unit normalisation, the golden IDs synced back to ServiceNow, SAP and dispatch, the live data product calls, and the
+      products the assistant and the orchestrations are built on.</p>
+  </div>
+</div>
+
+<div class="selector">
+  <div class="wrap">
+    <span class="lbl">Machine</span>
+    <div role="tablist" id="mSel" style="display:flex;gap:6px;flex-wrap:wrap">
+      <button class="chip" role="tab" aria-selected="true" data-m="HT-214">HT-214</button>
+      <button class="chip" role="tab" aria-selected="false" data-m="HT-217">HT-217</button>
+      <button class="chip" role="tab" aria-selected="false" data-m="HT-221">HT-221</button>
+      <button class="chip" role="tab" aria-selected="false" data-m="WC-03">WC-03</button>
+    </div>
+    <nav class="stagenav" aria-label="Stages">
+      <a href="#s1">1 Raw</a><a href="#s2">2 Match &amp; merge</a><a href="#s3">3 Units</a><a href="#s4">4 Sync back</a><a href="#s5">5 APIs</a><a href="#s6">6 Products</a>
+    </nav>
+  </div>
+</div>
+
+<main class="wrap">
+  <section class="stage" id="s1">
+    <div class="stage-h"><div class="snum">1</div><div>
+      <h2>Raw records from five systems, side by side</h2>
+      <p>Every system names the machine its own way. First the four IDs across the whole fleet, then everything each system holds for the selected
+        machine, with dirty values in red and the rule <span class="mono small">BR_P1_Equipment_Ingest_Cleanse</span> applies underneath in green.</p>
+    </div></div>
+    <div class="tbl-wrap idm"><table id="idTbl"></table></div>
+    <div class="src5" id="srcCards" style="margin-top:14px"></div>
+    <h3 style="font-size:16px;margin:20px 0 8px">Cleansing and normalisation applied</h3>
+    <div class="tbl-wrap"><table id="cleanTbl"></table></div>
+    <div id="rejBox" style="margin-top:12px"></div>
+  </section>
+
+  <section class="stage" id="s2">
+    <div class="stage-h"><div class="snum">2</div><div>
+      <h2>Data Hub match, merge &amp; survivorship</h2>
+      <p>Model <strong>equipmentmaster</strong>, sources <span class="tag SAP_PM">SAP_PM</span> <span class="tag FLEET_MGMT">FLEET_MGMT</span>
+        <span class="tag OEM_TELEMATICS">OEM_TELEMATICS</span> <span class="tag SERVICENOW">SERVICENOW</span> <span class="tag CREW_ROSTER">CREW_ROSTER</span>.
+        Records match on any of <code>sapEquipmentNo</code>, <code>fleetId</code>, <code>oemSerial</code> or <code>cmdbCi</code> once cleansed; each field then takes the value from the system that owns it.</p>
+    </div></div>
+    <div class="callout" id="matchBox"></div>
+    <div class="tbl-wrap"><table id="survTbl"></table></div>
+    <div id="orphanBox" style="margin-top:12px"></div>
+    <div class="callout sn"><strong>CMDB and Data Hub, each doing its own job.</strong> The ServiceNow CMDB stays the system of record for onboard technology
+      (onboard computer, telematics gateway, collision avoidance, firmware) and for the CI relationships incident and change depend on: the
+      <code>onboardTech</code> row above is ServiceNow's value, untouched. Data Hub is the referee that keeps every system agreeing on which machine it is,
+      and it syncs both ways: stage 4 sends the golden IDs back so the CIs carry the SAP number and the clean fleet ID.</div>
+  </section>
+
+  <section class="stage" id="s3">
+    <div class="stage-h"><div class="snum">3</div><div>
+      <h2>Unit normalisation</h2>
+      <p>From the <code>production_availability</code> data product (<span class="mono small">BR_P3_Production_Availability_API</span>, live) and the breakdown triage.
+        The Komatsu truck reports payload in short tons and its feed reports fuel in US gallons; Cat telematics reports temperature in Fahrenheit. Site standard: tonnes, litres, Celsius.</p>
+    </div></div>
+    <div id="unitCompare"></div>
+    <div class="tiles" id="prodTiles"></div>
+    <div class="tbl-wrap"><table id="prodTbl"></table></div>
+    <div id="unitBox" style="margin-top:12px"></div>
+  </section>
+
+  <section class="stage" id="s4">
+    <div class="stage-h"><div class="snum">4</div><div>
+      <h2>Sync golden IDs back</h2>
+      <p>The outbound half of the master-data loop: <span class="mono small">BR_P8_Golden_Record_Sync</span> reads every golden record live from Data Hub, compares
+        it with what ServiceNow, SAP PM and dispatch hold today, and sends each system only what it is missing.</p>
+    </div></div>
+    <div class="loop">
+      <div class="card"><strong>Inbound (BR_P1):</strong> SAP, dispatch, telematics, ServiceNow and the roster feed Data Hub, which matches and merges them.</div>
+      <div class="ar" aria-hidden="true">⇄</div>
+      <div class="card"><strong>Outbound (BR_P8):</strong> ServiceNow CIs get <code>u_sap_equipment</code> + <code>u_fleet_id</code>, SAP gets <code>TIDNR</code> + <code>ZZ_CMDB_CI</code>, dispatch gets <code>SAP_EQUIPMENT</code> + <code>CMDB_CI</code>.</div>
+    </div>
+    <div class="syncbar"><button class="btn primary" id="syncBtn" type="button">Sync golden IDs back</button><span class="small muted" id="syncMeta">POST /api/v1/mine/golden-sync → /ws/simple/createBrgoldensync</span></div>
+    <div class="tiles" id="syncTiles"></div>
+    <div class="synccols" id="syncCols"><p class="empty">Press the button to run the sync.</p></div>
+  </section>
+
+  <section class="stage" id="s5">
+    <div class="stage-h"><div class="snum">5</div><div>
+      <h2>Live data product calls</h2>
+      <p>Each button calls the local facade, which proxies to the Boomi Web Services endpoint with credentials held server-side. If Boomi is unreachable
+        or answers with its own error, it falls back to the mock implementation of the same contract; the response says which served it and why.</p>
+    </div></div>
+    <div class="runner">
+      <div class="calls" id="calls"></div>
+      <div class="card viewer">
+        <div class="bar" id="vBar"><span class="muted">Run a call to see the response.</span></div>
+        <pre class="json" id="vOut">{}</pre>
+      </div>
+    </div>
+  </section>
+
+  <section class="stage" id="s6">
+    <div class="stage-h"><div class="snum">6</div><div>
+      <h2>The three data products, and what is built on them</h2>
+      <p>What was built, who owns it, and the rules each one enforces.</p>
+    </div></div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Data product</th><th>Owner / system of record</th><th>Boomi process</th><th>Endpoint</th><th>Refresh</th><th>Consumers</th><th>Data-quality rules</th></tr></thead>
+      <tbody>
+        <tr><td><strong>equipment_360</strong><br><span class="small muted">governed machine</span></td>
+          <td>Asset management; Data Hub <em>equipmentmaster</em>. Asset details, criticality, service plan: SAP_PM. Status, location: FLEET_MGMT. Hours: OEM_TELEMATICS. Onboard technology: SERVICENOW. Maintenance crew: CREW_ROSTER.</td>
+          <td class="mono small">BR_P1_Equipment_Ingest_Cleanse (ingest)<br>BR_P2_Equipment_360_API (serve)</td>
+          <td class="mono small">POST /api/v1/mine/equipment/360<br>&rarr; /ws/simple/queryBrequipment360</td>
+          <td>Scheduled ingest; Data Hub merges on arrival; Acts 1 and 3 write live status; API reads the golden record on request</td>
+          <td>Mine Operations Assistant (<code>get_equipment_360</code>), supervisor desk, all four orchestrations</td>
+          <td>Fleet IDs to HT-214 format; serials stripped of spaces and dashes; SAP numbers digits only; hours numeric; plant codes decoded; records with no ID rejected (NOT_AN_ASSET)</td></tr>
+        <tr><td><strong>production_availability</strong><br><span class="small muted">last shift per truck</span></td>
+          <td>Mine production. FLEET_MGMT cycles and downtime; OEM_TELEMATICS fuel.</td>
+          <td class="mono small">BR_P3_Production_Availability_API<br>uses [SUB] BR Operations Extract</td>
+          <td class="mono small">POST /api/v1/mine/production<br>&rarr; /ws/simple/queryBrproduction</td>
+          <td>Real time, on request; shift on every response</td>
+          <td>Mine Operations Assistant (<code>get_production_availability</code>), supervisor desk, breakdown triage</td>
+          <td>Short tons × 0.907185, US gal × 3.78541, HALF_UP; availability = (12 − down) / 12; lost tonnes × AUD 45; idle trucks costed at the fleet average t/h; <code>UNIT_MISMATCH</code></td></tr>
+        <tr><td><strong>maintenance_alerts</strong><br><span class="small muted">per machine, with owners</span></td>
+          <td>Maintenance planning. Golden records (live) plus the shared extract.</td>
+          <td class="mono small">BR_P4_Maintenance_Alerts_API<br>uses [SUB] BR Operations Extract</td>
+          <td class="mono small">POST /api/v1/mine/alerts<br>&rarr; /ws/simple/queryBralerts</td>
+          <td>Real time, on request</td>
+          <td>Mine Operations Assistant (<code>get_maintenance_alerts</code>), maintenance planning, data steward</td>
+          <td><code>SERVICE_OVERDUE</code>, <code>UNLINKED_TELEMETRY</code>, <code>UNLINKED_INCIDENT</code>, <code>UNLINKED_WORK</code>, <code>UNIT_MISMATCH</code>; an owner per alert</td></tr>
+      </tbody>
+    </table></div>
+    <div class="lineage">
+      <div class="card"><h4>Shared subprocess</h4><div class="mono">[SUB] BR Operations Extract</div><p class="small muted" style="margin:6px 0 0">One extract per system (SAP, ServiceNow, dispatch, telematics, inventory, roster) and one set of mining rules, reused by P3, P4, P5, P6, P7 and P8.</p></div>
+      <div class="card"><h4>Act 1 · shift start</h4><div class="mono">BR_P5_Shift_Start_Orchestration</div><p class="small muted" style="margin:6px 0 0">Operator checks, governed fleet read live, truck scoring, 6-way fan-out incl. a live Data Hub status write.</p></div>
+      <div class="card"><h4>Act 3 · breakdown + repair</h4><div class="mono">BR_P6 / BR_P7</div><p class="small muted" style="margin:6px 0 0">Serial → four IDs, data fixed first, 8 systems + receipt; Route on IN_REPAIR / TESTED / RELEASED back to standby.</p></div>
+      <div class="card"><h4>Act 4 · golden-ID sync</h4><div class="mono">BR_P8_Golden_Record_Sync</div><p class="small muted" style="margin:6px 0 0">Data Hub → ServiceNow CMDB, SAP PM and dispatch: only what each system is missing.</p></div>
+    </div>
+    <p class="small muted" style="margin-top:12px"><strong>Agent guardrails</strong> on top of all three: the Boomi Mine Operations Assistant never shares a worker's health information, never advises bypassing a safety control, lockout or isolation, and spend over <strong>AUD 20,000</strong> needs the site superintendent's approval.</p>
+  </section>
+</main>
+
+<footer class="foot"><div class="wrap">Boomi Resources demo · sample data only · <a href="breakdown.html" data-route="/breakdown">&larr; Act 3: breakdown &amp; repair</a> · <a href="shift-start.html" data-route="/shift-start">↺ Back to Act 1: shift start</a> · <a href="supervisor-desk.html" data-route="/supervisor-desk">Supervisor desk</a></div></footer>
+
+<script src="mock-bundle.js"></script>
+<script src="common.js"></script>
+<script src="config.js"></script>
+<script src="online.js"></script>
+<script>
+(function () {
+  "use strict";
+  var BR = window.BR, esc = BR.esc;
+  BR.initTheme(document.getElementById("theme"));
+  BR.routes();
+  var $ = function (id) { return document.getElementById(id); };
+  var current = "HT-214";
+  var SYS = [["SAP_PM", "SAP PM"], ["FLEET_MGMT", "Dispatch"], ["OEM_TELEMATICS", "OEM telematics"], ["SERVICENOW", "ServiceNow CMDB"], ["CREW_ROSTER", "Crew roster"]];
+
+  BR.health().then(function (h) {
+    var b = $("dpBadge");
+    if (!h) return BR.badge(b, "mock", "data: embedded", "Not signed in: recorded live Boomi data");
+    var dp = h.dataProducts || {}, keys = Object.keys(dp), live = keys.filter(function (k) { return dp[k].mode === "live"; }).length;
+    BR.badge(b, live === keys.length ? "live" : "mock", "data: " + (live === keys.length ? "Boomi live" : live ? live + "/" + keys.length + " live" : "mock fallback"),
+      keys.map(function (k) { return dp[k].process + ": " + dp[k].mode + " (" + dp[k].detail + ")"; }).join("\n"));
+  });
+
+  function v(x) { return x == null || x === "" ? '<span class="null">null</span>' : esc(x); }
+  function norm(x) { return String(x || "").toUpperCase().replace(/[^A-Z0-9]/g, ""); }
+
+  /* ---------------- stage 1 ---------------- */
+  function idTable(rows) {
+    function cell(raw, gold) { if (raw == null || raw === "") return '<td><span class="null">-</span></td>'; return "<td>" + (raw !== gold ? '<span class="dirty">' + esc(raw) + "</span>" : esc(raw)) + "</td>"; }
+    $("idTbl").innerHTML = "<thead><tr><th>Golden fleet ID</th><th>SAP TIDNR</th><th>SAP SERGE</th><th>Dispatch SERIAL</th><th>Telematics SERIAL</th><th>SN asset_tag</th><th>SN serial</th><th>SN u_sap_equipment</th><th>Golden SAP · serial · CI</th></tr></thead><tbody>" +
+      rows.map(function (r) {
+        var g = r.golden, f = r.fleet || {}, t = r.telematics || {}, s = r.servicenow || {};
+        return "<tr" + (r.fleetId === current ? ' style="outline:2px solid var(--accent);outline-offset:-2px"' : "") + "><td class='g'>" + esc(r.fleetId) + "</td>" + cell(r.sap.TIDNR, g.fleetId) + cell(r.sap.SERGE, g.oemSerial) +
+          cell(f.SERIAL, g.oemSerial) + (r.telematics ? cell(t.SERIAL, g.oemSerial) : '<td><span class="tag flag">no link</span></td>') +
+          (r.servicenow ? cell(s.asset_tag, g.fleetId) + cell(s.serial_number, g.oemSerial) + (s.u_sap_equipment ? cell(s.u_sap_equipment, g.sapEquipmentNo) : '<td><span class="dirty">(empty)</span></td>') : '<td colspan="3"><span class="tag flag">no CI</span></td>') +
+          "<td class='g'>" + esc(g.sapEquipmentNo) + " · " + esc(g.oemSerial) + " · " + esc(g.cmdbCi || "-") + "</td></tr>";
+      }).join("") + "</tbody>";
+  }
+  function kv(obj, fixes) {
+    if (!obj) return '<p class="muted">No record.</p>';
+    return '<div class="kv">' + Object.keys(obj).map(function (k) {
+      var i = fixes && fixes[k];
+      var dirty = i && i.kind !== "DECODED";
+      var val = Array.isArray(obj[k]) ? obj[k].join(", ") : (obj[k] === "" ? "(blank)" : obj[k]);
+      return '<span class="k">' + esc(k) + '</span><span class="v">' + (dirty ? '<span class="dirty">' + esc(JSON.stringify(val)) + "</span>" : v(val)) +
+        (i ? '<span class="fix">→ ' + (i.cleansed == null ? "dropped" : esc(i.cleansed)) + "</span>" : "") + "</span>";
+    }).join("") + "</div>";
+  }
+  function stage1(s) {
+    idTable(s.idMatrix || []);
+    var S = s.sources;
+    function fixmap(src) { var m = {}; (src.issues || []).forEach(function (i) { m[i.field] = i; }); return m; }
+    var notes = { SAP_PM: "Owns asset details, criticality and the service plan.", FLEET_MGMT: "Owns live status and location.", OEM_TELEMATICS: "Owns the hours meter; the serial is its only identifier.",
+      SERVICENOW: "Owns onboard technology (and the CI relationships for incident and change).", CREW_ROSTER: "Owns the responsible maintenance crew." };
+    $("srcCards").innerHTML = SYS.map(function (x) {
+      var src = S[x[0]] || {};
+      return '<div class="card src ' + x[0] + '"><header><strong>' + esc(src.label || x[1]) + '</strong><span class="tag ' + x[0] + '">' + x[0] + "</span></header>" +
+        (src.raw ? kv(src.raw, fixmap(src)) : '<p class="muted">' + esc(src.note || "No record.") + "</p>") +
+        '<p class="small muted" style="margin:8px 0 0">' + (src.recordId ? "Record " + esc(src.recordId) + ". " : "") + esc(notes[x[0]]) + "</p></div>";
+    }).join("");
+    var kindTag = { CLEANSED: "ok", DECODED: "HUB", STALE: "warm", UNIT: "warm", SYNC_BACK: "SERVICENOW" };
+    var all = [];
+    SYS.forEach(function (x) { ((S[x[0]] || {}).issues || []).forEach(function (i) { all.push(Object.assign({ sys: x[0] }, i)); }); });
+    $("cleanTbl").innerHTML = "<thead><tr><th>System</th><th>Field</th><th>Raw value</th><th>Cleansed value</th><th>Rule</th><th>Result</th></tr></thead><tbody>" +
+      all.map(function (i) {
+        return "<tr><td>" + BR.sysTag(i.sys) + "</td><td class='mono small'>" + esc(i.field) + "</td><td class='mono small'><span class='" + (i.kind === "DECODED" ? "" : "dirty") + "'>" + esc(i.raw === "" ? "(blank)" : i.raw) +
+          "</span></td><td class='mono small'>" + (i.cleansed == null ? '<span class="null">dropped</span>' : esc(i.cleansed)) + "</td><td>" + esc(i.rule) + "</td><td><span class='tag " + (kindTag[i.kind] || "HUB") + "'>" + esc(i.kind) + "</span></td></tr>";
+      }).join("") + "</tbody>";
+    $("rejBox").innerHTML = (s.rejectedAtIngest || []).map(function (r) {
+      return '<div class="callout bad"><strong>Rejected at ingest:</strong> ' + BR.sysTag(r.source) + " " + esc(r.record) + ' <span class="tag flag">' + esc(r.reason) + "</span> " + esc(r.detail) + ".</div>";
+    }).join("");
+  }
+
+  /* ---------------- stage 2 ---------------- */
+  function stage2(s) {
+    var m = s.match;
+    $("matchBox").innerHTML = "<strong>Matched on: " + (m.matchedOn || []).map(function (k) { return "<span class='tag MATCH'>" + esc(k) + "</span>"; }).join(" ") + "</strong> " +
+      esc(m.detail) + ". Golden record <span class='mono small'>" + esc(s.goldenRecordId) + "</span> links " +
+      SYS.filter(function (x) { return (s.sources[x[0]] || {}).recordId; }).map(function (x) { return BR.sysTag(x[0]) + " " + esc(s.sources[x[0]].recordId); }).join(" · ") + ".";
+    $("survTbl").innerHTML = "<thead><tr><th>Field</th>" + SYS.map(function (x) { return "<th>" + esc(x[1]) + "</th>"; }).join("") + "<th>Golden value</th><th>Winning system</th></tr></thead><tbody>" +
+      s.survivorship.map(function (r) {
+        return "<tr><td class='mono small'>" + esc(r.field) + (r.contested ? (r.matchKey ? " <span class='tag warm'>normalised</span>" : " <span class='tag flag'>conflict</span>") : "") + "</td>" +
+          SYS.map(function (x) {
+            var val = r[x[0]];
+            if (val == null || val === "") return "<td><span class='null'>-</span></td>";
+            var cls = "";
+            if (r.matchKey) cls = norm(val) === norm(r.golden) ? (String(val) === String(r.golden) ? "" : "") : "lost";
+            else if (x[0] === r.winner) cls = "win";
+            else if (r.contested && String(val).toLowerCase() !== String(r.golden || "").toLowerCase()) cls = "lost";
+            var shown = r.matchKey && String(val) !== String(r.golden) && norm(val) === norm(r.golden) ? '<span class="dirty">' + esc(val) + "</span>" : esc(val);
+            return "<td class='" + cls + "' style='font-family:var(--mono);font-size:12px'>" + shown + "</td>";
+          }).join("") +
+          "<td><strong>" + v(r.golden) + "</strong>" + (r.note ? '<div class="small muted">' + esc(r.note) + "</div>" : "") + "</td><td><span class='tag " + (r.matchKey ? "MATCH" : esc(r.winner)) + "'>" + esc(r.matchKey ? "MATCH KEY" : r.winner) + "</span></td></tr>";
+      }).join("") + "</tbody>";
+    var o = s.orphan;
+    $("orphanBox").innerHTML = o ? '<div class="callout warn"><strong>The orphan:</strong> telematics serial <code>' + esc(o.oemSerial) + "</code> (" + esc(o.feed) + ", " + esc(o.hoursMeter) +
+      " h, last seen " + esc(BR.when(o.lastSeen)) + ") matches no SAP number, fleet ID or CI, so Data Hub keeps it as its own golden record <span class='mono small'>" + esc(o.goldenRecordId) +
+      "</span> instead of guessing. <code>maintenance_alerts</code> raises <span class='tag flag'>UNLINKED_TELEMETRY</span> with a suggested match of <strong>" + esc(o.likely || "?") +
+      "</strong> (same model prefix, no telematics link) for the data steward; a breakdown alarm from it is REJECTED in Act 3.</div>" : "";
+  }
+
+  /* ---------------- stage 3 ---------------- */
+  function stage3(p) {
+    if (!p || !p.matched) { $("prodTbl").innerHTML = "<tbody><tr><td>No production returned.</td></tr></tbody>"; return; }
+    var t = p.totals, rows = p.trucks || [];
+    var sum = rows.reduce(function (a, r) { return a + Number((r.payloadReported || {}).value || 0); }, 0);
+    var mixed = rows.filter(function (r) { return (r.payloadReported || {}).unit !== "t"; });
+    $("unitCompare").innerHTML = '<div class="fxc"><div class="fxc-col fxc-bad"><div class="fxc-h">Adding the payloads as reported</div><div class="fxc-sum">' +
+      rows.map(function (r) { return '<span class="fxc-part"><span class="small muted">' + esc(r.fleetId) + "</span><strong>" + esc(BR.fmt(r.payloadReported.value, 0)) + " " + esc(r.payloadReported.unit) + "</strong></span>"; }).join('<span class="fxc-op">+</span>') +
+      '<span class="fxc-op">=</span><span class="fxc-part"><span class="small muted">unit?</span><strong class="fxc-wrong">' + esc(BR.fmt(sum, 0)) + " ???</strong></span></div>" +
+      '<p class="small">' + esc(mixed.map(function (r) { return r.fleetId; }).join(", ")) + " reports in short tons, so the sum is wrong in every unit (and the fuel in US gallons).</p></div>" +
+      '<div class="fxc-col fxc-good"><div class="fxc-h">Governed data product (Boomi)</div><div class="fxc-sum"><span class="fxc-part"><span class="small muted">last shift, tonnes</span><strong class="fxc-right">' + esc(BR.t(t.tonnes)) + "</strong></span></div>" +
+      '<p class="small">' + mixed.map(function (r) { return (r.unitConversions || []).map(function (c) { return esc(r.fleetId + " " + c.field + ": " + c.reported + " → " + c.normalised); }).join(" · "); }).join(" · ") +
+      ". The breakdown alarm's 228 °F becomes <strong>108.9 °C</strong> the same way: (228 − 32) × 5/9.</p></div></div>";
+    $("prodTiles").innerHTML =
+      '<div class="card tile"><div class="v">' + esc(BR.t(t.tonnes)) + '</div><div class="l">hauled last shift · ' + esc(p.shift) + '</div></div>' +
+      '<div class="card tile"><div class="v">' + esc(t.availabilityPct) + ' %</div><div class="l">average availability across ' + esc(t.trucks) + ' trucks</div></div>' +
+      '<div class="card tile"><div class="v">' + esc(BR.t(t.lostTonnes)) + '</div><div class="l">lost to downtime (idle trucks at the fleet average ' + esc(t.fleetAverageTonnesPerHour) + ' t/h)</div></div>' +
+      '<div class="card tile"><div class="v" style="color:var(--bad)">' + esc(BR.aud(t.lostValueAUD)) + '</div><div class="l">lost value at AUD ' + esc(p.marginAUDPerTonne) + ' per tonne</div></div>';
+    var max = Math.max.apply(null, rows.map(function (r) { return r.tonnes; }).concat([1]));
+    $("prodTbl").innerHTML = "<thead><tr><th>Truck</th><th class='num'>Reported payload</th><th class='num'>Tonnes</th><th></th><th class='num'>Fuel L</th><th class='num'>Avail %</th><th class='num'>Util %</th><th class='num'>t/h</th><th class='num'>Lost t</th><th class='num'>Lost AUD</th><th>Flags</th></tr></thead><tbody>" +
+      rows.map(function (r) {
+        var pr = r.payloadReported || {}, foreign = pr.unit !== "t", fuelConv = (r.unitConversions || []).find(function (c) { return c.field === "fuel"; });
+        return "<tr><td class='mono small'>" + esc(r.fleetId) + "</td><td class='num'>" + (foreign ? "<span class='dirty'>" + esc(BR.fmt(pr.value, 0) + " " + pr.unit) + "</span>" : esc(BR.fmt(pr.value, 0) + " t")) +
+          "</td><td class='num'><strong>" + esc(BR.fmt(r.tonnes, 1)) + "</strong></td><td style='width:90px'><span class='spark' style='width:" + Math.round(r.tonnes / max * 80) + "px'></span></td><td class='num'>" +
+          (fuelConv ? "<span class='dirty'>" + esc(fuelConv.reported) + "</span><br>" : "") + esc(r.fuelLitres == null ? "-" : BR.fmt(r.fuelLitres, 1)) + "</td><td class='num'>" + esc(r.availabilityPct) + "</td><td class='num'>" + esc(r.utilisationPct) +
+          "</td><td class='num'>" + esc(r.tonnesPerHour) + "</td><td class='num'>" + esc(BR.fmt(r.lostTonnes, 1)) + "</td><td class='num'>" + esc(BR.aud(r.lostValueAUD)) + "</td><td>" +
+          ((r.dataQualityFlags || []).length ? r.dataQualityFlags.map(function (x) { return "<span class='tag flag'>" + esc(x) + "</span>"; }).join(" ") : "<span class='tag ok'>clean</span>") + "</td></tr>";
+      }).join("") + "<tr><td colspan='2'><strong>Totals</strong></td><td class='num'><strong>" + esc(BR.fmt(t.tonnes, 1)) + "</strong></td><td></td><td></td><td class='num'><strong>" + esc(t.availabilityPct) +
+      "</strong></td><td></td><td></td><td class='num'><strong>" + esc(BR.fmt(t.lostTonnes, 1)) + "</strong></td><td class='num'><strong>" + esc(BR.aud(t.lostValueAUD)) + "</strong></td><td>" + BR.srcBadge(p) + "</td></tr></tbody>";
+    var dt = rows.filter(function (r) { return (r.downtime || []).length; });
+    $("unitBox").innerHTML = dt.map(function (r) {
+      return '<div class="callout ' + (r.lostValueAUD > 50000 ? "bad" : "warn") + '"><strong>' + esc(r.fleetId) + ":</strong> " + r.downtime.map(function (d) { return esc(d.minutes + " min from " + String(d.start).slice(11) + ", " + d.reason + (d.ref ? " (" + d.ref + ")" : "")); }).join("; ") +
+        " → " + esc(BR.t(r.lostTonnes)) + " = <strong>" + esc(BR.aud(r.lostValueAUD)) + "</strong>.</div>";
+    }).join("");
+  }
+
+  /* ---------------- stage 4: golden-ID sync ---------------- */
+  var SNAME = { SERVICENOW: "ServiceNow CMDB", SAP_PM: "SAP PM equipment", FLEET_MGMT: "Dispatch assets" };
+  function fmtSet(o) { return o ? Object.keys(o).map(function (k) { return k + "=" + o[k]; }).join(", ") : ""; }
+  function renderSync(d) {
+    var sm = d.summary || {}, ch = d.changes || {};
+    $("syncMeta").innerHTML = BR.srcBadge(d) + " " + esc(d.syncId || "") + " · " + esc(d.status || "") + " · " + esc(d.goldenRecords) + " golden records · " + esc(d._latencyMs != null ? d._latencyMs + " ms" : "");
+    $("syncTiles").innerHTML = ["SERVICENOW", "SAP_PM", "FLEET_MGMT"].filter(function (k) { return sm[k]; }).map(function (k) {
+      return '<div class="card tile ' + k + '"><div class="v">' + esc(sm[k].updates) + " updates" + (sm[k].creates ? " · " + esc(sm[k].creates) + " create" : "") + '</div><div class="l">' + BR.sysTag(k) + " " + esc(SNAME[k]) + "</div></div>";
+    }).join("") + '<div class="card tile"><div class="v">' + esc(d.goldenRecords) + '</div><div class="l">golden records read live from Data Hub</div></div>';
+    $("syncCols").innerHTML = ["SERVICENOW", "SAP_PM", "FLEET_MGMT"].filter(function (k) { return ch[k]; }).map(function (k) {
+      var step = (d.steps || []).find(function (s) { return s.system === k; }) || {}, op = (BR.parseMaybe(step.payload) || {}).operation || "";
+      return '<div class="card"><h4><span>' + esc(SNAME[k]) + "</span>" + BR.sysTag(k) + '</h4><div class="small muted mono" style="margin-bottom:6px">' + esc(op) + '</div><table><tbody>' + ch[k].map(function (c) {
+        return "<tr" + (c.action === "CREATE_CI" ? ' class="create"' : "") + "><td>" + esc(c.fleetId) + "<br><span class='muted'>" + esc(c.target) + "</span></td><td>" + (c.action === "CREATE_CI" ? "<span class='tag SERVICENOW'>CREATE_CI</span><br>" : "") +
+          "<span class='set'>" + esc(fmtSet(c.set)) + "</span>" + (c.was ? "<br><span class='was'>" + esc(fmtSet(c.was)) + "</span>" : "") + "</td></tr>";
+      }).join("") + "</tbody></table></div>";
+    }).join("");
+  }
+  $("syncBtn").addEventListener("click", function () {
+    var b = this; b.disabled = true; $("syncMeta").innerHTML = '<span class="spin"></span> BR_P8_Golden_Record_Sync is running…';
+    BR.product("goldensync", { target: "ALL" }).then(function (r) { renderSync(r.data || {}); }).finally(function () { b.disabled = false; });
+  });
+
+  /* ---------------- stage 5 ---------------- */
+  var CALLS = [
+    { kind: "e360", body: function () { return { fleet_id: current }; } },
+    { kind: "production", body: function () { return { fleet_id: current.indexOf("HT-") === 0 ? current : "ALL" }; } },
+    { kind: "alerts", body: function () { return { scope: "ALL" }; } }
+  ];
+  function renderCalls() {
+    $("calls").innerHTML = CALLS.map(function (c, i) {
+      var ep = BR.ENDPOINTS[c.kind];
+      return '<div class="card call"><h4>' + esc(ep.tool) + '</h4><div class="p">' + esc(ep.process) + "<br>" + esc(ep.facade) + "</div>" +
+        '<textarea id="body' + i + '" spellcheck="false" aria-label="Request body for ' + esc(ep.tool) + '">' + esc(JSON.stringify(c.body())) + "</textarea>" +
+        '<div class="row"><button class="btn primary" type="button" data-run="' + i + '">Run</button><span class="small muted" id="lat' + i + '"></span></div></div>';
+    }).join("");
+  }
+  $("calls").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-run]"); if (!b) return;
+    var i = +b.dataset.run, c = CALLS[i], payload;
+    try { payload = JSON.parse($("body" + i).value || "{}"); }
+    catch (err) { $("vBar").innerHTML = '<span class="tag flag">invalid JSON body</span>'; return; }
+    b.disabled = true;
+    $("vBar").innerHTML = '<span class="muted">Calling ' + esc(BR.ENDPOINTS[c.kind].wss) + "…</span>";
+    BR.product(c.kind, payload).then(function (r) {
+      var d = r.data || {}, ep = BR.ENDPOINTS[c.kind], sb = d._servedBy || "unknown";
+      var ms = d._latencyMs != null && sb !== "embedded-mock" ? d._latencyMs : r.ms;
+      $("lat" + i).textContent = sb + " · " + r.ms + " ms";
+      $("vBar").innerHTML = BR.srcBadge(d, "boomi live", sb === "embedded-mock" ? "embedded" : "mock fallback") + '<span class="ep">POST ' + esc(ep.facade) + " → " + esc(ep.wss) + "</span>" +
+        '<span class="small muted">server ' + ms + " ms · round trip " + r.ms + " ms</span>" +
+        (d._fallbackReason ? '<span class="small muted">fallback reason: ' + esc(d._fallbackReason) + "</span>" : "");
+      $("vOut").innerHTML = BR.jsonHTML(d);
+    }).finally(function () { b.disabled = false; });
+  });
+
+  /* ---------------- wiring ---------------- */
+  function load(id) {
+    current = id;
+    document.querySelectorAll("#mSel .chip").forEach(function (b) { b.setAttribute("aria-selected", b.dataset.m === id ? "true" : "false"); });
+    renderCalls();
+    BR.sources(id).then(function (s) { if (!s || !s.survivorship || current !== id) return; stage1(s); stage2(s); });
+  }
+  $("mSel").addEventListener("click", function (e) { var b = e.target.closest("[data-m]"); if (b) load(b.dataset.m); });
+  load(current);
+  BR.product("production", { fleet_id: "ALL" }).then(function (r) { stage3(r.data); });
+  var qp = {}; try { new URLSearchParams(location.search).forEach(function (val, k) { qp[k] = val; }); } catch (e) {}
+  if (qp.sync) setTimeout(function () { $("syncBtn").click(); }, 400);
+})();
+</script>
+</body>
+</html>

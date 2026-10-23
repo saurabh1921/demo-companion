@@ -1,0 +1,710 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Breakdown and Repair</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  .console { border-radius: 12px; background: #12171b; color: #dbe2e8; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; border: 1px solid #2b343b; }
+  .console .ch { display: flex; justify-content: space-between; align-items: center; gap: 8px; font: 600 11px var(--mono); color: #bea0f0; letter-spacing: .04em; text-transform: uppercase; }
+  .console .blink { width: 9px; height: 9px; border-radius: 50%; background: #f28b80; box-shadow: 0 0 0 0 rgba(242, 139, 128, .6); animation: alarm 1.2s ease-out infinite; }
+  @keyframes alarm { 70% { box-shadow: 0 0 0 8px rgba(242, 139, 128, 0); } 100% { box-shadow: 0 0 0 0 rgba(242, 139, 128, 0); } }
+  .console .code { font: 700 13px var(--mono); color: #f5c95c; }
+  .console .desc { font: 600 16px var(--serif); color: #fff; }
+  .console .rd { display: flex; align-items: baseline; gap: 8px; }
+  .console .rd b { font: 700 38px/1 var(--mono); color: #f28b80; }
+  .console .rd span { font: 13px var(--mono); color: #a8b3bb; }
+  .console dl { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 2px 12px; margin: 0; font: 11.5px var(--mono); }
+  .console dt { color: #8d979f; }
+  .console dd { margin: 0; overflow-wrap: anywhere; }
+  .console .unk { font: 11.5px var(--sans); color: #a8b3bb; border-top: 1px dashed #3a454e; padding-top: 7px; }
+  .serials { display: flex; flex-direction: column; gap: 5px; }
+  .serials button { text-align: left; border: 1px solid var(--line-2); background: var(--panel-2); color: var(--ink); border-radius: 9px; padding: 6px 9px; cursor: pointer; font: 12px var(--mono); display: flex; justify-content: space-between; gap: 6px; flex-wrap: wrap; }
+  .serials button small { font: 11px var(--sans); color: var(--muted); }
+  .serials button[aria-pressed="true"] { border-color: var(--oem); background: var(--oem-soft); box-shadow: inset 0 0 0 1px var(--oem); }
+  .idmap { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+  .idmap .idc { border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; background: var(--panel-2); display: flex; flex-direction: column; gap: 3px; min-width: 0; transition: all .25s; }
+  .idmap .idc b { font: 600 12.5px var(--mono); overflow-wrap: anywhere; }
+  .idmap .idc.on { border-color: var(--good); background: var(--good-soft); }
+  .idmap .idc.src { border-color: var(--oem); background: var(--oem-soft); }
+  .tri { display: flex; flex-direction: column; gap: 8px; }
+  .trib { border: 1px solid var(--line); border-radius: 9px; padding: 8px 10px; background: var(--panel-2); display: flex; flex-direction: column; gap: 5px; opacity: .45; transition: opacity .3s, border-color .3s; }
+  .trib.on { opacity: 1; }
+  .trib .th { display: flex; gap: 6px 8px; align-items: center; flex-wrap: wrap; font-size: 12.5px; }
+  .trib .th b { font-weight: 600; }
+  .conv { font: 600 15px var(--mono); }
+  .conv .was { color: var(--bad); text-decoration: line-through; text-decoration-color: var(--bad); font-weight: 400; }
+  .relapp { border: 1px solid var(--line-2); border-radius: 12px; background: var(--panel-2); padding: 10px 12px; display: flex; flex-direction: column; gap: 9px; }
+  .relapp .hh { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; align-items: baseline; }
+  .relapp .hh strong { font: 600 14px var(--serif); }
+  .relapp .hh span { font: 11px var(--mono); color: var(--muted); }
+  .rbtns { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+  .rbtns button { border: 1px solid var(--line-2); background: var(--panel); color: var(--ink); border-radius: 9px; padding: 8px 6px; font: 600 12.5px var(--sans); cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .rbtns button small { font: 10px var(--mono); color: var(--muted); font-weight: 400; }
+  .rbtns button.next:not(:disabled) { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+  .rbtns button.done { border-color: var(--good); background: var(--good-soft); color: var(--good); }
+  .rbtns button:disabled:not(.done) { opacity: .5; cursor: default; }
+  .rrow { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .linkbtn { background: none; border: 0; padding: 0; font: 11.5px var(--mono); color: var(--muted); cursor: pointer; text-decoration: underline dotted; }
+  .linkbtn:disabled { opacity: .5; cursor: default; }
+  @media (max-width: 420px) { .rbtns { grid-template-columns: minmax(0, 1fr); } }
+  .events { display: flex; flex-direction: column; gap: 10px; }
+  .ev { border: 1px solid var(--line); border-radius: 10px; padding: 9px 10px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .ev .eh { display: flex; gap: 6px 8px; align-items: center; flex-wrap: wrap; }
+  .ev .eh h3 { font: 600 13.5px var(--sans); margin: 0; }
+  .ev .eh .mono { font-size: 11px; color: var(--muted); overflow-wrap: anywhere; }
+  .route { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 12px; color: var(--ink-2); }
+  .rpaths { display: flex; flex-wrap: wrap; gap: 5px; }
+  .rp { font: 600 10.5px var(--mono); padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line-2); color: var(--muted); background: var(--panel-2); transition: all .25s; }
+  .rp.fired { border-color: var(--accent); background: var(--accent); color: var(--accent-ink); }
+  .rp.dim { opacity: .45; text-decoration: line-through; }
+  .evsteps { display: flex; flex-direction: column; gap: 5px; }
+  .ev.old { background: var(--panel-2); }
+  .ev.old .codew, .ev.old .evwait, .ev.old .evsteps { display: none; }
+  .ev .eh .tg { margin-left: auto; font: 11px var(--mono); color: var(--accent); background: none; border: 0; cursor: pointer; padding: 0; }
+  .ev:not(.old) .eh .tg { display: none; }
+  .track { display: flex; flex-direction: column; gap: 8px; }
+  .hist { font: 10.5px var(--mono); color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+  .hist span { padding: 1px 6px; border-radius: 4px; background: var(--panel); border: 1px solid var(--line); }
+  .hist span.cur { border-color: currentColor; color: var(--ink); font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="topbar"><div class="wrap"><div class="logo"><span class="mark">BR</span> Boomi Resources <span class="sub">· Red Ridge</span></div><nav><a href="shift-start.html" data-route="/shift-start"><span class="act">Act 1 ·</span> Shift start</a><a href="index.html" data-route="/"><span class="act">Act 2 ·</span> Supervisor</a><a href="breakdown.html" class="on" data-route="/breakdown"><span class="act">Act 3 ·</span> Breakdown &amp; repair</a><a href="flow.html" data-route="/flow"><span class="act">Act 4 ·</span> Flow &amp; governance</a><span class="badge mock" id="dpBadge"><span class="dot"></span>breakdown: checking</span><button class="iconbtn" id="theme" type="button">Dark mode</button></nav></div></div>
+
+<div class="intro">
+  <div class="wide">
+    <p class="eyebrow">Act 3 · Breakdown to repair, orchestrated by Boomi</p>
+    <h1>The alarm only knows a serial number. Boomi knows the truck.</h1>
+    <p>07:42. Cat VisionLink raises a high coolant temperature alarm for serial CAT0793FKL1234, in Fahrenheit. Boomi resolves the serial to all four
+      IDs in Data Hub, fixes the data first (converts the reading, links the operator's existing ServiceNow incident instead of opening a duplicate,
+      extends the open SAP work order), reserves parts, costs the downtime in tonnes and dollars, then tells eight systems. Repair events from the
+      maintainer's tablet then bring the truck back: in repair, tested, released.</p>
+  </div>
+</div>
+
+<div class="ctlbar">
+  <div class="wide">
+    <div class="ctl"><span class="lbl">Parts</span>
+      <div class="seg" role="group" aria-label="Parts availability">
+        <button type="button" id="partsOk" aria-pressed="true">In stock</button>
+        <button type="button" id="partsShort" class="bad" aria-pressed="false">Short</button>
+      </div></div>
+    <div class="ctl"><span class="lbl">Playback</span>
+      <div class="seg" role="group" aria-label="Playback speed">
+        <button type="button" id="sp1" aria-pressed="true">×1</button>
+        <button type="button" id="sp3" aria-pressed="false">×3</button>
+      </div></div>
+    <span class="sp"></span>
+    <span class="st" id="runStatus" hidden></span>
+    <button class="btn" id="resetBtn" type="button">Reset</button>
+  </div>
+</div>
+
+<main class="wide stage3">
+  <div class="col col-app">
+    <section class="panel" aria-labelledby="app-h">
+      <div class="phead"><h2 id="app-h"><span class="tag OEM_TELEMATICS" style="margin-right:6px">OEM_TELEMATICS</span>Telematics alarm</h2><span class="sub">source · Cat VisionLink fault feed</span></div>
+      <div class="pbody">
+        <div class="console" id="console" data-src="alarm"></div>
+        <div data-src="oem_serial">
+          <div class="flbl">Alarm from serial</div>
+          <div class="serials" id="serials" role="group" aria-label="Telematics serial"></div>
+        </div>
+        <div class="ver" data-src="parts" id="partsChip"></div>
+        <button class="pcheck" id="goBtn" type="button">Send alarm to Boomi</button>
+        <div class="codew">
+          <div class="codeh"><span>Outbound request</span><span class="mono">POST /api/v1/mine/breakdown</span></div>
+          <pre class="json req" id="req"></pre>
+          <div class="codeh" style="border-top:1px solid rgba(255,255,255,.08);border-bottom:0"><span>proxied to</span><span class="mono">/ws/simple/createBrbreakdown</span></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="col col-boomi">
+    <section class="panel" aria-labelledby="boomi-h">
+      <div class="phead"><h2 id="boomi-h">Boomi</h2><span class="sub">BR_P6_Breakdown_Response_Orchestration</span><span class="badge mock" id="servedBadge" hidden></span></div>
+      <div class="pbody"><div id="pipeline"></div></div>
+    </section>
+    <section class="panel" aria-labelledby="rel-h" id="relPanel">
+      <div class="phead"><h2 id="rel-h">Repair events · return to service</h2><span class="sub">BR_P7_Return_To_Service · event-driven</span><span class="badge mock" id="relBadge" hidden></span></div>
+      <div class="pbody">
+        <div class="relapp" id="relapp"></div>
+        <div class="events" id="events"></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="col col-board">
+    <section class="panel" aria-labelledby="board-h">
+      <div class="phead"><h2 id="board-h">Fleet board · North Pit</h2><span class="sub" id="boardSub">dispatch · Data Hub status</span></div>
+      <div class="pbody">
+        <div class="fleet" id="fleet"></div>
+        <div class="legend"><span><i style="background:var(--accent)"></i>Standby</span><span><i style="background:var(--good)"></i>Operating</span><span><i style="background:var(--bad)"></i>Down</span><span><i style="background:var(--warn)"></i>In repair / tested</span></div>
+      </div>
+    </section>
+    <div class="col" style="gap:16px">
+      <section class="panel" aria-labelledby="trk-h">
+        <div class="phead"><h2 id="trk-h">Work tracking</h2><span class="sub">ServiceNow incident · SAP work order · parts</span></div>
+        <div class="pbody track" id="track"></div>
+      </section>
+      <section class="panel" aria-labelledby="sys-h">
+        <div class="phead"><h2 id="sys-h">Systems updated</h2><span class="sub" id="sysCount">0 / 8</span></div>
+        <div class="pbody"><div class="sysgrid" id="sysgrid"></div></div>
+      </section>
+      <section class="panel" aria-labelledby="q-h">
+        <div class="phead"><h2 id="q-h">Exceptions queue</h2><span class="sub">data steward · stores · supervisor</span></div>
+        <div class="pbody" id="queue"></div>
+      </section>
+      <section class="panel" aria-labelledby="log-h">
+        <div class="phead"><h2 id="log-h">Process log</h2><span class="sub">Notify steps</span></div>
+        <div class="pbody"><div class="plog" id="plog"></div></div>
+      </section>
+    </div>
+  </div>
+</main>
+
+<div class="wide">
+  <section class="card handoff" id="handoff" aria-live="polite"></section>
+  <div class="footnote">
+    <h3>What is real here</h3>
+    <p><strong>Send alarm to Boomi</strong> calls the deployed process <span class="mono small">BR_P6_Breakdown_Response_Orchestration</span> through
+      <span class="mono small">/ws/simple/createBrbreakdown</span>. Resolving the serial is a <strong>live</strong> Data Hub query on
+      <span class="mono small">equipmentmaster</span>, and marking the truck <span class="mono small">DOWN</span> is a <strong>live</strong> Data Hub upsert.
+      Triage runs on the shared <span class="mono small">[SUB] BR Operations Extract</span>, the same subprocess the data products use. Every repair
+      button posts a live event to <span class="mono small">BR_P7_Return_To_Service</span> (<span class="mono small">/ws/simple/updateBrrepairstatus</span>),
+      whose Route step fires one path per status; RELEASED writes the truck back to <span class="mono small">STANDBY</span> in Data Hub. ServiceNow,
+      SAP PM, inventory, dispatch, the crew roster, short-interval control and messaging are <em>stub</em> sends shaped like each system's API.
+      Offline, or as a file, the page replays traces recorded from the live processes.</p>
+  </div>
+</div>
+<footer class="foot"><div class="wrap">Boomi Resources demo · sample data only · <a href="index.html" data-route="/">&larr; Act 2: the shift supervisor</a> · <a href="flow.html" data-route="/flow">Next: Act 4, flow &amp; governance &rarr;</a></div></footer>
+
+<script src="mock-bundle.js"></script>
+<script src="common.js"></script>
+<script src="config.js"></script>
+<script src="online.js"></script>
+<script>
+(function () {
+  "use strict";
+  var BR = window.BR, esc = BR.esc, M = window.BR_MOCK || {};
+  var $ = function (id) { return document.getElementById(id); };
+  BR.initTheme($("theme"));
+  BR.routes();
+
+  /* ---------------- reference ---------------- */
+  var ALARM = M.alarm || { oem_serial: "CAT0793FKL1234", alarm_code: "E-360-2", description: "High engine coolant temperature", reading: "228", reading_unit: "F" };
+  var SERIALS = [
+    { serial: ALARM.oem_serial, feed: "Cat VisionLink", note: "HT-214's gateway (Data Hub knows it)" },
+    { serial: "CAT0777GXX9911", feed: "Cat VisionLink", note: "swapped gateway: no machine knows it" }
+  ];
+  var MACH = {}; (M.machines || []).forEach(function (m) { MACH[m.fleetId] = m; });
+  var START = M.fleetStart || [];
+  var ORDER = ["HT-214", "HT-209", "HT-217", "HT-221", "EX-07", "WC-03"];
+  var SYSTEMS = [
+    { sys: "SERVICENOW", label: "ServiceNow", action: "Escalate + link incident" },
+    { sys: "SAP_PM", label: "SAP PM", action: "Extend work order" },
+    { sys: "INVENTORY", label: "Inventory", action: "Reserve / reorder parts" },
+    { sys: "FLEET_MGMT", label: "Dispatch", action: "Mark truck down" },
+    { sys: "DATA_HUB", label: "Data Hub", action: "Golden record DOWN (live)" },
+    { sys: "CREW_ROSTER", label: "Crew roster", action: "Dispatch maintainer" },
+    { sys: "PRODUCTION", label: "Short-interval control", action: "Re-plan the shift" },
+    { sys: "MESSAGING", label: "Radio / SMS", action: "Notify supervisor + operator" }
+  ];
+  var STAGES = [
+    { id: "receive", title: "Receive the alarm", shape: "Web Services Server listener (createBrbreakdown)", mode: "live", note: "The OEM feed knows a serial, a fault code and a reading in its own unit. Nothing else." },
+    { id: "resolve", title: "Resolve the serial to four IDs", shape: "REST: BR_DataHub_EquipmentMaster_Query_Operation", mode: "live", note: "Data Hub equipmentmaster by OEM serial (dashes and spaces ignored), LIVE. Unknown serial → REJECTED, routed to the data steward." },
+    { id: "triage", title: "Triage: fix the data first", shape: "Process Call: [SUB] BR Operations Extract + Data Process: triage", mode: "live", note: "Convert the reading, link the open incident and work order instead of duplicating them, reserve parts, cost the downtime." },
+    { id: "fanout", title: "Fan out to every system", shape: "Branch (8 paths + receipt)", mode: "live", note: "One Branch path per system that needs to act on the breakdown." },
+    { id: "receipt", title: "Assemble receipt", shape: "Data Process: Assemble receipt", mode: "live", note: "One response: the machine, the triage, warnings and the maintainer's next action." }
+  ];
+  var REL = [
+    { status: "IN_REPAIR", label: "In repair", sub: "maintainer on site" },
+    { status: "TESTED", label: "Tested", sub: "load test passed" },
+    { status: "RELEASED", label: "Released", sub: "back to dispatch" }
+  ];
+
+  /* ---------------- state ---------------- */
+  var state = { serial: ALARM.oem_serial, short: false, speed: 1, busy: false, runId: 0, queue: [], log: [], sys: {}, board: {}, last: null, autoRel: false, evN: 0,
+    inc: null, wo: null, parts: null };
+  var rs = { stage: 0, busy: false, auto: false, times: [], last: null };
+  var CANCEL = { cancelled: true };
+  function wait(ms) {
+    var id = state.runId;
+    return new Promise(function (res, rej) { setTimeout(function () { if (id === state.runId) res(); else rej(CANCEL); }, Math.max(16, ms / state.speed)); });
+  }
+  function pad(n) { return (n < 10 ? "0" : "") + n; }
+  function clock() { var d = new Date(); return pad(d.getHours()) + ":" + pad(d.getMinutes()) + ":" + pad(d.getSeconds()); }
+  var sysTag = BR.sysTag, aud = BR.aud, P = BR.parseMaybe;
+  function modeTag(mode, replay) {
+    if (mode === "live") return '<span class="mtag ' + (replay ? "replay" : "live") + '">' + (replay ? "LIVE · REPLAYED" : "LIVE") + "</span>";
+    return '<span class="mtag stub">STUB</span>';
+  }
+  function stateOf(status) { return status === "FAILED" ? "fail" : status === "WARN" ? "warn" : "done"; }
+
+  /* ---------------- alarm source ---------------- */
+  function renderSource() {
+    $("console").innerHTML = '<div class="ch"><span>Cat VisionLink · fault event</span><span class="blink" aria-hidden="true"></span></div>' +
+      '<div><span class="code">' + esc(ALARM.alarm_code) + '</span> <span class="desc">' + esc(ALARM.description) + "</span></div>" +
+      '<div class="rd"><b>' + esc(ALARM.reading) + "°" + esc(ALARM.reading_unit) + "</b><span>coolant · engine running · severity unknown to the feed</span></div>" +
+      "<dl><dt>serial</dt><dd>" + esc(state.serial) + "</dd><dt>received</dt><dd>22 Oct 2026 · 07:42 AWST</dd><dt>site</dt><dd>RR01</dd></dl>" +
+      '<div class="unk">The feed has no fleet ID, no SAP number and no ServiceNow CI. It does not know which truck this is.</div>';
+    $("serials").innerHTML = SERIALS.map(function (s) {
+      return '<button type="button" data-s="' + s.serial + '" aria-pressed="' + (s.serial === state.serial) + '"' + (state.busy ? " disabled" : "") + "><span>" + esc(s.serial) + "</span><small>" + esc(s.note) + "</small></button>";
+    }).join("");
+    $("partsChip").className = "ver" + (state.short ? " bad" : "");
+    $("partsChip").innerHTML = state.short ? '<span aria-hidden="true">!</span><b>Upper radiator hose 245-8442</b><span class="vs">none at RR01</span>'
+      : '<span aria-hidden="true">✓</span><b>Repair kit E-360-2</b><span class="vs">all parts at RR01</span>';
+  }
+  function request() {
+    return { oem_serial: state.serial, alarm_code: ALARM.alarm_code, reading: String(ALARM.reading), reading_unit: ALARM.reading_unit, simulate_parts_shortage: state.short ? "true" : "false" };
+  }
+  function renderRequest() {
+    $("req").innerHTML = BR.jsonHTML(request()).split("\n").map(function (l) {
+      var m = /<span class="k">&quot;(\w+)&quot;<\/span>/.exec(l);
+      return m ? '<span class="fl" data-fld="' + m[1] + '">' + l + "</span>" : l;
+    }).join("\n");
+  }
+  function lightReq(key, on) { var n = $("req").querySelector('[data-fld="' + key + '"]'); if (n) { if (on) n.setAttribute("data-lit", "1"); else n.removeAttribute("data-lit"); } }
+  function lightSrc(key, on) { var n = document.querySelector('[data-src="' + key + '"]'); if (n) n.classList.toggle("lit", !!on); }
+  function clearLit() {
+    document.querySelectorAll("[data-src].lit").forEach(function (n) { n.classList.remove("lit"); });
+    $("req").querySelectorAll("[data-lit]").forEach(function (n) { n.removeAttribute("data-lit"); });
+  }
+
+  /* ---------------- pipeline ---------------- */
+  function buildPipeline() {
+    $("pipeline").innerHTML = STAGES.map(function (s, i) {
+      return '<div class="srow" data-state="idle" id="st-' + s.id + '"><div class="rail"><div class="dot"></div>' + (i < STAGES.length - 1 ? '<div class="ln"></div>' : "") + "</div>" +
+        '<div class="sbody"><div class="stitle"><h3>' + esc(s.title) + '</h3><span id="mt-' + s.id + '">' + modeTag(s.mode) + "</span></div>" +
+        '<div class="shape" id="sh-' + s.id + '">' + esc(s.shape) + "</div>" +
+        '<div class="snote">' + esc(s.note) + '</div><div class="detail" id="dt-' + s.id + '"></div></div></div>';
+    }).join("");
+  }
+  function setStage(id, st) { $("st-" + id).setAttribute("data-state", st); }
+  function detail(id, html) { $("dt-" + id).innerHTML = html; }
+  function meta(id, step, replay) {
+    if (!step) return;
+    if (step.boomiStep) $("sh-" + id).textContent = step.boomiStep;
+    if (step.mode) $("mt-" + id).innerHTML = modeTag(step.mode, replay && step.mode === "live");
+  }
+
+  /* ---------------- board + work tracking ---------------- */
+  function initBoard() {
+    state.board = {};
+    START.forEach(function (f) { state.board[f.fleetId] = { status: f.status, location: f.location, note: "" }; });
+    if (state.board["HT-214"]) { state.board["HT-214"].status = "OPERATING"; state.board["HT-214"].location = "North Pit haul road · loaded"; state.board["HT-214"].note = "Sam Taylor"; }
+    if (state.board["EX-07"]) state.board["EX-07"].note = "loading";
+    renderBoard();
+  }
+  function renderBoard(flash) {
+    $("fleet").innerHTML = ORDER.filter(function (id) { return state.board[id]; }).map(function (id) {
+      var b = state.board[id], m = MACH[id] || {};
+      return '<div class="truck' + (flash === id ? " flash" : "") + '" data-st="' + esc(b.status) + '"><div class="th"><span class="tid">' + esc(id) + "</span>" + BR.truckSVG(m.equipmentClass) + "</div>" +
+        '<div class="tm">' + esc(String(m.assetName || "").replace(/^.*\((.*)\)$/, "$1")) + "</div>" + BR.st(b.status) +
+        '<div class="tl">' + esc(b.location || "") + "</div>" + (b.note ? '<div class="op">' + esc(b.note) + "</div>" : "") + "</div>";
+    }).join("");
+  }
+  function initTrack() {
+    state.inc = { number: "INC0012871", state: "New", priority: "3", desc: "HT-214 temp gauge reading high, operator parked up", linked: null, hist: ["New · P3 (operator, 01:55)"], note: "raised by the night-shift operator · not linked to any work order" };
+    state.wo = { number: "4000123", status: "REL", desc: "Cooling system - coolant weep at upper radiator hose", cost: 1850, linked: null, hist: ["REL (21 Oct 22:40)"], note: "est. AUD 1,850.00 · not linked to any incident" };
+    state.parts = null; renderTrack();
+  }
+  function renderTrack(flash) {
+    var i = state.inc, w = state.wo;
+    $("track").innerHTML =
+      '<div class="snrec' + (flash === "inc" ? " recflash" : "") + '"><div class="sh"><span class="tbl">ServiceNow · incident</span><b>' + esc(i.number) + "</b>" + BR.st(i.state, String(i.state).toUpperCase() + " · P" + i.priority) + "</div>" +
+      '<div class="sd">' + esc(i.desc) + '</div><div class="sm">cmdb_ci CI0081422 · u_fleet_id HT-214' + (i.linked ? " · u_sap_work_order " + esc(i.linked) : "") + "</div>" +
+      '<div class="sm">' + esc(i.note) + '</div><div class="hist">' + i.hist.map(function (h, k) { return '<span class="' + (k === i.hist.length - 1 ? "cur" : "") + '">' + esc(h) + "</span>"; }).join("→") + "</div></div>" +
+      '<div class="saprec' + (flash === "wo" ? " recflash" : "") + '"><div class="sh"><span class="tbl">SAP PM · work order</span><b>' + esc(w.number) + "</b>" + BR.st(w.status === "IN PROCESS" ? "IN_PROCESS" : w.status, w.status) + "</div>" +
+      '<div class="sd">' + esc(w.desc) + '</div><div class="sm">equipment 10004521' + (w.linked ? " · external ref " + esc(w.linked) : "") + "</div>" +
+      '<div class="sm">' + esc(w.note) + '</div><div class="hist">' + w.hist.map(function (h, k) { return '<span class="' + (k === w.hist.length - 1 ? "cur" : "") + '">' + esc(h) + "</span>"; }).join("→") + "</div></div>" +
+      (state.parts ? '<table class="mt"><thead><tr><th>Part</th><th class="num">Qty</th><th class="num">At RR01</th><th>Action</th></tr></thead><tbody>' + state.parts.map(function (p) {
+        return "<tr><td>" + esc(p.part) + '<br><span class="rs">' + esc(p.description) + '</span></td><td class="num">' + esc(p.quantity) + '</td><td class="num">' + esc(p.onHand) + "</td><td>" + BR.st(p.action) + "</td></tr>";
+      }).join("") + "</tbody></table>" : '<p class="empty">Parts: nothing reserved yet.</p>');
+  }
+
+  /* ---------------- systems / queue / log ---------------- */
+  function renderSystems() {
+    var n = 0;
+    $("sysgrid").innerHTML = SYSTEMS.map(function (s) {
+      var v = state.sys[s.sys] || { state: "idle", text: "waiting", detail: s.action };
+      if (v.state === "ok" || v.state === "warn") n++;
+      return '<div class="systile ' + s.sys + '" data-state="' + v.state + '"><div class="sh"><span class="sn">' + esc(s.label) + '</span><span class="ss">' + esc(v.text) + '</span></div><div class="sd">' + esc(v.detail) + "</div></div>";
+    }).join("");
+    $("sysCount").textContent = n + " / " + SYSTEMS.length;
+  }
+  function sysNote(sys, txt) { if (state.sys[sys]) { state.sys[sys].detail = txt; renderSystems(); } }
+  function addLog(level, msg) { state.log.unshift({ t: clock(), level: level, msg: msg }); if (state.log.length > 100) state.log.pop(); renderLog(); }
+  function renderLog() {
+    $("plog").innerHTML = state.log.length ? state.log.map(function (l) {
+      return '<div class="ll"><span class="t">' + l.t + '</span><span class="lv ' + l.level + '">' + l.level + '</span><span class="m">' + esc(l.msg) + "</span></div>";
+    }).join("") : '<p class="empty">No executions yet.</p>';
+  }
+  function renderQueue() {
+    $("queue").innerHTML = state.queue.length ? state.queue.map(function (q) {
+      return '<div class="qi ' + (q.kind || "") + '"><div class="fn">' + esc(q.file) + '</div><div class="why">' + esc(q.why) + "</div><details><summary>Envelope</summary>" + BR.payloadHTML(q.body) + "</details></div>";
+    }).join("") : '<p class="empty">Empty. An unknown serial lands here for the data steward, and a short part for stores.</p>';
+  }
+  function laneSummary(s, d) {
+    var p = P(s.payload) || {}, t = d.triage || {};
+    if (typeof p !== "object") p = {};
+    switch (s.system) {
+      case "SERVICENOW": return (p.number || "") + " P" + (p.priority || "2") + " · linked to SAP " + (p.u_sap_work_order || "");
+      case "SAP_PM": return (p.order || "") + " extended · est. " + aud(p.estimated_cost_AUD);
+      case "INVENTORY": return p.supply || p.parts || "";
+      case "FLEET_MGMT": return "DOWN · back in ~" + (p.estimatedReturnHours || "?") + " h";
+      case "DATA_HUB": return "Golden record DOWN · Breakdown - North Pit haul road";
+      case "CREW_ROSTER": return (p.maintainer || "") + " → " + (p.machine || "") + " (" + (p.workOrder || "") + ")";
+      case "PRODUCTION": return "Re-plan: " + (p.lostTonnes || "") + " t / " + aud(p.lostValueAUD) + " at risk";
+      case "MESSAGING": return "To " + (p.to || "") + ": " + (p.text || "");
+      default: return s.detail || s.action || "";
+    }
+  }
+
+  /* ---------------- the breakdown run ---------------- */
+  async function run() {
+    if (state.busy) return;
+    state.busy = true; $("goBtn").disabled = true; $("goBtn").textContent = "Boomi is responding…"; renderSource();
+    var myRun = ++state.runId;
+    resetRelease();
+    buildPipeline(); clearLit(); $("handoff").className = "card handoff";
+    state.sys = {}; state.last = null; renderSystems(); initBoard(); initTrack();
+    var req = request(); renderRequest();
+    setRunStatus("RUNNING");
+    var t0 = performance.now(), result = null;
+    var pending = BR.product("breakdown", req).then(function (r) { result = r; state.last = r.data; return r; });
+    try {
+      setStage("receive", "active");
+      var rows = [["oem_serial", "the only machine identifier the feed has", "oem_serial"], ["alarm_code", "repair kit lookup", "alarm"],
+        ["reading", "severity once converted", "alarm"], ["reading_unit", "°F from the OEM, °C on site", "alarm"], ["simulate_parts_shortage", "inventory (demo toggle)", "parts"]];
+      detail("receive", '<dl class="kv2"><dt>Facade</dt><dd>POST /api/v1/mine/breakdown</dd><dt>Boomi</dt><dd>POST /ws/simple/createBrbreakdown · Basic auth held server-side</dd></dl><div id="waitBox"></div><div id="rcvRows"></div>');
+      var tick = null;
+      if (!result) {
+        var showWait = function () {
+          var sec = Math.round((performance.now() - t0) / 1000), wb = $("waitBox"); if (!wb) return;
+          wb.innerHTML = '<div class="chipx wait"><span class="spin"></span><span>Waiting for Boomi… BR_P6_Breakdown_Response_Orchestration is running (' + sec + " s)" + (sec >= 15 ? " · first call after idle can take a minute or more" : "") + "</span></div>";
+        };
+        showWait(); tick = setInterval(showWait, 1000);
+      }
+      var res;
+      try { res = await pending; } finally { if (tick) clearInterval(tick); }
+      if (myRun !== state.runId) throw CANCEL;
+      $("rcvRows").innerHTML = '<table class="mt"><thead><tr><th>Field</th><th>Value</th><th>Used for</th></tr></thead><tbody>' + rows.map(function (r) {
+        return '<tr data-row="' + r[0] + '"><td>' + r[0] + '</td><td class="tgt">' + esc(req[r[0]]) + '</td><td class="rs">' + esc(r[1]) + "</td></tr>";
+      }).join("") + "</tbody></table>";
+      var d = res.data || {}, ms = Math.round(performance.now() - t0);
+      var live = d._servedBy === "boomi-live", replay = !live;
+      var sb = $("servedBadge"); sb.hidden = false;
+      BR.badge(sb, live ? "live" : "mock", live ? "Boomi live · " + (d._latencyMs != null ? d._latencyMs : ms) + " ms" : "replayed trace · " + BR.whyNot(d),
+        live ? "Served by the deployed Boomi process" : (d._servedBy || "") + (d._traceSource ? " · " + d._traceSource : "") + (d._fallbackReason ? " · " + d._fallbackReason : ""));
+      $("waitBox").innerHTML = '<div class="chipx ' + (live ? "ok" : "wait") + '"><span class="n">' + (live ? "Boomi" : "Replay") + "</span><span>" +
+        esc(live ? "Process answered in " + (d._latencyMs != null ? d._latencyMs : ms) + " ms; replaying its step trace" :
+          "Boomi not called (" + (d._fallbackReason || d._servedBy || "offline") + "); replaying " + (d._traceSource || "recorded trace")) + "</span></div>";
+      for (var i = 0; i < rows.length; i++) {
+        var tr = $("rcvRows").querySelector('[data-row="' + rows[i][0] + '"]');
+        tr.setAttribute("data-lit", "1"); lightReq(rows[i][0], true); if (rows[i][2]) lightSrc(rows[i][2], true);
+        await wait(240);
+        tr.removeAttribute("data-lit"); lightReq(rows[i][0], false); if (rows[i][2]) lightSrc(rows[i][2], false);
+      }
+      var steps = d.steps || [], by = {};
+      steps.forEach(function (s) { if (s.stage !== "fanout" && !by[s.stage]) by[s.stage] = s; });
+      meta("receive", by.receive, replay);
+      setStage("receive", stateOf(by.receive ? by.receive.status : "OK"));
+      addLog("INFO", "Alarm received. " + req.alarm_code + " " + req.reading + " " + req.reading_unit + " on " + req.oem_serial);
+      if (d.status === "REJECTED" || !steps.length) { await rejected(d, req); return; }
+
+      /* resolve: serial -> four IDs */
+      var g = d.equipment || {}, sr = by.resolve;
+      meta("resolve", sr, replay);
+      setStage("resolve", "active"); lightSrc("oem_serial", true); lightReq("oem_serial", true);
+      var IDS = [["OEM_TELEMATICS", "OEM serial", g.oemSerial], ["SAP_PM", "SAP equipment", g.sapEquipmentNo], ["FLEET_MGMT", "Fleet ID", g.fleetId], ["SERVICENOW", "CMDB CI", g.cmdbCi]];
+      detail("resolve", '<div class="idmap">' + IDS.map(function (x, k) { return '<div class="idc' + (k === 0 ? " src" : "") + '" data-id="' + k + '">' + sysTag(x[0]) + '<span class="small muted">' + esc(x[1]) + "</span><b>" + (k === 0 ? esc(x[2]) : "…") + "</b></div>"; }).join("") + '</div><div id="resNote"></div>');
+      for (var q = 1; q < IDS.length; q++) {
+        await wait(380);
+        var cell = $("dt-resolve").querySelector('[data-id="' + q + '"]'); cell.className = "idc on"; cell.querySelector("b").textContent = IDS[q][2] || "-";
+      }
+      $("resNote").innerHTML = '<dl class="kv2"><dt>Golden record</dt><dd>' + esc(g.goldenRecordId || "-") + "</dd><dt>Machine</dt><dd>" + esc(g.assetName || "") + "</dd><dt>Status</dt><dd>" + BR.st(g.status) + " " + esc(g.location || "") +
+        "</dd><dt>Criticality</dt><dd>" + esc(g.criticality || "-") + "</dd><dt>Crew</dt><dd>" + esc(g.maintenanceCrew || "-") + "</dd><dt>Onboard tech</dt><dd>" + esc(g.onboardTech || "-") + ' <span class="tag SERVICENOW">CMDB</span></dd></dl>' +
+        (sr && sr.detail ? '<div class="small muted">' + esc(sr.detail) + "</div>" : "");
+      await wait(600);
+      lightSrc("oem_serial", false); lightReq("oem_serial", false);
+      setStage("resolve", stateOf(sr ? sr.status : "OK"));
+      addLog("INFO", "Serial resolved in Data Hub (live): " + ((sr && sr.detail) || g.fleetId));
+
+      /* triage */
+      await triage(d, replay, by.triage);
+
+      /* fan-out */
+      var fan = steps.filter(function (s) { return s.stage === "fanout"; }).sort(function (a, c) { return a.seq - c.seq; }), t = d.triage || {};
+      setStage("fanout", "active");
+      detail("fanout", '<div class="fork-head"><span class="fork-node">Branch</span> ' + fan.length + " system paths, executed 1 → " + fan.length + ", then the receipt path</div>" +
+        '<div class="lanes">' + fan.map(function (s, n) {
+          return '<div class="lane" data-state="idle" data-lane="' + n + '"><div class="lt"><span class="lno">' + (n + 1) + "</span>" + sysTag(s.system) +
+            '<span class="la">' + esc(s.action || s.system) + "</span>" + modeTag(s.mode, replay && s.mode === "live") + '<span class="lst">WAITING</span></div>' +
+            '<div class="lsh">' + esc(s.boomiStep || "") + '</div><div class="lx"></div></div>';
+        }).join("") + '</div><div class="fork-join">↳ path ' + (fan.length + 1) + " · assemble receipt</div>");
+      var b = state.board[g.fleetId] || {};
+      for (var f = 0; f < fan.length; f++) {
+        var s = fan[f], lane = $("dt-fanout").querySelector('[data-lane="' + f + '"]'), lx = lane.querySelector(".lx");
+        lane.setAttribute("data-state", "active"); lane.querySelector(".lst").textContent = "SENDING";
+        state.sys[s.system] = { state: "active", text: "SENDING", detail: s.action || "" }; renderSystems();
+        await wait(620);
+        var p = P(s.payload), stt = s.status === "FAILED" ? "fail" : s.status === "WARN" ? "warn" : "ok";
+        var resp = s.response ? '<div class="small muted">Response</div>' + BR.payloadHTML(s.response) : "";
+        lx.innerHTML = s.payload != null ? "<details><summary>" + (typeof p === "string" && p.trim().charAt(0) === "<" ? "Payload (Data Hub batch, XML)" : "Payload") + (resp ? " + response" : "") + '</summary><div class="pl">' + BR.payloadHTML(s.payload) + resp + "</div></details>" : "";
+        lane.setAttribute("data-state", stt); lane.querySelector(".lst").textContent = s.status || "OK";
+        state.sys[s.system] = { state: stt, text: s.status || "OK", detail: laneSummary(s, d) }; renderSystems();
+        if (s.system === "SERVICENOW") { state.inc.priority = (t.incident || {}).priority || "2"; state.inc.linked = (t.workOrder || {}).number; state.inc.hist.push("P2 · linked " + state.inc.linked); state.inc.note = "LINKED and escalated by Boomi: no duplicate incident"; renderTrack("inc"); }
+        if (s.system === "SAP_PM") { state.wo.linked = (t.incident || {}).number; state.wo.hist.push("extended · kit " + (t.alarm || {}).code); state.wo.note = "EXTENDED with repair kit · est. " + aud((t.impact || {}).repairCostAUD); renderTrack("wo"); }
+        if (s.system === "INVENTORY") { state.parts = t.parts || []; renderTrack(); }
+        if (s.system === "FLEET_MGMT" || s.system === "DATA_HUB") { b.status = "DOWN"; b.location = "Breakdown - North Pit haul road"; b.note = s.system === "DATA_HUB" ? "Data Hub: DOWN" : "dispatch: DOWN"; renderBoard(g.fleetId); }
+        if (s.system === "CREW_ROSTER") { b.note = ((t.maintainer || {}).name || "Maintainer") + " dispatched"; renderBoard(); }
+        addLog(s.status === "FAILED" ? "ERR" : s.status === "WARN" ? "WARN" : "INFO", s.system + " " + (s.action || "") + " " + (s.status || "OK") + ". " + laneSummary(s, d));
+        await wait(160);
+      }
+      setStage("fanout", fan.some(function (x) { return x.status === "FAILED" || x.status === "WARN"; }) ? "warn" : "done");
+
+      /* receipt */
+      var sre = by.receipt, sm = d.summary || {}, im = t.impact || {};
+      meta("receipt", sre, replay);
+      setStage("receipt", "active");
+      await wait(500);
+      detail("receipt", '<dl class="kv2"><dt>Status</dt><dd>' + BR.st(d.status) + "</dd><dt>Breakdown id</dt><dd>" + esc(d.breakdownId || "-") +
+        "</dd><dt>Machine</dt><dd>" + esc(g.fleetId) + " DOWN · " + esc((t.incident || {}).number) + " / SAP " + esc((t.workOrder || {}).number) +
+        "</dd><dt>Impact</dt><dd>" + esc(BR.t(im.lostTonnesThisShift)) + " · " + esc(aud(im.lostValueAUD)) + " this shift · repair " + esc(BR.h(im.repairHours)) +
+        "</dd><dt>Systems</dt><dd>" + esc(sm.systemsUpdated) + " updated</dd><dt>Served by</dt><dd>" + esc(d._servedBy || "-") + (d._traceSource ? " · " + esc(d._traceSource) : "") + " · " + ms + " ms round trip</dd></dl>" +
+        ((sm.warnings || []).length ? '<div class="note warn">' + sm.warnings.map(esc).join("<br>") + "</div>" : "") +
+        ((sm.nextActions || []).length ? '<div class="note">' + sm.nextActions.map(esc).join("<br>") + "</div>" : "") +
+        '<details><summary class="small" style="cursor:pointer">Response JSON</summary>' + BR.payloadHTML(d) + "</details>" +
+        '<a class="btn primary" href="#relPanel" style="align-self:flex-start">Repair events ↓</a>');
+      setStage("receipt", d.status === "COMPLETED" ? "done" : "warn");
+      if (t.reorder) { state.queue.unshift({ kind: "warn", file: "STORES/REORDER_245-8442_" + (t.workOrder || {}).number + ".json", why: (sm.warnings || [""])[0] + ". Freight " + aud(t.reorder.freightAUD) + " from " + t.reorder.from + ".", body: { breakdownId: d.breakdownId, reorder: t.reorder, parts: t.parts } }); renderQueue(); }
+      addLog(d.status === "COMPLETED" ? "INFO" : "WARN", "Breakdown " + d.status + ". " + g.fleetId + " DOWN. Lost " + im.lostTonnesThisShift + " t / AUD " + im.lostValueAUD + ". Systems=" + sm.systemsUpdated);
+      setRunStatus(d.status);
+      unlockRelease(d);
+      state.busy = false; $("goBtn").disabled = false; $("goBtn").textContent = "Send alarm to Boomi"; clearLit(); renderSource();
+      if (state.autoRel) { state.autoRel = false; await wait(900); $("relPanel").scrollIntoView({ behavior: "smooth", block: "start" }); autoRelease(); }
+    } catch (e) {
+      if (e !== CANCEL) { addLog("ERR", "Breakdown page error: " + (e && e.message ? e.message : e)); console.error(e); }
+    } finally {
+      if (myRun === state.runId) { state.busy = false; $("goBtn").disabled = false; $("goBtn").textContent = "Send alarm to Boomi"; clearLit(); renderSource(); }
+    }
+  }
+
+  async function triage(d, replay, st) {
+    var t = d.triage || {}, al = t.alarm || {}, inc = t.incident || {}, wo = t.workOrder || {}, im = t.impact || {}, mt = t.maintainer || {};
+    meta("triage", st, replay);
+    setStage("triage", "active");
+    detail("triage", '<div class="tri">' +
+      '<div class="trib" id="tr1"><div class="th"><span class="tag flag">UNIT_MISMATCH</span><b>Reading to the site unit</b></div><div class="conv" id="tr1v">…</div></div>' +
+      '<div class="trib" id="tr2"><div class="th"><span class="tag SERVICENOW">SERVICENOW</span><b>Open incident on this CI?</b></div><div id="tr2v" class="small">…</div></div>' +
+      '<div class="trib" id="tr3"><div class="th"><span class="tag SAP_PM">SAP_PM</span><b>Open cooling work order?</b></div><div id="tr3v" class="small">…</div></div>' +
+      '<div class="trib" id="tr4"><div class="th"><span class="tag INVENTORY">INVENTORY</span><b>Repair kit ' + esc(al.code || "") + '</b></div><div id="tr4v"></div></div>' +
+      '<div class="trib" id="tr5"><div class="th"><span class="tag PRODUCTION">PRODUCTION</span><b>What it costs the shift</b></div><div id="tr5v"></div></div>' +
+      '</div><div id="triNote"></div>');
+    lightSrc("alarm", true); lightReq("reading_unit", true);
+    await wait(500); $("tr1").classList.add("on");
+    $("tr1v").innerHTML = '<span class="was">' + esc(al.reading) + " °" + esc(al.unit) + "</span> → (" + esc(al.reading) + " − 32) × 5/9 = <strong>" + esc(BR.fmt(al.celsius, 1)) + " °C</strong> " + BR.st(al.severity, "severity " + al.severity);
+    lightSrc("alarm", false); lightReq("reading_unit", false);
+    await wait(700); $("tr2").classList.add("on");
+    $("tr2v").innerHTML = "Found <code>" + esc(inc.number) + "</code> (priority " + esc(inc.previousPriority) + ", raised by the night-shift operator at 01:55). " +
+      BR.st(inc.action) + " and escalated P" + esc(inc.previousPriority) + " → P" + esc(inc.priority) + ". <strong>No duplicate incident.</strong>";
+    await wait(700); $("tr3").classList.add("on");
+    $("tr3v").innerHTML = "Found <code>" + esc(wo.number) + "</code> \"" + esc(wo.description) + "\". " + BR.st(wo.action) + " with kit " + esc(al.code) + " and linked to " + esc(inc.number) + ". The fault is worked once.";
+    await wait(700); $("tr4").classList.add("on"); lightSrc("parts", true); lightReq("simulate_parts_shortage", true);
+    $("tr4v").innerHTML = '<table class="mt"><thead><tr><th>Part</th><th class="num">Qty</th><th class="num">On hand</th><th>Action</th><th class="num">AUD</th></tr></thead><tbody>' +
+      (t.parts || []).map(function (p) { return "<tr" + (p.action === "REORDER" ? ' class="tag-out"' : "") + "><td>" + esc(p.part) + '<br><span class="rs">' + esc(p.description) + '</span></td><td class="num">' + esc(p.quantity) + '</td><td class="num">' + esc(p.onHand) + "</td><td>" + BR.st(p.action) + '</td><td class="num">' + esc(BR.fmt(p.lineAUD, 2)) + "</td></tr>"; }).join("") +
+      "</tbody></table>" + (t.reorder ? '<div class="note warn" style="margin-top:6px">Hose reordered from ' + esc(t.reorder.from) + ": ETA " + esc(t.reorder.etaHours) + " h, freight " + esc(aud(t.reorder.freightAUD)) + ".</div>" : "");
+    lightSrc("parts", false); lightReq("simulate_parts_shortage", false);
+    await wait(800); $("tr5").classList.add("on");
+    $("tr5v").innerHTML = '<div class="totbig"><b>' + esc(aud(im.lostValueAUD)) + "</b><span>" + esc(BR.t(im.lostTonnesThisShift)) + " lost this shift at " + esc(im.tonnesPerHour) + " t/h × AUD 45/t</span></div>" +
+      '<div class="small">Repair ' + esc(BR.h(im.repairHours)) + (t.reorder ? " (4.5 h labour + " + esc(t.reorder.etaHours) + " h resupply; loss capped at the 12 h shift)" : " (4.5 h labour + 0.5 h parts from the warehouse)") +
+      " · repair cost <strong>" + esc(aud(im.repairCostAUD)) + "</strong> · maintainer <strong>" + esc(mt.name || "") + "</strong> (" + esc(mt.role || "") + ", " + esc(mt.crew || "") + ")</div>";
+    await wait(500);
+    $("triNote").innerHTML = '<div class="chips">' + (t.resolutions || []).map(function (r) { return '<div class="chipx ok"><span class="n">' + esc(r.flag) + "</span><span>" + esc(r.action + ": " + r.from + " → " + r.to) + "</span></div>"; }).join("") + "</div>";
+    setStage("triage", stateOf(st ? st.status : "OK"));
+    addLog("INFO", "Triage: " + al.reading + " " + al.unit + " = " + al.celsius + " C; " + inc.number + " " + inc.action + "; " + wo.number + " " + wo.action + "; repair " + im.repairHours + " h");
+  }
+
+  async function rejected(d, req) {
+    setStage("resolve", "active"); lightSrc("oem_serial", true);
+    detail("resolve", '<div class="chipx wait"><span class="spin"></span><span>Data Hub query: OEMSERIAL = ' + esc(BR.normSerial(req.oem_serial)) + "</span></div>");
+    await wait(800);
+    setStage("resolve", "fail"); lightSrc("oem_serial", false);
+    detail("resolve", '<div class="note bad"><strong>' + esc(d.status || "REJECTED") + ".</strong> " + esc(d.error || "Unknown machine") + "</div>" +
+      '<div class="small muted">Data Hub holds this serial only as an orphan telematics record (no SAP number, fleet ID or CI). Nothing is dispatched for a machine nobody can identify: the data steward links it first (maintenance_alerts: UNLINKED_TELEMETRY, likely WC-03).</div>');
+    ["triage", "fanout"].forEach(function (id) { setStage(id, "held"); detail(id, '<div class="note warn">Not run: the machine could not be resolved.</div>'); });
+    setStage("receipt", "fail"); detail("receipt", BR.payloadHTML(d));
+    state.queue.unshift({ kind: "", file: "DATA_STEWARD/UNLINKED_TELEMETRY_" + BR.normSerial(req.oem_serial) + ".json", why: (d.error || "Rejected") + ".", body: { request: req, response: d } });
+    renderQueue(); addLog("ERR", "Breakdown REJECTED. " + (d.error || "")); setRunStatus("REJECTED");
+    renderRelApp("rejected");
+  }
+  function setRunStatus(s) { var el = $("runStatus"); if (!s) { el.hidden = true; return; } el.hidden = false; el.className = "st " + BR.stc(s); el.textContent = s; }
+
+  /* ---------------- repair events (BR_P7) ---------------- */
+  function resetRelease() { rs = { stage: 0, busy: false, auto: false, times: [], last: null, wo: null }; $("events").innerHTML = ""; $("relBadge").hidden = true; renderRelApp(); }
+  function unlockRelease(d) { rs.wo = (d.handoff || {}).workOrder || "4000123"; rs.fleet = (d.handoff || {}).fleetId || "HT-214"; rs.maint = (d.handoff || {}).maintainer || "Priya Singh"; rs.stage = 0; renderRelApp(); }
+  function renderRelApp(mode) {
+    var el = $("relapp");
+    if (!rs.wo) {
+      el.innerHTML = mode === "rejected" ? '<p class="empty">Nothing to repair: the alarm was not linked to a machine.</p>' :
+        '<p class="empty">Locked until a breakdown is triaged: the work order comes from the receipt above. Each button then posts a repair status event from the maintainer\'s tablet to <span class="mono">/ws/simple/updateBrrepairstatus</span>.</p>';
+      return;
+    }
+    el.innerHTML = '<div class="hh"><strong>SAP ' + esc(rs.wo) + " · " + esc(rs.fleet) + "</strong><span>" + esc(rs.maint) + " · maintainer tablet</span></div>" +
+      '<div class="rbtns">' + REL.map(function (r, i) {
+        var done = rs.stage > i, next = rs.stage === i;
+        return '<button type="button" data-rs="' + r.status + '" class="' + (done ? "done" : next ? "next" : "") + '"' + (done || !next || rs.busy || rs.auto ? " disabled" : "") + ">" +
+          (done ? "✓ " : "") + esc(r.label) + "<small>" + esc(r.status) + "</small></button>";
+      }).join("") + "</div>" +
+      '<div class="rrow"><button class="btn" type="button" id="autoRel"' + (rs.stage >= 3 || rs.busy || rs.auto ? " disabled" : "") + ">" + (rs.auto ? "Auto-running…" : rs.stage >= 3 ? "Back in service" : "▶ Auto-run repair") + "</button>" +
+      '<button class="linkbtn" type="button" id="badEvt"' + (rs.busy || rs.auto ? " disabled" : "") + ">send an unknown status (CLOSED) → Route default path</button></div>";
+  }
+  async function postStatus(status) {
+    if (!rs.wo || rs.busy) return;
+    var myRun = state.runId;
+    rs.busy = true; renderRelApp();
+    var req = { work_order: rs.wo, status: status }, id = "ev" + (++state.evN), t0 = performance.now();
+    $("events").querySelectorAll(".ev").forEach(function (n) { n.classList.add("old"); });
+    $("events").insertAdjacentHTML("beforeend", '<div class="ev" id="' + id + '"><div class="eh"><h3>Event · ' + esc(rs.wo) + " " + esc(status) + '</h3><span class="mono">POST /api/v1/mine/repair-status → /ws/simple/updateBrrepairstatus</span><span class="evb"></span><button type="button" class="tg">show steps</button></div>' +
+      '<div class="codew"><pre class="json req sm">' + BR.jsonHTML(req) + '</pre></div><div class="evwait"></div><div class="evbody"></div></div>');
+    var ev = $(id), wbox = ev.querySelector(".evwait"), done = false;
+    var pending = BR.product("repair", req).then(function (r) { done = true; return r; });
+    var show = function () { if (!done) wbox.innerHTML = '<div class="chipx wait"><span class="spin"></span><span>Waiting for Boomi… BR_P7_Return_To_Service is running (' + Math.round((performance.now() - t0) / 1000) + " s)</span></div>"; };
+    show(); var tick = setInterval(show, 1000);
+    var r;
+    try { r = await pending; } finally { clearInterval(tick); }
+    if (myRun !== state.runId) throw CANCEL;
+    var d = r.data || {}, live = d._servedBy === "boomi-live", ms = Math.round(performance.now() - t0);
+    var tb = $("relBadge"); tb.hidden = false;
+    BR.badge(tb, live ? "live" : "mock", live ? "Boomi live · " + (d._latencyMs != null ? d._latencyMs : ms) + " ms" : "replayed trace",
+      live ? "Served by the deployed Boomi process" : (d._servedBy || "") + (d._traceSource ? " · " + d._traceSource : "") + (d._fallbackReason ? " · " + d._fallbackReason : ""));
+    ev.querySelector(".evb").innerHTML = BR.srcBadge(d);
+    wbox.innerHTML = '<div class="chipx ' + (live ? "ok" : "wait") + '"><span class="n">' + (live ? "Boomi" : "Replay") + "</span><span>" +
+      esc(live ? "Process answered in " + (d._latencyMs != null ? d._latencyMs : ms) + " ms" : "Boomi not called (" + (d._fallbackReason || d._servedBy || "offline") + "); replaying " + (d._traceSource || "recorded trace")) + "</span></div>";
+    var body = ev.querySelector(".evbody"), paths = ["IN_REPAIR", "TESTED", "RELEASED", "default"];
+    if (d.status === "REJECTED" || !(d.steps || []).length) {
+      body.innerHTML = '<div class="route"><span class="fork-node">Route</span> on <code>status</code> <div class="rpaths">' + paths.map(function (p) { return '<span class="rp ' + (p === "default" ? "fired" : "dim") + '">' + p + "</span>"; }).join("") + "</div></div>" +
+        '<div class="note bad"><strong>REJECTED.</strong> ' + esc(d.error || "Event rejected") + "</div>";
+      addLog("ERR", "[BR_P7] repair event REJECTED: " + status + ". " + (d.error || ""));
+      rs.busy = false; renderRelApp(); return;
+    }
+    var fired = d.status || status, steps = (d.steps || []).slice().sort(function (a, c) { return a.seq - c.seq; });
+    body.innerHTML = '<div class="route"><span class="fork-node">Route</span> on <code>status</code> <div class="rpaths">' + paths.map(function (p) { return '<span class="rp" data-p="' + p + '">' + p + "</span>"; }).join("") + "</div></div>" +
+      '<div class="evsteps">' + steps.map(function (s, k) {
+        return '<div class="lane" data-state="idle" data-k="' + k + '"><div class="lt"><span class="lno">' + esc(s.seq) + "</span>" + sysTag(s.system) + '<span class="la">' + esc(s.action || "") + "</span>" +
+          modeTag(s.mode, !live && s.mode === "live" && s.system === "DATA_HUB") + '<span class="lst">WAITING</span></div><div class="lsh">' + esc(s.boomiStep || "") + (s.detail ? " · " + esc(s.detail) : "") + '</div><div class="lx"></div></div>';
+      }).join("") + "</div>";
+    for (var k = 0; k < steps.length; k++) {
+      var s = steps[k], lane = body.querySelector('[data-k="' + k + '"]');
+      lane.setAttribute("data-state", "active"); lane.querySelector(".lst").textContent = "RUNNING";
+      if (s.stage === "route") { await wait(320); body.querySelectorAll(".rp").forEach(function (n) { n.classList.add(n.getAttribute("data-p") === fired ? "fired" : "dim"); }); }
+      await wait(340);
+      if (s.payload != null) lane.querySelector(".lx").innerHTML = "<details><summary>Payload" + (s.response ? " + response" : "") + '</summary><div class="pl">' + BR.payloadHTML(s.payload) + (s.response ? BR.payloadHTML(s.response) : "") + "</div></details>";
+      lane.setAttribute("data-state", s.status === "FAILED" ? "fail" : "ok"); lane.querySelector(".lst").textContent = s.status || "OK";
+      applyStep(s, status);
+      if (s.system !== "BOOMI") addLog("INFO", "[BR_P7] " + s.system + " " + (s.action || "") + " " + (s.status || "OK") + ". " + rs.wo + " " + status);
+    }
+    rs.stage = REL.findIndex(function (x) { return x.status === status; }) + 1;
+    rs.times.push({ status: status, at: clock() });
+    rs.last = d;
+    if (status === "RELEASED") renderHandoff();
+    rs.busy = false; renderRelApp();
+  }
+  function applyStep(s, status) {
+    var b = state.board[rs.fleet] || {}, p = P(s.payload) || {};
+    if (s.system === "SAP_PM") {
+      var lbl = status === "IN_REPAIR" ? "IN PROCESS" : status === "TESTED" ? "CNF" : "TECO";
+      state.wo.status = lbl; state.wo.hist.push(status === "TESTED" ? "CNF · load test" : lbl);
+      state.wo.note = status === "TESTED" ? (p.confirmation || "") : status === "RELEASED" ? "Technically complete" : "Maintainer working under this order";
+      renderTrack("wo"); sysNote("SAP_PM", "WO " + rs.wo + " " + lbl);
+    }
+    if (s.system === "SERVICENOW") {
+      if (status === "IN_REPAIR") { state.inc.state = "In Progress"; state.inc.hist.push("In Progress"); state.inc.note = p.work_notes || ""; }
+      if (status === "TESTED") { state.inc.hist.push("work notes"); state.inc.note = p.work_notes || ""; }
+      if (status === "RELEASED") { state.inc.state = "Resolved"; state.inc.hist.push("Resolved"); state.inc.note = (p.close_code || "") + " · " + (p.close_notes || ""); }
+      renderTrack("inc"); sysNote("SERVICENOW", state.inc.number + " " + state.inc.state);
+    }
+    if (s.stage === "receipt" || s.system === "DATA_HUB" || s.system === "FLEET_MGMT") {
+      if (status === "IN_REPAIR") { b.status = "IN_REPAIR"; b.location = "North Pit haul road · on-site repair"; b.note = rs.maint + " working"; }
+      if (status === "TESTED") { b.status = "TESTED"; b.location = "North Pit haul road · load test passed"; b.note = "coolant 88 °C steady"; }
+      if (status === "RELEASED" && (s.system === "DATA_HUB" || s.system === "FLEET_MGMT")) { b.status = "STANDBY"; b.location = "North Pit go-line"; b.note = s.system === "DATA_HUB" ? "Data Hub: STANDBY" : "back in dispatch"; $("boardSub").textContent = "Data Hub status (live) after return to service"; }
+      renderBoard(rs.fleet);
+      if (s.system === "DATA_HUB") sysNote("DATA_HUB", "Golden record STANDBY · North Pit go-line");
+      if (s.system === "FLEET_MGMT") sysNote("FLEET_MGMT", "Back in dispatch · North Pit go-line");
+    }
+    if (s.system === "MESSAGING") sysNote("MESSAGING", "Supervisor told: " + (p.text || ""));
+  }
+  async function autoRelease() {
+    if (!rs.wo || rs.busy || rs.auto || rs.stage >= 3) return;
+    rs.auto = true; renderRelApp();
+    try {
+      for (var i = rs.stage; i < 3; i++) { await postStatus(REL[i].status); rs.auto = true; renderRelApp(); if (i < 2) await wait(800); }
+    } catch (e) { if (e !== CANCEL) { addLog("ERR", "Repair error: " + (e && e.message ? e.message : e)); console.error(e); } }
+    finally { rs.auto = false; renderRelApp(); }
+  }
+
+  /* ---------------- hand-off ---------------- */
+  function renderHandoff() {
+    var el = $("handoff"), d = state.last || {}, t = d.triage || {}, im = t.impact || {}, rl = rs.last || {};
+    var msgStep = (rl.steps || []).find(function (s) { return s.system === "MESSAGING"; }), msg = msgStep ? (P(msgStep.payload) || {}).text : "";
+    el.className = "card handoff on";
+    el.innerHTML = '<div><p class="eyebrow">Back in service · the loop closes</p><h2>' + esc(rs.fleet) + " is back on the North Pit go-line</h2>" +
+      "<p>" + esc((t.incident || {}).number || "") + " is resolved in ServiceNow, SAP " + esc(rs.wo) + " is technically complete, and Data Hub shows " + esc(rs.fleet) + " on <strong>STANDBY</strong> again, so dispatch, the assistant in Act 2 and the data products in Act 4 all agree.</p>" +
+      (msg ? "<blockquote>" + esc(msg) + "</blockquote>" : "") +
+      '<div class="hlinks"><a class="btn primary" href="' + esc(BR.routeTo("flow")) + '">Act 4: flow &amp; governance →</a><a class="btn" href="' + esc(BR.routeTo("shift-start")) + '">↺ Act 1: next shift start</a></div></div>' +
+      "<div><h4>What the breakdown cost</h4><ul><li>" + esc(BR.t(im.lostTonnesThisShift)) + " · " + esc(aud(im.lostValueAUD)) + " lost this shift</li><li>Repair " + esc(BR.h(im.repairHours)) + " · " + esc(aud(im.repairCostAUD)) + "</li>" +
+      "<li>One incident, one work order: linked, not duplicated</li></ul>" +
+      "<h4>Repair events</h4><ul>" + rs.times.map(function (x) { return "<li>" + esc(x.at) + " · " + esc(x.status) + "</li>"; }).join("") + "</ul></div>";
+  }
+
+  /* ---------------- reset + controls ---------------- */
+  function reset() {
+    state.runId++; state.busy = false; state.queue = []; state.log = []; state.sys = {}; state.last = null; state.autoRel = false;
+    resetRelease();
+    $("goBtn").disabled = false; $("goBtn").textContent = "Send alarm to Boomi";
+    buildPipeline(); renderSystems(); renderQueue(); renderLog(); clearLit(); renderRequest(); renderSource(); initBoard(); initTrack();
+    $("boardSub").textContent = "dispatch · Data Hub status";
+    $("handoff").className = "card handoff"; $("servedBadge").hidden = true; setRunStatus(null);
+  }
+  function pressed(a, b, on) { $(a).setAttribute("aria-pressed", on ? "true" : "false"); $(b).setAttribute("aria-pressed", on ? "false" : "true"); }
+  $("partsOk").addEventListener("click", function () { state.short = false; pressed("partsOk", "partsShort", true); renderSource(); renderRequest(); });
+  $("partsShort").addEventListener("click", function () { state.short = true; pressed("partsOk", "partsShort", false); renderSource(); renderRequest(); });
+  $("sp1").addEventListener("click", function () { state.speed = 1; pressed("sp1", "sp3", true); });
+  $("sp3").addEventListener("click", function () { state.speed = 3; pressed("sp1", "sp3", false); });
+  $("resetBtn").addEventListener("click", reset);
+  $("serials").addEventListener("click", function (e) { var b = e.target.closest("[data-s]"); if (!b || state.busy) return; state.serial = b.dataset.s; reset(); });
+  $("goBtn").addEventListener("click", run);
+  $("events").addEventListener("click", function (e) { var b = e.target.closest(".tg"); if (b) b.closest(".ev").classList.remove("old"); });
+  $("relapp").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-rs]");
+    if (b && !b.disabled) { postStatus(b.dataset.rs).catch(function (x) { if (x !== CANCEL) console.error(x); }); return; }
+    if (e.target.closest("#autoRel")) autoRelease();
+    if (e.target.closest("#badEvt")) postStatus("CLOSED").catch(function (x) { if (x !== CANCEL) console.error(x); });
+  });
+
+  /* ---------------- health ---------------- */
+  BR.health().then(function (h) {
+    var b = $("dpBadge");
+    if (!h) { BR.badge(b, "mock", "breakdown: replay · sign in for live", "Not signed in: replays recorded live Boomi runs"); return; }
+    var c = (h.orchestrations || {}).breakdown || {};
+    var ok = c.mode === "configured" && !c.lastError;
+    BR.badge(b, ok ? "live" : "mock", ok ? "breakdown: Boomi" : "breakdown: replay", c.detail || "");
+  });
+
+  /* presenter params (no machine in the URL): ?parts=short&speed=3&autorun=1&repair=1 */
+  var qp = {}; try { new URLSearchParams(location.search).forEach(function (v, k) { qp[k] = v; }); } catch (e) {}
+  if (/^short/i.test(qp.parts || "")) { state.short = true; pressed("partsOk", "partsShort", false); }
+  if (qp.speed === "3") { state.speed = 3; pressed("sp1", "sp3", false); }
+  reset();
+  if (qp.autorun) { state.autoRel = /^(1|true|yes)$/i.test(qp.repair || ""); setTimeout(run, 300); }
+})();
+</script>
+</body>
+</html>

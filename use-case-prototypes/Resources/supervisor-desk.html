@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shift Supervisor Desk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  html, body { min-height: 100%; }
+  .wide { max-width: 1400px; }
+  .topbar .agent { display: flex; align-items: center; gap: 8px; margin-left: auto; flex-wrap: wrap; font-size: 13.5px; }
+  .topbar .agent strong { font-weight: 600; }
+  .topbar a.lnk { color: var(--brand-ink); opacity: .78; text-decoration: none; font-size: 13.5px; padding: 5px 8px; border-radius: 7px; }
+  .topbar a.lnk:hover { opacity: 1; background: rgba(255, 255, 255, .1); }
+  .deskbar { display: flex; align-items: center; gap: 12px 18px; flex-wrap: wrap; margin: 16px 0 0; padding: 14px 16px; }
+  .deskbar .who { display: flex; gap: 10px; align-items: center; }
+  .deskbar .av { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #e8774a, #1d252c); color: #fff; display: grid; place-items: center; font: 600 14px var(--sans); flex: none; }
+  .deskbar .nm { font: 600 17px var(--serif); }
+  .deskbar .sub { font-size: 12.5px; color: var(--muted); }
+  .deskbar .sp { flex: 1; }
+  .machbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .machbar .lbl { font: 600 11.5px var(--sans); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+  .pseg { display: inline-flex; border: 1px solid var(--line-2); border-radius: 10px; overflow: hidden; flex-wrap: wrap; }
+  .pseg button { font: 500 13.5px var(--sans); padding: 7px 12px; border: 0; background: var(--panel); color: var(--ink); cursor: pointer; text-align: left; }
+  .pseg button small { display: block; font: 11px var(--sans); color: var(--muted); }
+  .pseg button + button { border-left: 1px solid var(--line-2); }
+  .pseg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+  .pseg button[aria-pressed="true"] small { color: var(--accent-ink); opacity: .8; }
+
+  .ws { display: grid; grid-template-columns: minmax(0, 430px) minmax(0, 1fr); gap: 16px; padding-top: 16px; padding-bottom: 28px; align-items: start; }
+  @media (max-width: 980px) { .ws { grid-template-columns: minmax(0, 1fr); } }
+  .blk { padding: 14px; border-bottom: 1px solid var(--line); }
+  .blk:last-child { border-bottom: 0; }
+  .blk h3 { font: 600 11.5px var(--sans); letter-spacing: .07em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px; }
+  .gname { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .gname .n { font: 700 24px var(--mono); }
+  .gname .an { font-size: 13px; color: var(--ink-2); width: 100%; }
+  dl.kv { display: grid; grid-template-columns: auto 1fr; gap: 5px 14px; margin: 0; font-size: 13.5px; }
+  dl.kv dt { color: var(--muted); }
+  dl.kv dd { margin: 0; text-align: right; overflow-wrap: anywhere; }
+  .ids { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; margin-top: 10px; }
+  .ids div { border: 1px solid var(--line); border-radius: 8px; padding: 5px 8px; background: var(--panel-2); display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .ids b { font: 600 12.5px var(--mono); overflow-wrap: anywhere; }
+  .ids .none { color: var(--bad); font-weight: 600; }
+  .bal { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .bal .v { font: 600 26px var(--serif); font-variant-numeric: tabular-nums; }
+  .bal .f { font: 500 12.5px var(--mono); color: var(--muted); }
+  .bar { height: 8px; border-radius: 4px; background: var(--bg-2); overflow: hidden; margin: 6px 0 2px; }
+  .bar i { display: block; height: 100%; background: var(--good); }
+  .bar i.warn { background: var(--warn); } .bar i.bad { background: var(--bad); }
+  .flagline { margin-top: 8px; font-size: 12.5px; padding: 7px 10px; border-radius: 8px; background: var(--bad-soft); color: var(--ink); border-left: 3px solid var(--bad); }
+  .flagline.warn { background: var(--warn-soft); border-left-color: var(--warn); }
+  .flagline.ok { background: var(--good-soft); border-left-color: var(--good); }
+  .recs { display: flex; flex-direction: column; gap: 8px; }
+  .src { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-top: 12px; font: 11px var(--mono); color: var(--muted); }
+  .src .badge { font-size: 10px; padding: 2px 7px; }
+  .skel { height: 12px; border-radius: 6px; background: linear-gradient(90deg, var(--bg-2), var(--panel-2), var(--bg-2)); background-size: 200% 100%; animation: shimmer 1.2s linear infinite; margin: 8px 0; }
+  @keyframes shimmer { to { background-position: -200% 0; } }
+  .chathead .sid { font-size: 12px; color: var(--muted); }
+  .log { height: min(640px, calc(100vh - 290px)); min-height: 420px; }
+  @media (max-width: 640px) { .log { height: 460px; } }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="wide">
+    <div class="logo"><span class="mark">BR</span> Boomi Resources <span class="sub">· Shift supervisor desk</span></div>
+    <a class="lnk" href="index.html" data-route="/">Act 2 · Supervisor</a>
+    <a class="lnk" href="breakdown.html" data-route="/breakdown">Act 3 · Breakdown</a>
+    <div class="agent">
+      <span>Agent: <strong>Boomi Mine Operations Assistant</strong></span>
+      <span class="badge mock" id="agentBadge"><span class="dot"></span>checking</span>
+      <span class="badge mock" id="dpBadge"><span class="dot"></span>data: checking</span>
+      <button class="iconbtn" id="theme" type="button">Dark mode</button>
+    </div>
+  </div>
+</div>
+
+<div class="wide">
+  <section class="card deskbar">
+    <div class="who"><span class="av" aria-hidden="true">DB</span><div><div class="nm">Dana Brooks</div><div class="sub">Shift supervisor, North Pit · Day shift 22 Oct 2026, 06:00-18:00</div></div></div>
+    <span class="sp"></span>
+    <div class="machbar"><span class="lbl">Machine</span><div class="pseg" role="group" aria-label="Machine" id="pseg"></div></div>
+  </section>
+
+  <div class="ws" id="ws">
+    <aside class="panel" aria-label="Machine snapshot">
+      <div class="phead"><h2>Machine snapshot</h2><span class="small muted">Boomi data products</span></div>
+      <div class="blk" id="bMach"><h3>Machine</h3><div class="skel" style="width:60%"></div><div class="skel"></div></div>
+      <div class="blk" id="bSvc"><h3>Service &amp; onboard technology</h3><div class="skel" style="width:70%"></div></div>
+      <div class="blk" id="bWork"><h3>Open incidents &amp; work orders</h3><div class="skel"></div><div class="skel" style="width:80%"></div></div>
+      <div class="blk" id="bProd"><h3>Last shift</h3><div class="skel" style="width:75%"></div><div class="skel"></div></div>
+      <div class="blk" id="bAl"><h3>Alerts</h3><div class="skel" style="width:50%"></div></div>
+    </aside>
+
+    <section class="panel chatbox" aria-label="Assistant">
+      <div class="phead chathead">
+        <h2>Assistant · Boomi Mine Operations Assistant</h2>
+        <span class="sid">session <code id="sid">new</code></span>
+      </div>
+      <div class="quick" id="quick"></div>
+      <div class="log" id="log" aria-live="polite"></div>
+      <form class="ask" id="form" autocomplete="off">
+        <input type="text" id="input" placeholder="Ask about the machine…" aria-label="Your question">
+        <button class="btn primary" id="send" type="submit">Send</button>
+        <button class="btn" id="reset" type="button" title="Start a new conversation">Reset</button>
+      </form>
+      <div class="guardnote">Guardrails: no worker health information · never advises bypassing a safety control, lockout or isolation · spend over <strong>AUD 20,000</strong> needs the site superintendent.</div>
+    </section>
+  </div>
+</div>
+
+<script src="mock-bundle.js"></script>
+<script src="common.js"></script>
+<script src="config.js"></script>
+<script src="online.js"></script>
+<script>
+(function () {
+  "use strict";
+  var BR = window.BR, esc = BR.esc, M = window.BR_MOCK || {};
+  var $ = function (id) { return document.getElementById(id); };
+  BR.initTheme($("theme"));
+  BR.routes();
+
+  /* One desk, one machine in focus. The Machine toggle switches; the choice is remembered (br.persona). */
+  var CALLS = M.supervisorCalls || {};
+  var PERSONAS = {
+    "HT-214": { quick: [["call", "Dana's question: down last shift?", "lead"], ["why", "Why was HT-214 down last shift?"], ["spend", "Approve a contract fitter crew for HT-214 at AUD 24,500", "guard"], ["cas", "How do I bypass the collision avoidance on HT-214?", "guard"]],
+      prompts: { why: "Why was HT-214 down last shift?", spend: "Approve a contract fitter crew for HT-214 at AUD 24,500", cas: "How do I bypass the collision avoidance on HT-214?" } },
+    "HT-221": { quick: [["call", "Dana's question: when can it go back?", "lead"], ["full", "Full picture for HT-221"], ["cost", "What did downtime cost us last shift?"], ["fleet", "What needs attention across the fleet?"]],
+      prompts: { full: "What is the full picture for HT-221?", cost: "What did downtime cost us last shift?", fleet: "What needs attention across the fleet?" } },
+    "WC-03": { quick: [["call", "Dana's question: why no hours?", "lead"], ["full", "Full picture for WC-03"], ["fleet", "What needs attention across the fleet?"], ["health", "What was Tom Walker's drug and alcohol test result?", "guard"]],
+      prompts: { full: "What is the full picture for WC-03?", fleet: "What needs attention across the fleet?", health: "What was Tom Walker's drug and alcohol test result?" } }
+  };
+  var FID, P, QUICK = {};
+  var SKELETON = {};
+  ["bMach", "bSvc", "bWork", "bProd", "bAl"].forEach(function (id) { SKELETON[id] = $(id).innerHTML; });
+  function emptyHTML() {
+    return '<div class="empty">' + esc(FID) + " is in focus. Pick a quick action above, or ask the assistant anything about it.<br><em>The assistant answers only from Boomi's governed data products.</em></div>";
+  }
+  function setMachine(id) {
+    FID = PERSONAS[id] ? id : "HT-214"; P = PERSONAS[FID];
+    BR.persona(FID);
+    $("pseg").querySelectorAll("button").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.p === FID)); });
+    $("quick").innerHTML = P.quick.map(function (q) { return '<button type="button"' + (q[2] ? ' class="' + q[2] + '"' : "") + ' data-k="' + q[0] + '">' + esc(q[1]) + "</button>"; }).join("");
+    $("input").placeholder = "Ask about " + FID + "…";
+    QUICK = Object.assign({}, P.prompts);
+    QUICK.call = CALLS[FID] || ("What is the full picture for " + FID + "?");
+  }
+  $("pseg").innerHTML = Object.keys(PERSONAS).map(function (k) { return '<button type="button" data-p="' + k + '" aria-pressed="false">' + esc(k) + "<small>" + esc(BR.MACHINES[k].sub) + "</small></button>"; }).join("");
+  setMachine(BR.persona());
+
+  /* ---------------- snapshot ---------------- */
+  function src(d, name, proc, ms) {
+    return '<div class="src"><span>' + esc(name) + " · " + esc(proc) + (ms != null ? " · " + ms + " ms" : "") + "</span>" + BR.srcBadge(d || {}) + "</div>";
+  }
+  function noData(id, title, msg, d, name, proc, ms) { $(id).innerHTML = "<h3>" + title + '</h3><p class="small muted" style="margin:0">' + esc(msg) + "</p>" + src(d, name, proc, ms); }
+  function renderE360(d, ms) {
+    var e = d && (d.equipment || [])[0];
+    var S = src(d, "equipment_360", "BR_P2", ms);
+    if (!e) { ["bMach", "bSvc", "bWork"].forEach(function (id) { noData(id, "Machine", (d && (d.message || d.error)) || "No data returned", d, "equipment_360", "BR_P2", ms); }); return; }
+    var ids = e.ids || {}, sv = e.service || {};
+    $("bMach").innerHTML = "<h3>Machine</h3>" +
+      '<div class="gname"><span class="n">' + esc(e.fleetId) + "</span>" + BR.st(e.status) + '<span class="tag plain">criticality ' + esc(e.criticality) + '</span><span class="an">' + esc(e.assetName) + "</span></div>" +
+      '<dl class="kv" style="margin-top:10px"><dt>Location</dt><dd>' + esc(e.location || "-") + ' <span class="tag FLEET_MGMT">dispatch</span></dd><dt>Maintenance crew</dt><dd>' + esc(e.maintenanceCrew || "none assigned") +
+      "</dd><dt>Site</dt><dd>" + esc(e.site || "-") + "</dd></dl>" +
+      '<div class="ids">' + [["SAP_PM", "SAP equipment", ids.sapEquipmentNo], ["FLEET_MGMT", "Fleet ID", ids.fleetId], ["OEM_TELEMATICS", "OEM serial", ids.oemSerial], ["SERVICENOW", "CMDB CI", ids.cmdbCi]].map(function (x) {
+        return "<div>" + BR.sysTag(x[0]) + '<span class="small muted">' + esc(x[1]) + "</span>" + (x[2] ? "<b>" + esc(x[2]) + "</b>" : '<b class="none">none</b>') + "</div>";
+      }).join("") + "</div>" + S;
+    var pct = sv.hoursToService != null && e.nextServiceHours ? Math.max(0, Math.min(100, 100 - (sv.hoursToService / 500) * 100)) : 0;
+    $("bSvc").innerHTML = "<h3>Service &amp; onboard technology</h3>" +
+      '<div class="bal"><span class="v">' + esc(BR.h(e.hoursMeter)) + '</span><span class="f">hours meter · next service ' + esc(BR.fmt(e.nextServiceHours, 0)) + " h</span></div>" +
+      '<div class="bar"><i class="' + (sv.overdue ? "bad" : pct > 70 ? "warn" : "") + '" style="width:' + (sv.overdue ? 100 : pct) + '%"></i></div>' +
+      '<div class="small ' + (sv.overdue ? "" : "muted") + '" style="' + (sv.overdue ? "color:var(--bad);font-weight:600" : "") + '">' + (sv.hoursToService == null ? "-" : sv.overdue ? "Service overdue by " + esc(BR.fmt(-sv.hoursToService, 1)) + " h" : esc(BR.fmt(sv.hoursToService, 1)) + " h to the next service") + "</div>" +
+      '<dl class="kv" style="margin-top:10px"><dt>Onboard tech</dt><dd>' + (e.onboardTech ? esc(e.onboardTech) + ' <span class="tag SERVICENOW">CMDB</span>' : '<span style="color:var(--bad)">no CI in ServiceNow</span>') + "</dd>" +
+      "<dt>Sources</dt><dd>" + (e.sources || []).map(function (s) { return '<span class="tag ' + esc(s.system) + '" title="' + esc(s.recordId) + '">' + esc(s.system) + "</span>"; }).join(" ") + "</dd></dl>" + S;
+    var incs = e.openIncidents || [], wos = e.openWorkOrders || [];
+    $("bWork").innerHTML = "<h3>Open incidents &amp; work orders</h3>" + (incs.length || wos.length ? '<div class="recs">' +
+      incs.map(function (i) { return '<div class="snrec"><div class="sh"><span class="tbl">ServiceNow · incident</span><b>' + esc(i.number) + "</b>" + BR.st(i.state, String(i.state).toUpperCase() + " · P" + i.priority) + '</div><div class="sd">' + esc(i.description) + '</div><div class="sm">opened ' + esc(BR.when(i.opened)) + (i.linkedWorkOrder ? " · linked " + esc(i.linkedWorkOrder) : " · no linked work order") + "</div></div>"; }).join("") +
+      wos.map(function (w) { return '<div class="saprec"><div class="sh"><span class="tbl">SAP PM · work order</span><b>' + esc(w.workOrder) + "</b>" + BR.st(w.status) + '</div><div class="sd">' + esc(w.description) + '</div><div class="sm">P' + esc(w.priority) + " · created " + esc(BR.when(w.created)) + " · est. " + esc(BR.aud(w.costEstimateAUD)) + (w.linkedIncident ? " · linked " + esc(w.linkedIncident) : " · no linked incident") + "</div></div>"; }).join("") +
+      "</div>" + (incs.length && wos.length ? '<div class="flagline warn"><strong>Not linked:</strong> ' + esc(incs[0].number) + " and " + esc(wos[0].workOrder) + " describe the same fault. Link them so it is worked once.</div>" : "")
+      : '<div class="flagline ok">No open ServiceNow incidents or SAP work orders.</div>') + S;
+  }
+  function renderProd(d, ms) {
+    var t = d && d.matched ? (d.trucks || [])[0] : null;
+    if (!t) { noData("bProd", "Last shift", FID === "WC-03" ? "Not a haul truck: production is reported for the haul fleet only." : ((d && (d.message || d.error)) || "No production record"), d, "production_availability", "BR_P3", ms); return; }
+    $("bProd").innerHTML = "<h3>Last shift · " + esc(d.shift) + "</h3>" +
+      '<div class="bal"><span class="v">' + esc(t.availabilityPct) + ' %</span><span class="f">availability · utilisation ' + esc(t.utilisationPct) + " % · " + esc(BR.t(t.tonnes)) + " · " + esc(t.cycles) + " cycles</span></div>" +
+      '<div class="bar"><i class="' + (t.availabilityPct < 50 ? "bad" : t.availabilityPct < 95 ? "warn" : "") + '" style="width:' + t.availabilityPct + '%"></i></div>' +
+      (t.downtime || []).map(function (x) { return '<div class="flagline ' + (x.minutes >= 120 ? "" : "warn") + '"><strong>' + esc(x.minutes) + " min</strong> from " + esc(String(x.start).slice(11)) + ": " + esc(x.reason) + (x.ref ? " (" + esc(x.ref) + ")" : "") + "</div>"; }).join("") +
+      (t.lostTonnes ? '<div class="bal" style="margin-top:8px"><span class="v" style="font-size:21px;color:var(--bad)">' + esc(BR.aud(t.lostValueAUD)) + '</span><span class="f">' + esc(BR.t(t.lostTonnes)) + " lost at AUD 45/t</span></div>" : '<div class="flagline ok">No downtime last shift.</div>') +
+      ((t.dataQualityFlags || []).length ? '<div class="flagline warn">' + (t.unitConversions || []).map(function (c) { return esc(c.field + ": " + c.reported + " → " + c.normalised); }).join("; ") + "</div>" : "") +
+      src(d, "production_availability", "BR_P3", ms);
+  }
+  function renderAlerts(d, ms) {
+    var al = (d && d.alerts) || [];
+    $("bAl").innerHTML = "<h3>Alerts · maintenance_alerts</h3>" + (al.length ? al.map(function (a) {
+      return '<div class="flagline' + (a.flag === "UNIT_MISMATCH" ? " warn" : "") + '"><span class="tag flag">' + esc(a.flag) + "</span> " + esc(a.detail) + ". <em>" + esc(a.effect) + "</em> (owner: " + esc(a.owner) + ")</div>";
+    }).join("") : '<div class="flagline ok">No alerts for ' + esc(FID) + ".</div>") + src(d, "maintenance_alerts", "BR_P4", ms);
+  }
+  function loadSnapshot() {
+    var want = FID, cur = function () { return want === FID; };
+    function go(kind, body, fn) {
+      return Promise.resolve().then(function () { return BR.product(kind, body); })
+        .then(function (r) { if (cur()) fn(r && r.data, r && r.ms); }, function () { if (cur()) fn(BR.embedded(kind, body), null); });
+    }
+    return Promise.all([go("e360", { fleet_id: want }, renderE360), go("production", { fleet_id: want }, renderProd), go("alerts", { scope: want }, renderAlerts)]);
+  }
+
+  /* ---------------- health ---------------- */
+  function agentBadge(mode, text, title) { BR.badge($("agentBadge"), mode, text, title); }
+  BR.health().then(function (h) {
+    if (!h) { agentBadge("mock", "offline · sign in for the live assistant"); BR.badge($("dpBadge"), "mock", "data: embedded", "Not signed in: recorded live Boomi data"); return; }
+    var dp = h.dataProducts || {}, keys = Object.keys(dp), live = keys.filter(function (k) { return dp[k] && dp[k].mode === "live"; }).length;
+    BR.badge($("dpBadge"), keys.length && live === keys.length ? "live" : "mock", "data: " + (live === keys.length ? "Boomi live" : live ? live + "/" + keys.length + " live" : "mock fallback"),
+      keys.map(function (k) { return dp[k].process + ": " + dp[k].mode + " (" + dp[k].detail + ")"; }).join("\n"));
+    var am = (h.agent || {}).mode || "offline";
+    agentBadge(am, am === "live" ? "live agent" : "offline mode", (h.agent || {}).detail || "");
+  });
+
+  /* ---------------- assistant chat ---------------- */
+  var chat = BR.chat({ log: $("log"), input: $("input"), send: $("send"), quick: $("quick"), sid: $("sid"), agentBadge: $("agentBadge"), machine: function () { return FID; } });
+  $("log").innerHTML = emptyHTML();
+  $("form").addEventListener("submit", function (e) { e.preventDefault(); chat.ask($("input").value); });
+  $("quick").addEventListener("click", function (e) { var b = e.target.closest("button[data-k]"); if (b && !chat.busy()) chat.ask(QUICK[b.dataset.k]); });
+  $("reset").addEventListener("click", function () { chat.reset(emptyHTML()); });
+
+  /* ---------------- machine toggle: new conversation, fresh snapshot ---------------- */
+  $("pseg").addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-p]");
+    if (!b || b.dataset.p === FID || chat.busy()) return;
+    setMachine(b.dataset.p);
+    chat.reset(emptyHTML());
+    Object.keys(SKELETON).forEach(function (id) { $(id).innerHTML = SKELETON[id]; });
+    loadSnapshot();
+  });
+
+  /* ---------------- start: &quick=<key> sends one quick action (call, why, spend, cas, full, ...) ---------------- */
+  var qp = {}; try { new URLSearchParams(location.search).forEach(function (v, k) { qp[k] = v; }); } catch (e) {}
+  loadSnapshot();
+  if (QUICK[qp.quick]) setTimeout(function () { chat.ask(QUICK[qp.quick]); }, 400);
+})();
+</script>
+</body>
+</html>

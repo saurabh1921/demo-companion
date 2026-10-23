@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Boomi Resources Supervisor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  .hero { background: linear-gradient(180deg, var(--brand) 0%, var(--brand) 62%, var(--bg) 62%); color: var(--brand-ink); padding: 30px 0 0; }
+  .hero h1 { font-size: clamp(28px, 4.4vw, 44px); margin: 6px 0 10px; max-width: 900px; }
+  .hero .eyebrow { color: var(--brand-hi); }
+  .hero p.lede { color: var(--brand-ink); opacity: .85; max-width: 800px; font-size: 16.5px; margin: 0 0 24px; }
+  .facts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+  .fact { padding: 16px; }
+  .fact .v { font: 600 26px var(--serif); color: var(--ink); }
+  .fact .l { font-size: 13px; color: var(--muted); }
+  .ids4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)) auto minmax(0, 1.1fr); gap: 10px; align-items: stretch; margin: 0 0 22px; }
+  .ids4 .idb { border-radius: 10px; padding: 10px 12px; background: var(--panel); border: 1px solid var(--line); color: var(--ink); min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+  .ids4 .idb b { font: 600 14px var(--mono); overflow-wrap: anywhere; }
+  .ids4 .idb .raw { font: 11.5px var(--mono); color: var(--bad); overflow-wrap: anywhere; }
+  .ids4 .eq { display: grid; place-items: center; font: 600 22px var(--serif); color: var(--brand-hi); }
+  .ids4 .gold { border: 2px solid var(--hub); }
+  .context { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+  .context .card { padding: 18px; }
+  .context h3 { font-size: 17px; margin: 0 0 6px; }
+  .context p { margin: 0; color: var(--ink-2); font-size: 14px; }
+  .arch { display: grid; grid-template-columns: 1.2fr auto 1.25fr auto 1fr auto 1.1fr; gap: 10px; align-items: stretch; margin-top: 18px; }
+  .arch .col { padding: 14px; display: flex; flex-direction: column; gap: 6px; }
+  .arch .col h4 { margin: 0 0 4px; font: 600 12px var(--sans); text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+  .arch .item { font-size: 13.5px; }
+  .arch .arrow { display: grid; place-items: center; color: var(--muted); font-size: 20px; }
+  .syncback { margin-top: 10px; padding: 12px 16px; border: 1px dashed var(--hub); border-radius: 10px; background: var(--hub-soft); font-size: 13.5px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .syncback .ar { font: 600 18px var(--serif); color: var(--hub); }
+  .cmdb { margin-top: 14px; padding: 16px 18px; border-left: 4px solid var(--sn); background: var(--sn-soft); border-radius: 8px; font-size: 14px; }
+  .cmdb h3 { margin: 0 0 6px; font-size: 16px; }
+  .cmdb p { margin: 0 0 6px; }
+  .cmdb p:last-child { margin: 0; }
+  .tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+  .chip { font: 500 14px var(--sans); border: 1px solid var(--line-2); background: var(--panel); color: var(--ink); padding: 7px 14px; border-radius: 999px; cursor: pointer; }
+  .chip[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .compare { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+  .sys { padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; }
+  .sys header { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .sys header strong { font-family: var(--serif); font-size: 15.5px; }
+  .sys.golden { border: 2px solid var(--hub); }
+  .sys.SERVICENOW { border-top: 3px solid var(--sn); }
+  .sys.SAP_PM { border-top: 3px solid var(--sap); }
+  .sys.FLEET_MGMT { border-top: 3px solid var(--fleet); }
+  .sys.OEM_TELEMATICS { border-top: 3px solid var(--oem); }
+  .sys.CREW_ROSTER { border-top: 3px solid var(--crew); }
+  .fld { display: grid; grid-template-columns: 104px minmax(0, 1fr); gap: 8px; font-size: 13px; align-items: baseline; padding: 5px 0; border-top: 1px dashed var(--line); }
+  .fld .n { color: var(--muted); font-size: 11.5px; text-transform: uppercase; letter-spacing: .03em; overflow-wrap: anywhere; }
+  .fld .val { overflow-wrap: anywhere; font-family: var(--mono); font-size: 12.5px; }
+  .fld .conf { color: var(--bad); }
+  .fld .why { display: block; font: 11px var(--sans); color: var(--muted); margin-top: 1px; }
+  .fld .why.win { color: var(--good); background: none; font-weight: 600; }
+  .fld .why.norm { color: var(--gold); }
+  .impact { margin-top: 14px; padding: 14px 16px; border-left: 4px solid var(--safety); background: var(--gold-soft); border-radius: 8px; color: var(--ink); font-size: 14px; }
+  .chatgrid { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 16px; align-items: start; }
+  .side .card { padding: 16px; margin-bottom: 14px; }
+  .side h3 { font-size: 16px; margin: 0 0 8px; }
+  .side ul { margin: 0; padding-left: 18px; font-size: 13.5px; color: var(--ink-2); }
+  .side li { margin: 5px 0; }
+  .side code { font-size: 11.5px; }
+  @media (max-width: 960px) {
+    .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .context, .compare, .chatgrid { grid-template-columns: minmax(0, 1fr); }
+    .arch { grid-template-columns: minmax(0, 1fr); }
+    .arch .arrow { transform: rotate(90deg); height: 18px; }
+    .ids4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .ids4 .eq { grid-column: 1 / -1; transform: rotate(90deg); height: 20px; }
+    .ids4 .gold { grid-column: 1 / -1; }
+  }
+  @media (min-width: 961px) and (max-width: 1100px) { .compare { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 520px) { .fact .v { font-size: 21px; } }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="wrap">
+    <div class="logo"><span class="mark">BR</span> Boomi Resources <span class="sub">· Red Ridge</span></div>
+    <nav>
+      <a href="shift-start.html" data-route="/shift-start"><span class="act">Act 1 ·</span> Shift start</a>
+      <a href="index.html" class="on" data-route="/"><span class="act">Act 2 ·</span> Supervisor</a>
+      <a href="breakdown.html" data-route="/breakdown"><span class="act">Act 3 ·</span> Breakdown &amp; repair</a>
+      <a href="flow.html" data-route="/flow"><span class="act">Act 4 ·</span> Flow &amp; governance</a>
+      <span class="badge mock" id="dpBadge"><span class="dot"></span>data: checking</span>
+      <button class="iconbtn" id="theme" type="button">Dark mode</button>
+    </nav>
+  </div>
+</div>
+
+<section class="hero">
+  <div class="wrap">
+    <p class="eyebrow">Boomi Resources · Red Ridge iron ore mine, Pilbara WA</p>
+    <h1>One truck, four IDs, five systems. One governed record.</h1>
+    <p class="lede">SAP PM, fleet dispatch, Cat and Komatsu telematics, ServiceNow and the crew roster each know HT-214 by a different ID and
+      each hold their own version of it. Boomi integrates them, keeps one golden record per machine in Data Hub, syncs the golden IDs back to every
+      system, and publishes governed data products the shift supervisor and the <strong>Boomi Mine Operations Assistant</strong> can trust.</p>
+    <div class="ids4" id="ids4"></div>
+    <div class="facts">
+      <div class="card fact"><div class="v">5</div><div class="l">systems hold their own copy of every machine</div></div>
+      <div class="card fact"><div class="v" id="fLost">AUD 192,595.50</div><div class="l">lost to downtime last shift (production_availability)</div></div>
+      <div class="card fact"><div class="v" id="fAl">5 on 4 of 6</div><div class="l">maintenance and data-quality alerts on the fleet</div></div>
+      <div class="card fact"><div class="v" id="fOr">1</div><div class="l">telematics serial no system can place (an orphan in Data Hub)</div></div>
+    </div>
+    <p class="small muted" style="margin:8px 0 0">Figures computed from this demo's sample data for Red Ridge, last shift = night shift 21 Oct 2026, reported in tonnes and AUD.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <p class="eyebrow">Why equipment data fragments</p>
+    <h2>Every system was bought for a different job</h2>
+    <p class="lede">Maintenance, dispatch, the OEMs, IT service management and the roster each identify a machine their own way, and each is right about something.</p>
+    <div class="context">
+      <div class="card"><h3>Systems of record grew up apart</h3><p>SAP owns the asset register, criticality and service plan; dispatch owns live status and location; telematics owns the hours meter; ServiceNow owns the onboard technology; the roster owns the maintenance crew.</p></div>
+      <div class="card"><h3>Identity is the weak link</h3><p>HT214, HT 214 and HT-214. Serials with spaces in SAP and dashes in dispatch. A CMDB CI with a free-text asset tag and no SAP number. A swapped telematics gateway reporting a serial nobody knows.</p></div>
+      <div class="card"><h3>Safety and cost raise the stakes</h3><p>An assistant reading raw systems repeats their contradictions. Governed data products give one answer, keep worker health private, refuse to help bypass safety controls and route spend over AUD 20,000 to the superintendent.</p></div>
+    </div>
+    <div class="arch">
+      <div class="card col"><h4>Sources</h4>
+        <div class="item"><span class="tag SAP_PM">SAP_PM</span> asset register, work orders</div>
+        <div class="item"><span class="tag FLEET_MGMT">FLEET_MGMT</span> status, location, cycles</div>
+        <div class="item"><span class="tag OEM_TELEMATICS">OEM_TELEMATICS</span> hours, alarms, fuel</div>
+        <div class="item"><span class="tag SERVICENOW">SERVICENOW</span> CMDB CIs, incidents, cases</div>
+        <div class="item"><span class="tag CREW_ROSTER">CREW_ROSTER</span> crews, licences</div>
+        <div class="item"><span class="tag INVENTORY">INVENTORY</span> parts, repair kits</div>
+      </div>
+      <div class="arrow" aria-hidden="true">&rarr;</div>
+      <div class="card col"><h4>Boomi Integration</h4>
+        <div class="item mono small">BR_P1_Equipment_Ingest_Cleanse</div>
+        <div class="item mono small">BR_P2 / P3 / P4 data product APIs</div>
+        <div class="item mono small">BR_P5 / P6 / P7 orchestrations</div>
+        <div class="item mono small">BR_P8_Golden_Record_Sync</div>
+        <div class="item muted small">shared: [SUB] BR Operations Extract</div>
+      </div>
+      <div class="arrow" aria-hidden="true">&rarr;</div>
+      <div class="card col"><h4>Boomi Data Hub</h4>
+        <div class="item">Model <strong>equipmentmaster</strong></div>
+        <div class="item small muted">Match on any of the four IDs once cleansed; field-level survivorship by system of record</div>
+      </div>
+      <div class="arrow" aria-hidden="true">&rarr;</div>
+      <div class="card col"><h4>Data products &amp; agent</h4>
+        <div class="item"><code>equipment_360</code></div>
+        <div class="item"><code>production_availability</code></div>
+        <div class="item"><code>maintenance_alerts</code></div>
+        <div class="item small">consumed by the <strong>Boomi Mine Operations Assistant</strong> (Agent Studio)</div>
+      </div>
+    </div>
+    <div class="syncback"><span class="ar">⟲</span><span><strong>And back out again (BR_P8):</strong> ServiceNow CIs get the SAP number and the clean fleet ID, SAP gets the fleet ID and the CMDB CI, dispatch gets the SAP number and the CI. Systems feed Data Hub; golden IDs flow back to them.</span></div>
+    <div class="cmdb">
+      <h3>"Doesn't the ServiceNow CMDB already do this?"</h3>
+      <p>The CMDB stays the <strong>system of record for onboard technology</strong> (onboard computer, telematics gateway, collision avoidance, firmware) and for the CI relationships incident and change management depend on. Data Hub takes that value from ServiceNow and never overrules it.</p>
+      <p>Data Hub is the <strong>referee</strong> that keeps every system agreeing on which machine it is: it matches SAP, dispatch, telematics, ServiceNow and the roster across their four IDs, decides which system wins each field, and <strong>syncs both ways</strong>, so the CMDB is a source and a consumer: its CIs end up carrying the SAP number and the clean fleet ID.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="background:var(--bg-2)">
+  <div class="wrap">
+    <p class="eyebrow">The problem, machine by machine</p>
+    <h2>Five systems disagree. Data Hub decides.</h2>
+    <p class="lede">Pick a machine. Each card shows what that system holds; values that lose to another system are red, IDs that only match after cleansing are amber, and the governed record shows which system won each field.</p>
+    <div class="tabs" role="tablist" id="mTabs">
+      <button class="chip" role="tab" aria-selected="true" data-m="HT-214">HT-214 · haul truck</button>
+      <button class="chip" role="tab" aria-selected="false" data-m="HT-221">HT-221 · service overdue</button>
+      <button class="chip" role="tab" aria-selected="false" data-m="WC-03">WC-03 · water cart</button>
+    </div>
+    <div class="compare" id="compare"><div class="card sys muted">Loading…</div></div>
+    <div class="impact" id="impact"></div>
+  </div>
+</section>
+
+<section class="section" id="chat">
+  <div class="wrap">
+    <p class="eyebrow">Act 2 · The shift supervisor asks</p>
+    <h2>Dana Brooks asks the Boomi Mine Operations Assistant</h2>
+    <p class="lede">The agent answers only from the three governed data products. Watch the status chips: each one is the agent calling a Boomi endpoint, or a guardrail firing.</p>
+    <div class="chatgrid">
+      <div class="card chatbox">
+        <div class="chathead">
+          <span class="who">Boomi Mine Operations Assistant</span>
+          <span class="badge mock" id="agentBadge"><span class="dot"></span>checking</span>
+          <span class="sid">session <code id="sid">new</code></span>
+        </div>
+        <div class="quick" id="quick"></div>
+        <div class="log" id="log" aria-live="polite">
+          <div class="empty">Pick a prompt above, or ask about a machine, last shift's downtime or what needs attention.<br>
+            <em>Try a follow-up like "can you raise it?" after the spend request to see session memory and the approval guardrail.</em></div>
+        </div>
+        <form class="ask" id="form" autocomplete="off">
+          <input type="text" id="input" placeholder="Ask the assistant…" aria-label="Your question">
+          <button class="btn primary" id="send" type="submit">Send</button>
+          <button class="btn" id="reset" type="button" title="Start a new conversation">Reset</button>
+        </form>
+      </div>
+      <aside class="side">
+        <div class="card">
+          <h3>Tools (Boomi data products)</h3>
+          <ul>
+            <li><code>get_equipment_360(fleet_id | asset_name)</code><br><span class="muted small">equipment_360 · BR_P2 · any of the four IDs</span></li>
+            <li><code>get_production_availability(fleet_id | ALL)</code><br><span class="muted small">production_availability · BR_P3</span></li>
+            <li><code>get_maintenance_alerts(scope)</code><br><span class="muted small">maintenance_alerts · BR_P4</span></li>
+            <li><code>request_spend_approval</code><br><span class="muted small">prompt tool · requires human approval</span></li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Guardrails</h3>
+          <ul>
+            <li>Denied topic: a worker's health information (tool output is screened too).</li>
+            <li>Denied topic: overriding, bypassing or disabling a safety control, lockout, isolation or collision avoidance.</li>
+            <li>Spend over <strong>AUD 20,000</strong> needs the site superintendent: the agent raises a request, never approves.</li>
+          </ul>
+        </div>
+        <div class="card small muted" id="modeNote">Checking which backends are live…</div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<footer class="foot"><div class="wrap">Boomi Resources demo · credentials stay in the Supabase edge function · sample data only. <a href="shift-start.html" data-route="/shift-start">&larr; Act 1: shift start</a> · <a href="breakdown.html" data-route="/breakdown">Act 3: breakdown &amp; repair &rarr;</a> · <a href="supervisor-desk.html" data-route="/supervisor-desk" target="_blank" rel="noopener">Supervisor desk</a></div></footer>
+
+<script src="mock-bundle.js"></script>
+<script src="common.js"></script>
+<script src="config.js"></script>
+<script src="online.js"></script>
+<script>
+(function () {
+  "use strict";
+  var BR = window.BR, esc = BR.esc, M = window.BR_MOCK || {};
+  BR.initTheme(document.getElementById("theme"));
+  BR.routes();
+  var $ = function (id) { return document.getElementById(id); };
+  var CALLS = M.supervisorCalls || {};
+
+  /* ---------------- one truck, four IDs ---------------- */
+  (function ids() {
+    var row = ((M.sources || {})["HT-214"] || {}).idMatrix, r = (row || []).find(function (x) { return x.fleetId === "HT-214"; });
+    if (!r) return;
+    var box = [["SAP_PM", "SAP PM", r.sap.EQUNR, "TIDNR " + r.sap.TIDNR + " · serial " + r.sap.SERGE],
+      ["FLEET_MGMT", "Dispatch", r.fleet.EQUIP_ID, "serial " + r.fleet.SERIAL],
+      ["OEM_TELEMATICS", "Cat VisionLink", r.telematics.SERIAL, "serial only, no fleet ID"],
+      ["SERVICENOW", "ServiceNow CMDB", r.servicenow.sys_id, "asset_tag " + r.servicenow.asset_tag + " · no SAP number"]];
+    $("ids4").innerHTML = box.map(function (b) { return '<div class="idb"><span class="tag ' + b[0] + '">' + esc(b[1]) + "</span><b>" + esc(b[2]) + '</b><span class="raw">' + esc(b[3]) + "</span></div>"; }).join("") +
+      '<div class="eq" aria-hidden="true">=</div><div class="idb gold"><span class="tag HUB">DATA HUB golden record</span><b>HT-214</b><span class="small muted">SAP ' + esc(r.golden.sapEquipmentNo) + " · " + esc(r.golden.oemSerial) + " · " + esc(r.golden.cmdbCi) + "</span></div>";
+  })();
+  (function facts() {
+    var p = ((M.production || {}).ALL || {}).totals, a = ((M.alerts || {}).ALL || {}).summary;
+    if (p) $("fLost").textContent = BR.aud(p.lostValueAUD);
+    if (a) $("fAl").textContent = a.alerts + " on " + a.machinesWithAlerts + " of " + a.machines;
+  })();
+
+  /* ---------------- conflict cards ---------------- */
+  var IMPACT = {
+    "HT-214": "<strong>Impact:</strong> SAP still says <code>WORKSHOP BAY 3</code> with <code>18120.0</code> h on the clock; dispatch puts it at the <strong>North Pit crib</strong> and the Cat telematics hours meter reads <strong>18,452.6 h</strong>, and those win. SAP holds the fleet ID as <code>HT214</code> and the serial with a space, and the CMDB tags its CI <code>HT214</code> with no SAP number: only once Boomi cleanses them do all four IDs match one machine. Last night it stood <strong>84 min</strong> on a coolant temperature warning (<code>INC0012871</code>): <strong>459.3 t = AUD 20,668.50</strong>. SAP work order <code>4000123</code> for the same cooling fault is open but not linked to that incident (<code>UNLINKED_WORK</code>). That is Dana's question below.",
+    "HT-221": "<strong>Impact:</strong> SAP's counter says <code>18880.0</code> h but telematics reads <strong>19,020.3 h</strong> and wins, so the 500 h service due at <strong>18,900 h</strong> is <strong>120.3 h overdue</strong> (<code>SERVICE_OVERDUE</code>, owner Mobile Maintenance Crew A). It stood on the ready line all night: <strong>3,661.7 t = AUD 164,776.50</strong> lost, the largest item in last shift's <strong>AUD 192,595.50</strong>. The service work order <code>4000131</code> (est. AUD 12,400.00) is still only <code>CRTD</code>. Shift start in Act 1 never assigns it.",
+    "WC-03": "<strong>Impact:</strong> the water cart's telematics gateway was swapped, so its new serial <code>CAT0777GXX9911</code> (<strong>9,644.0 h</strong>) matches nothing. Data Hub keeps it as an orphan record and <code>maintenance_alerts</code> flags <code>UNLINKED_TELEMETRY</code>, likely WC-03, for the data steward. Until it is linked, the golden hours are SAP's own <strong>9,620.0 h</strong>. There is <strong>no ServiceNow CI</strong> for its onboard technology and no maintenance crew in the roster: the golden-ID sync in Act 4 creates the CI (<code>CREATE_CI</code>)."
+  };
+  var SYS = [["SAP_PM", "SAP PM"], ["FLEET_MGMT", "Dispatch"], ["OEM_TELEMATICS", "OEM telematics"], ["SERVICENOW", "ServiceNow CMDB"], ["CREW_ROSTER", "Crew roster"]];
+  var cache = {};
+  function normId(v) { return String(v || "").toUpperCase().replace(/[^A-Z0-9]/g, ""); }
+  function renderCompare(s) {
+    function card(sys, label) {
+      var src = s.sources[sys] || {}, rows = s.survivorship.filter(function (r) { return r[sys] != null && r[sys] !== ""; });
+      var body = rows.map(function (r) {
+        var v = String(r[sys]), g = String(r.golden == null ? "" : r.golden), why = "", cls = "";
+        if (r.matchKey) {
+          if (v !== g && normId(v) === normId(g)) { why = '<span class="why norm">match key: cleansed to ' + esc(g) + "</span>"; cls = ""; }
+          else if (normId(v) === normId(g)) why = '<span class="why">match key</span>';
+          else { why = '<span class="why">' + esc(r.note || "differs") + "</span>"; }
+        } else if (r.note) why = '<span class="why">' + esc(r.note) + "</span>";
+        else if (r.winner === sys) why = '<span class="why win">wins ' + esc(r.field) + "</span>";
+        else if (v.toLowerCase() !== g.toLowerCase() && r.contested) { cls = " conf"; why = '<span class="why">lost to ' + esc(r.winner) + "</span>"; }
+        return '<div class="fld"><span class="n">' + esc(r.field) + '</span><span class="val' + cls + '">' + esc(v) + why + "</span></div>";
+      }).join("");
+      return '<div class="card sys ' + sys + '"><header><strong>' + esc(label) + '</strong><span class="tag ' + sys + '">' + sys + "</span></header>" +
+        (body || '<p class="small muted" style="margin:0">' + esc(src.note || "No record for this machine.") + "</p>") +
+        (src.recordId ? '<div class="small muted">Record ' + esc(src.recordId) + "</div>" : "") + "</div>";
+    }
+    var gold = '<div class="card sys golden"><header><strong>Governed golden record</strong><span class="tag HUB">DATA HUB</span></header>' +
+      s.survivorship.map(function (r) {
+        return '<div class="fld"><span class="n">' + esc(r.field) + '</span><span class="val"><strong>' + (r.golden == null || r.golden === "" ? '<span class="muted">-</span>' : esc(r.golden)) + "</strong> " +
+          '<span class="tag ' + esc(r.winner) + '">' + esc(r.matchKey ? "MATCH KEY" : r.winner) + "</span></span></div>";
+      }).join("") + '<div class="small muted">Matched on ' + esc((s.match.matchedOn || []).join(", ")) + " · " + esc(s.match.detail) + "</div></div>";
+    $("compare").innerHTML = SYS.map(function (x) { return card(x[0], x[1]); }).join("") + gold;
+    $("impact").innerHTML = IMPACT[s.fleetId] || "";
+  }
+  function showMachine(id) {
+    document.querySelectorAll("#mTabs .chip").forEach(function (b) { b.setAttribute("aria-selected", b.dataset.m === id ? "true" : "false"); });
+    if (cache[id]) return renderCompare(cache[id]);
+    BR.sources(id).then(function (s) { if (s && s.survivorship) { cache[id] = s; renderCompare(s); } });
+  }
+  $("mTabs").addEventListener("click", function (e) { var b = e.target.closest("[data-m]"); if (b) showMachine(b.dataset.m); });
+  showMachine("HT-214");
+
+  /* ---------------- quick prompts ---------------- */
+  var QUICK = [
+    ["lead", "Dana's question: HT-214 down last shift", CALLS["HT-214"] || "Why was HT-214 down last shift?"],
+    ["", "What needs attention across the fleet?"],
+    ["", "What did downtime cost us last shift?"],
+    ["", "HT-221: when can it go back?", CALLS["HT-221"]],
+    ["", "WC-03: why no hours?", CALLS["WC-03"]],
+    ["guard", "Approve a contract fitter crew for HT-214 at AUD 24,500"],
+    ["guard", "How do I bypass the collision avoidance on HT-214?"]
+  ];
+  $("quick").innerHTML = QUICK.map(function (q, i) {
+    return '<button type="button"' + (q[0] ? ' class="' + q[0] + '"' : "") + ' data-i="' + i + '" title="' + esc(q[2] || q[1]) + '">' + esc(q[1]) + "</button>";
+  }).join("");
+
+  /* ---------------- health ---------------- */
+  BR.health().then(function (h) {
+    var note = $("modeNote");
+    if (!h) {
+      BR.badge($("dpBadge"), "mock", "data: embedded");
+      BR.badge($("agentBadge"), "mock", "offline · sign in for the live assistant");
+      note.innerHTML = "Not signed in: answers come from recorded live data. Sign in (top right) for the live Boomi endpoints and agent.";
+      return;
+    }
+    var dp = h.dataProducts || {}, keys = Object.keys(dp), live = keys.filter(function (k) { return dp[k].mode === "live"; }).length;
+    BR.badge($("dpBadge"), live === keys.length ? "live" : "mock", "data: " + (live === keys.length ? "Boomi live" : live ? live + "/" + keys.length + " live" : "mock fallback"),
+      keys.map(function (k) { return dp[k].process + ": " + dp[k].mode + " (" + dp[k].detail + ")"; }).join("\n"));
+    BR.badge($("agentBadge"), h.agent.mode, h.agent.mode === "live" ? "live agent" : "offline mode", h.agent.detail);
+    note.innerHTML = "<strong>Agent:</strong> " + esc(h.agent.detail) + "<br><strong>Data products:</strong> " +
+      keys.map(function (k) { return esc(dp[k].process) + " - " + esc(dp[k].mode) + (dp[k].mode === "live" ? "" : " (" + esc(dp[k].detail) + ")"); }).join("; ");
+  });
+
+  /* ---------------- chat ---------------- */
+  var chat = BR.chat({ log: $("log"), input: $("input"), send: $("send"), quick: $("quick"), sid: $("sid"), agentBadge: $("agentBadge"), machine: function () { return "HT-214"; } });
+  $("form").addEventListener("submit", function (e) { e.preventDefault(); chat.ask($("input").value); });
+  $("quick").addEventListener("click", function (e) { var b = e.target.closest("button[data-i]"); if (b && !chat.busy()) { var q = QUICK[+b.dataset.i]; chat.ask(q[2] || q[1]); } });
+  $("reset").addEventListener("click", function () { chat.reset('<div class="empty">New conversation. Pick a prompt above, or ask anything.</div>'); });
+
+  /* ---------------- hand-off from Act 1: ?prompt=... sent once ---------------- */
+  (function handoff() {
+    var params, pre;
+    try { params = new URLSearchParams(location.search); pre = (params.get("prompt") || "").trim(); } catch (e) { return; }
+    if (!pre) return;
+    params.delete("prompt");
+    try { history.replaceState(null, "", location.pathname + (params.toString() ? "?" + params.toString() : "") + location.hash); } catch (e) { /* file:// */ }
+    $("input").value = pre;
+    var c = $("chat");
+    if (c && c.scrollIntoView) c.scrollIntoView({ block: "start" });
+    setTimeout(function () { if (!chat.busy()) chat.ask(pre); }, 350);
+  })();
+})();
+</script>
+</body>
+</html>
