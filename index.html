@@ -168,6 +168,14 @@ h1,h2,h3{font-weight:500; letter-spacing:-.02em; margin:0}
 .sec ol{margin:0;padding-left:20px;font-size:14px}
 .sec li{margin-bottom:4px}
 .sec ol li{margin-bottom:7px}
+.apis{display:grid;gap:10px}
+.api{border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:14px}
+.api-line{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 10px}
+.api-m{font:600 11px/1 ui-monospace,Menlo,monospace;padding:3px 6px;border-radius:4px;background:var(--chip)}
+.api-p{font:13px ui-monospace,Menlo,monospace;word-break:break-all}
+.api-spec{font-size:12px;color:var(--text-dim)}
+.api p{margin:6px 0 0}
+.api .api-meta{margin-top:6px;font-size:12px;color:var(--text-dim)}
 .lead{margin:20px 0 0;font-size:15px;line-height:1.62}
 .lead + .lead{margin-top:12px}
 /* Adjacent systems are NOT what the demo integrates. Dashed and hollow so the
@@ -629,10 +637,28 @@ var USE_CASES = [
     customer: 'Cross-industry (lending demo)',
     industry: 'Financial services',
     author: 'Saurabh Singh',
-    summary: 'A car loan API built entirely from standard Boomi components – one web-service process per endpoint for apply, look up, credit decision and repayment schedule – with a tester page that shows every HTTP call and, live, every shape each Boomi process ran.',
+    summary: 'Four Boomi APIs for a car loan – submit an application, look it up, run the credit decision and get the repayment schedule – built only from standard Boomi components, with a tester page that shows every call and, live, every step each Boomi process ran.',
     narrative: 'Lending teams want to see how much of a loan journey integration can own. Here four Boomi web-service processes are the whole API: POST an application and Decision shapes validate every field and return all the errors at once; the record is stored on the Boomi runtime; a Business Rules step approves (debt-to-income under 40% and credit score 620+), refers (score 580 to 619) or rejects, with a reason; and a Groovy step returns an 8% amortization schedule for approved loans. Every process has Try/Catch with a standard error body, real HTTP status codes (201, 400, 404, 409, 500) and Process Log entries for each request and decision.\n\nThe tester page walks the lifecycle step by step and stamps the decision on the application file. Its Live activity panel lists every API call and every run of the four processes – including runs triggered outside the page – and opens each one into the HTTP exchange plus the ordered list of shapes Boomi executed, with timings, connectors and log messages read from the platform.',
     impact: null,
     impactModel: null,
+    apis: [
+      {method: 'POST', path: '/ws/simple/createLoansApplication', spec: 'spec: POST /loans/applications',
+       process: 'CarLoan API - POST Create Application',
+       does: 'Submits an application: name, monthly_income, monthly_debt, credit_score, car_price, down_payment and term_months. Eight Decision checks validate every field and report all errors at once. A Map computes the loan amount and debt-to-income, an APP- id is generated, and the record is stored on the Boomi runtime with the Disk V2 connector.',
+       responses: '201 with the id and links; 400 VALIDATION_FAILED listing each error; 400 INVALID_JSON; 500'},
+      {method: 'GET', path: '/ws/simple/getLoansApplication?id=APP-…', spec: 'spec: GET /loans/applications/{id}',
+       process: 'CarLoan API - GET Application',
+       does: 'Reads the stored application, including its status, debt-to-income, loan amount and, once decided, the decision and reason.',
+       responses: '200 with the record; 404 NOT_FOUND; 400 INVALID_ID; 500'},
+      {method: 'POST', path: '/ws/simple/executeLoansDecision?id=APP-…', spec: 'spec: POST /loans/applications/{id}/decision',
+       process: 'CarLoan API - POST Decision',
+       does: 'Runs the credit decision in two Business Rules steps: APPROVED when debt-to-income is under 40% and the credit score is 620 or higher, REFERRED when the score is 580 to 619, otherwise REJECTED. Saves the decision, reason and time on the record and writes it to the Process Log.',
+       responses: '200 with the decision, reason, DTI and score; 404; 400; 500'},
+      {method: 'GET', path: '/ws/simple/getLoansSchedule?id=APP-…', spec: 'spec: GET /loans/applications/{id}/schedule',
+       process: 'CarLoan API - GET Schedule',
+       does: 'For approved loans, a Groovy Data Process step calculates the fixed monthly payment at 8% annual interest and returns every month: payment, principal, interest and remaining balance, plus totals.',
+       responses: '200 with the schedule; 409 NOT_APPROVED for referred or rejected loans; 404; 400; 500'}
+    ],
     demoFlow: ['Sign in with the demo account (ask Saurabh for the password).',
                'Apply: pick Invalid data and submit to show the 400 with every validation error; then pick Strong applicant and submit for a 201 and a stored application.',
                'Live activity: open the create call to show the request, the response and the 21 shapes the Boomi process ran, with the Process Log lines.',
@@ -1537,6 +1563,17 @@ function chipsHtml(arr, extra){
 }
 // A numbered running order. demoFlow is ordered by contract, so the numbers
 // are the steps, not decoration.
+function apisHtml(arr){
+  if(!arr || !arr.length) return '';
+  return '<div class="apis">' + arr.map(function(a){
+    return '<div class="api"><div class="api-line"><span class="api-m">' + esc(a.method) + '</span>'
+      + '<span class="api-p">' + esc(a.path) + '</span>'
+      + (a.spec ? '<span class="api-spec">' + esc(a.spec) + '</span>' : '') + '</div>'
+      + (a.does ? '<p>' + esc(a.does) + '</p>' : '')
+      + '<div class="api-meta">' + (a.process ? 'Boomi process: ' + esc(a.process) : '')
+      + (a.responses ? (a.process ? '. ' : '') + 'Responses: ' + esc(a.responses) : '') + '</div></div>';
+  }).join('') + '</div>';
+}
 function stepsHtml(arr){
   if(!arr || !arr.length) return '';
   return '<ol>' + arr.map(function(v){ return '<li>' + esc(v) + '</li>'; }).join('') + '</ol>';
@@ -1619,6 +1656,7 @@ function openDetail(id){
           im && im.workings ? '<p class="workings">' + esc(im.workings) + '</p>' : '')
     +   modelHtml(uc.impactModel)
     +   sectionHtml('Summary', uc.summary ? '<p>' + esc(uc.summary) + '</p>' : '')
+    +   sectionHtml('APIs built for this demo', apisHtml(uc.apis))
     +   sectionHtml('How to run the demo', stepsHtml(uc.demoFlow))
     +   sectionHtml('Where this lands in a conversation', listHtml(uc.conversations))
     +   sectionHtml('Systems this demo integrates', chipsHtml(uc.systems))
