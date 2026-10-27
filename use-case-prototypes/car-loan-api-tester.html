@@ -1,0 +1,752 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Car Loan API Tester</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --paper: #eef2f1;
+  --surface: #ffffff;
+  --ink: #15232e;
+  --muted: #5a6a74;
+  --line: #d3dcdf;
+  --teal: #0d6a6a;
+  --teal-soft: #dcecea;
+  --approve: #1c7745;
+  --refer: #9a6200;
+  --reject: #b0261d;
+  --code-bg: #f6f8f8;
+  --sans: "IBM Plex Sans", system-ui, sans-serif;
+  --cond: "IBM Plex Sans Condensed", "IBM Plex Sans", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 15px/1.55 var(--sans); }
+button, input, select { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--teal); outline-offset: 2px; }
+
+.wrap { max-width: 1240px; margin: 0 auto; padding: 0 24px; }
+header { padding: 28px 0 8px; }
+header .wrap { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 24px; }
+h1 { font: 700 30px/1.1 var(--cond); margin: 0; letter-spacing: -0.01em; }
+.conn { color: var(--muted); font-size: 13px; }
+.conn b { font-weight: 500; color: var(--ink); }
+
+/* lifecycle stepper: the four endpoints really are a sequence */
+.steps { list-style: none; margin: 18px 0 22px; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); border-top: 2px solid var(--ink); }
+.steps button { width: 100%; text-align: left; background: none; border: 0; padding: 12px 14px 12px 0; cursor: pointer; display: grid; grid-template-columns: auto 1fr; gap: 0 10px; border-top: 4px solid transparent; margin-top: -3px; }
+.steps .n { grid-row: span 2; font: 700 28px/1 var(--cond); color: var(--line); }
+.steps .t { font-weight: 600; }
+.steps .e { font: 12px/1.4 var(--mono); color: var(--muted); }
+.steps button[aria-selected="true"] { border-top-color: var(--teal); }
+.steps button[aria-selected="true"] .n { color: var(--teal); }
+.steps button:hover .n { color: var(--muted); }
+
+.grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 22px; align-items: start; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 22px; }
+h2 { font: 600 19px/1.3 var(--sans); margin: 0 0 4px; }
+.lede { color: var(--muted); margin: 0 0 18px; max-width: 62ch; }
+
+.presets { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+.chip { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 5px 12px; font-size: 13px; cursor: pointer; }
+.chip:hover { border-color: var(--teal); color: var(--teal); }
+
+.form { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 16px; }
+.field label { display: block; font-weight: 500; font-size: 14px; margin-bottom: 4px; }
+.field input, .idrow input, .idrow select { width: 100%; padding: 9px 11px; border: 1px solid var(--line); border-radius: 4px; background: #fbfcfc; }
+.field input:focus, .idrow input:focus { border-color: var(--teal); background: var(--surface); }
+.field small { display: block; color: var(--muted); font-size: 12px; margin-top: 3px; }
+.field.wide { grid-column: 1 / -1; }
+
+.preview { margin: 18px 0; display: grid; grid-template-columns: repeat(3, 1fr) 1.4fr; border: 1px solid var(--line); border-radius: 4px; }
+.preview div { padding: 10px 12px; border-right: 1px solid var(--line); }
+.preview div:last-child { border-right: 0; }
+.preview dt { font-size: 12px; color: var(--muted); }
+.preview dd { margin: 0; font-weight: 600; font-variant-numeric: tabular-nums; }
+.tone-APPROVED { color: var(--approve); } .tone-REFERRED { color: var(--refer); } .tone-REJECTED { color: var(--reject); }
+
+.btn { background: var(--teal); color: #fff; border: 0; border-radius: 4px; padding: 11px 18px; font-weight: 600; cursor: pointer; }
+.btn:hover { background: #0a5656; }
+.btn:disabled { opacity: .55; cursor: progress; }
+.link { background: none; border: 0; padding: 0; color: var(--teal); text-decoration: underline; cursor: pointer; font-size: 14px; }
+.actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; }
+
+.idrow { display: grid; grid-template-columns: 1fr auto; gap: 10px; margin-bottom: 12px; }
+.idrow input { font-family: var(--mono); font-size: 14px; }
+
+.rules { list-style: none; margin: 0 0 18px; padding: 0; border: 1px solid var(--line); border-radius: 4px; }
+.rules li { display: grid; grid-template-columns: 96px 1fr; gap: 12px; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+.rules li:last-child { border-bottom: 0; }
+.rules b { font-family: var(--cond); font-size: 16px; }
+
+.notice { margin-top: 16px; padding: 12px 14px; border-left: 4px solid var(--muted); background: var(--code-bg); border-radius: 0 4px 4px 0; }
+.notice.bad { border-color: var(--reject); }
+.notice.ok { border-color: var(--approve); }
+.notice ul { margin: 6px 0 0; padding-left: 18px; }
+.notice p { margin: 0; }
+
+/* the application file, with the decision stamp as the one bold element */
+.file { position: sticky; top: 16px; overflow: hidden; }
+.file .empty { color: var(--muted); padding: 30px 0 18px; }
+.file .who { font: 700 24px/1.15 var(--cond); margin: 0; }
+.file .id { display: flex; align-items: center; gap: 8px; font: 13px var(--mono); color: var(--muted); margin: 4px 0 16px; }
+.file dl { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 18px; margin: 0; }
+.file dt { font-size: 12px; color: var(--muted); }
+.file dd { margin: 0; font-weight: 500; font-variant-numeric: tabular-nums; }
+.file .reason { margin-top: 16px; padding-top: 14px; border-top: 1px dashed var(--line); }
+.file .reason p { margin: 2px 0 0; }
+.status-line { display: inline-block; font: 600 12px var(--sans); padding: 2px 8px; border-radius: 3px; background: var(--teal-soft); color: var(--teal); }
+.stamp { position: absolute; top: 26px; right: 26px; transform: rotate(-11deg); font: 700 23px/1 var(--cond); letter-spacing: .06em; padding: 8px 14px; border: 4px double currentColor; border-radius: 6px; opacity: .88; pointer-events: none; }
+.stamp.APPROVED { color: var(--approve); } .stamp.REFERRED { color: var(--refer); } .stamp.REJECTED { color: var(--reject); }
+.stamp.land { animation: land .42s cubic-bezier(.2,1.6,.4,1) both; }
+@keyframes land { from { transform: rotate(-24deg) scale(2.2); opacity: 0; } to { transform: rotate(-11deg) scale(1); opacity: .88; } }
+.copy { border: 1px solid var(--line); background: none; border-radius: 3px; font-size: 11px; padding: 1px 6px; cursor: pointer; color: var(--muted); }
+
+/* schedule */
+.totals { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 18px 0; }
+.totals div { border-top: 2px solid var(--ink); padding-top: 6px; }
+.totals dt { font-size: 12px; color: var(--muted); }
+.totals dd { margin: 0; font: 600 22px/1.2 var(--sans); font-variant-numeric: tabular-nums; }
+.chart { width: 100%; height: 170px; display: block; }
+.legend { display: flex; gap: 16px; font-size: 12px; color: var(--muted); margin: 6px 0 12px; }
+.legend i { display: inline-block; width: 10px; height: 10px; margin-right: 5px; vertical-align: -1px; }
+details summary { cursor: pointer; color: var(--teal); font-size: 14px; }
+.table-scroll { max-height: 320px; overflow: auto; margin-top: 8px; border: 1px solid var(--line); border-radius: 4px; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; font-variant-numeric: tabular-nums; }
+th, td { padding: 6px 10px; text-align: right; border-bottom: 1px solid var(--line); }
+th { position: sticky; top: 0; background: var(--code-bg); font-weight: 600; }
+th:first-child, td:first-child { text-align: left; }
+
+/* live activity: timeline of calls and Boomi executions + inspector */
+.live { margin: 22px 0 40px; padding: 0; overflow: hidden; }
+.live-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 16px 22px; border-bottom: 1px solid var(--line); }
+.live-head h2 { margin: 0; margin-right: auto; }
+.beacon { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; color: var(--muted); }
+.beacon i { width: 9px; height: 9px; border-radius: 50%; background: var(--approve); box-shadow: 0 0 0 0 rgba(28,119,69,.5); animation: pulse 2s infinite; }
+.beacon.off i { background: var(--reject); animation: none; }
+@keyframes pulse { 70% { box-shadow: 0 0 0 7px rgba(28,119,69,0); } 100% { box-shadow: 0 0 0 0 rgba(28,119,69,0); } }
+.live-body { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.6fr); min-height: 420px; }
+.timeline { list-style: none; margin: 0; padding: 0; border-right: 1px solid var(--line); max-height: 640px; overflow: auto; }
+.timeline li button { width: 100%; text-align: left; background: none; border: 0; border-bottom: 1px solid var(--line); padding: 11px 16px 11px 22px; cursor: pointer; display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; position: relative; }
+.timeline li button::before { content: ""; position: absolute; left: 9px; top: 16px; width: 7px; height: 7px; border-radius: 50%; background: var(--line); }
+.timeline li.call button::before { background: var(--teal); }
+.timeline li.exec button::before { background: var(--ink); border-radius: 1px; }
+.timeline li.pending button::before { animation: pulse 1.2s infinite; background: var(--refer); }
+.timeline li[aria-current="true"] button { background: var(--teal-soft); }
+.timeline .what { font-weight: 500; font-size: 14px; }
+.timeline .when { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.timeline .sub { grid-column: 1 / -1; font: 12px var(--mono); color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.timeline .nested { grid-column: 1 / -1; font-size: 12px; color: var(--ink); }
+.timeline .empty { padding: 22px; color: var(--muted); font-size: 14px; }
+.inspector { padding: 18px 22px; min-width: 0; }
+.inspector .empty { color: var(--muted); }
+.insp-title { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-bottom: 14px; }
+.req { font: 13px var(--mono); word-break: break-all; }
+.pill { font: 600 13px var(--mono); padding: 2px 9px; border-radius: 3px; color: #fff; background: var(--muted); }
+.pill.s2, .pill.COMPLETE { background: var(--approve); } .pill.s4, .pill.COMPLETE_WARN { background: var(--refer); }
+.pill.s5, .pill.s0, .pill.ERROR { background: var(--reject); } .pill.INPROCESS { background: var(--teal); }
+.ms { font-size: 13px; color: var(--muted); }
+.panes { display: grid; grid-template-columns: 1fr 1.5fr; gap: 14px; }
+h3 { font-size: 13px; font-weight: 600; margin: 0 0 6px; color: var(--muted); }
+pre { margin: 0; background: var(--code-bg); border: 1px solid var(--line); border-radius: 4px; padding: 12px; font: 12.5px/1.5 var(--mono); max-height: 300px; overflow: auto; white-space: pre-wrap; word-break: break-word; }
+.waiting { color: var(--muted); }
+.boomi { margin-top: 18px; border-top: 2px solid var(--ink); padding-top: 12px; }
+.boomi-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; margin-bottom: 10px; }
+.boomi-head b { font: 700 17px var(--cond); }
+.boomi-head code { font: 12px var(--mono); color: var(--muted); }
+.trace { list-style: none; margin: 0; padding: 0; counter-reset: s; }
+.trace li { display: grid; grid-template-columns: 26px 128px 1fr auto; gap: 10px; align-items: baseline; padding: 5px 0; border-bottom: 1px dotted var(--line); font-size: 13.5px; counter-increment: s; }
+.trace li::before { content: counter(s); font: 600 12px var(--cond); color: var(--muted); text-align: right; }
+.trace .ty { font-size: 12px; color: var(--muted); }
+.trace .ty::before { content: ""; display: inline-block; width: 8px; height: 8px; margin-right: 6px; background: var(--muted); vertical-align: 0; }
+.trace .t-Decision::before { transform: rotate(45deg); background: var(--refer); }
+.trace .t-BusinessRules::before { background: var(--refer); border-radius: 50%; }
+.trace .t-Connector::before { background: var(--teal); }
+.trace .t-DataProcess::before { background: #7a4fb0; }
+.trace .t-Map::before { background: #2d6fb5; }
+.trace .t-ReturnDocuments::before, .trace .t-Start::before { background: var(--ink); border-radius: 50%; }
+.trace .lbl small { display: block; color: var(--muted); font-size: 12px; }
+.trace .d { font: 12px var(--mono); color: var(--muted); }
+.trace.reveal li { animation: rise .25s ease-out both; animation-delay: calc(var(--i) * 45ms); }
+@keyframes rise { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.logs { margin: 12px 0 0; padding: 0; list-style: none; }
+.logs li { font: 12.5px/1.5 var(--mono); padding: 4px 8px; border-left: 3px solid var(--teal); background: var(--code-bg); margin-bottom: 4px; word-break: break-word; }
+.logs li.WARNING { border-color: var(--refer); } .logs li.ERROR, .logs li.SEVERE { border-color: var(--reject); }
+.hint { color: var(--muted); font-size: 13px; }
+
+
+/* sign-in */
+.auth { position: fixed; inset: 0; background: var(--paper); display: grid; place-items: center; padding: 16px; z-index: 10; }
+.auth form { width: min(380px, 100%); background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 26px; display: grid; gap: 12px; }
+.auth h1 { margin-bottom: 4px; }
+.auth p { margin: 0 0 6px; color: var(--muted); font-size: 14px; }
+.auth label { font-weight: 500; font-size: 14px; }
+.auth input { width: 100%; padding: 9px 11px; border: 1px solid var(--line); border-radius: 4px; margin-top: 4px; }
+.auth .err { color: var(--reject); font-size: 14px; min-height: 1.2em; }
+.who-am-i { display: inline-flex; align-items: center; gap: 10px; font-size: 13px; color: var(--muted); }
+.who-am-i button { border: 1px solid var(--line); background: var(--surface); border-radius: 4px; padding: 3px 10px; font-size: 13px; cursor: pointer; }
+
+[hidden] { display: none !important; }
+
+@media (max-width: 900px) {
+  .grid, .panes, .live-body { grid-template-columns: 1fr; }
+  .timeline { border-right: 0; border-bottom: 1px solid var(--line); max-height: 300px; }
+  .trace li { grid-template-columns: 22px 1fr auto; }
+  .trace .ty { grid-column: 2 / -1; }
+  .file { position: relative; top: 0; }
+  .steps { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 560px) {
+  .wrap { padding: 0 16px; }
+  .form { grid-template-columns: 1fr; }
+  .preview { grid-template-columns: 1fr 1fr; }
+  .preview div:nth-child(2) { border-right: 0; }
+  .preview div:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
+  .totals { grid-template-columns: 1fr; }
+  .rules li { grid-template-columns: 1fr; gap: 2px; }
+}
+@media (prefers-reduced-motion: reduce) { .stamp.land { animation: none; } }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+  const CFG = {
+    SUPABASE_URL: "https://hfovtnceicailrkshvqg.supabase.co",
+    SUPABASE_ANON_KEY: "sb_publishable_-CP2yRvCsH6NTvpulcYfVA_oZZrKyxV",
+    RUNTIME_LABEL: "c02-usa-east.integrate-test.boomi.com",
+  };
+</script>
+</head>
+<body>
+<section class="auth" id="auth" hidden>
+  <form id="authForm">
+    <h1>Car loan API tester</h1>
+    <p>Sign in to call the Boomi car loan API and watch each process run.</p>
+    <label>Email<input id="email" type="email" autocomplete="username" required></label>
+    <label>Password<input id="password" type="password" autocomplete="current-password" required></label>
+    <button class="btn" type="submit" id="signinBtn">Sign in</button>
+    <div class="err" id="authErr" role="alert"></div>
+  </form>
+</section>
+<header>
+  <div class="wrap">
+    <h1>Car loan API tester</h1>
+    <div class="conn">Calling the Boomi Test runtime at <b id="host">…</b></div><div class="who-am-i"><span id="userEmail"></span><button id="signout">Sign out</button></div>
+  </div>
+</header>
+
+<main class="wrap">
+  <nav aria-label="Loan lifecycle">
+    <ol class="steps" role="tablist">
+      <li><button role="tab" data-step="apply" aria-selected="true"><span class="n">1</span><span class="t">Apply</span><span class="e">POST createLoansApplication</span></button></li>
+      <li><button role="tab" data-step="lookup" aria-selected="false"><span class="n">2</span><span class="t">Look up</span><span class="e">GET getLoansApplication</span></button></li>
+      <li><button role="tab" data-step="decide" aria-selected="false"><span class="n">3</span><span class="t">Decide</span><span class="e">POST executeLoansDecision</span></button></li>
+      <li><button role="tab" data-step="schedule" aria-selected="false"><span class="n">4</span><span class="t">Schedule</span><span class="e">GET getLoansSchedule</span></button></li>
+    </ol>
+  </nav>
+
+  <div class="grid">
+    <section class="panel">
+      <!-- 1 Apply -->
+      <div data-panel="apply">
+        <h2>Submit a loan application</h2>
+        <p class="lede">Fill in the applicant, or start from a sample. Boomi validates every field, stores the application and returns its id.</p>
+        <div class="presets" aria-label="Sample applicants">
+          <button class="chip" data-preset="strong">Strong applicant</button>
+          <button class="chip" data-preset="refer">Borderline score</button>
+          <button class="chip" data-preset="debt">Heavy debt</button>
+          <button class="chip" data-preset="broken">Invalid data</button>
+        </div>
+        <form id="applyForm" class="form" novalidate>
+          <div class="field wide"><label for="f-name">Applicant name</label><input id="f-name" name="name" autocomplete="off"><small>Letters, spaces, periods, commas and hyphens</small></div>
+          <div class="field"><label for="f-income">Monthly income</label><input id="f-income" name="monthly_income" inputmode="decimal"></div>
+          <div class="field"><label for="f-debt">Monthly debt payments</label><input id="f-debt" name="monthly_debt" inputmode="decimal"></div>
+          <div class="field"><label for="f-score">Credit score</label><input id="f-score" name="credit_score" inputmode="numeric"><small>300 to 850</small></div>
+          <div class="field"><label for="f-term">Term in months</label><input id="f-term" name="term_months" inputmode="numeric"><small>12 to 84</small></div>
+          <div class="field"><label for="f-price">Car price</label><input id="f-price" name="car_price" inputmode="decimal"></div>
+          <div class="field"><label for="f-down">Down payment</label><input id="f-down" name="down_payment" inputmode="decimal"><small>Must be less than the car price</small></div>
+        </form>
+        <dl class="preview" aria-live="polite">
+          <div><dt>Loan amount</dt><dd id="pv-loan">–</dd></div>
+          <div><dt>Debt-to-income</dt><dd id="pv-dti">–</dd></div>
+          <div><dt>Credit score</dt><dd id="pv-score">–</dd></div>
+          <div><dt>Likely decision</dt><dd id="pv-outcome">–</dd></div>
+        </dl>
+        <div class="actions"><button class="btn" id="submitBtn">Submit application</button></div>
+        <div id="applyNote"></div>
+      </div>
+
+      <!-- 2 Look up -->
+      <div data-panel="lookup" hidden>
+        <h2>Look up an application</h2>
+        <p class="lede">Read a stored application by its id. Ids from this browser session are listed for quick picking.</p>
+        <div class="idrow">
+          <input id="lookupId" placeholder="APP-1234567890" aria-label="Application id" spellcheck="false">
+          <button class="btn" id="lookupBtn">Look up application</button>
+        </div>
+        <div class="actions">
+          <select id="history" aria-label="Applications from this session"><option value="">Applications from this session…</option></select>
+          <button class="link" data-try="APP-0000000000">Try an id that doesn't exist</button>
+          <button class="link" data-try="../secrets">Try a malformed id</button>
+        </div>
+        <div id="lookupNote"></div>
+      </div>
+
+      <!-- 3 Decide -->
+      <div data-panel="decide" hidden>
+        <h2>Run the credit decision</h2>
+        <p class="lede">Boomi applies these rules in a Business Rules step, then saves the decision and reason on the application.</p>
+        <ul class="rules">
+          <li><b class="tone-APPROVED">Approve</b><span>Debt-to-income under 40% and credit score 620 or higher</span></li>
+          <li><b class="tone-REFERRED">Refer</b><span>Otherwise, when the credit score is 580 to 619</span></li>
+          <li><b class="tone-REJECTED">Reject</b><span>Everything else</span></li>
+        </ul>
+        <div class="idrow">
+          <input id="decideId" placeholder="APP-1234567890" aria-label="Application id" spellcheck="false">
+          <button class="btn" id="decideBtn">Run decision</button>
+        </div>
+        <div id="decideNote"></div>
+      </div>
+
+      <!-- 4 Schedule -->
+      <div data-panel="schedule" hidden>
+        <h2>Get the repayment schedule</h2>
+        <p class="lede">For approved loans, Boomi calculates the monthly payments at 8% annual interest. Other applications get a 409 response.</p>
+        <div class="idrow">
+          <input id="scheduleId" placeholder="APP-1234567890" aria-label="Application id" spellcheck="false">
+          <button class="btn" id="scheduleBtn">Get schedule</button>
+        </div>
+        <div id="scheduleNote"></div>
+        <div id="scheduleOut" hidden>
+          <dl class="totals">
+            <div><dt>Monthly payment</dt><dd id="sc-pay"></dd></div>
+            <div><dt>Total interest</dt><dd id="sc-int"></dd></div>
+            <div><dt>Total paid</dt><dd id="sc-total"></dd></div>
+          </dl>
+          <svg class="chart" id="chart" role="img" aria-label="Principal and interest in each monthly payment"></svg>
+          <div class="legend"><span><i style="background:var(--teal)"></i>Principal</span><span><i style="background:#e3a640"></i>Interest</span></div>
+          <details><summary id="sc-summary">Show all payments</summary><div class="table-scroll"><table><thead><tr><th>Month</th><th>Payment</th><th>Principal</th><th>Interest</th><th>Balance</th></tr></thead><tbody id="sc-rows"></tbody></table></div></details>
+        </div>
+      </div>
+    </section>
+
+    <aside class="panel file" aria-label="Application file" aria-live="polite">
+      <div id="stamp" class="stamp" hidden></div>
+      <div id="fileEmpty" class="empty">No application loaded yet. Submit one in step 1 or look one up in step 2.</div>
+      <div id="fileBody" hidden>
+        <h2 class="who" id="fi-name"></h2>
+        <div class="id"><span id="fi-id"></span><button class="copy" id="copyId">Copy</button></div>
+        <dl>
+          <div><dt>Status</dt><dd><span class="status-line" id="fi-status"></span></dd></div>
+          <div><dt>Submitted</dt><dd id="fi-created"></dd></div>
+          <div><dt>Monthly income</dt><dd id="fi-income"></dd></div>
+          <div><dt>Monthly debt</dt><dd id="fi-debt"></dd></div>
+          <div><dt>Debt-to-income</dt><dd id="fi-dti"></dd></div>
+          <div><dt>Credit score</dt><dd id="fi-score"></dd></div>
+          <div><dt>Car price</dt><dd id="fi-price"></dd></div>
+          <div><dt>Down payment</dt><dd id="fi-down"></dd></div>
+          <div><dt>Loan amount</dt><dd id="fi-loan"></dd></div>
+          <div><dt>Term</dt><dd id="fi-term"></dd></div>
+        </dl>
+        <div class="reason" id="fi-reasonBox" hidden><dt>Decision reason</dt><p id="fi-reason"></p><dt style="margin-top:6px">Decided</dt><p id="fi-decided"></p></div>
+      </div>
+    </aside>
+  </div>
+
+  <section class="panel live" aria-labelledby="liveTitle">
+    <div class="live-head">
+      <h2 id="liveTitle">Live activity</h2>
+      <span class="hint">Every API call and every run of the four Boomi processes, including calls made outside this page</span>
+      <span class="beacon" id="beacon"><i></i><span id="beaconText">Connecting to Boomi…</span></span>
+    </div>
+    <div class="live-body">
+      <ol class="timeline" id="timeline" aria-label="Calls and executions, newest first"><li class="empty">Watching for activity. Submit an application to see the first call.</li></ol>
+      <div class="inspector" id="inspector" aria-live="polite"><p class="empty">Select an entry to see the HTTP exchange and the Boomi process steps it ran.</p></div>
+    </div>
+  </section>
+</main>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const PRESETS = {
+  strong: { name: "Maria Santos", monthly_income: "6500", monthly_debt: "1200", credit_score: "710", car_price: "32000", down_payment: "6000", term_months: "60" },
+  refer:  { name: "Jose Rizal", monthly_income: "5000", monthly_debt: "900", credit_score: "600", car_price: "25000", down_payment: "5000", term_months: "48" },
+  debt:   { name: "Ana Cruz", monthly_income: "4000", monthly_debt: "2000", credit_score: "700", car_price: "20000", down_payment: "2000", term_months: "36" },
+  broken: { name: "", monthly_income: "abc", monthly_debt: "", credit_score: "900", car_price: "20000", down_payment: "25000", term_months: "6" },
+};
+const FIELDS = ["name", "monthly_income", "monthly_debt", "credit_score", "car_price", "down_payment", "term_months"];
+const num = (v) => (v === "" || v == null || isNaN(+v) ? null : +v);
+const money = (v) => (v == null ? "–" : (+v).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+/* ---------- storage (per-browser convenience only) ---------- */
+function loadHistory() { try { return JSON.parse(localStorage.getItem("carloan.history") || "[]"); } catch { return []; } }
+function saveHistory(h) { try { localStorage.setItem("carloan.history", JSON.stringify(h.slice(0, 25))); } catch {} }
+let history = loadHistory();
+function remember(rec) {
+  history = [{ id: rec.id, name: rec.name, status: rec.status }, ...history.filter((h) => h.id !== rec.id)];
+  saveHistory(history); renderHistory();
+}
+function renderHistory() {
+  $("#history").innerHTML = '<option value="">Applications from this session…</option>' +
+    history.map((h) => `<option value="${esc(h.id)}">${esc(h.name || "Unnamed")}, ${esc(h.status || "")}, ${esc(h.id)}</option>`).join("");
+}
+
+/* ---------- steps ---------- */
+function show(step) {
+  document.querySelectorAll(".steps button").forEach((b) => b.setAttribute("aria-selected", b.dataset.step === step));
+  document.querySelectorAll("[data-panel]").forEach((p) => (p.hidden = p.dataset.panel !== step));
+}
+document.querySelectorAll(".steps button").forEach((b) => b.addEventListener("click", () => show(b.dataset.step)));
+
+let currentId = "";
+function setCurrent(id) { currentId = id; ["#lookupId", "#decideId", "#scheduleId"].forEach((s) => ($(s).value = id)); }
+
+/* ---------- Supabase sign-in and Edge Function transport ---------- */
+const sb = supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY);
+const FN = `${CFG.SUPABASE_URL}/functions/v1/carloan-api`;
+let signedIn = false;
+async function fn(route, payload) {
+  const { data } = await sb.auth.getSession();
+  const tok = data.session?.access_token;
+  if (!tok) { showAuth(); throw new Error("Sign in required"); }
+  const r = await fetch(FN + route, { method: "POST", body: JSON.stringify(payload),
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${tok}`, apikey: CFG.SUPABASE_ANON_KEY } });
+  const j = await r.json().catch(() => ({ error: `HTTP ${r.status}` }));
+  if (r.status === 401) { showAuth(); throw new Error("Sign in required"); }
+  if (!r.ok) throw new Error(j.error || `HTTP ${r.status}`);
+  return j;
+}
+function showAuth() {
+  signedIn = false; clearTimeout(watchTimer);
+  $("#auth").hidden = false; $("#email").focus();
+}
+async function startSession(session) {
+  signedIn = true;
+  $("#auth").hidden = true;
+  $("#userEmail").textContent = session.user.email;
+  watch();
+}
+$("#authForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  $("#authErr").textContent = ""; $("#signinBtn").disabled = true;
+  const { data, error } = await sb.auth.signInWithPassword({ email: $("#email").value.trim(), password: $("#password").value });
+  $("#signinBtn").disabled = false;
+  if (error) { $("#authErr").textContent = error.message === "Invalid login credentials" ? "Email or password is incorrect." : error.message; return; }
+  startSession(data.session);
+});
+$("#signout").addEventListener("click", async () => { await sb.auth.signOut(); items.clear(); firstWatch = true; render(); $("#timeline").innerHTML = ""; showAuth(); });
+
+/* ---------- API calls (each one shows up in Live activity) ---------- */
+const ROUTES = {
+  create: { method: "POST", path: "/ws/simple/createLoansApplication", process: "CarLoan API - POST Create Application" },
+  application: { method: "GET", path: "/ws/simple/getLoansApplication", process: "CarLoan API - GET Application" },
+  decision: { method: "POST", path: "/ws/simple/executeLoansDecision", process: "CarLoan API - POST Decision" },
+  schedule: { method: "GET", path: "/ws/simple/getLoansSchedule", process: "CarLoan API - GET Schedule" },
+};
+let busy = false, callSeq = 0;
+async function call(endpoint, { id, body, focus = true } = {}) {
+  if (busy) return null;
+  busy = true;
+  document.querySelectorAll(".btn").forEach((b) => (b.disabled = true));
+  const r = ROUTES[endpoint], cid = `call-${++callSeq}`;
+  items.set(cid, { id: cid, kind: "call", process: r.process, method: r.method, started: Date.now() / 1000, state: "pending",
+                   path: r.path + (id !== undefined ? "?id=" + encodeURIComponent(id) : ""),
+                   request_body: body ? JSON.stringify(body) : r.method === "POST" ? "{}" : null });
+  if (focus) selected = cid;
+  render();
+  const tick = setInterval(() => { if (selected === cid) renderInspector(); }, 1000);
+  try {
+    const x = await fn("/call", { endpoint, id, body });
+    Object.assign(items.get(cid), { state: "done", status: x.status, ms: x.ms, path: x.path, response_body: x.body, error: x.error });
+    let json = null;
+    try { json = JSON.parse(x.body); } catch {}
+    return { status: x.status, json, error: x.error };
+  } catch (e) {
+    Object.assign(items.get(cid), { state: "done", status: 0, error: e.message });
+    return { status: 0, json: null, error: e.message };
+  } finally {
+    clearInterval(tick);
+    render(); watchSoon();
+    busy = false;
+    document.querySelectorAll(".btn").forEach((b) => (b.disabled = false));
+  }
+}
+
+/* ---------- live watcher: Boomi execution records + process-log traces, polled from the browser ---------- */
+const items = new Map();
+let selected = null, watchTimer = null, firstWatch = true;
+const SHORT = { "CarLoan API - POST Create Application": "Create Application", "CarLoan API - GET Application": "Get Application",
+                "CarLoan API - POST Decision": "Decision", "CarLoan API - GET Schedule": "Schedule" };
+const clock = (t) => { const d = typeof t === "number" ? new Date(t * 1000) : new Date(t); return isNaN(d) ? "" : d.toLocaleTimeString(); };
+const secs = (ms) => (ms == null ? "" : (ms / 1000).toFixed(ms < 10000 ? 2 : 1) + "s");
+const iso = (ms) => new Date(ms).toISOString().slice(0, 19) + "Z";
+const FINAL = (s) => !["INPROCESS", "STARTED", "PENDING"].includes(s);
+
+async function watch() {
+  clearTimeout(watchTimer);
+  if (!signedIn) return;
+  if (document.hidden) { watchTimer = setTimeout(watch, 5000); return; }
+  try {
+    const { executions } = await fn("/executions", { since: iso(Date.now() - (firstWatch ? 30 : 10) * 60000) });
+    for (const r of executions.slice().reverse()) {
+      const prev = items.get(r.id), started = Date.parse(r.at) / 1000;
+      if (prev) {
+        if (prev.status !== r.status) { Object.assign(prev, r); if (!prev.history) maybeTrace(prev); }
+        continue;
+      }
+      const ex = { ...r, kind: "exec", started, history: firstWatch, trace_state: "waiting" };
+      if (!firstWatch) {
+        const c = unmatchedCall(r.process, started);
+        if (c) { ex.call_id = c.id; c.exec_id = r.id; }
+      }
+      items.set(r.id, ex);
+      if (!firstWatch) maybeTrace(ex);
+    }
+    items.set("_watcher", { id: "_watcher", kind: "meta", ok: true, checked: Date.now() / 1000 });
+    firstWatch = false;
+  } catch (e) {
+    items.set("_watcher", { id: "_watcher", kind: "meta", ok: false, error: e.message, checked: Date.now() / 1000 });
+    render();
+    if (/refused the credentials|Sign in required/.test(e.message)) return;   // never retry bad credentials
+  }
+  render();
+  watchTimer = setTimeout(watch, waitingForBoomi() ? 3000 : 6000);
+}
+function watchSoon() { clearTimeout(watchTimer); watchTimer = setTimeout(watch, 1500); }
+function waitingForBoomi() {
+  for (const it of items.values()) if (it.kind === "call" && it.state === "done" && !it.exec_id && Date.now() / 1000 - it.started < 120) return true;
+  return false;
+}
+function unmatchedCall(process, started) {
+  let best = null;
+  for (const it of items.values())
+    if (it.kind === "call" && it.process === process && !it.exec_id && Math.abs(it.started - started) < 90 && (!best || it.started > best.started)) best = it;
+  return best;
+}
+function maybeTrace(ex) { if (FINAL(ex.status) && ["waiting", "unavailable"].includes(ex.trace_state)) loadTrace(ex); }
+async function loadTrace(ex, tries = 0) {
+  ex.trace_state = "loading"; render();
+  try {
+    const t = await fn("/trace", { exec_id: ex.id });
+    if (t.state === "ready") { Object.assign(ex, { steps: t.steps, messages: t.messages, problems: t.problems, trace_state: "ready", _fresh: true }); render(); return; }
+    if (tries < 6) { setTimeout(() => loadTrace(ex, tries + 1), 5000); return; }
+    ex.trace_state = "unavailable";
+  } catch { ex.trace_state = "unavailable"; }
+  render();
+}
+function setBeacon(ok, text) { $("#beacon").classList.toggle("off", !ok); $("#beaconText").textContent = text; }
+
+function entries() {
+  // calls first-class; executions shown on their own only when no page call explains them
+  return [...items.values()].filter((i) => i.kind === "call" || (i.kind === "exec" && !i.call_id))
+    .sort((a, b) => (b.started || 0) - (a.started || 0));
+}
+function render() {
+  const w = items.get("_watcher");
+  if (w) setBeacon(w.ok, w.ok ? `Watching Boomi executions, checked ${clock(w.checked)}` : `Boomi watch problem: ${w.error}`);
+  const list = entries();
+  const tl = $("#timeline");
+  if (!list.length) return renderInspector();
+  if (!selected || !items.has(selected)) selected = list[0].id;
+  tl.innerHTML = list.slice(0, 80).map((it) => {
+    if (it.kind === "call") {
+      const ex = it.exec_id ? items.get(it.exec_id) : null;
+      const st = it.state === "pending" ? "calling Boomi…" : it.status ? `${it.status} in ${secs(it.ms)}` : "no response";
+      return `<li class="call ${it.state}" aria-current="${it.id === selected}"><button data-id="${esc(it.id)}">
+        <span class="what">${esc(it.method)} ${esc(it.path.split("?")[0].replace("/ws/simple/", ""))}</span><span class="when">${clock(it.started)}</span>
+        <span class="sub">${esc(st)}${it.path.includes("?") ? "  " + esc(it.path.split("?")[1]) : ""}</span>
+        <span class="nested">${ex ? `Boomi process ${esc(SHORT[ex.process] || ex.process)}: ${esc(ex.status)}${ex.steps ? `, ${ex.steps.length} steps` : ""}` : it.state === "done" ? "Waiting for the Boomi execution record…" : ""}</span>
+      </button></li>`;
+    }
+    return `<li class="exec" aria-current="${it.id === selected}"><button data-id="${esc(it.id)}">
+      <span class="what">Boomi process ${esc(SHORT[it.process] || it.process)}</span><span class="when">${clock(it.at)}</span>
+      <span class="sub">${esc(it.status)} in ${secs(it.duration_ms)}</span>
+      <span class="nested">${it.history ? "Earlier run" : "Called from outside this page"}</span>
+    </button></li>`;
+  }).join("");
+  renderInspector();
+}
+$("#timeline").addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-id]");
+  if (!b) return;
+  selected = b.dataset.id; follow = false;
+  const it = items.get(selected), ex = it.kind === "exec" ? it : items.get(it.exec_id);
+  if (ex && ["waiting", "unavailable"].includes(ex.trace_state)) loadTrace(ex);
+  render();
+});
+
+function pretty(text) { if (!text) return "(empty)"; try { return JSON.stringify(JSON.parse(text), null, 2); } catch { return text; } }
+function renderInspector() {
+  const box = $("#inspector"), it = items.get(selected);
+  if (!it) { box.innerHTML = '<p class="empty">Select an entry to see the HTTP exchange and the Boomi process steps it ran.</p>'; return; }
+  let html = "";
+  if (it.kind === "call") {
+    const waited = Math.round(Date.now() / 1000 - it.started);
+    html += `<div class="insp-title"><span class="req">${esc(it.method)} ${esc(it.path)}</span>` +
+      (it.state === "pending" ? `<span class="ms">waiting ${waited}s</span>` :
+       `<span class="pill s${String(it.status)[0]}">${it.status || "no response"}</span><span class="ms">${secs(it.ms)} round trip</span>`) + `</div>`;
+    const res = it.state === "pending"
+      ? `<span class="waiting">Waiting for Boomi… ${waited}s${waited >= 8 ? "\nThe first call after the runtime has been idle can take up to a minute." : ""}</span>`
+      : esc(it.error ? `Could not reach Boomi: ${it.error}` : pretty(it.response_body));
+    html += `<div class="panes"><div><h3>Request body</h3><pre>${esc(it.request_body ? pretty(it.request_body) : "No body (GET)")}</pre></div>
+             <div><h3>Response body</h3><pre>${res}</pre></div></div>`;
+    const ex = it.exec_id && items.get(it.exec_id);
+    html += ex ? boomiBlock(ex) : `<div class="boomi"><p class="hint">${it.state === "pending" ? "The Boomi process starts when the request reaches the listener." : "Looking up the Boomi execution record. It appears a few seconds after the call."}</p></div>`;
+  } else {
+    html += `<div class="insp-title"><span class="req">${it.history ? "Earlier run" : "Run triggered outside this page"}</span></div>` + boomiBlock(it);
+  }
+  box.innerHTML = html;
+  if (it.kind === "exec" || it.exec_id) { const ex = it.kind === "exec" ? it : items.get(it.exec_id); if (ex) ex._fresh = false; }
+}
+function boomiBlock(ex) {
+  let h = `<div class="boomi"><div class="boomi-head"><b>${esc(ex.process)}</b><span class="pill ${esc(ex.status)}">${esc(ex.status)}</span>
+    <span class="ms">${secs(ex.duration_ms)} inside Boomi</span><code>${esc(ex.id)}</code></div>`;
+  if (ex.trace_state === "ready") {
+    const steps = ex.steps || [];
+    h += `<h3>Steps the process ran, in order</h3><ol class="trace${ex._fresh && !matchMedia("(prefers-reduced-motion: reduce)").matches ? " reveal" : ""}">` +
+      steps.map((s, i) => `<li style="--i:${i}"><span class="ty t-${esc(s.type.replace(/[^A-Za-z]/g, ""))}">${esc(s.type)}</span>
+        <span class="lbl">${esc(s.label)}${s.connector ? `<small>${esc(s.connector)}</small>` : ""}</span><span class="d">${s.ms != null ? s.ms + " ms" : ""}</span></li>`).join("") + `</ol>`;
+    const logs = [...(ex.messages || []), ...(ex.problems || [])];
+    if (logs.length) h += `<h3 style="margin-top:14px">Process Log messages</h3><ul class="logs">` + logs.map((m) => `<li class="${esc(m.level)}">${esc(m.step)}: ${esc(m.text)}</li>`).join("") + `</ul>`;
+  } else if (ex.trace_state === "unavailable") {
+    h += `<p class="hint">The process log isn't available yet. Select this entry again to retry.</p>`;
+  } else if (ex.history && ex.trace_state === "waiting") {
+    h += `<p class="hint">Select this entry to load its step trace.</p>`;
+  } else {
+    h += `<p class="hint">Downloading the process log from Boomi to show each step. This usually takes 5 to 20 seconds.</p>`;
+  }
+  return h + `</div>`;
+}
+
+function note(el, kind, title, items) {
+  $(el).innerHTML = `<div class="notice ${kind}"><p>${esc(title)}</p>${items && items.length ? "<ul>" + items.map((i) => `<li>${esc(i)}</li>`).join("") + "</ul>" : ""}</div>`;
+}
+function problem(el, res) {
+  if (res.error || !res.json) return note(el, "bad", res.error ? `Boomi did not respond: ${res.error}` : `Unexpected response (HTTP ${res.status}).`);
+  const j = res.json;
+  note(el, "bad", `${j.status || res.status} ${j.error || ""}: ${j.message || "Request failed"}`, j.details || []);
+}
+
+/* ---------- application file ---------- */
+function renderFile(rec, { stampNew = false } = {}) {
+  $("#fileEmpty").hidden = true; $("#fileBody").hidden = false;
+  $("#fi-name").textContent = rec.name;
+  $("#fi-id").textContent = rec.id;
+  $("#fi-status").textContent = rec.status;
+  $("#fi-created").textContent = fmtTime(rec.created_at);
+  $("#fi-income").textContent = money(rec.monthly_income);
+  $("#fi-debt").textContent = money(rec.monthly_debt);
+  $("#fi-dti").textContent = rec.dti != null ? (rec.dti * 100).toFixed(1) + "%" : "–";
+  $("#fi-score").textContent = rec.credit_score;
+  $("#fi-price").textContent = money(rec.car_price);
+  $("#fi-down").textContent = money(rec.down_payment);
+  $("#fi-loan").textContent = money(rec.loan_amount);
+  $("#fi-term").textContent = rec.term_months + " months";
+  const decided = rec.decision && rec.decision !== "null" && rec.decision !== "";
+  $("#fi-reasonBox").hidden = !decided;
+  if (decided) { $("#fi-reason").textContent = rec.reason; $("#fi-decided").textContent = fmtTime(rec.decided_at); }
+  const st = $("#stamp");
+  if (decided) {
+    st.hidden = false; st.textContent = rec.decision; st.className = "stamp " + rec.decision;
+    if (stampNew) { void st.offsetWidth; st.classList.add("land"); }
+  } else st.hidden = true;
+}
+function fmtTime(t) { if (!t) return "–"; const d = new Date(t); return isNaN(d) ? t : d.toLocaleString(); }
+$("#copyId").addEventListener("click", () => { try { navigator.clipboard.writeText($("#fi-id").textContent); $("#copyId").textContent = "Copied"; setTimeout(() => ($("#copyId").textContent = "Copy"), 1200); } catch {} });
+
+/* ---------- step 1: apply ---------- */
+function formData() { const o = {}; FIELDS.forEach((f) => (o[f] = $(`[name="${f}"]`).value.trim())); return o; }
+function fill(p) { FIELDS.forEach((f) => ($(`[name="${f}"]`).value = p[f] ?? "")); updatePreview(); $("#applyNote").innerHTML = ""; }
+function updatePreview() {
+  const d = formData();
+  const inc = num(d.monthly_income), debt = num(d.monthly_debt), score = num(d.credit_score), price = num(d.car_price), down = num(d.down_payment);
+  $("#pv-loan").textContent = price != null && down != null ? money(price - down) : "–";
+  const dti = inc && debt != null ? debt / inc : null;
+  $("#pv-dti").textContent = dti != null ? (dti * 100).toFixed(1) + "%" : "–";
+  $("#pv-score").textContent = score ?? "–";
+  let out = "–";
+  if (dti != null && score != null) out = dti < 0.4 && score >= 620 ? "APPROVED" : score >= 580 && score <= 619 ? "REFERRED" : "REJECTED";
+  const o = $("#pv-outcome");
+  o.className = out === "–" ? "" : "tone-" + out;
+  o.textContent = out === "–" ? "–" : out.charAt(0) + out.slice(1).toLowerCase();
+}
+$("#applyForm").addEventListener("input", updatePreview);
+document.querySelectorAll("[data-preset]").forEach((b) => b.addEventListener("click", () => fill(PRESETS[b.dataset.preset])));
+$("#submitBtn").addEventListener("click", async () => {
+  const res = await call("create", { body: formData() });
+  if (!res) return;
+  if (res.status === 201 && res.json) {
+    setCurrent(res.json.id);
+    note("#applyNote", "ok", `Application ${res.json.id} created. Loading the stored record…`);
+    const rec = await call("application", { id: res.json.id, focus: false });
+    if (rec && rec.status === 200) { renderFile(rec.json); remember(rec.json); note("#applyNote", "ok", `Application ${res.json.id} created and stored. Next, run the decision in step 3.`); }
+  } else problem("#applyNote", res);
+});
+
+/* ---------- step 2: look up ---------- */
+async function lookup(id) {
+  const res = await call("application", { id });
+  if (!res) return;
+  if (res.status === 200 && res.json) { setCurrent(res.json.id); renderFile(res.json); remember(res.json); note("#lookupNote", "ok", `Loaded ${res.json.id}.`); }
+  else problem("#lookupNote", res);
+}
+$("#lookupBtn").addEventListener("click", () => lookup($("#lookupId").value.trim()));
+$("#history").addEventListener("change", (e) => { if (e.target.value) { $("#lookupId").value = e.target.value; lookup(e.target.value); } });
+document.querySelectorAll("[data-try]").forEach((b) => b.addEventListener("click", () => { $("#lookupId").value = b.dataset.try; lookup(b.dataset.try); }));
+
+/* ---------- step 3: decide ---------- */
+$("#decideBtn").addEventListener("click", async () => {
+  const id = $("#decideId").value.trim();
+  const res = await call("decision", { id });
+  if (!res) return;
+  if (res.status === 200 && res.json) {
+    const d = res.json;
+    note("#decideNote", d.decision === "APPROVED" ? "ok" : d.decision === "REJECTED" ? "bad" : "", d.reason);
+    const rec = await call("application", { id, focus: false });
+    if (rec && rec.status === 200) { renderFile(rec.json, { stampNew: true }); remember(rec.json); }
+  } else problem("#decideNote", res);
+});
+
+/* ---------- step 4: schedule ---------- */
+$("#scheduleBtn").addEventListener("click", async () => {
+  const id = $("#scheduleId").value.trim();
+  $("#scheduleOut").hidden = true;
+  const res = await call("schedule", { id });
+  if (!res) return;
+  if (res.status === 200 && res.json) {
+    const s = res.json;
+    $("#scheduleNote").innerHTML = "";
+    $("#sc-pay").textContent = money(s.monthly_payment);
+    $("#sc-int").textContent = money(s.total_interest);
+    $("#sc-total").textContent = money(s.total_paid);
+    $("#sc-summary").textContent = `Show all ${s.schedule.length} payments`;
+    $("#sc-rows").innerHTML = s.schedule.map((r) => `<tr><td>${r.month}</td><td>${money(r.payment)}</td><td>${money(r.principal)}</td><td>${money(r.interest)}</td><td>${money(r.balance)}</td></tr>`).join("");
+    drawChart(s.schedule);
+    $("#scheduleOut").hidden = false;
+  } else problem("#scheduleNote", res);
+});
+function drawChart(rows) {
+  const svg = $("#chart"), W = svg.clientWidth || 600, H = 170, pad = 4;
+  const max = Math.max(...rows.map((r) => +r.payment));
+  const bw = (W - pad * 2) / rows.length;
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  svg.innerHTML = rows.map((r, i) => {
+    const x = pad + i * bw, hp = (r.principal / max) * (H - 10), hi = (r.interest / max) * (H - 10);
+    return `<rect x="${x.toFixed(1)}" y="${(H - hp).toFixed(1)}" width="${Math.max(bw - 1, 1).toFixed(1)}" height="${hp.toFixed(1)}" fill="var(--teal)"><title>Month ${r.month}: principal ${money(r.principal)}</title></rect>` +
+           `<rect x="${x.toFixed(1)}" y="${(H - hp - hi).toFixed(1)}" width="${Math.max(bw - 1, 1).toFixed(1)}" height="${hi.toFixed(1)}" fill="#e3a640"><title>Month ${r.month}: interest ${money(r.interest)}</title></rect>`;
+  }).join("");
+}
+
+/* ---------- init ---------- */
+$("#host").textContent = CFG.RUNTIME_LABEL;
+renderHistory();
+fill(PRESETS.strong);
+sb.auth.getSession().then(({ data }) => (data.session ? startSession(data.session) : showAuth()));
+if (history[0]) setCurrent(history[0].id);
+</script>
+</body>
+</html>
