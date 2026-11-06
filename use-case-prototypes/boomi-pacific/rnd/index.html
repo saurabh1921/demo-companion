@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<meta name="theme-color" content="#1E6B52">
+<title>Goodest R&D Insights</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F1F4EE; --card:#FFFFFF; --ink:#18261F; --ink-2:#4B5A52; --ink-3:#6E7B74; --line:#DCE4DE; --grid:#E8EDE9;
+  --brand:#1E6B52; --brand-d:#154E3C; --brand-l:#E3F0EA; --accent:#F4C542;
+  --s-finish:#0F8A63; --s-loose:#C4572A; --bar:#1E6B52; --bar-bg:#EAF0EC;
+  --warn:#9A4B00; --warn-bg:#FFF1DC; --crit:#A3261B; --crit-bg:#FCE6E3;
+  --chat-in:#F4F7F5; --chat-me:#1E6B52;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#121815; --card:#1A211D; --ink:#E7EEEA; --ink-2:#B4C1BA; --ink-3:#8E9C95; --line:#2C3631; --grid:#252E29;
+  --brand:#3E9C7A; --brand-d:#7CCBAB; --brand-l:#1F3029; --s-finish:#34A07B; --s-loose:#D9733F; --bar:#3E9C7A; --bar-bg:#24302A;
+  --warn:#F2B35E; --warn-bg:#33281A; --crit:#F08A7E; --crit-bg:#3A221F; --chat-in:#222B26; --chat-me:#2F7F62; }}
+:root[data-theme="dark"]{
+  --bg:#121815; --card:#1A211D; --ink:#E7EEEA; --ink-2:#B4C1BA; --ink-3:#8E9C95; --line:#2C3631; --grid:#252E29;
+  --brand:#3E9C7A; --brand-d:#7CCBAB; --brand-l:#1F3029; --s-finish:#34A07B; --s-loose:#D9733F; --bar:#3E9C7A; --bar-bg:#24302A;
+  --warn:#F2B35E; --warn-bg:#33281A; --crit:#F08A7E; --crit-bg:#3A221F; --chat-in:#222B26; --chat-me:#2F7F62; }
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 15px/1.5 Figtree,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit}
+.mock{background:#18261F;color:#E9F1EC;font-size:12.5px;text-align:center;padding:7px 16px}
+.mock b{color:var(--accent);font-weight:600}
+.views{display:flex;align-items:center;gap:16px;padding:9px 24px;background:var(--card);border-bottom:1px solid var(--line)}
+.vt{font:700 15px "Baloo 2",sans-serif;color:var(--brand-d);margin-right:auto}
+.vs{display:inline-flex;background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:3px}
+.vs a{display:inline-flex;align-items:center;gap:7px;padding:6px 14px;border-radius:999px;text-decoration:none;color:var(--ink-2);font-weight:700;font-size:13.5px}
+.vs a small{font-weight:500;font-size:11px;opacity:.85;display:inline-flex;align-items:center;gap:3px}
+.vs a[aria-current="page"]{background:var(--brand);color:#fff}
+@media (max-width:560px){.views{padding:8px 12px}.vt{display:none}.vs a{padding:6px 10px;font-size:12.5px}}
+
+header.top{max-width:1440px;margin:0 auto;padding:20px 24px 6px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px;margin-right:auto}
+.mark{width:40px;height:40px;border-radius:12px;background:#1E6B52;display:grid;place-items:center;flex:none}
+h1{font:800 24px/1.1 "Baloo 2",sans-serif;margin:0;letter-spacing:-.01em}
+.sub{font-size:13px;color:var(--ink-2)}
+.badge{display:inline-flex;align-items:center;gap:6px;background:var(--warn-bg);color:var(--warn);font-weight:700;font-size:12.5px;border-radius:999px;padding:5px 11px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:3px;background:var(--card)}
+.seg button{border:0;background:none;padding:6px 13px;border-radius:999px;cursor:pointer;font-weight:600;font-size:13.5px;color:var(--ink-2)}
+.seg button[aria-pressed="true"]{background:var(--brand);color:#fff}
+.who{border:0;background:none;color:var(--ink-2);font-size:13px;cursor:pointer;text-decoration:underline}
+.layout{max-width:1440px;margin:0 auto;padding:12px 24px 40px;display:grid;grid-template-columns:minmax(0,1fr) 420px;gap:20px;align-items:start}
+.layout>*,.grid>*,.two>*,.three>*{min-width:0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px 20px}
+.card h2{font:700 17px/1.25 "Baloo 2",sans-serif;margin:0 0 2px}
+.card .note{font-size:13px;color:var(--ink-3);margin:0 0 12px}
+.grid{display:grid;gap:16px}
+.kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px}
+.kpi .v{font:800 32px/1 "Baloo 2",sans-serif;letter-spacing:-.01em;margin-top:6px}
+.kpi .l{font-size:13px;color:var(--ink-2);line-height:1.3}
+.kpi .n{font-size:12px;color:var(--ink-3);margin-top:4px}
+.flag{display:flex;gap:14px;align-items:flex-start;background:var(--crit-bg);border:1px solid color-mix(in srgb,var(--crit) 35%,transparent);color:var(--ink);border-radius:16px;padding:14px 18px}
+.flag svg{flex:none;color:var(--crit);margin-top:2px}
+.flag b{color:var(--crit)}
+.flag .act{margin-left:auto;flex:none}
+@media (max-width:640px){.flag{flex-wrap:wrap}.flag .act{margin-left:36px}}
+.ok{background:var(--brand-l);border-color:var(--line)}
+.ok svg{color:var(--brand)}
+.btn{border:1px solid var(--brand);background:var(--card);color:var(--brand-d);border-radius:999px;padding:7px 14px;font-weight:700;font-size:13px;cursor:pointer}
+.btn.solid{background:var(--brand);color:#fff}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{font-weight:600;color:var(--ink-2);text-align:right;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap;font-size:12.5px}
+th:first-child,td:first-child,th.l,td.l{text-align:left}
+td{padding:9px 10px;border-bottom:1px solid var(--grid);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+td.hot{color:var(--crit);font-weight:700}
+td.hot::before{content:"▲ ";font-size:10px}
+.tw{overflow-x:auto}
+.two{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:16px}
+.three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.legend{display:flex;gap:16px;font-size:13px;color:var(--ink-2);margin:0 0 6px}
+.legend i{display:inline-block;width:14px;height:3px;border-radius:2px;vertical-align:middle;margin-right:6px}
+svg.chart text{font:500 11.5px Figtree,sans-serif;fill:var(--ink-3)}
+svg.chart .lab{font-weight:700;font-size:12px}
+.bars{display:grid;gap:7px}
+.bars .r{display:grid;grid-template-columns:112px minmax(0,1fr) 64px;gap:10px;align-items:center;font-size:13.5px}
+.bars .t{height:12px;background:var(--bar-bg);border-radius:4px;position:relative;overflow:hidden}
+.bars .t i{position:absolute;left:0;top:0;bottom:0;background:var(--bar);border-radius:4px}
+.bars .p{text-align:right;font-variant-numeric:tabular-nums;color:var(--ink-2)}
+.bars .r:hover .t i{filter:brightness(1.12)}
+.dist{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px 24px}
+.dist h3{font-size:13.5px;font-weight:700;margin:0 0 8px}
+.tip{position:fixed;pointer-events:none;background:#18261F;color:#fff;font-size:12.5px;border-radius:8px;padding:7px 10px;z-index:40;opacity:0;transition:opacity .1s;max-width:240px}
+.foot{font-size:12.5px;color:var(--ink-3);margin-top:4px}
+/* chat */
+.chat{position:sticky;top:16px;display:flex;flex-direction:column;height:calc(100vh - 32px);min-height:560px;padding:0;overflow:hidden}
+.chat .hd{padding:16px 18px 12px;border-bottom:1px solid var(--line)}
+.chat .hd h2{margin:0}
+.chat .hd p{margin:2px 0 0;font-size:12.5px;color:var(--ink-3)}
+.msgs{flex:1;overflow-y:auto;padding:16px 16px 8px;display:flex;flex-direction:column;gap:12px}
+.m{max-width:94%;border-radius:14px;padding:10px 13px;font-size:14px;line-height:1.5}
+.m.in{background:var(--chat-in);align-self:flex-start}
+.m.me{background:var(--chat-me);color:#fff;align-self:flex-end}
+.m.err{background:var(--crit-bg);color:var(--crit)}
+.m table{font-size:12.5px;margin:6px 0;display:block;overflow-x:auto}
+.m th,.m td{padding:4px 7px;text-align:left}
+.m p{margin:0 0 6px}.m p:last-child{margin:0}
+.m ul{margin:4px 0 6px;padding-left:18px}
+.m pre{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px;font-size:11.5px;overflow-x:auto;max-height:180px}
+.typing{font-size:13px;color:var(--ink-3);align-self:flex-start;padding:0 4px}
+.starters{display:flex;flex-wrap:wrap;gap:6px;padding:0 16px 10px}
+.starters button{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 11px;font-size:12.5px;cursor:pointer;color:var(--ink-2);text-align:left}
+.starters button:hover{border-color:var(--brand)}
+form.ask{display:flex;gap:8px;padding:12px 16px 16px;border-top:1px solid var(--line)}
+form.ask input{flex:1;min-width:0;border:1px solid var(--line);border-radius:999px;padding:10px 14px;font:inherit;background:var(--card);color:var(--ink)}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.skeleton{color:var(--ink-3);font-size:14px;padding:40px 0;text-align:center}
+.gate{position:fixed;inset:0;background:rgba(16,24,20,.7);backdrop-filter:blur(4px);display:grid;place-items:center;z-index:60;padding:16px}
+.gate.hide{display:none}
+.gcard{background:var(--card);border-radius:20px;padding:26px;width:min(380px,100%);display:grid;gap:8px}
+.gcard h2{font:800 22px/1.1 "Baloo 2",sans-serif;margin:0}
+.gcard p{margin:0 0 8px;font-size:14px;color:var(--ink-2)}
+.gcard label{font-size:13px;font-weight:600}
+.gcard input{border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:inherit;background:var(--card);color:var(--ink)}
+.gcard button{margin-top:8px;border:0;border-radius:999px;background:#1E6B52;color:#fff;font-weight:700;padding:11px;cursor:pointer}
+.gerr{color:var(--crit);font-size:13px;min-height:18px}
+@media (max-width:1180px){.kpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:980px){.layout{grid-template-columns:1fr}.chat{position:relative;top:0;height:640px}.two,.three{grid-template-columns:1fr}}
+@media (max-width:560px){header.top,.layout{padding-left:16px;padding-right:16px}.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.bars .r{grid-template-columns:92px minmax(0,1fr) 56px}}
+</style>
+</head>
+<body>
+<div class="mock"><b>Demo mock-up</b> built on Boomi for Boomi Pacific Food R&D. Not an official Boomi Pacific Food page. All figures are synthetic demo data.</div>
+<nav class="views" aria-label="Demo view">
+  <span class="vt">Goodest feedback demo</span>
+  <div class="vs">
+    <a href="../">Customer view <small>public</small></a>
+    <a href="./" aria-current="page">R&D agent view <small><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg> sign-in</small></a>
+  </div>
+</nav>
+<header class="top">
+  <div class="brand">
+    <div class="mark" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="#F4C542"><ellipse cx="6" cy="9" rx="2.3" ry="3"/><ellipse cx="10.3" cy="5.6" rx="2.3" ry="3"/><ellipse cx="14.7" cy="5.6" rx="2.3" ry="3"/><ellipse cx="19" cy="9" rx="2.3" ry="3"/><path d="M12.5 10.5c3.2 0 6.3 4.4 6.3 7.1 0 2.3-1.9 3-3.4 3-1.2 0-2-.6-2.9-.6s-1.7.6-2.9.6c-1.5 0-3.4-.7-3.4-3 0-2.7 3.1-7.1 6.3-7.1z"/></svg></div>
+    <div><h1>Goodest R&D Insights</h1><div class="sub" id="scopeTxt">Packet QR survey, read live from Boomi DataHub</div></div>
+  </div>
+  <span class="badge" id="label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M12 8v5M12 16.5v.5"/><circle cx="12" cy="12" r="10"/></svg>Synthetic demo data</span>
+  <div class="seg" role="group" aria-label="Date window">
+    <button type="button" data-days="30" aria-pressed="false">30 days</button>
+    <button type="button" data-days="90" aria-pressed="true">90 days</button>
+    <button type="button" data-days="0" aria-pressed="false">All time</button>
+  </div>
+  <button class="who" id="who" type="button">Sign in</button>
+</header>
+<div class="layout">
+  <main class="grid" id="dash"><div class="skeleton" id="loading">Reading survey results from Boomi DataHub…</div></main>
+  <aside class="card chat" aria-label="R&D analytics agent">
+    <div class="hd"><h2>Ask the R&D agent</h2><p>Boomi Agentstudio agent with read-only access to the survey data model. Aggregates only.</p></div>
+    <div class="msgs" id="msgs" aria-live="polite"><div class="m in"><p>Ask about a batch, a product or a date range. I can compare batches, flag quality signals and export a CSV.</p></div></div>
+    <div class="starters" id="starters"></div>
+    <form class="ask" id="ask"><input id="q" autocomplete="off" placeholder="e.g. Compare all Adult Formula batches" aria-label="Question for the R&D agent"><button class="btn solid" type="submit">Ask</button></form>
+  </aside>
+</div>
+<div class="tip" id="tip" role="tooltip"></div>
+<div class="gate hide" id="gate"><form class="gcard" id="gform">
+  <h2>Goodest R&D demo</h2>
+  <p>The R&D agent view is for the Boomi Pacific R&D team. Sign in to see the dashboard and talk to the analytics agent. Synthetic demo data only.</p>
+  <label for="gemail">Email</label><input id="gemail" type="email" autocomplete="username" required>
+  <label for="gpass">Password</label><input id="gpass" type="password" autocomplete="current-password" required>
+  <button id="ggo" type="submit">Sign in</button><div class="gerr" id="gerr"></div>
+  <a href="../" style="font-size:13.5px;color:var(--brand-d);text-align:center">Back to the customer view (no sign-in)</a>
+</form></div>
+<script>
+(function(){
+"use strict";
+const $ = s => document.querySelector(s);
+const SB = "https://hfovtnceicailrkshvqg.supabase.co", ANON = "sb_publishable_-CP2yRvCsH6NTvpulcYfVA_oZZrKyxV", FN = SB + "/functions/v1/century-goodest";
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+let auth = null; try { auth = JSON.parse(localStorage.getItem("cpf_auth") || "null"); } catch (e) {}
+const keepAuth = j => { auth = {access: j.access_token, refresh: j.refresh_token, email: (j.user && j.user.email) || (auth && auth.email), exp: Date.now() + (j.expires_in || 3600) * 1000}; try { localStorage.setItem("cpf_auth", JSON.stringify(auth)); } catch (e) {} };
+const dropAuth = () => { auth = null; try { localStorage.removeItem("cpf_auth"); } catch (e) {} };
+async function authPost(path, body) {
+  const r = await fetch(SB + "/auth/v1/" + path, {method: "POST", headers: {apikey: ANON, "Content-Type": "application/json"}, body: JSON.stringify(body)});
+  return {ok: r.ok, j: await r.json().catch(() => ({}))};
+}
+async function token() {
+  if (!auth) return null;
+  if (auth.exp - Date.now() > 60000) return auth.access;
+  const r = await authPost("token?grant_type=refresh_token", {refresh_token: auth.refresh});
+  if (!r.ok) { dropAuth(); return null; } keepAuth(r.j); return auth.access;
+}
+function paintWho(){ $("#who").textContent = auth ? (auth.email || "").split("@")[0] + " · Sign out" : "Sign in"; }
+function showGate(){ $("#gate").classList.remove("hide"); setTimeout(() => $("#gemail").focus(), 50); }
+async function fnFetch(path, body) {
+  const t = await token(); if (!t) { showGate(); throw new Error("Please sign in."); }
+  let r;
+  try { r = await fetch(FN + path, {method: "POST", headers: {"Content-Type": "application/json", apikey: ANON, Authorization: "Bearer " + t}, body: JSON.stringify(body)}); }
+  catch (e) { throw new Error("Can't reach the demo backend (Supabase function). It may not be deployed yet, or the network is blocking supabase.co."); }
+  if (r.status === 401) { dropAuth(); paintWho(); showGate(); throw new Error("Please sign in again."); }
+  return r;
+}
+
+/* ---------- dashboard ---------- */
+let days = 90, data = null;
+const TH = 20;
+const pct = c => (c && c.pct != null) ? c.pct.toFixed(1) + "%" : "<5";
+const cnt = c => (c && c.count != null) ? c.count : "";
+const val = c => (c && c.pct != null) ? c.pct : null;
+const tip = $("#tip");
+function showTip(e, html){ tip.innerHTML = html; tip.style.opacity = 1; const x = Math.min(e.clientX + 14, innerWidth - 250); tip.style.left = x + "px"; tip.style.top = (e.clientY + 14) + "px"; }
+function hideTip(){ tip.style.opacity = 0; }
+
+function kpiTile(label, c, n, hint){
+  return `<div class="kpi"><div class="l">${esc(label)}</div><div class="v">${pct(c)}</div><div class="n">${c && c.count != null ? "n = " + c.count + " of " + n : "suppressed (under 5)"}${hint ? " · " + esc(hint) : ""}</div></div>`;
+}
+function barList(obj, total){
+  return `<div class="bars">${Object.keys(obj).map(k => { const c = obj[k], w = val(c) || 0;
+    return `<div class="r" data-tip="${esc(k)}: ${pct(c)}${c && c.count != null ? " (n = " + c.count + ")" : ""}"><span>${esc(k)}</span><span class="t"><i style="width:${w}%"></i></span><span class="p">${pct(c)}</span></div>`; }).join("")}</div>`;
+}
+const QLABEL = {Q3: {Always: "Always", Most: "Most of it", Some: "Some of it", Rarely: "Rarely"}, Q4: {Firm: "Firm, well-formed", Soft: "Soft", Loose: "Loose", Mixed: "Mixed / unsure"},
+  Q2: {Puppy: "Puppy (<1 yr)", Adult: "Adult (1–7)", Senior: "Senior (7+)"}};
+function trend(weeks){
+  const W = 640, H = 230, L = 38, R = 92, T = 12, B = 28, pw = W - L - R, ph = H - T - B;
+  const pts = weeks.filter(w => !w.kpis.suppressed);
+  if (pts.length < 2) return `<p class="note">Not enough weekly responses in this window to draw a trend.</p>`;
+  const x = i => L + (pts.length === 1 ? pw / 2 : i * pw / (pts.length - 1)), y = v => T + ph - v / 100 * ph;
+  const line = (k) => pts.map((w, i) => val(w.kpis[k]) == null ? null : [x(i), y(val(w.kpis[k]))]).filter(Boolean);
+  const path = arr => arr.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+  const a = line("finish_always_or_most"), b = line("loose_stool");
+  const grid = [0, 25, 50, 75, 100].map(v => `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--grid)"/><text x="${L - 8}" y="${y(v) + 4}" text-anchor="end">${v}%</text>`).join("");
+  const thr = `<line x1="${L}" x2="${W - R}" y1="${y(TH)}" y2="${y(TH)}" stroke="var(--s-loose)" stroke-dasharray="3 4" opacity=".55"/><text x="${L + 4}" y="${y(TH) - 5}">threshold ${TH}%</text>`;
+  const xl = pts.map((w, i) => (i % Math.ceil(pts.length / 7) === 0) ? `<text x="${x(i)}" y="${H - 8}" text-anchor="middle">${w.week_start.slice(5)}</text>` : "").join("");
+  const end = (arr, color, label) => arr.length ? `<text class="lab" x="${arr[arr.length - 1][0] + 8}" y="${arr[arr.length - 1][1] + 4}" style="fill:${color}">${label}</text>` : "";
+  const dots = (arr, color) => arr.map(p => `<circle cx="${p[0]}" cy="${p[1]}" r="3.2" fill="${color}" stroke="var(--card)" stroke-width="2"/>`).join("");
+  const hits = pts.map((w, i) => `<rect x="${x(i) - pw / pts.length / 2}" y="${T}" width="${pw / pts.length}" height="${ph}" fill="transparent" data-i="${i}"/>`).join("");
+  return `<div class="legend"><span><i style="background:var(--s-finish)"></i>Finishes always or most</span><span><i style="background:var(--s-loose)"></i>Loose stool</span></div>
+    <svg class="chart" id="trend" viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Weekly share of dogs finishing the bowl and share with loose stool">${grid}${thr}${xl}
+    <line id="xh" x1="0" x2="0" y1="${T}" y2="${T + ph}" stroke="var(--ink-3)" opacity="0"/>
+    <path d="${path(a)}" fill="none" stroke="var(--s-finish)" stroke-width="2"/><path d="${path(b)}" fill="none" stroke="var(--s-loose)" stroke-width="2"/>
+    ${dots(a, "var(--s-finish)")}${dots(b, "var(--s-loose)")}${end(a, "var(--s-finish)", "Finish")}${end(b, "var(--s-loose)", "Loose")}${hits}</svg>`;
+}
+function render(d){
+  data = d;
+  const k = d.kpis || {}, n = d.scope.responses, s = d.scope;
+  $("#label").lastChild.textContent = d.data_label || "Synthetic demo data";
+  $("#scopeTxt").textContent = (s.date_from === "all" ? "All responses" : s.date_from + " to " + s.date_to) + " · " + n + " responses · read live from Boomi DataHub";
+  const flagged = d.flags || [];
+  const flagHtml = flagged.length ? flagged.map(f => `<div class="flag"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M12 3l10 18H2z"/><path d="M12 10v4M12 17.5v.5"/></svg>
+      <div><b>Quality signal: ${esc(f.batch_code)}</b> (${esc(f.product)})<br>${f.reasons.map(esc).join("; ")}</div>
+      <button class="btn act" type="button" data-ask="Why is ${esc(f.batch_code)} flagged and what follow-up questions should R&D ask?">Ask for follow-ups</button></div>`).join("")
+    : `<div class="flag ok"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M7.5 12.5l3 3 6-6.5"/></svg><div><b style="color:var(--brand-d)">No batch above ${TH}%</b> loose stool or low finish in this window.</div></div>`;
+  const rows = (d.by_batch || []).map(b => { const kp = b.kpis || {}; const hot = c => val(c) != null && val(c) > TH ? "hot" : "";
+    return kp.suppressed ? `<tr><td>${esc(b.batch_code)}</td><td class="l">${esc(b.product)}</td><td>${esc(b.production_date || "")}</td><td>${esc(b.responses)}</td><td colspan="5" class="l">Suppressed (under 5 responses)</td></tr>` :
+    `<tr><td><b>${esc(b.batch_code)}</b></td><td class="l">${esc(b.product.replace("Goodest ", ""))}</td><td>${esc(b.production_date)}</td><td>${b.responses}</td>
+      <td>${pct(kp.finish_always_or_most)}</td><td class="${hot(kp.low_finish_rarely)}">${pct(kp.low_finish_rarely)}</td><td>${pct(kp.firm_stool)}</td><td class="${hot(kp.loose_stool)}">${pct(kp.loose_stool)}</td><td>${pct(kp.would_buy_again)}</td></tr>`; }).join("");
+  const dist = d.distributions || {};
+  const distHtml = ["Q1", "Q2", "Q3", "Q4", "Q5"].map(q => { const o = dist[q] || {}; if (o.answers === "suppressed") return "";
+    const lab = QLABEL[q] || {}, a = {}; Object.keys(o.answers || {}).forEach(key => a[lab[key] || key] = o.answers[key]);
+    return `<div><h3>${esc(o.question)}</h3>${barList(a)}</div>`; }).join("");
+  const th = d.comment_themes || {}, themes = {};
+  Object.keys(th.themes || {}).sort((x, y) => (+(th.themes[y]) || 0) - (+(th.themes[x]) || 0)).forEach(t => { const c = th.themes[t]; themes[t] = {count: c === "<5" ? null : c, pct: c === "<5" || !th.comments ? null : Math.round(c * 1000 / th.comments) / 10}; });
+  $("#dash").innerHTML = `
+    <div class="kpis">
+      <div class="kpi"><div class="l">Responses</div><div class="v">${esc(n)}</div><div class="n">${s.date_from === "all" ? "all time" : "last " + days + " days"}</div></div>
+      ${kpiTile("Finish the bowl always or most", k.finish_always_or_most, n)}
+      ${kpiTile("Firm, well-formed stool", k.firm_stool, n)}
+      ${kpiTile("Loose stool", k.loose_stool, n, "flag above " + TH + "%")}
+      ${kpiTile("Would buy again", k.would_buy_again, n, "definitely or probably")}
+    </div>
+    ${flagHtml}
+    <section class="card"><h2>Batches side by side</h2><p class="note">▲ marks a rate above the ${TH}% threshold. Low finish = the dog rarely finishes the bowl.</p>
+      <div class="tw"><table><thead><tr><th>Batch</th><th class="l">Formula</th><th>Produced</th><th>n</th><th>Finish always/most</th><th>Low finish</th><th>Firm stool</th><th>Loose stool</th><th>Buy again</th></tr></thead><tbody>${rows}</tbody></table></div></section>
+    <div class="two">
+      <section class="card"><h2>Weekly trend</h2><p class="note">Share of responses per week. Weeks with under 5 responses are left out.</p>${trend(d.weekly || [])}</section>
+      <section class="card"><h2>Comment themes</h2><p class="note">${th.comments} optional comments, grouped by theme. Comment text is never shown.</p>${barList(themes)}</section>
+    </div>
+    <section class="card"><h2>Answers by question</h2><p class="note">Share of all responses in this window.</p><div class="dist">${distHtml}</div></section>
+    <div class="three">
+      <section class="card"><h2>Region</h2>${barList(order(d.region || {}, ["Luzon", "Visayas", "Mindanao", "Unspecified"]))}</section>
+      <section class="card"><h2>Language</h2>${barList(renameKeys(d.language || {}, {EN: "English", TL: "Tagalog"}))}</section>
+      <section class="card"><h2>Channel</h2>${barList(renameKeys(d.channel || {}, {QR: "Packet QR", Web: "Web link"}))}</section>
+    </div>
+    <p class="foot">${esc(d.guardrails || "")} Live submissions from the QR demo appear with no region. <a href="../model/" style="color:var(--brand-d)">Data model and seed CSVs</a></p>`;
+  wireCharts(d);
+}
+function order(o, keys){ const r = {}; keys.forEach(k => { if (k in o) r[k] = o[k]; }); Object.keys(o).forEach(k => { if (!(k in r)) r[k] = o[k]; }); return r; }
+function renameKeys(o, m){ const r = {}; Object.keys(o).forEach(k => r[m[k] || k] = o[k]); return r; }
+function wireCharts(d){
+  document.querySelectorAll(".bars .r").forEach(r => { r.onmousemove = e => showTip(e, esc(r.dataset.tip)); r.onmouseleave = hideTip; });
+  document.querySelectorAll("[data-ask]").forEach(b => b.onclick = () => ask(b.dataset.ask));
+  const svg = $("#trend"); if (!svg) return;
+  const pts = (d.weekly || []).filter(w => !w.kpis.suppressed);
+  svg.querySelectorAll("rect[data-i]").forEach(r => {
+    r.onmousemove = e => { const w = pts[+r.dataset.i], xh = svg.querySelector("#xh"), cx = +r.getAttribute("x") + +r.getAttribute("width") / 2;
+      xh.setAttribute("x1", cx); xh.setAttribute("x2", cx); xh.setAttribute("opacity", ".5");
+      showTip(e, `Week of ${esc(w.week_start)} · n = ${esc(w.responses)}<br>Finish always/most ${pct(w.kpis.finish_always_or_most)}<br>Loose stool ${pct(w.kpis.loose_stool)}`); };
+    r.onmouseleave = () => { hideTip(); svg.querySelector("#xh").setAttribute("opacity", "0"); };
+  });
+}
+// Front-end only anonymisation: DataHub, Boomi and the agent keep their real names.
+function rebrand(v){ return typeof v === "string" ? v.replace(/Century Pacific/g, "Boomi Pacific") : JSON.parse(JSON.stringify(v).replace(/Century Pacific/g, "Boomi Pacific")); }
+async function load(){
+  $("#dash").innerHTML = `<div class="skeleton">Reading survey results from Boomi DataHub…</div>`;
+  try {
+    const r = await fnFetch("/rnd", {action: "DASHBOARD", days: String(days)});
+    const j = rebrand(await r.json());
+    if (!j.ok) throw new Error(j.error || "No data");
+    render(j);
+  } catch (e) { $("#dash").innerHTML = `<div class="card"><h2>Couldn't load the dashboard</h2><p class="note">${esc(e.message || e)} Check you are signed in, then pick a date window to retry.</p></div>`; }
+}
+document.querySelectorAll(".seg button").forEach(b => b.onclick = () => {
+  days = +b.dataset.days; document.querySelectorAll(".seg button").forEach(x => x.setAttribute("aria-pressed", String(x === b))); load();
+});
+
+/* ---------- chat ---------- */
+const STARTERS = ["Summarize the last 90 days", "Which batches are above 20% loose stool or low finish?", "Compare GDS-2026-0708 and GDS-2026-0805 side by side", "How do Puppy Formula results look in Tagalog responses?", "Export a CSV summary by batch"];
+$("#starters").innerHTML = STARTERS.map(s => `<button type="button">${esc(s)}</button>`).join("");
+$("#starters").querySelectorAll("button").forEach(b => b.onclick = () => ask(b.textContent));
+let sessionId = null, busy = false;
+function md(src){
+  const blocks = []; let s = String(src).replace(/```(\w*)\n([\s\S]*?)```/g, (m, lang, code) => { blocks.push({lang, code}); return "\u0000" + (blocks.length - 1) + "\u0000"; });
+  const lines = s.split("\n"), out = []; let i = 0;
+  const inline = t => esc(t).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/`([^`]+)`/g, "<code>$1</code>");
+  while (i < lines.length) {
+    const l = lines[i];
+    if (/^\s*\|/.test(l) && i + 1 < lines.length && /^\s*\|[\s:|-]+\|\s*$/.test(lines[i + 1])) {
+      const row = x => x.trim().replace(/^\||\|$/g, "").split("|").map(c => c.trim());
+      const head = row(l); i += 2; const body = [];
+      while (i < lines.length && /^\s*\|/.test(lines[i])) body.push(row(lines[i++]));
+      out.push(`<table><thead><tr>${head.map(h => `<th>${inline(h)}</th>`).join("")}</tr></thead><tbody>${body.map(r => `<tr>${r.map(c => `<td>${inline(c)}</td>`).join("")}</tr>`).join("")}</tbody></table>`); continue;
+    }
+    if (/^\s*[-*] /.test(l)) { const items = []; while (i < lines.length && /^\s*[-*] /.test(lines[i])) items.push(lines[i++].replace(/^\s*[-*] /, "")); out.push(`<ul>${items.map(x => `<li>${inline(x)}</li>`).join("")}</ul>`); continue; }
+    if (/^#{1,4} /.test(l)) { out.push(`<p><b>${inline(l.replace(/^#+ /, ""))}</b></p>`); i++; continue; }
+    if (/^\u0000\d+\u0000$/.test(l.trim())) { out.push(l.trim()); i++; continue; }
+    if (l.trim()) out.push(`<p>${inline(l)}</p>`); i++;
+  }
+  return out.join("").replace(/\u0000(\d+)\u0000/g, (m, n) => { const b = blocks[+n];
+    if (b.lang === "csv") return `<pre>${esc(b.code)}</pre><button class="btn solid" type="button" data-csv="${encodeURIComponent(b.code)}">Download CSV</button>`;
+    return `<pre>${esc(b.code)}</pre>`; });
+}
+function bubble(cls, html){ const d = document.createElement("div"); d.className = "m " + cls; d.innerHTML = html; $("#msgs").appendChild(d); $("#msgs").scrollTop = $("#msgs").scrollHeight;
+  d.querySelectorAll("[data-csv]").forEach(b => b.onclick = () => { const blob = new Blob([decodeURIComponent(b.dataset.csv)], {type: "text/csv"}); const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob); a.download = "goodest_rnd_summary.csv"; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); });
+  return d; }
+async function ask(text){
+  text = String(text || "").trim(); if (!text || busy) return;
+  busy = true; $("#q").value = ""; bubble("me", `<p>${esc(text)}</p>`);
+  const typing = document.createElement("div"); typing.className = "typing"; typing.textContent = "Agent is reading DataHub…"; $("#msgs").appendChild(typing);
+  let answer = "";
+  try {
+    const res = await fnFetch("/chat", {message: text, session_id: sessionId});
+    if (!(res.headers.get("Content-Type") || "").includes("event-stream")) { const j = await res.json().catch(() => ({})); throw new Error(j.error || "HTTP " + res.status); }
+    const reader = res.body.getReader(), dec = new TextDecoder(); let buf = "", ev = null;
+    while (true) {
+      const {value, done} = await reader.read(); if (done) break;
+      buf += dec.decode(value, {stream: true}); let i;
+      while ((i = buf.indexOf("\n")) >= 0) {
+        const line = buf.slice(0, i).trim(); buf = buf.slice(i + 1);
+        if (line.startsWith("event:")) { ev = line.slice(6).trim(); continue; }
+        if (!line.startsWith("data:")) continue;
+        const raw = line.slice(5).trim(); if (!raw || raw === "null") continue;
+        let d; try { d = JSON.parse(raw); } catch (e) { continue; }
+        if (d.session_id) sessionId = d.session_id;
+        if (ev === "progress_notification") { const t = d.content || d.message || d.text; if (t && typeof t === "string" && t.length < 120) typing.textContent = t + "…"; }
+        else if (ev === "message" && d.role === "agent") answer += (answer ? "\n\n" : "") + d.content;
+        else if (ev === "portal_error") {
+          if (/could not find the requested session/i.test(d.error || "")) { sessionId = null; answer = "The previous conversation expired. Please ask again."; }
+          else answer = "⚠ " + (d.error || "Something went wrong.");
+        }
+      }
+    }
+  } catch (e) { answer = "⚠ " + String(e.message || e); }
+  typing.remove();
+  answer = rebrand(answer);
+  bubble(answer.startsWith("⚠") ? "err" : "in", md(answer || "No reply. Please try again."));
+  busy = false;
+}
+$("#ask").onsubmit = e => { e.preventDefault(); ask($("#q").value); };
+
+/* ---------- sign in ---------- */
+$("#who").onclick = () => { if (auth) { dropAuth(); location.reload(); } else showGate(); };
+$("#gform").onsubmit = async e => {
+  e.preventDefault(); const b = $("#ggo"); b.disabled = true; b.textContent = "Signing in…"; $("#gerr").textContent = "";
+  try {
+    const r = await authPost("token?grant_type=password", {email: $("#gemail").value.trim(), password: $("#gpass").value});
+    if (!r.ok) { $("#gerr").textContent = "Email or password not recognised."; return; }
+    keepAuth(r.j); paintWho(); $("#gate").classList.add("hide"); load();
+  } catch (e) { $("#gerr").textContent = "Could not reach the sign-in service."; } finally { b.disabled = false; b.textContent = "Sign in"; }
+};
+paintWho();
+if (auth) load(); else showGate();
+})();
+</script>
+</body>
+</html>

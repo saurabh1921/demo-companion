@@ -1,2 +1,0 @@
-survey_id,title,version,status,channel,created_at,closed_at,data_retention_note,source_flag
-SRV-GDS-001,Goodest Dog Food - Packet QR Feedback,1,Live,QR,2026-06-20T01:00:00Z,,"Anonymous responses only - no names, phone numbers, emails or device IDs are collected. Used solely for product improvement by Century Pacific R&D. Processed under the Philippine Data Privacy Act of 2012 (RA 10173). Retained for 24 months from submission, then deleted. DEMO / SYNTHETIC.",SYNTHETIC
