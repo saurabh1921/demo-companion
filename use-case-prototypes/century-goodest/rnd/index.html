@@ -194,7 +194,9 @@ function paintWho(){ $("#who").textContent = auth ? (auth.email || "").split("@"
 function showGate(){ $("#gate").classList.remove("hide"); setTimeout(() => $("#gemail").focus(), 50); }
 async function fnFetch(path, body) {
   const t = await token(); if (!t) { showGate(); throw new Error("Please sign in."); }
-  const r = await fetch(FN + path, {method: "POST", headers: {"Content-Type": "application/json", apikey: ANON, Authorization: "Bearer " + t}, body: JSON.stringify(body)});
+  let r;
+  try { r = await fetch(FN + path, {method: "POST", headers: {"Content-Type": "application/json", apikey: ANON, Authorization: "Bearer " + t}, body: JSON.stringify(body)}); }
+  catch (e) { throw new Error("Can't reach the demo backend (Supabase function century-goodest). It may not be deployed yet, or the network is blocking supabase.co."); }
   if (r.status === 401) { dropAuth(); paintWho(); showGate(); throw new Error("Please sign in again."); }
   return r;
 }
