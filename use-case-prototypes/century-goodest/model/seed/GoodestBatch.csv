@@ -1,0 +1,6 @@
+batch_code,product_id,production_date,plant_location,expiry_date,source_flag
+GDS-2026-0708,GDS-ADULT,2026-07-08,CPF Demo Plant - Laguna (synthetic),2028-01-07,SYNTHETIC
+GDS-2026-0722,GDS-PUPPY,2026-07-22,CPF Demo Plant - General Santos (synthetic),2028-01-21,SYNTHETIC
+GDS-2026-0805,GDS-ADULT,2026-08-05,CPF Demo Plant - Laguna (synthetic),2028-02-04,SYNTHETIC
+GDS-2026-0819,GDS-PUPPY,2026-08-19,CPF Demo Plant - General Santos (synthetic),2028-02-18,SYNTHETIC
+GDS-2026-0909,GDS-ADULT,2026-09-09,CPF Demo Plant - Laguna (synthetic),2028-03-10,SYNTHETIC

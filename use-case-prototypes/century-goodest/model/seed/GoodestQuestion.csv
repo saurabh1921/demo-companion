@@ -1,0 +1,7 @@
+question_id,survey_id,sequence,question_text,question_text_tl,question_type,option_set,source_flag
+Q1,SRV-GDS-001,1,What size is your dog?,Gaano kalaki ang aso mo?,single_select,Small|Medium|Large|Giant,SYNTHETIC
+Q2,SRV-GDS-001,2,How old is your dog?,Ilang taon na ang aso mo?,single_select,Puppy|Adult|Senior,SYNTHETIC
+Q3,SRV-GDS-001,3,How much of the bowl does your dog finish?,Gaano karami sa mangkok ang nauubos ng aso mo?,single_select,Always|Most|Some|Rarely,SYNTHETIC
+Q4,SRV-GDS-001,4,How would you describe your dog's stool after eating Goodest?,Kumusta ang dumi ng aso mo matapos kumain ng Goodest?,single_select,Firm|Soft|Loose|Mixed,SYNTHETIC
+Q5,SRV-GDS-001,5,Would you buy Goodest again?,Bibili ka ba ulit ng Goodest?,single_select,Definitely|Probably|Not sure|Probably not,SYNTHETIC
+Q6,SRV-GDS-001,6,Anything else you'd like our team to know?,May gusto ka pa bang sabihin sa aming team?,optional_text,,SYNTHETIC

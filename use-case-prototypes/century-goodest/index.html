@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#1E6B52">
+<title>Goodest QR Survey</title>
+<meta name="description" content="Boomi demo mock-up for Century Pacific Food R&D: Goodest dog food packet QR survey (EN/TL), Boomi Integration, Boomi DataHub survey model and an Agentstudio R&D analytics agent. Synthetic data.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Goodest: from packet scan to R&D insight">
+<meta property="og:description" content="Owners scan the packet QR and answer 5 taps in English or Tagalog. Boomi validates and stores it in DataHub; an Agentstudio agent flags quality signals by batch. Demo mock-up, synthetic data.">
+<meta property="og:image" content="https://saurabh1921.github.io/demo-companion/use-case-prototypes/century-goodest/og-preview.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="https://saurabh1921.github.io/demo-companion/use-case-prototypes/century-goodest/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://saurabh1921.github.io/demo-companion/use-case-prototypes/century-goodest/og-preview.png">
+<script>
+/* Phones (QR scans, small screens) get the survey only - full screen, no presenter chrome. */
+(function () {
+  var q = new URLSearchParams(location.search), small = Math.min(screen.width, window.innerWidth) < 760;
+  if (small && q.get("presenter") !== "1") location.replace("survey/?batch=" + encodeURIComponent(q.get("batch") || "GDS-2026-0909") + (q.get("lang") ? "&lang=" + q.get("lang") : ""));
+})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{--pandan:#1E6B52;--pandan-d:#154E3C;--pandan-l:#E3F0EA;--kibble:#7A4E24;--calamansi:#F4C542;--paper:#F1F4EE;--card:#FFFFFF;--ink:#18261F;--ink-2:#4B5A52;--line:#D9E2DC}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:400 16px/1.5 Figtree,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.mock{background:var(--ink);color:#E9F1EC;font-size:13px;text-align:center;padding:8px 16px}
+.mock b{color:var(--calamansi);font-weight:600}
+.views{display:flex;align-items:center;gap:16px;padding:10px 32px;background:var(--card);border-bottom:1px solid var(--line)}
+.vt{font:700 16px "Baloo 2",sans-serif;color:var(--pandan-d);margin-right:auto}
+.vs{display:inline-flex;background:var(--paper);border:1px solid var(--line);border-radius:999px;padding:3px}
+.vs a{display:inline-flex;align-items:center;gap:7px;padding:7px 15px;border-radius:999px;text-decoration:none;color:var(--ink-2);font-weight:700;font-size:14px}
+.vs a small{font-weight:500;font-size:11.5px;opacity:.8;display:inline-flex;align-items:center;gap:3px}
+.vs a[aria-current="page"]{background:var(--pandan);color:#fff}
+.wrap{max-width:1180px;margin:0 auto;padding:36px 32px 48px;display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:56px;align-items:start}
+h1{font:800 44px/1.05 "Baloo 2",sans-serif;letter-spacing:-.02em;margin:0 0 14px;color:var(--pandan-d);max-width:15ch}
+.lead{font-size:18px;color:var(--ink-2);max-width:52ch;margin:0 0 28px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:22px;display:grid;grid-template-columns:200px 1fr;gap:22px;align-items:center}
+#qr{width:200px;height:200px;padding:12px;background:#fff;border-radius:14px;border:2px solid var(--pandan)}
+#qr img,#qr canvas{width:100%!important;height:100%!important}
+label{display:block;font-weight:600;font-size:14px;margin:0 0 6px}
+select{width:100%;font:inherit;padding:10px 12px;border:2px solid var(--line);border-radius:12px;background:#fff;color:var(--ink)}
+.url{font-size:13px;color:var(--ink-2);word-break:break-all;margin:10px 0 0}
+.url a{color:var(--pandan)}
+.row{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+.seg{display:inline-flex;border:2px solid var(--line);border-radius:999px;padding:3px;background:#fff}
+.seg button{border:0;background:none;font:600 14px Figtree,sans-serif;padding:7px 14px;border-radius:999px;cursor:pointer;color:var(--ink-2)}
+.seg button[aria-pressed="true"]{background:var(--pandan);color:#fff}
+.btn{display:inline-flex;align-items:center;border:2px solid var(--pandan);color:var(--pandan);background:#fff;border-radius:999px;padding:8px 16px;font-weight:700;font-size:14px;text-decoration:none;cursor:pointer}
+.btn.solid{background:var(--pandan);color:#fff}
+h2{font:700 20px/1.2 "Baloo 2",sans-serif;margin:34px 0 10px}
+.flow{list-style:none;padding:0;margin:0;display:grid;gap:10px;counter-reset:s}
+.flow li{counter-increment:s;display:grid;grid-template-columns:30px 1fr;gap:12px;align-items:start;color:var(--ink-2);font-size:15px}
+.flow li::before{content:counter(s);width:28px;height:28px;border-radius:50%;background:var(--pandan-l);color:var(--pandan-d);display:grid;place-items:center;font-weight:700;font-size:14px}
+.flow b{color:var(--ink)}
+.receipt{margin-top:18px;border:2px dashed var(--line);border-radius:16px;padding:14px 16px;font-size:14.5px;color:var(--ink-2);min-height:64px}
+.receipt.ok{border:2px solid var(--pandan);background:var(--pandan-l);color:var(--pandan-d)}
+.receipt code{font-size:13.5px;background:#fff;padding:1px 6px;border-radius:6px}
+.phone{position:sticky;top:24px;width:400px;height:820px;border-radius:52px;background:#101814;padding:14px;box-shadow:0 30px 60px -20px rgba(16,24,20,.45)}
+.phone::before{content:"";position:absolute;top:24px;left:50%;transform:translateX(-50%);width:110px;height:26px;border-radius:20px;background:#101814;z-index:2}
+.phone iframe{width:100%;height:100%;border:0;border-radius:40px;background:#F7F9F4}
+.cap{text-align:center;font-size:13px;color:var(--ink-2);margin-top:14px}
+@media (max-width:1060px){.wrap{grid-template-columns:1fr;gap:32px}.phone{position:relative;margin:0 auto}}
+</style>
+</head>
+<body>
+<div class="mock"><b>Demo mock-up</b> built on Boomi for Century Pacific Food R&D. Not an official Century Pacific Food page. Synthetic demo data.</div>
+<nav class="views" aria-label="Demo view">
+  <span class="vt">Goodest feedback demo</span>
+  <div class="vs">
+    <a href="./" aria-current="page">Customer view <small>public</small></a>
+    <a href="rnd/">R&D agent view <small><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg> sign-in</small></a>
+  </div>
+</nav>
+<div class="wrap">
+  <section>
+    <h1>Every Goodest packet asks how the dog liked it.</h1>
+    <p class="lead">The owner scans the QR on the packet and answers five quick taps in English or Tagalog. The batch code rides in the link, so R&D can trace feedback straight back to a production run.</p>
+    <div class="panel">
+      <div id="qr" role="img" aria-label="QR code for the survey link"></div>
+      <div>
+        <label for="batch">Packet batch</label>
+        <select id="batch"></select>
+        <p class="url">Link in the QR: <a id="link" target="_blank" rel="noopener"></a></p>
+        <div class="row">
+          <div class="seg" role="group" aria-label="Survey language">
+            <button type="button" data-lang="EN" aria-pressed="true">English</button>
+            <button type="button" data-lang="TL" aria-pressed="false">Tagalog</button>
+          </div>
+          <button class="btn" id="restart" type="button">Restart phone</button>
+        </div>
+      </div>
+    </div>
+    <div class="receipt" id="receipt" aria-live="polite">Submit the survey on the phone and the record saved to Boomi DataHub shows up here.</div>
+    <h2>What happens behind the scan</h2>
+    <ol class="flow">
+      <li><span><b>Scan.</b> The QR opens the survey with <code>?batch=</code> already set. The owner is never asked for it.</span></li>
+      <li><span><b>Answer.</b> Consent, five tap questions and an optional comment. No names, numbers, emails or device IDs.</span></li>
+      <li><span><b>Boomi.</b> An Integration process validates the answers, removes phone numbers and emails from the comment, and writes the Response and Answer golden records to Boomi DataHub.</span></li>
+      <li><span><b>R&D.</b> The Goodest R&D Insights agent and dashboard read the same DataHub model. They report aggregates only and hide any cell with fewer than 5 responses.</span></li>
+    </ol>
+    <div class="row" style="margin-top:22px"><a class="btn solid" href="rnd/">Open the R&D agent view</a><a class="btn" href="model/">See the data model</a></div>
+  </section>
+  <aside>
+    <div class="phone"><iframe id="phone" title="Goodest survey on a phone"></iframe></div>
+    <p class="cap">Live survey. Answers you submit are saved to the demo DataHub as LIVE records.</p>
+  </aside>
+</div>
+<script>
+(function(){
+  var BATCHES = [["GDS-2026-0909","Adult Formula, produced 9 Sep 2026"],["GDS-2026-0819","Puppy Formula, produced 19 Aug 2026"],["GDS-2026-0805","Adult Formula, produced 5 Aug 2026"],["GDS-2026-0722","Puppy Formula, produced 22 Jul 2026"],["GDS-2026-0708","Adult Formula, produced 8 Jul 2026"]];
+  var q = new URLSearchParams(location.search), sel = document.getElementById("batch"), lang = (q.get("lang") || "EN").toUpperCase() === "TL" ? "TL" : "EN";
+  BATCHES.forEach(function(b){ var o = document.createElement("option"); o.value = b[0]; o.textContent = b[0] + " - " + b[1]; sel.appendChild(o); });
+  if (q.get("batch")) sel.value = q.get("batch");
+  var qr = new QRCode(document.getElementById("qr"), { width: 352, height: 352, colorDark: "#154E3C", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M });
+  function surveyUrl(){ return new URL("survey/?batch=" + encodeURIComponent(sel.value), location.href).href; }
+  function load(){
+    var u = surveyUrl(); qr.clear(); qr.makeCode(u);
+    var a = document.getElementById("link"); a.href = u; a.textContent = u;
+    document.getElementById("phone").src = "survey/?batch=" + encodeURIComponent(sel.value) + "&lang=" + lang;
+  }
+  sel.onchange = load;
+  document.getElementById("restart").onclick = load;
+  document.querySelectorAll(".seg button").forEach(function(b){
+    b.onclick = function(){ lang = b.dataset.lang;
+      document.querySelectorAll(".seg button").forEach(function(x){ x.setAttribute("aria-pressed", String(x === b)); });
+      var f = document.getElementById("phone"); if (f.contentWindow) f.contentWindow.postMessage({ type: "cpf-set-lang", lang: lang }, "*"); };
+  });
+  document.querySelectorAll(".seg button").forEach(function(x){ x.setAttribute("aria-pressed", String(x.dataset.lang === lang)); });
+  window.addEventListener("message", function(e){
+    if (!e.data || e.data.type !== "cpf-survey-submitted") return;
+    var r = e.data.result || {}, p = e.data.payload || {}, el = document.getElementById("receipt");
+    el.className = "receipt ok";
+    el.innerHTML = "Saved to Boomi DataHub: Response <code></code> for batch <code></code> (" + (p.language === "TL" ? "Tagalog" : "English") + ")" +
+      (r.comment_redacted ? ". Contact details were removed from the comment." : ".") + (r.vet_notice ? " The owner was shown the see-a-veterinarian notice." : "");
+    var c = el.querySelectorAll("code"); c[0].textContent = r.response_id || "-"; c[1].textContent = r.batch_code || p.batch_code || "-";
+  });
+  load();
+})();
+</script>
+</body>
+</html>

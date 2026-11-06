@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<meta name="theme-color" content="#1E6B52">
+<title>Goodest Feedback</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --pandan:#1E6B52; --pandan-d:#154E3C; --pandan-l:#E3F0EA;
+  --kibble:#7A4E24; --calamansi:#F4C542; --calamansi-l:#FDF3D3;
+  --paper:#F7F9F4; --card:#FFFFFF; --ink:#18261F; --ink-2:#4B5A52; --line:#D9E2DC;
+  --warn:#8A3B12; --warn-bg:#FCEBDD;
+  --r-tile:18px; --r-btn:999px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--paper);color:var(--ink);font:400 17px/1.5 Figtree,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit}
+.app{min-height:100%;max-width:480px;margin:0 auto;display:flex;flex-direction:column;padding:0 18px calc(18px + env(safe-area-inset-bottom))}
+.mock{margin:0 -18px;background:var(--ink);color:#E9F1EC;font-size:12px;line-height:1.35;padding:7px 18px;text-align:center}
+.mock b{color:var(--calamansi);font-weight:600}
+header.top{display:flex;align-items:center;justify-content:space-between;padding:14px 0 8px}
+.brand{display:flex;align-items:center;gap:10px}
+.mark{width:36px;height:36px;border-radius:11px;background:var(--pandan);display:grid;place-items:center}
+.brand-t{font:700 21px/1 "Baloo 2",sans-serif;color:var(--pandan-d);letter-spacing:-.01em}
+.brand-s{font-size:11.5px;color:var(--ink-2);line-height:1.2}
+.lang{display:flex;background:var(--card);border:1px solid var(--line);border-radius:var(--r-btn);padding:3px}
+.lang button{border:0;background:transparent;padding:6px 11px;border-radius:var(--r-btn);font-size:13px;font-weight:600;cursor:pointer;color:var(--ink-2)}
+.lang button[aria-pressed="true"]{background:var(--pandan);color:#fff}
+.prog{display:flex;align-items:center;gap:10px;padding:6px 0 4px;min-height:34px}
+.bar{flex:1;height:7px;border-radius:9px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--calamansi);border-radius:9px;transition:width .35s ease}
+.prog small{font-size:12.5px;color:var(--ink-2);font-weight:600;white-space:nowrap}
+.back{border:0;background:none;padding:6px 2px;font-size:14px;font-weight:600;color:var(--pandan);cursor:pointer;display:inline-flex;align-items:center;gap:4px}
+.back[hidden]{display:none}
+main{flex:1;display:flex;flex-direction:column;padding-top:8px}
+.screen{display:flex;flex-direction:column;flex:1;animation:in .28s ease}
+@keyframes in{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:none}}
+h1{font:700 30px/1.12 "Baloo 2",sans-serif;margin:8px 0 12px;letter-spacing:-.015em}
+h2{font:700 25px/1.18 "Baloo 2",sans-serif;margin:6px 0 18px;letter-spacing:-.01em}
+p.lead{font-size:18px;color:var(--ink-2);margin:0 0 18px;max-width:34ch}
+.hero{border-radius:24px;background:var(--pandan);color:#fff;padding:22px 20px 18px;margin-top:6px;position:relative;overflow:hidden}
+.hero h1{color:#fff}
+.hero p{color:#D6EADF;margin:0;font-size:17px}
+.hero svg{position:absolute;right:-10px;bottom:-8px;opacity:.17}
+.meta{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 0}
+.chip{font-size:13px;font-weight:600;background:var(--pandan-l);color:var(--pandan-d);border-radius:var(--r-btn);padding:5px 11px}
+.spacer{flex:1;min-height:16px}
+.cta{width:100%;border:0;border-radius:var(--r-btn);background:var(--pandan);color:#fff;font:700 19px/1 "Baloo 2",sans-serif;padding:17px 20px 15px;cursor:pointer;box-shadow:0 3px 0 var(--pandan-d)}
+.cta:active{transform:translateY(2px);box-shadow:0 1px 0 var(--pandan-d)}
+.cta[disabled]{opacity:.55;cursor:wait}
+.ghost{width:100%;border:2px solid var(--line);border-radius:var(--r-btn);background:var(--card);font-weight:700;padding:13px 20px;margin-top:10px;cursor:pointer;color:var(--ink-2)}
+.consent{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:18px;font-size:16px;color:var(--ink-2)}
+.consent ul{margin:10px 0 0;padding-left:20px}
+.consent li{margin:6px 0}
+.opts{display:grid;gap:12px}
+.opts.two{grid-template-columns:1fr 1fr}
+.opt{display:flex;align-items:center;gap:14px;width:100%;text-align:left;border:2px solid var(--line);background:var(--card);border-radius:var(--r-tile);padding:14px 16px;min-height:72px;cursor:pointer;font-weight:600;font-size:18px;line-height:1.25;transition:border-color .15s,background .15s}
+.opts.two .opt{flex-direction:column;justify-content:flex-end;text-align:center;gap:8px;min-height:132px;padding:14px 10px}
+.opt .ic{flex:none;display:grid;place-items:end center;width:56px;height:52px}
+.opts.two .opt .ic{width:auto;height:66px}
+.thanks .vet{text-align:left;width:100%}
+.opt small{display:block;font-weight:500;font-size:14px;color:var(--ink-2);margin-top:2px}
+.opt:hover{border-color:#B8CBC0}
+.opt[aria-pressed="true"]{border-color:var(--pandan);background:var(--calamansi-l);box-shadow:inset 0 0 0 1px var(--pandan)}
+.opt:focus-visible,.cta:focus-visible,.ghost:focus-visible,.lang button:focus-visible,.back:focus-visible,textarea:focus-visible{outline:3px solid var(--calamansi);outline-offset:2px}
+textarea{width:100%;min-height:150px;resize:vertical;border:2px solid var(--line);border-radius:var(--r-tile);padding:14px;font:inherit;background:var(--card);color:var(--ink)}
+.hint{font-size:14px;color:var(--ink-2);margin:8px 2px 0}
+.vet{display:flex;gap:10px;align-items:flex-start;background:var(--warn-bg);color:var(--warn);border-radius:14px;padding:12px 14px;margin-top:12px;font-size:15px;font-weight:600}
+.err{color:var(--warn);font-size:14.5px;font-weight:600;margin:10px 2px 0}
+.thanks{text-align:center;align-items:center;padding-top:20px}
+.thanks h1{max-width:16ch}
+.thanks p{max-width:30ch}
+.ref{font-size:12.5px;color:var(--ink-2);margin-top:8px}
+footer{font-size:11.5px;color:var(--ink-2);text-align:center;padding-top:14px;line-height:1.4}
+.embed .mock{padding-top:36px;padding-left:28px;padding-right:28px}
+@media (prefers-reduced-motion:reduce){.screen{animation:none}.bar i{transition:none}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="mock" id="mock"></div>
+  <header class="top">
+    <div class="brand">
+      <div class="mark" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="#F4C542"><ellipse cx="6" cy="9" rx="2.3" ry="3"/><ellipse cx="10.3" cy="5.6" rx="2.3" ry="3"/><ellipse cx="14.7" cy="5.6" rx="2.3" ry="3"/><ellipse cx="19" cy="9" rx="2.3" ry="3"/><path d="M12.5 10.5c3.2 0 6.3 4.4 6.3 7.1 0 2.3-1.9 3-3.4 3-1.2 0-2-.6-2.9-.6s-1.7.6-2.9.6c-1.5 0-3.4-.7-3.4-3 0-2.7 3.1-7.1 6.3-7.1z"/></svg></div>
+      <div><div class="brand-t">Goodest</div><div class="brand-s" id="brandSub"></div></div>
+    </div>
+    <div class="lang" role="group" aria-label="Language">
+      <button type="button" data-lang="EN" aria-pressed="true">EN</button>
+      <button type="button" data-lang="TL" aria-pressed="false">TL</button>
+    </div>
+  </header>
+  <div class="prog" aria-live="polite">
+    <button class="back" id="back" type="button" hidden>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg><span id="backT"></span>
+    </button>
+    <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" id="barWrap"><i id="bar"></i></div>
+    <small id="progT"></small>
+  </div>
+  <main id="main"></main>
+  <footer id="foot"></footer>
+</div>
+
+<script>
+(function(){
+"use strict";
+const qs = new URLSearchParams(location.search);
+try { if (window.self !== window.top) document.body.classList.add("embed"); } catch (e) { document.body.classList.add("embed"); }
+const BATCH_RE = /^GDS-\d{4}-\d{4}$/;
+const rawBatch = (qs.get("batch") || "").trim().toUpperCase();
+const BATCH = BATCH_RE.test(rawBatch) ? rawBatch : "UNKNOWN";
+const CHANNEL = (qs.get("channel") || "QR").toUpperCase() === "WEB" ? "Web" : "QR";
+const API = "https://hfovtnceicailrkshvqg.supabase.co/functions/v1/century-goodest/survey";
+const MOCK = qs.get("mock") === "1";
+
+const ICON = {
+  dog: s => `<svg width="${34+s*13}" height="${30+s*11.4}" viewBox="0 0 64 56" aria-hidden="true"><path fill="#7A4E24" d="M50 6c3 0 5 2 6 5l3 1c2 1 3 3 2 5l-2 3c-1 2-3 2-5 2l-1 0v8c0 3-1 5-3 7v12c0 1-1 2-2 2h-3c-1 0-2-1-2-2V40H22v9c0 1-1 2-2 2h-3c-1 0-2-1-2-2V38c-3-2-5-6-5-10V24l-4-6c-1-1 0-3 2-3 2 0 4 2 5 4h29l2-8c1-3 3-5 6-5z"/><circle cx="53" cy="12" r="1.6" fill="#fff"/></svg>`,
+  bowl: f => `<svg width="56" height="40" viewBox="0 0 56 40" aria-hidden="true"><defs><clipPath id="bc${f}"><path d="M4 14h48c0 13-10 22-24 22S4 27 4 14z"/></clipPath></defs><path d="M4 14h48c0 13-10 22-24 22S4 27 4 14z" fill="#E3F0EA" stroke="#1E6B52" stroke-width="2.5"/><g clip-path="url(#bc${f})"><rect x="0" y="${36-f*22}" width="56" height="40" fill="#7A4E24"/>${f>0?`<circle cx="18" cy="${36-f*22}" r="3.2" fill="#7A4E24"/><circle cx="29" cy="${35-f*22}" r="3.4" fill="#7A4E24"/><circle cx="39" cy="${36-f*22}" r="3" fill="#7A4E24"/>`:""}</g><rect x="2" y="11" width="52" height="4" rx="2" fill="#1E6B52"/></svg>`
+};
+
+const T = {
+  EN: {
+    mock: "<b>Demo mock-up</b> built on Boomi. Not an official Century Pacific Food page. Sample data only.",
+    sub: "A Century Pacific Food brand (demo)",
+    back: "Back", step: (i,n)=>`${i} of ${n}`,
+    welcomeH: "Hi! Thanks for choosing Goodest for your dog.",
+    welcomeP: "This takes about 1 minute and helps our R&D team make better food. Your answers are anonymous.",
+    chips: ["About 1 minute","5 quick taps","Anonymous"],
+    start: "Start",
+    consentH: "Before we start",
+    consentB: ["We don't ask for your name, number or email.","Your answers are used only to improve our dog food.","They are handled under the Philippine Data Privacy Act (RA 10173)."],
+    agree: "I agree",
+    commentH: "Anything else you'd like our team to know?",
+    commentPh: "Optional. Type here, or skip.",
+    commentHint: "Please don't include names or phone numbers.",
+    send: "Send my answers", skip: "Skip and send",
+    sending: "Sending…",
+    vet: "If your dog seems unwell, please see a veterinarian.",
+    err: "We couldn't send your answers. Check your connection and tap send again.",
+    thanksH: "Thank you!",
+    thanksP: "Your answers help us make better food for dogs across the Philippines.",
+    ref: b => `Packet batch ${b}`,
+    foot: "Goodest survey demo. Responses are anonymous.",
+    q: [
+      {h:"What size is your dog?", grid:true, o:[["Small","Small"],["Medium","Medium"],["Large","Large"],["Giant","Giant"]]},
+      {h:"How old is your dog?", o:[["Puppy","Puppy","under 1 year"],["Adult","Adult","1–7 years"],["Senior","Senior","7+ years"]]},
+      {h:"How much of the bowl does your dog finish?", o:[["Always","Always"],["Most","Most of it"],["Some","Some of it"],["Rarely","Rarely"]]},
+      {h:"How would you describe your dog's stool after eating Goodest?", o:[["Firm","Firm and well-formed"],["Soft","Soft"],["Loose","Loose"],["Mixed","Mixed or unsure"]]},
+      {h:"Would you buy Goodest again?", o:[["Definitely","Definitely"],["Probably","Probably"],["Not sure","Not sure"],["Probably not","Probably not"]]}
+    ]
+  },
+  TL: {
+    mock: "<b>Demo mock-up</b> gawa sa Boomi. Hindi ito opisyal na page ng Century Pacific Food. Sample data lang.",
+    sub: "Isang Century Pacific Food brand (demo)",
+    back: "Bumalik", step: (i,n)=>`${i} sa ${n}`,
+    welcomeH: "Hi! Salamat sa pagpili ng Goodest para sa aso mo.",
+    welcomeP: "Mga 1 minuto lang ito at makakatulong sa R&D team namin na gumawa ng mas magandang pagkain. Anonymous ang mga sagot mo.",
+    chips: ["Mga 1 minuto","5 mabilis na tap","Anonymous"],
+    start: "Simulan",
+    consentH: "Bago tayo magsimula",
+    consentB: ["Hindi namin hihingin ang pangalan, numero o email mo.","Gagamitin lang ang mga sagot mo para pagandahin ang aming dog food.","Pinangangalagaan ito ayon sa Data Privacy Act ng Pilipinas (RA 10173)."],
+    agree: "Sang-ayon ako",
+    commentH: "May gusto ka pa bang sabihin sa aming team?",
+    commentPh: "Opsyonal. Mag-type dito, o laktawan.",
+    commentHint: "Huwag maglagay ng pangalan o numero ng telepono.",
+    send: "Ipadala ang sagot ko", skip: "Laktawan at ipadala",
+    sending: "Ipinapadala…",
+    vet: "Kung mukhang may sakit ang aso mo, magpatingin sa beterinaryo.",
+    err: "Hindi naipadala ang mga sagot mo. Tingnan ang internet mo at i-tap ulit ang ipadala.",
+    thanksH: "Salamat!",
+    thanksP: "Nakakatulong ang mga sagot mo para makagawa kami ng mas magandang pagkain para sa mga aso sa buong Pilipinas.",
+    ref: b => `Batch ng pakete ${b}`,
+    foot: "Goodest survey demo. Anonymous ang mga sagot.",
+    q: [
+      {h:"Gaano kalaki ang aso mo?", grid:true, o:[["Small","Maliit"],["Medium","Katamtaman"],["Large","Malaki"],["Giant","Napakalaki"]]},
+      {h:"Ilang taon na ang aso mo?", o:[["Puppy","Tuta","wala pang 1 taon"],["Adult","Adult","1–7 taon"],["Senior","Senior","7 taon pataas"]]},
+      {h:"Gaano karami sa mangkok ang nauubos ng aso mo?", o:[["Always","Palaging ubos"],["Most","Halos maubos"],["Some","Kaunti lang"],["Rarely","Bihirang maubos"]]},
+      {h:"Kumusta ang dumi ng aso mo matapos kumain ng Goodest?", o:[["Firm","Buo at maayos"],["Soft","Malambot"],["Loose","Matubig"],["Mixed","Pabago-bago o hindi sigurado"]]},
+      {h:"Bibili ka ba ulit ng Goodest?", o:[["Definitely","Siguradong oo"],["Probably","Malamang oo"],["Not sure","Hindi sigurado"],["Probably not","Malamang hindi"]]}
+    ]
+  }
+};
+const QIDS = ["Q1","Q2","Q3","Q4","Q5"];
+const ILLNESS = /\b(sick|ill|illness|unwell|vomit\w*|diarrh\w*|blood\w*|letharg\w*|seizure\w*|not eating|won'?t eat|poison\w*|dehydrat\w*|weak)\b|nagsuka|suka|pagtatae|nagtatae|natae|matubig|dugo|may sakit|nagkasakit|matamlay|ayaw kumain|hindi kumakain|nanghihina|lason/i;
+
+let lang = (qs.get("lang") || "EN").toUpperCase();
+if (lang !== "TL") lang = "EN";
+// screens: 0 welcome, 1 consent, 2..6 Q1..Q5, 7 comment, 8 thanks
+const st = { s: 0, answers: {}, comment: "", consent: false, sending: false, error: false, result: null };
+const main = document.getElementById("main");
+const $ = id => document.getElementById(id);
+
+function t(){ return T[lang]; }
+function esc(s){ return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
+
+function chrome(){
+  const L = t();
+  document.documentElement.lang = lang === "TL" ? "fil" : "en";
+  $("mock").innerHTML = L.mock;
+  $("brandSub").textContent = L.sub;
+  $("backT").textContent = L.back;
+  $("foot").textContent = L.foot;
+  document.querySelectorAll(".lang button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.lang === lang)));
+  const pct = Math.round(st.s / 8 * 100);
+  $("bar").style.width = Math.max(pct, 4) + "%";
+  $("barWrap").setAttribute("aria-valuenow", pct);
+  let label = "";
+  if (st.s >= 2 && st.s <= 6) label = L.step(st.s - 1, 5);
+  else if (st.s === 7) label = L.step(5, 5) + " ✓";
+  else if (st.s === 8) label = "✓";
+  $("progT").textContent = label;
+  $("back").hidden = !(st.s >= 2 && st.s <= 7) || st.sending;
+}
+
+function render(){
+  chrome();
+  const L = t();
+  let h = "";
+  if (st.s === 0) {
+    h = `<section class="screen">
+      <div class="hero"><h1>${esc(L.welcomeH)}</h1><p>${esc(L.welcomeP)}</p>
+      <svg width="130" height="114" viewBox="0 0 64 56" aria-hidden="true"><path fill="#fff" d="M50 6c3 0 5 2 6 5l3 1c2 1 3 3 2 5l-2 3c-1 2-3 2-5 2l-1 0v8c0 3-1 5-3 7v12c0 1-1 2-2 2h-3c-1 0-2-1-2-2V40H22v9c0 1-1 2-2 2h-3c-1 0-2-1-2-2V38c-3-2-5-6-5-10V24l-4-6c-1-1 0-3 2-3 2 0 4 2 5 4h29l2-8c1-3 3-5 6-5z"/></svg></div>
+      <div class="meta">${L.chips.map(c=>`<span class="chip">${esc(c)}</span>`).join("")}</div>
+      <div class="spacer"></div>
+      <button class="cta" id="go" type="button">${esc(L.start)}</button></section>`;
+  } else if (st.s === 1) {
+    h = `<section class="screen"><h2>${esc(L.consentH)}</h2>
+      <div class="consent"><ul>${L.consentB.map(b=>`<li>${esc(b)}</li>`).join("")}</ul></div>
+      <div class="spacer"></div>
+      <button class="cta" id="agree" type="button">${esc(L.agree)}</button></section>`;
+  } else if (st.s >= 2 && st.s <= 6) {
+    const qi = st.s - 2, q = L.q[qi], qid = QIDS[qi], sel = st.answers[qid];
+    const opts = q.o.map(([v, label, sub], i) => {
+      let ic = "";
+      if (qid === "Q1") ic = `<span class="ic">${ICON.dog(i)}</span>`;
+      if (qid === "Q3") ic = `<span class="ic">${ICON.bowl([1,.62,.3,.06][i])}</span>`;
+      return `<button type="button" class="opt" data-v="${esc(v)}" aria-pressed="${sel===v}">${ic}<span>${esc(label)}${sub?`<small>${esc(sub)}</small>`:""}</span></button>`;
+    }).join("");
+    h = `<section class="screen"><h2 id="qh">${esc(q.h)}</h2><div class="opts${q.grid?" two":""}" role="group" aria-labelledby="qh">${opts}</div></section>`;
+  } else if (st.s === 7) {
+    h = `<section class="screen"><h2>${esc(L.commentH)}</h2>
+      <label class="sr" for="cmt" style="position:absolute;left:-9999px">${esc(L.commentH)}</label>
+      <textarea id="cmt" maxlength="500" placeholder="${esc(L.commentPh)}">${esc(st.comment)}</textarea>
+      <p class="hint">${esc(L.commentHint)}</p>
+      <div id="vetLive"></div>
+      ${st.error ? `<p class="err" role="alert">${esc(L.err)}</p>` : ""}
+      <div class="spacer"></div>
+      <button class="cta" id="send" type="button" ${st.sending?"disabled":""}>${esc(st.sending ? L.sending : L.send)}</button>
+      <button class="ghost" id="skip" type="button" ${st.sending?"disabled":""}>${esc(L.skip)}</button></section>`;
+  } else {
+    const vet = (st.result && st.result.vet_notice) || ILLNESS.test(st.comment);
+    h = `<section class="screen thanks">
+      <svg width="92" height="92" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#E3F0EA"/><g fill="#1E6B52" transform="translate(4.2 4) scale(.65)"><ellipse cx="6" cy="9" rx="2.3" ry="3"/><ellipse cx="10.3" cy="5.6" rx="2.3" ry="3"/><ellipse cx="14.7" cy="5.6" rx="2.3" ry="3"/><ellipse cx="19" cy="9" rx="2.3" ry="3"/><path d="M12.5 10.5c3.2 0 6.3 4.4 6.3 7.1 0 2.3-1.9 3-3.4 3-1.2 0-2-.6-2.9-.6s-1.7.6-2.9.6c-1.5 0-3.4-.7-3.4-3 0-2.7 3.1-7.1 6.3-7.1z"/></g></svg>
+      <h1>${esc(L.thanksH)}</h1><p class="lead">${esc(L.thanksP)}</p>
+      ${vet ? vetBox() : ""}
+      <p class="ref">${esc(L.ref(BATCH))}</p></section>`;
+  }
+  main.innerHTML = h;
+  wire();
+}
+
+function vetBox(){
+  return `<div class="vet" role="note"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>${esc(t().vet)}</span></div>`;
+}
+
+function wire(){
+  const go = $("go"); if (go) go.onclick = () => { st.s = 1; render(); };
+  const ag = $("agree"); if (ag) ag.onclick = () => { st.consent = true; st.s = 2; render(); };
+  main.querySelectorAll(".opt").forEach(b => b.onclick = () => {
+    st.answers[QIDS[st.s - 2]] = b.dataset.v;
+    main.querySelectorAll(".opt").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+    setTimeout(() => { st.s += 1; render(); }, 220);
+  });
+  const c = $("cmt");
+  if (c) {
+    const upd = () => { st.comment = c.value; $("vetLive").innerHTML = ILLNESS.test(c.value) ? vetBox() : ""; };
+    c.oninput = upd; upd();
+    $("send").onclick = () => submit(false);
+    $("skip").onclick = () => submit(true);
+  }
+  const first = main.querySelector(".opt[aria-pressed='true']") || main.querySelector(".opt");
+  if (first && document.activeElement === document.body) {/* keep natural focus */}
+}
+
+async function submit(skip){
+  if (st.sending) return;
+  if (skip) st.comment = "";
+  st.sending = true; st.error = false; render();
+  const payload = {
+    action: "SUBMIT_RESPONSE",
+    survey_id: "SRV-GDS-001",
+    batch_code: BATCH, channel: CHANNEL, language: lang,
+    consent_given: st.consent,
+    answers: Object.assign({}, st.answers),
+    comment: st.comment.trim().slice(0, 500)
+  };
+  try {
+    let res;
+    if (MOCK) {
+      await new Promise(r => setTimeout(r, 600));
+      res = { ok: true, response_id: "R-mock", vet_notice: ILLNESS.test(payload.comment) };
+    } else {
+      const r = await fetch(API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      res = await r.json();
+      if (!res.ok) throw new Error(res.error || "rejected");
+    }
+    st.result = res; st.sending = false; st.s = 8; render();
+    try { parent.postMessage({ type: "cpf-survey-submitted", result: res, payload }, "*"); } catch (e) {}
+  } catch (e) {
+    st.sending = false; st.error = true; render();
+  }
+}
+
+$("back").onclick = () => { if (st.s > 1 && st.s <= 7) { st.s -= 1; render(); } };
+document.querySelectorAll(".lang button").forEach(b => b.onclick = () => { lang = b.dataset.lang; render(); });
+window.addEventListener("message", e => { if (e.data && e.data.type === "cpf-set-lang" && T[e.data.lang]) { lang = e.data.lang; render(); } });
+render();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,4 @@
+product_id,brand,product_name,life_stage_target,protein_source,pack_size_kg,launch_date,source_flag
+GDS-ADULT,Goodest,Goodest Adult Dog Formula,Adult,Chicken & Fish,1.5,2024-03-01,SYNTHETIC
+GDS-PUPPY,Goodest,Goodest Puppy Formula,Puppy,Chicken,1.0,2024-06-15,SYNTHETIC
+GDS-SENIOR,Goodest,Goodest Senior Formula,Senior,Fish & Rice,1.5,2025-09-01,SYNTHETIC
