@@ -88,6 +88,7 @@ code { font-size: .88em; background: var(--bg-2); padding: 1px 5px; border-radiu
 .topbar nav { display: flex; gap: 4px; margin-left: auto; flex-wrap: wrap; align-items: center; }
 .topbar nav a { color: var(--brand-ink); opacity: .78; text-decoration: none; padding: 6px 10px; border-radius: 7px; font-size: 14px; }
 .topbar nav a:hover, .topbar nav a.on { opacity: 1; background: rgba(255, 255, 255, .1); }
+.topbar nav .navsep { width: 1px; align-self: stretch; margin: 4px 6px; background: rgba(255, 255, 255, .25); }
 .iconbtn { background: transparent; color: inherit; border: 1px solid rgba(255, 255, 255, .25); border-radius: 7px; padding: 5px 10px; font: 13px var(--sans); cursor: pointer; }
 .iconbtn:hover { background: rgba(255, 255, 255, .1); }
 

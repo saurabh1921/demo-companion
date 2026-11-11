@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+<head>
+<script src="config.js"></script>
+<script src="auth-gate.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Boomi Resources Demo Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  .hero { background: var(--brand); color: var(--brand-ink); padding: 26px 0 30px; }
+  .hero h1 { font-size: clamp(26px, 3.8vw, 38px); margin: 6px 0 8px; }
+  .hero .eyebrow { color: var(--brand-hi); }
+  .hero p { margin: 0; opacity: .85; max-width: 780px; }
+  .grp { margin: 28px 0 0; }
+  .grp h2 { font-size: 20px; margin: 0 0 4px; }
+  .grp > p { margin: 0 0 14px; color: var(--ink-2); max-width: 780px; }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+  .tile { padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .tile .k { font: 600 12px var(--sans); letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+  .tile h3 { font-size: 18px; margin: 0; }
+  .tile p { margin: 0; color: var(--ink-2); font-size: 14px; }
+  .tile .who { font-size: 13px; color: var(--muted); }
+  .tile .path { font: 12.5px var(--mono); color: var(--muted); overflow-wrap: anywhere; }
+  .tile .acts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; padding-top: 4px; }
+  .tile .acts .btn { font-size: 13px; padding: 6px 10px; }
+  .tile .acts .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .tile.app { border-top: 3px solid var(--accent); }
+  .status { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+  .status .row { padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .status .row b { font-size: 14px; }
+  .status .row .badge { align-self: flex-start; }
+  .status .row span.d { font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
+  ol.tips { margin: 0; padding-left: 20px; color: var(--ink-2); display: grid; gap: 6px; max-width: 860px; }
+  ol.tips code, .tile code { font: 12.5px var(--mono); }
+  footer.pad { padding: 30px 0 40px; color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="wrap">
+    <div class="logo"><span class="mark">BR</span> Boomi Resources <span class="sub">· Demo admin</span></div>
+    <nav>
+      <a href="shift-start.html" data-route="/shift-start"><span class="act">Act 1 ·</span> Shift start</a>
+      <a href="index.html" data-route="/"><span class="act">Act 2 ·</span> Supervisor</a>
+      <a href="breakdown.html" data-route="/breakdown"><span class="act">Act 3 ·</span> Breakdown &amp; repair</a>
+      <a href="flow.html" data-route="/flow"><span class="act">Act 4 ·</span> Flow &amp; governance</a>
+      <span class="navsep" aria-hidden="true"></span><a href="operator-app.html" data-route="/operator-app" target="_blank" rel="noopener">Operator app</a><a href="supervisor-desk.html" data-route="/supervisor-desk" target="_blank" rel="noopener">Supervisor desk</a><a href="admin.html" class="on" data-route="/admin">Admin</a>
+      <button class="iconbtn" id="theme" type="button">Dark mode</button>
+    </nav>
+  </div>
+</div>
+
+<section class="hero">
+  <div class="wrap">
+    <p class="eyebrow">Presenter console · Red Ridge iron ore mine, Pilbara WA</p>
+    <h1>Every screen in the demo, in running order</h1>
+    <p>The four Acts tell the Boomi story. The operator cab tablet and the shift supervisor desk are the apps people on site would use. Open them in their own tabs and switch between them as you present.</p>
+  </div>
+</section>
+
+<main class="wrap">
+  <section class="grp">
+    <h2>The story: four Acts</h2>
+    <p>Run them in order. Each Act calls a live Boomi process and replays a recorded trace if the runtime is unavailable.</p>
+    <div class="tiles">
+      <div class="card tile">
+        <span class="k">Act 1</span>
+        <h3>Shift start</h3>
+        <p>Fitness for work, operator tickets and pre-start check decide who gets which truck. Sam gets HT-214. Tom is stood down.</p>
+        <span class="who">Pipeline view · P5 shift start</span>
+        <span class="path">/shift-start</span>
+        <div class="acts">
+          <a class="btn primary" href="shift-start.html" data-route="/shift-start">Open</a>
+          <a class="btn" href="shift-start.html?autorun=1" data-route="/shift-start?autorun=1">Autorun</a>
+          <a class="btn" href="shift-start.html?prestart=fail&autorun=1" data-route="/shift-start?prestart=fail&autorun=1" title="HT-214 fails pre-start, so Sam gets HT-209">Pre-start fails</a>
+        </div>
+      </div>
+      <div class="card tile">
+        <span class="k">Act 2</span>
+        <h3>Supervisor: one governed record</h3>
+        <p>HT-214 has four IDs across five systems, resolved into one Data Hub golden record. The Agent Studio assistant answers from data products.</p>
+        <span class="who">Equipment 360 · production · alerts</span>
+        <span class="path">/</span>
+        <div class="acts"><a class="btn primary" href="index.html" data-route="/">Open</a></div>
+      </div>
+      <div class="card tile">
+        <span class="k">Act 3</span>
+        <h3>Breakdown &amp; repair</h3>
+        <p>Brake temperature hits 108.9 °C. The ServiceNow incident is linked, SAP work order 4000123 is extended, and parts are costed in AUD.</p>
+        <span class="who">P6 breakdown · P7 repair</span>
+        <span class="path">/breakdown</span>
+        <div class="acts">
+          <a class="btn primary" href="breakdown.html" data-route="/breakdown">Open</a>
+          <a class="btn" href="breakdown.html?autorun=1&repair=1" data-route="/breakdown?autorun=1&repair=1">Autorun + repair</a>
+          <a class="btn" href="breakdown.html?parts=short&autorun=1" data-route="/breakdown?parts=short&autorun=1" title="Parts shortage path">Parts short</a>
+        </div>
+      </div>
+      <div class="card tile">
+        <span class="k">Act 4</span>
+        <h3>Flow &amp; governance</h3>
+        <p>Data Hub syncs the golden record back to ServiceNow CMDB, SAP and dispatch. Survivorship and match rules on one page.</p>
+        <span class="who">P8 golden sync</span>
+        <span class="path">/flow</span>
+        <div class="acts"><a class="btn primary" href="flow.html" data-route="/flow">Open</a></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="grp">
+    <h2>The apps people use</h2>
+    <p>These show the same Boomi processes from the operator's and the supervisor's point of view.</p>
+    <div class="tiles">
+      <div class="card tile app">
+        <span class="k">Operator experience</span>
+        <h3>Cab tablet</h3>
+        <p>Sam starts the shift in the cab: fitness check, pre-start, then the truck assignment. Toggle a failed fitness or pre-start to show the other outcomes.</p>
+        <span class="who">Sam, haul truck operator · goes with Act 1</span>
+        <span class="path">/operator-app</span>
+        <div class="acts">
+          <a class="btn primary" href="operator-app.html" data-route="/operator-app" target="_blank" rel="noopener">Open in new tab</a>
+          <a class="btn" href="operator-app.html?autorun=1" data-route="/operator-app?autorun=1" target="_blank" rel="noopener">Autorun</a>
+          <a class="btn" href="operator-app.html?fitness=fail" data-route="/operator-app?fitness=fail" target="_blank" rel="noopener">Fitness fails</a>
+        </div>
+      </div>
+      <div class="card tile app">
+        <span class="k">Supervisor experience</span>
+        <h3>Shift supervisor desk</h3>
+        <p>The supervisor's machine view with the Boomi Mine Operations Assistant. Spend over AUD 20,000 pauses for human approval.</p>
+        <span class="who">Shift supervisor · goes with Acts 2 and 3</span>
+        <span class="path">/supervisor-desk</span>
+        <div class="acts">
+          <a class="btn primary" href="supervisor-desk.html" data-route="/supervisor-desk" target="_blank" rel="noopener">Open in new tab</a>
+          <a class="btn" href="supervisor-desk.html?quick=why" data-route="/supervisor-desk?quick=why" target="_blank" rel="noopener">Ask why HT-214 was down</a>
+          <a class="btn" href="supervisor-desk.html?quick=spend" data-route="/supervisor-desk?quick=spend" target="_blank" rel="noopener">Spend approval</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="grp">
+    <h2>Backend status</h2>
+    <p>What's live on Boomi right now and what will fall back to sample data. Only available when you are signed in.</p>
+    <div class="status" id="status"><div class="card row"><b>Checking…</b><span class="d">Calling /health</span></div></div>
+    <div class="acts" style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+      <span id="rawHealth" hidden></span>
+      <button class="btn" id="recheck" type="button">Recheck</button>
+    </div>
+  </section>
+
+  <section class="grp">
+    <h2>Before you present</h2>
+    <ol class="tips">
+      <li>Sign in (top right), then open the sign-in menu and choose <b>Reset demo</b>. It puts the fleet back to its start-of-shift status in Data Hub.</li>
+      <li>Acts 1 and 3 write machine status to Data Hub. Use <b>Reset demo</b> again between rehearsals to set HT-214 back to available.</li>
+      <li>Keep the operator app and supervisor desk open in their own tabs, and switch to them after Act 1 and Act 3.</li>
+      <li>The persona and operator you pick on one page carry over to the others in the same browser.</li>
+    </ol>
+  </section>
+</main>
+
+<footer class="wrap pad">Boomi Resources · Red Ridge demo · admin page</footer>
+
+<script src="mock-bundle.js"></script>
+<script src="common.js"></script>
+<script src="config.js"></script>
+<script src="online.js"></script>
+<script>
+(function () {
+  BR.initTheme(document.getElementById("theme"));
+  BR.routes();
+  var el = document.getElementById("status");
+  var NAMES = { e360: "Equipment 360", production: "Production & availability", alerts: "Maintenance alerts",
+    shiftstart: "P5 shift start", breakdown: "P6 breakdown", repair: "P7 repair", goldensync: "P8 golden sync" };
+  function row(name, mode, detail) {
+    var live = mode === "live" || mode === "configured";
+    return '<div class="card row"><b>' + BR.esc(name) + '</b><span class="badge ' + (live ? "live" : "mock") + '"><span class="dot"></span>' +
+      BR.esc(mode) + '</span><span class="d">' + BR.esc(detail || "") + "</span></div>";
+  }
+  function load() {
+    var online = typeof BR.live === "function";
+    if (!BR.served && !(online && BR.live())) {
+      el.innerHTML = online ? row("Boomi", "not signed in", "Sign in (top right) to see live status. Pages replay recorded live Boomi runs meanwhile.")
+        : row("Demo server", "offline", "Opened from a file. Start demo/server.py to see live status; pages use sample data meanwhile.");
+      document.getElementById("rawHealth").hidden = true;
+      return;
+    }
+    el.innerHTML = '<div class="card row"><b>Checking…</b><span class="d">Probing Boomi (up to 20 s)</span></div>';
+    BR.health().then(function (h) {
+      if (!h) { el.innerHTML = row("Demo server", "unreachable", "/health did not answer"); return; }
+      var html = row("Agent: " + (h.agent && h.agent.name || "assistant"), h.agent ? h.agent.mode : "offline", h.agent && h.agent.detail);
+      Object.keys(h.dataProducts || {}).forEach(function (k) { var d = h.dataProducts[k]; html += row(NAMES[k] || k, d.mode, d.detail); });
+      Object.keys(h.orchestrations || {}).forEach(function (k) { var d = h.orchestrations[k]; html += row(NAMES[k] || k, d.mode, d.detail); });
+      el.innerHTML = html;
+    });
+  }
+  document.getElementById("recheck").addEventListener("click", load);
+  load();
+})();
+</script>
+</body>
+</html>

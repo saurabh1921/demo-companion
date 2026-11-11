@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Connected Resort Demo Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  .topbar nav .act { opacity: .7; }
+  .hero { background: var(--brand); color: var(--brand-ink); padding: 26px 0 30px; }
+  .hero h1 { font-size: clamp(26px, 3.8vw, 38px); margin: 6px 0 8px; }
+  .hero .eyebrow { color: #7fd0ea; }
+  .hero p { margin: 0; opacity: .85; max-width: 780px; }
+  .grp { margin: 28px 0 0; }
+  .grp h2 { font-size: 20px; margin: 0 0 4px; }
+  .grp > p { margin: 0 0 14px; color: var(--ink-2); max-width: 780px; }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+  .tile { padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .tile .k { font: 600 12px var(--sans); letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+  .tile h3 { font-size: 18px; margin: 0; }
+  .tile p { margin: 0; color: var(--ink-2); font-size: 14px; }
+  .tile .who { font-size: 13px; color: var(--muted); }
+  .tile .path { font: 12.5px var(--mono); color: var(--muted); overflow-wrap: anywhere; }
+  .tile .acts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; padding-top: 4px; }
+  .tile .acts .btn { font-size: 13px; padding: 6px 10px; text-decoration: none; }
+  .tile.app { border-top: 3px solid var(--accent); }
+  .status { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+  .status .row { padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .status .row b { font-size: 14px; }
+  .status .row .badge { align-self: flex-start; }
+  .status .row span.d { font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
+  .statusacts { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  .statusacts .btn { text-decoration: none; }
+  ol.tips { margin: 0; padding-left: 20px; color: var(--ink-2); display: grid; gap: 6px; max-width: 860px; }
+  ol.tips code { font: 12.5px var(--mono); }
+  .grp > p.gnote { margin: 16px 0 0; padding: 10px 14px; border-radius: 10px; background: var(--accent-soft); color: var(--ink); font-size: 14px; max-width: 860px; }
+  footer.pad { padding: 30px 0 40px; color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="wrap">
+    <div class="logo"><span class="mark">B</span> Connected Resort <span class="muted small" style="color:inherit;opacity:.7;font-family:var(--sans)">· Demo admin</span></div>
+    <nav>
+      <a href="checkin.html" data-route="/checkin"><span class="act">Act 1 ·</span> Check-in</a>
+      <a href="index.html" data-route="/"><span class="act">Act 2 ·</span> Concierge</a>
+      <a href="checkout.html" data-route="/checkout"><span class="act">Act 3 ·</span> Check-out</a>
+      <a href="flow.html" data-route="/flow"><span class="act">Act 4 ·</span> Flow &amp; governance</a>
+      <span class="navsep" aria-hidden="true"></span>
+      <a href="guest-app.html" data-route="/guest-app" target="_blank" rel="noopener">Guest app</a>
+      <a href="concierge-app.html" data-route="/concierge-app" target="_blank" rel="noopener">Concierge desk</a>
+      <a href="admin.html" class="on" data-route="/admin">Admin</a>
+      <button class="iconbtn" id="theme" type="button">Dark mode</button>
+    </nav>
+  </div>
+</div>
+
+<section class="hero">
+  <div class="wrap">
+    <p class="eyebrow">Presenter console · Grand Horizon Island Resort</p>
+    <h1>Every screen in the demo, in running order</h1>
+    <p>The four Acts tell the Boomi story. The guest app and the concierge desk are the apps a guest and resort staff would use. Open them in their own tabs and switch between them as you present.</p>
+  </div>
+</section>
+
+<main class="wrap">
+  <section class="grp">
+    <h2>The story: four Acts</h2>
+    <p>Run them in order. Each Act calls a live Boomi process or data product and replays a recorded run if the runtime is unavailable.</p>
+    <div class="tiles">
+      <div class="card tile">
+        <span class="k">Act 1</span>
+        <h3>Check-in</h3>
+        <p>One tap at check-in, seven systems updated. Data Hub resolves the guest first. Elena is greeted as Diamond, not Opera's Platinum. Wei Chen's app shows his reserved seat at the Lunar New Year Baccarat Invitational.</p>
+        <span class="who">Check-in pipeline · CR_P5</span>
+        <span class="path">/checkin</span>
+        <div class="acts">
+          <a class="btn primary" href="checkin.html" data-route="/checkin">Open</a>
+          <a class="btn" href="checkin.html?autorun=1" data-route="/checkin?autorun=1">Autorun</a>
+          <a class="btn" href="checkin.html?lock=offline&amp;autorun=1" data-route="/checkin?lock=offline&amp;autorun=1" title="Door-lock system offline">Door lock offline</a>
+          <a class="btn" href="checkin.html?hk=notready&amp;autorun=1" data-route="/checkin?hk=notready&amp;autorun=1" title="Room not ready yet">Room not ready</a>
+        </div>
+      </div>
+      <div class="card tile">
+        <span class="k">Act 2</span>
+        <h3>Concierge: one governed guest</h3>
+        <p>PMS, CRM, POS and the operations roster each hold their own version of the guest. Data Hub picks a winner for every field. The Boomi Resort Concierge answers only from the governed data products.</p>
+        <span class="who">Storyboard + concierge agent</span>
+        <span class="path">/</span>
+        <div class="acts"><a class="btn primary" href="index.html" data-route="/">Open</a></div>
+      </div>
+      <div class="card tile">
+        <span class="k">Act 3</span>
+        <h3>Check-out &amp; settlement</h3>
+        <p>Boomi fixes the bill before the guest pays: Simphony checks priced in USD are flagged CURRENCY_MISMATCH. Elena settles in EUR, Wei Chen in HKD. Then housekeeping events turn the room around.</p>
+        <span class="who">CR_P6 check-out · CR_P7 room status</span>
+        <span class="path">/checkout</span>
+        <div class="acts">
+          <a class="btn primary" href="checkout.html" data-route="/checkout">Open</a>
+          <a class="btn" href="checkout.html?autorun=1&amp;turnaround=1" data-route="/checkout?autorun=1&amp;turnaround=1">Autorun + turnaround</a>
+          <a class="btn" href="checkout.html?payment=declined&amp;autorun=1" data-route="/checkout?payment=declined&amp;autorun=1" title="Card declined path">Card declined</a>
+        </div>
+      </div>
+      <div class="card tile">
+        <span class="k">Act 4</span>
+        <h3>Flow &amp; governance</h3>
+        <p>From four dirty sources to three governed APIs: raw records, match and merge, survivorship, and the data products the agent and processes use.</p>
+        <span class="who">Data product flow explorer</span>
+        <span class="path">/flow</span>
+        <div class="acts"><a class="btn primary" href="flow.html" data-route="/flow">Open</a></div>
+      </div>
+    </div>
+    <p class="gnote"><strong>Guest toggle:</strong> pick Elena Vance or Wei Chen on each page. The choice is remembered, so the guest app and the concierge desk open on the same guest.</p>
+  </section>
+
+  <section class="grp">
+    <h2>The apps people use</h2>
+    <p>These show the same Boomi processes from the guest's and the concierge's point of view.</p>
+    <div class="tiles">
+      <div class="card tile app">
+        <span class="k">Guest experience</span>
+        <h3>Grand Horizon guest app</h3>
+        <p>What the guest sees on their phone: the governed profile, one-tap check-in, and Wei Chen's Baccarat seat. The gear menu has presenter toggles for door lock offline and room not ready.</p>
+        <span class="who">Elena Vance or Wei Chen · goes with Act 1</span>
+        <span class="path">/guest-app</span>
+        <div class="acts">
+          <a class="btn primary" href="guest-app.html" data-route="/guest-app" target="_blank" rel="noopener">Open in new tab</a>
+          <a class="btn" href="guest-app.html?autorun=1&amp;what=open" data-route="/guest-app?autorun=1&amp;what=open" target="_blank" rel="noopener">Autorun check-in</a>
+          <a class="btn" href="guest-app.html?lock=offline&amp;autorun=1" data-route="/guest-app?lock=offline&amp;autorun=1" target="_blank" rel="noopener">Door lock offline</a>
+        </div>
+      </div>
+      <div class="card tile app">
+        <span class="k">Concierge experience</span>
+        <h3>Concierge desk</h3>
+        <p>The guest calls the concierge. Elena wants an anniversary surprise. Wei Chen's family has no swimwear, and the desk knows the children's ages and genders from the reservation. Folio changes over $200 pause for approval.</p>
+        <span class="who">Resort concierge · goes with Act 2</span>
+        <span class="path">/concierge-app</span>
+        <div class="acts">
+          <a class="btn primary" href="concierge-app.html" data-route="/concierge-app" target="_blank" rel="noopener">Open in new tab</a>
+          <a class="btn" href="concierge-app.html?answered=1" data-route="/concierge-app?answered=1" target="_blank" rel="noopener">Call answered</a>
+          <a class="btn" href="concierge-app.html?quick=spend" data-route="/concierge-app?quick=spend" target="_blank" rel="noopener">Ask about spend</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="grp">
+    <h2>Backend status</h2>
+    <p>What's live on Boomi right now and what will fall back to sample data. Only available when you are signed in.</p>
+    <div class="status" id="status"><div class="card row"><b>Checking…</b><span class="d">Calling /health</span></div></div>
+    <div class="statusacts">
+      <span id="rawHealth" hidden></span>
+      <button class="btn" id="recheck" type="button">Recheck</button>
+    </div>
+  </section>
+
+  <section class="grp">
+    <h2>Before you present</h2>
+    <ol class="tips">
+      <li>Sign in (top right), then open the sign-in menu and choose <b>Reset demo</b>. It checks the demo guests back in to restore their rooms in Data Hub.</li>
+      <li>Check-in and check-out write to Data Hub. Use <b>Reset demo</b> again between rehearsals.</li>
+      <li>Keep the guest app and concierge desk open in their own tabs, and switch to them after Act 1 and during Act 2.</li>
+      <li>Set the guest toggle once. The guest app and concierge desk open on the same guest.</li>
+    </ol>
+  </section>
+</main>
+
+<footer class="wrap pad">Connected Resort · Grand Horizon Island Resort demo · admin page</footer>
+
+<script src="mock-bundle.js"></script>
+<script src="common.js"></script>
+<script src="config.js"></script>
+<script src="online.js"></script>
+<script>
+(function () {
+  var CR = window.CR;
+  CR.initTheme(document.getElementById("theme"));
+  if (CR.served) document.querySelectorAll("a[data-route]").forEach(function (a) { a.href = a.dataset.route; });
+  var el = document.getElementById("status");
+  var NAMES = { guest: "Guest 360", folio: "Consolidated folio", receivables: "Receivables",
+    checkin: "CR_P5 check-in", checkout: "CR_P6 check-out", roomstatus: "CR_P7 room status" };
+  function row(name, mode, detail) {
+    var live = mode === "live" || mode === "configured";
+    return '<div class="card row"><b>' + CR.esc(name) + '</b><span class="badge ' + (live ? "live" : "mock") + '"><span class="dot"></span>' +
+      CR.esc(mode) + '</span><span class="d">' + CR.esc(detail || "") + "</span></div>";
+  }
+  function load() {
+    var online = typeof CR.live === "function";
+    if (!CR.served && !(online && CR.live())) {
+      el.innerHTML = online ? row("Boomi", "not signed in", "Sign in (top right) to see live status. Pages replay recorded live Boomi runs meanwhile.")
+        : row("Demo server", "offline", "Opened from a file. Start demo/server.py to see live status; pages use sample data meanwhile.");
+      document.getElementById("rawHealth").hidden = true;
+      return;
+    }
+    el.innerHTML = '<div class="card row"><b>Checking…</b><span class="d">Probing Boomi (up to 20 s)</span></div>';
+    CR.health().then(function (h) {
+      if (!h) { el.innerHTML = row("Demo server", "unreachable", "/health did not answer"); return; }
+      var html = row("Agent: " + (h.agent && h.agent.name || "concierge"), h.agent ? h.agent.mode : "offline", h.agent && h.agent.detail);
+      Object.keys(h.dataProducts || {}).forEach(function (k) { var d = h.dataProducts[k]; html += row(NAMES[k] || k, d.mode, d.detail); });
+      Object.keys(h.orchestrations || {}).forEach(function (k) { var d = h.orchestrations[k]; html += row(NAMES[k] || k, d.mode, d.detail); });
+      el.innerHTML = html;
+    });
+  }
+  document.getElementById("recheck").addEventListener("click", load);
+  load();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Boomi Bank Demo Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  .hero { background: var(--brand); color: var(--brand-ink); padding: 26px 0 30px; }
+  .hero h1 { font-size: clamp(26px, 3.8vw, 38px); margin: 6px 0 8px; }
+  .hero .eyebrow { color: var(--brand-hi); }
+  .hero p { margin: 0; opacity: .85; max-width: 780px; }
+  .grp { margin: 28px 0 0; }
+  .grp h2 { font-size: 20px; margin: 0 0 4px; }
+  .grp > p { margin: 0 0 14px; color: var(--ink-2); max-width: 780px; }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+  .tile { padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .tile .k { font: 600 12px var(--sans); letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+  .tile h3 { font-size: 18px; margin: 0; }
+  .tile p { margin: 0; color: var(--ink-2); font-size: 14px; }
+  .tile .who { font-size: 13px; color: var(--muted); }
+  .tile .path { font: 12.5px var(--mono); color: var(--muted); overflow-wrap: anywhere; }
+  .tile .acts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; padding-top: 4px; }
+  .tile .acts .btn { font-size: 13px; padding: 6px 10px; }
+  .tile .acts .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .tile.app { border-top: 3px solid var(--accent); }
+  .status { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+  .status .row { padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .status .row b { font-size: 14px; }
+  .status .row .badge { align-self: flex-start; }
+  .status .row span.d { font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
+  ol.tips { margin: 0; padding-left: 20px; color: var(--ink-2); display: grid; gap: 6px; max-width: 860px; }
+  ol.tips code, .tile code { font: 12.5px var(--mono); }
+  footer.pad { padding: 30px 0 40px; color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="wrap">
+    <div class="logo"><span class="mark">BB</span> Boomi Bank <span class="sub">· Demo admin</span></div>
+    <nav>
+      <a href="onboarding.html" data-route="/onboarding"><span class="act">Act 1 ·</span> Onboarding</a>
+      <a href="index.html" data-route="/"><span class="act">Act 2 ·</span> Relationship manager</a>
+      <a href="payout.html" data-route="/payout"><span class="act">Act 3 ·</span> Loan payout</a>
+      <a href="flow.html" data-route="/flow"><span class="act">Act 4 ·</span> Flow &amp; governance</a>
+      <span class="navsep" aria-hidden="true"></span><a href="customer-app.html" data-route="/customer-app" target="_blank" rel="noopener">Customer app</a><a href="rm-desk.html" data-route="/rm-desk" target="_blank" rel="noopener">RM desk</a><a href="admin.html" class="on" data-route="/admin">Admin</a>
+      <button class="iconbtn" id="theme" type="button">Dark mode</button>
+    </nav>
+  </div>
+</div>
+
+<section class="hero">
+  <div class="wrap">
+    <p class="eyebrow">Presenter console · Boomi Bank, Australia · figures in AUD</p>
+    <h1>Every screen in the demo, in running order</h1>
+    <p>The four Acts tell the Boomi story. The customer app and the relationship manager desk are the apps a customer and a banker would use. Open them in their own tabs and switch between them as you present.</p>
+  </div>
+</section>
+
+<main class="wrap">
+  <section class="grp">
+    <h2>The story: four Acts</h2>
+    <p>Run them in order. Each Act calls a live Boomi process and replays a recorded trace if the runtime is unavailable.</p>
+    <div class="tiles">
+      <div class="card tile">
+        <span class="k">Act 1</span>
+        <h3>Onboarding</h3>
+        <p>Mia Nguyen applies on her phone. Boomi checks Data Hub, verifies her driver licence, screens for sanctions and PEPs, then opens accounts, a card, PayID and her Salesforce record.</p>
+        <span class="who">Pipeline view · P5 onboarding</span>
+        <span class="path">/onboarding</span>
+        <div class="acts">
+          <a class="btn primary" href="onboarding.html" data-route="/onboarding">Open</a>
+          <a class="btn" href="onboarding.html?autorun=1" data-route="/onboarding?autorun=1">Autorun</a>
+          <a class="btn" href="onboarding.html?screening=down&autorun=1" data-route="/onboarding?screening=down&autorun=1" title="AML screening service is down">Screening down</a>
+          <a class="btn" href="onboarding.html?id=mismatch&autorun=1" data-route="/onboarding?id=mismatch&autorun=1" title="Driver licence does not match: application referred">ID mismatch</a>
+        </div>
+      </div>
+      <div class="card tile">
+        <span class="k">Act 2</span>
+        <h3>Relationship manager: one governed customer</h3>
+        <p>Olivia Bennett is Premier in core banking but Private in Salesforce, and a USD 2,000 repayment was posted as AUD. Data Hub resolves one golden customer; the Boomi Banking Assistant answers from data products.</p>
+        <span class="who">Customer 360 · positions · data-quality alerts</span>
+        <span class="path">/</span>
+        <div class="acts"><a class="btn primary" href="index.html" data-route="/">Open</a></div>
+      </div>
+      <div class="card tile">
+        <span class="k">Act 3</span>
+        <h3>Loan payout</h3>
+        <p>Olivia, Raj or Jack pays off in one tap. Boomi fixes the flagged data first (Jack is held for a KYC review), builds the final payout with break cost and discharge fee, moves the money, tells nine systems, then releases the security.</p>
+        <span class="who">P6 loan payout · P7 security release</span>
+        <span class="path">/payout</span>
+        <div class="acts">
+          <a class="btn primary" href="payout.html" data-route="/payout">Open</a>
+          <a class="btn" href="payout.html?autorun=1&release=1" data-route="/payout?autorun=1&release=1">Autorun + release</a>
+          <a class="btn" href="payout.html?payment=failed&autorun=1" data-route="/payout?payment=failed&autorun=1" title="Payment fails: payout held, nothing closed">Payment fails</a>
+        </div>
+      </div>
+      <div class="card tile">
+        <span class="k">Act 4</span>
+        <h3>Flow &amp; governance</h3>
+        <p>Five messy sources to three governed banking APIs: raw extracts, cleansing and identity resolution in Data Hub, AUD normalisation and the live data product calls.</p>
+        <span class="who">Data Hub · data products</span>
+        <span class="path">/flow</span>
+        <div class="acts"><a class="btn primary" href="flow.html" data-route="/flow">Open</a></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="grp">
+    <h2>The apps people use</h2>
+    <p>These show the same Boomi processes from the customer's and the banker's point of view.</p>
+    <div class="tiles">
+      <div class="card tile app">
+        <span class="k">Customer experience</span>
+        <h3>Boomi Bank app</h3>
+        <p>Mia opens her accounts on her phone; switch to Olivia to pay off her loans in one tap. Toggle screening down, an ID mismatch or a failed payment to show the other outcomes.</p>
+        <span class="who">Mia Nguyen / Olivia Bennett · goes with Acts 1 and 3</span>
+        <span class="path">/customer-app</span>
+        <div class="acts">
+          <a class="btn primary" href="customer-app.html" data-route="/customer-app" target="_blank" rel="noopener">Open in new tab</a>
+          <a class="btn" href="customer-app.html?autorun=1" data-route="/customer-app?autorun=1" target="_blank" rel="noopener">Autorun</a>
+          <a class="btn" href="customer-app.html?screening=down" data-route="/customer-app?screening=down" target="_blank" rel="noopener">Screening down</a>
+          <a class="btn" href="customer-app.html?payment=failed" data-route="/customer-app?payment=failed" target="_blank" rel="noopener">Payment fails</a>
+        </div>
+      </div>
+      <div class="card tile app">
+        <span class="k">Banker experience</span>
+        <h3>Relationship manager desk</h3>
+        <p>The banker takes the customer's call with the Boomi Banking Assistant. Fee or break-cost waivers over AUD 200 pause for supervisor approval.</p>
+        <span class="who">Relationship manager · goes with Act 2</span>
+        <span class="path">/rm-desk</span>
+        <div class="acts">
+          <a class="btn primary" href="rm-desk.html" data-route="/rm-desk" target="_blank" rel="noopener">Open in new tab</a>
+          <a class="btn" href="rm-desk.html?answered=1" data-route="/rm-desk?answered=1" target="_blank" rel="noopener">Answer the call</a>
+          <a class="btn" href="rm-desk.html?quick=payout" data-route="/rm-desk?quick=payout" target="_blank" rel="noopener" title="Olivia Bennett is the default caller">Ask Olivia's payout</a>
+          <a class="btn" href="rm-desk.html?quick=waive" data-route="/rm-desk?quick=waive" target="_blank" rel="noopener" title="AUD 1,840 waiver: needs approval">Waive break cost</a>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="grp">
+    <h2>Backend status</h2>
+    <p>What's live on Boomi right now and what will fall back to sample data. Only available when you are signed in.</p>
+    <div class="status" id="status"><div class="card row"><b>Checking…</b><span class="d">Calling /health</span></div></div>
+    <div class="acts" style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+      <span id="rawHealth" hidden></span>
+      <button class="btn" id="recheck" type="button">Recheck</button>
+    </div>
+  </section>
+
+  <section class="grp">
+    <h2>Before you present</h2>
+    <ol class="tips">
+      <li>Sign in (top right), then open the sign-in menu and choose <b>Reset demo</b>. It restores the demo customers' loans in Data Hub and re-runs Mia's onboarding.</li>
+      <li>Act 3 closes the customer's loans in Data Hub. Use <b>Reset demo</b> again between rehearsals to restore the customers' loans.</li>
+      <li>Keep the customer app and RM desk open in their own tabs, and switch to them after Act 1 and Act 2.</li>
+      <li>The customer or caller you pick on one page carry over to the others in the same browser.</li>
+    </ol>
+  </section>
+</main>
+
+<footer class="wrap pad">Boomi Bank · connected banking demo · admin page</footer>
+
+<script src="mock-bundle.js"></script>
+<script src="common.js"></script>
+<script src="config.js"></script>
+<script src="online.js"></script>
+<script>
+(function () {
+  BB.initTheme(document.getElementById("theme"));
+  BB.routes();
+  var el = document.getElementById("status");
+  var NAMES = { c360: "Customer 360", positions: "Positions", alerts: "Data-quality alerts",
+    onboarding: "P5 onboarding", payout: "P6 loan payout", release: "P7 security release" };
+  function row(name, mode, detail) {
+    var live = mode === "live" || mode === "configured";
+    return '<div class="card row"><b>' + BB.esc(name) + '</b><span class="badge ' + (live ? "live" : "mock") + '"><span class="dot"></span>' +
+      BB.esc(mode) + '</span><span class="d">' + BB.esc(detail || "") + "</span></div>";
+  }
+  function load() {
+    var online = typeof BB.live === "function";
+    if (!BB.served && !(online && BB.live())) {
+      el.innerHTML = online ? row("Boomi", "not signed in", "Sign in (top right) to see live status. Pages replay recorded live Boomi runs meanwhile.")
+        : row("Demo server", "offline", "Opened from a file. Start demo/server.py to see live status; pages use sample data meanwhile.");
+      document.getElementById("rawHealth").hidden = true;
+      return;
+    }
+    el.innerHTML = '<div class="card row"><b>Checking…</b><span class="d">Probing Boomi (up to 20 s)</span></div>';
+    BB.health().then(function (h) {
+      if (!h) { el.innerHTML = row("Demo server", "unreachable", "/health did not answer"); return; }
+      var html = row("Agent: " + (h.agent && h.agent.name || "assistant"), h.agent ? h.agent.mode : "offline", h.agent && h.agent.detail);
+      Object.keys(h.dataProducts || {}).forEach(function (k) { var d = h.dataProducts[k]; html += row(NAMES[k] || k, d.mode, d.detail); });
+      Object.keys(h.orchestrations || {}).forEach(function (k) { var d = h.orchestrations[k]; html += row(NAMES[k] || k, d.mode, d.detail); });
+      el.innerHTML = html;
+    });
+  }
+  document.getElementById("recheck").addEventListener("click", load);
+  load();
+})();
+</script>
+</body>
+</html>
