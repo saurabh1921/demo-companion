@@ -469,7 +469,7 @@ function formatNumber(n){ return String(n||0).replace(/\B(?=(\d{3})+(?!\d))/g, '
 var CANON_SYSTEMS    = ['Cloudflare','Coupa','Epic','Gmail','Jira','Magento','NetSuite','Oracle','QAD','Rauland','Salesforce','SAP','ServiceNow','Twilio','WhatsApp','Zendesk','Zoho'];
 var CANON_PRODUCTS   = ['Agentstudio','Boomi for SAP','Data Hub','Flow','Integration'];
 var CANON_PARTNERS   = ['Altria','Aware','Datacom','Valtatech'];
-var CANON_INDUSTRIES = ['Aviation','Cross-industry','Financial services','Healthcare','Hospitality','Insurance','Manufacturing','Retail'];
+var CANON_INDUSTRIES = ['Aviation','Cross-industry','Financial services','Healthcare','Hospitality','Insurance','Manufacturing','Mining','Retail'];
 // Who built it. The fifth controlled vocabulary and the sixth dropdown facet:
 // "who do I ask about this one?" is a question a shared SE portal should
 // answer in one click, and it gets more useful as more SEs contribute.
@@ -612,6 +612,44 @@ var USE_CASES = [
     originalPath: 'use-case-prototypes/Boomi-Bank/ in this portal (supplied by Richard Yang)',
     source: 'Boomi Bank folder from Richard Yang',
     added: '2026-10-20'
+  },
+  {
+    id: 'boomi-resources',
+    title: 'Boomi Resources – one governed machine across every mine system',
+    customer: 'Boomi Resources (fictional mining company, Red Ridge iron ore mine, Pilbara WA)',
+    industry: 'Mining',
+    author: 'Richard Yang',
+    summary: 'A haul truck at an iron ore mine told as four acts on Boomi: shift start that puts the right operator in the right truck across six systems, a shift supervisor desk with a Boomi Agentstudio mine operations assistant answering from governed data products, a breakdown that is fixed and costed before eight systems are told, and a data product flow and governance explorer.',
+    narrative: 'SAP PM, fleet dispatch, Cat and Komatsu telematics, ServiceNow and the crew roster each know haul truck HT-214 by a different ID and each hold their own version of it. HT214, HT 214 and HT-214; serials with spaces in one system and dashes in another; a CMDB item with no SAP number; a swapped telematics gateway reporting a serial nobody knows. An assistant reading the raw systems repeats their contradictions.\n\nBoomi Resources shows one governed machine across all of them. Boomi integrates the sources, keeps one golden record per machine in Data Hub with field-level survivorship by system of record, syncs the golden IDs back to every system, and publishes governed data products the shift supervisor and the Boomi Mine Operations Assistant can trust. Act 1 is shift start: an operator badges in, Boomi checks induction, haul licence and fitness for work, scores every truck on licence, pre-start, service headroom and pit, then tells dispatch, Data Hub, access control, SAP time recording and the cab tablet; a failed pre-start tags the truck out with a ServiceNow incident. Act 2 is the shift supervisor desk: the machine snapshot and the Agentstudio assistant, with guardrails on worker health information, safety bypasses and spend over AUD 20,000. Act 3 is breakdown to repair: a telematics alarm that only knows a serial number in Fahrenheit is resolved to the truck, the data is fixed first, the existing incident is linked instead of duplicated, the SAP work order is extended, parts are reserved and the downtime is costed in tonnes and dollars.\n\nAct 4, the Flow & Governance Explorer, follows one machine from five messy systems through cleansing, Data Hub match and merge, unit normalisation and the sync back to ServiceNow, SAP and dispatch, to the data product APIs.',
+    impact: null,
+    impactModel: null,
+    demoFlow: ['Open the Boomi Resources Supervisor page and sign in — every page is behind a sign-in (ask Richard Yang for access). Before presenting, open the sign-in menu and choose Reset demo to put the fleet back to its start-of-shift status.',
+               'The Admin page lists every screen in running order and shows which Boomi processes are live right now.',
+               'Act 1, shift start: Sam badges in on the cab tablet and Boomi checks him, scores the fleet and assigns HT-214 across six systems. Toggle a failed fitness for work or pre-start check to show the other outcomes.',
+               'Act 2, supervisor: open HT-214 on the shift supervisor desk and ask the Boomi Mine Operations Assistant why it was down; a spend over AUD 20,000 pauses for human approval.',
+               'Act 3, breakdown and repair: send the telematics alarm, watch Boomi resolve the serial, fix the data, link the incident, extend the work order and cost the downtime, then run the repair events to bring the truck back. Toggle parts short for the exception path.',
+               'Act 4, flow and governance: follow one machine from five raw systems through Data Hub match and merge to the golden record sync and the data product APIs.',
+               'Operator app and Supervisor desk pages show the same processes from the cab and the supervisor\'s desk; keep them open in their own tabs.'],
+    partners: [],
+    partnersNote: 'No partner named — generic mining demo by Richard Yang.',
+    systems: ['SAP', 'ServiceNow'],
+    adjacentSystems: ['Fleet management and dispatch systems',
+                      'Cat VisionLink and Komatsu OEM telematics',
+                      'Crew roster and maintenance dispatch',
+                      'Site access control',
+                      'Short-interval control and production reporting'],
+    products: ['Integration', 'Data Hub', 'Agentstudio'],
+    conversations: ['Mine or heavy-asset operator with one machine split across SAP PM, dispatch, OEM telematics and ServiceNow — the golden asset record conversation',
+                    'Shift start orchestration with safety, licence and fitness-for-work gates',
+                    'Governed AI assistants for supervisors, with safety and spend guardrails',
+                    'Breakdown response where the data is fixed before work orders, parts and downtime costing'],
+    misc: 'Synthetic demo by Richard Yang; Boomi Resources, Red Ridge and its people are fictional. Multi-page asset in its own subfolder, use-case-prototypes/Resources/: index.html (shift supervisor overview, the tile opens it), shift-start.html, breakdown.html, flow.html, supervisor-desk.html, operator-app.html and admin.html. Unlike Boomi Bank and Connected Resort, every page sits behind a Supabase sign-in (auth-gate.js); signed in, calls go through a Supabase Edge Function in Richard\'s project to his Boomi tenant and Agentstudio, and fall back to recorded traces if the runtime is unavailable.',
+    tags: ['mining', 'iron ore', 'resources', 'haul truck', 'heavy equipment', 'asset management', 'golden record', 'MDM', 'SAP PM', 'telematics', 'fleet dispatch', 'shift start', 'breakdown', 'work order', 'safety', 'Agentstudio', 'multi-page', 'sign-in'],
+    url: 'https://saurabh1921.github.io/demo-companion/use-case-prototypes/Resources/index.html',
+    relatedPages: [],
+    originalPath: 'use-case-prototypes/Resources/ in this portal (supplied by Richard Yang)',
+    source: 'Boomi Resources folder from Richard Yang',
+    added: '2026-11-11'
   },
   {
     id: 'boomi-movie-ticketing',
