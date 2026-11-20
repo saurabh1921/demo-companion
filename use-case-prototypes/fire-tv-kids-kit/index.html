@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>Fire TV Kids Kit</title>
+<title>Kids TV Kit</title>
 <style>
   :root { --bg:#fbf8f3; --card:#fff; --ink:#1f1a14; --muted:#6b6157; --line:#e7dfd3; --accent:#c8102e; --code:#f3eee6; }
   @media (prefers-color-scheme: dark) {
@@ -35,8 +35,8 @@
 </head>
 <body>
 <main>
-  <h1>Fire TV Kids Kit</h1>
-  <p class="lead">Parent-controlled videos, a learning quiz and TV messages for Amazon Fire TV, run from a Mac on your home Wi-Fi.</p>
+  <h1>Kids TV Kit <span style="font-size:.5em;font-weight:600;color:var(--accent);vertical-align:middle;white-space:nowrap">works on any Android TV</span></h1>
+  <p class="lead">Parent-controlled videos, a learning quiz and TV messages for Amazon Fire TV, Google TV and other Android TVs, run from a Mac on your home Wi-Fi.</p>
 
   <div class="banners">
     <img src="banner-videos.png" alt="Kids Videos app banner">
@@ -61,10 +61,36 @@
   </div>
   <p class="note">The zip has the APKs, the Mac dashboard (<code>server.py</code>, Python 3, no extra packages) and full source.</p>
 
-  <h2>Install on your TV</h2>
-  <p>You need a Fire TV, a Mac on the same Wi-Fi, and an Android phone (optional).</p>
+  <h2>Before you start</h2>
+  <ul>
+    <li><b>A TV running Android:</b> Amazon Fire TV / Fire Stick, Google TV, Chromecast with Google TV, or any Android TV box.</li>
+    <li><b>A Mac</b> (Windows or Linux work too if you run the commands yourself) with Python 3. It stays on while the kit is in use.</li>
+    <li><b>Same Wi-Fi:</b> the TV, the Mac and your phone must all be on the same home network.</li>
+    <li><b>ADB debugging switched on</b> on the TV (step 1 below).</li>
+    <li><b>adb on the Mac:</b> <code>brew install android-platform-tools</code> (needs <a href="https://brew.sh">Homebrew</a>).</li>
+    <li><b>The TV's IP address:</b> Settings → About → Network (Fire TV: Settings → My Fire TV → About → Network).</li>
+    <li><b>Optional:</b> an Android phone for the Parent Remote app.</li>
+  </ul>
+
+  <h2>Easiest: let Claude Code do it</h2>
+  <p>If you have <a href="https://claude.com/claude-code">Claude Code</a>, it can run every step for you. Do the first two yourself, because they need the TV remote.</p>
   <ol>
-    <li><b>Turn on ADB debugging on the Fire TV.</b> Settings → My Fire TV → About → click the device name 7 times to turn on Developer Options. Then Settings → My Fire TV → Developer Options → <b>ADB debugging: ON</b>. Note the TV's IP from Settings → My Fire TV → About → Network.</li>
+    <li>Turn on ADB debugging on the TV (see step 1 below) and note the TV's IP address.</li>
+    <li>Download and unzip the full kit. Open Terminal in the unzipped folder and run <code>claude</code>.</li>
+    <li>Paste this, with your TV's IP:
+      <pre><code>Read README.md and install this kit on my TV at TV_IP.
+Install adb if missing, connect to the TV, install the TV apps,
+turn on the quiz guard, set the TV in config.json and start
+the dashboard. Then give me the dashboard link for my phone.</code></pre></li>
+    <li>When the TV shows "Allow USB debugging?", tick "Always allow" and press OK.</li>
+    <li>Open the link Claude gives you on your phone. Install <code>parent-remote.apk</code> on the phone if you want the app.</li>
+  </ol>
+
+  <h2>Install by hand</h2>
+  <ol>
+    <li><b>Turn on ADB debugging on the TV.</b>
+      <br><b>Fire TV:</b> Settings → My Fire TV → About → click the device name 7 times to turn on Developer Options. Then Settings → My Fire TV → Developer Options → <b>ADB debugging: ON</b>.
+      <br><b>Google TV / Android TV:</b> Settings → System → About → click <b>Android TV OS build</b> 7 times. Then Settings → System → Developer options → <b>USB debugging: ON</b> (and <b>Network debugging</b> if listed). On newer Google TVs with only <b>Wireless debugging</b>, use its "Pair device with pairing code" and run <code>adb pair IP:PORT</code> on the Mac first.</li>
     <li><b>Install adb on the Mac</b>, then unzip the kit and open Terminal in that folder.
       <pre><code>brew install android-platform-tools</code></pre></li>
     <li><b>Install the TV apps.</b> Replace <code>TV_IP</code>, and accept the "Allow USB debugging" prompt on the TV.
@@ -81,6 +107,7 @@ python3 server.py</code></pre>
     <li><b>Phone app (optional).</b> Install <code>parent-remote.apk</code> on an Android phone (allow "install unknown apps" for your browser). Open it: it searches the Wi-Fi for the Mac, then asks for the PIN, which is the part after <code>?t=</code> in the link.</li>
     <li><b>Add videos.</b> Open <code>/kids</code> on the dashboard and paste YouTube video, playlist or channel links. They show up in Kids Videos on the TV within a few seconds.</li>
   </ol>
+  <p class="note">Kids Videos, Kids Quiz and TV Message work on any Android TV. A few dashboard extras (the remote's Music button opening Kids Videos, and locking some built-in apps) are Fire TV only.</p>
   <p class="note">Keep the dashboard link private: the PIN in it gives full control of the TV. The Mac must stay on and running <code>server.py</code> for timers, bedtime and history to work.</p>
 </main>
 </body>
