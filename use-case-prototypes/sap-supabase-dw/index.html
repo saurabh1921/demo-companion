@@ -1,0 +1,977 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SAP to Supabase DW</title>
+<meta name="description" content="Live view of SAP purchase orders moving through a Boomi process into a Supabase data warehouse.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,400..800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --paper: #EDF1F4;
+  --sheet: #FFFFFF;
+  --ink: #14273D;
+  --ink-2: #4A5C70;
+  --ink-3: #7F8FA0;
+  --rule: #D3DCE4;
+  --sap: #2C64D8;
+  --sap-tint: #E3ECFC;
+  --boomi: #00A19B;
+  --boomi-tint: #DDF4F2;
+  --dw: #C98A00;
+  --dw-tint: #FBF0D6;
+  --bad: #C23B32;
+  --bad-tint: #FBE6E4;
+  --focus: #2C64D8;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0F1A26; --sheet: #16243A; --ink: #E6EDF4; --ink-2: #A9B7C6; --ink-3: #7A8A9C; --rule: #2A3B52;
+    --sap: #6E9BF5; --sap-tint: #1C2D4D; --boomi: #3CCBC4; --boomi-tint: #123634; --dw: #E8B33A; --dw-tint: #3A2F14;
+    --bad: #F07B72; --bad-tint: #3D1F1D; --focus: #6E9BF5;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0F1A26; --sheet: #16243A; --ink: #E6EDF4; --ink-2: #A9B7C6; --ink-3: #7A8A9C; --rule: #2A3B52;
+  --sap: #6E9BF5; --sap-tint: #1C2D4D; --boomi: #3CCBC4; --boomi-tint: #123634; --dw: #E8B33A; --dw-tint: #3A2F14;
+  --bad: #F07B72; --bad-tint: #3D1F1D; --focus: #6E9BF5;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--paper); color: var(--ink);
+  font: 400 15px/1.5 "Archivo", system-ui, sans-serif; font-variation-settings: "wdth" 100;
+}
+button, input, select { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.wrap { max-width: 1240px; margin: 0 auto; padding: 0 24px; }
+@media (max-width: 640px) { .wrap { padding: 0 16px; } }
+
+/* Header */
+header.top { padding: 28px 0 8px; }
+.top-row { display: flex; gap: 24px; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; }
+h1 {
+  margin: 0; font-weight: 800; font-size: clamp(28px, 4.4vw, 46px); line-height: 1.02;
+  font-variation-settings: "wdth" 78; letter-spacing: -0.01em; max-width: 18ch;
+}
+h1 .sys-sap { color: var(--sap); } h1 .sys-boomi { color: var(--boomi); } h1 .sys-dw { color: var(--dw); }
+.lede { margin: 10px 0 0; color: var(--ink-2); max-width: 62ch; }
+.controls { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.btn {
+  border: 1.5px solid var(--ink); background: var(--ink); color: var(--paper);
+  padding: 10px 18px; border-radius: 999px; font-weight: 650; cursor: pointer;
+}
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn.ghost { background: transparent; color: var(--ink); }
+.status-line { color: var(--ink-2); font-size: 14px; }
+.status-line b { color: var(--ink); font-weight: 600; }
+.signin { display: none; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.signin.open { display: flex; }
+.signin input { padding: 9px 12px; border: 1px solid var(--rule); border-radius: 8px; background: var(--sheet); min-width: 0; flex: 1 1 180px; }
+.msg { margin-top: 10px; font-size: 14px; min-height: 1.5em; }
+.msg.bad { color: var(--bad); }
+
+/* Pipeline rail */
+section.rail-sec { margin-top: 22px; }
+.rail {
+  position: relative; background: var(--sheet); border: 1px solid var(--rule); border-radius: 18px;
+  padding: 44px 22px 150px; display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 0;
+}
+.node { position: relative; display: flex; flex-direction: column; align-items: center; text-align: center; padding: 0 4px; cursor: pointer; background: none; border: 0; }
+.node .dot {
+  width: 46px; height: 46px; border-radius: 50%; border: 2px solid var(--rule); background: var(--sheet);
+  display: grid; place-items: center; position: relative; z-index: 2; transition: background .3s, border-color .3s;
+}
+.node .dot svg { width: 22px; height: 22px; stroke: var(--ink-3); fill: none; stroke-width: 1.8; transition: stroke .3s; }
+.node .txt { display: flex; flex-direction: column; align-items: inherit; position: relative; z-index: 2; background: var(--sheet); padding: 0 2px 2px; }
+.node .nm { margin-top: 9px; font-weight: 650; font-size: 13px; line-height: 1.2; font-variation-settings: "wdth" 88; }
+.node .kd { font-size: 12px; color: var(--ink-3); }
+.node .mt { margin-top: 4px; font-size: 12px; color: var(--ink-2); min-height: 1.4em; font-variant-numeric: tabular-nums; }
+.node::before { /* connector to previous node */
+  content: ""; position: absolute; top: 23px; right: 50%; width: 100%; height: 2px; background: var(--rule); z-index: 1;
+}
+.node.first::before { display: none; }
+.node.on::before { background: var(--c); }
+.node.on .dot { border-color: var(--c); background: var(--t); }
+.node.on .dot svg { stroke: var(--c); }
+.node.busy .dot { animation: pulse 1.1s ease-in-out infinite; }
+.node.fail .dot { border-color: var(--bad); background: var(--bad-tint); }
+.node.sel .nm { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.node[data-hop="SAP"] { --c: var(--sap); --t: var(--sap-tint); }
+.node[data-hop="BOOMI"] { --c: var(--boomi); --t: var(--boomi-tint); }
+.node[data-hop="WAREHOUSE"] { --c: var(--dw); --t: var(--dw-tint); }
+.node[data-hop="PAGE"] { --c: var(--ink-2); --t: var(--paper); }
+.node.spur { position: absolute; width: 10%; top: 176px; }
+.node.spur::before { top: -60px; left: 50%; right: auto; width: 2px; height: 60px; }
+.boomi-band {
+  position: absolute; top: 26px; bottom: 14px; border: 1.5px dashed var(--boomi); border-radius: 14px; pointer-events: none;
+}
+.boomi-band span {
+  position: absolute; top: -10px; left: 14px; background: var(--sheet); padding: 0 8px; color: var(--boomi);
+  font-size: 12px; font-weight: 650; line-height: 18px;
+}
+.packet {
+  position: absolute; top: 67px; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%;
+  background: var(--c, var(--boomi)); z-index: 3; pointer-events: none; box-shadow: 0 0 0 4px color-mix(in srgb, var(--c, var(--boomi)) 25%, transparent);
+}
+@keyframes pulse { 50% { transform: scale(1.12); } }
+@media (max-width: 900px) {
+  .rail { grid-template-columns: 1fr; padding: 18px 16px; gap: 6px; }
+  .node { flex-direction: row; text-align: left; gap: 12px; align-items: center; }
+  .node .txt { display: flex; flex-direction: column; align-items: flex-start; }
+  .node .nm { margin-top: 0; }
+  .node::before { top: -10px; left: 22px; right: auto; width: 2px; height: 14px; }
+  .node.spur { position: relative; width: auto; top: auto; margin-left: 28px; }
+  .node.spur::before { top: -10px; left: 22px; height: 14px; }
+  .boomi-band, .packet { display: none; }
+}
+
+/* Panels */
+.grid2 { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 18px; margin-top: 18px; }
+@media (max-width: 1000px) { .grid2 { grid-template-columns: 1fr; } }
+.panel { background: var(--sheet); border: 1px solid var(--rule); border-radius: 18px; padding: 18px 20px; min-width: 0; }
+h2 { margin: 0 0 4px; font-size: 20px; font-weight: 750; font-variation-settings: "wdth" 85; }
+.sub { color: var(--ink-2); font-size: 14px; margin: 0 0 12px; }
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+.tab {
+  border: 1px solid var(--rule); background: transparent; border-radius: 999px; padding: 5px 12px; font-size: 13px; cursor: pointer;
+}
+.tab[aria-selected="true"] { border-color: var(--c, var(--ink)); background: var(--t, var(--paper)); color: var(--ink); font-weight: 600; }
+.tab[data-hop="SAP"] { --c: var(--sap); --t: var(--sap-tint); }
+.tab[data-hop="BOOMI"] { --c: var(--boomi); --t: var(--boomi-tint); }
+.tab[data-hop="WAREHOUSE"] { --c: var(--dw); --t: var(--dw-tint); }
+.meta { font-size: 13px; color: var(--ink-2); margin-bottom: 8px; font-variant-numeric: tabular-nums; }
+pre.payload {
+  margin: 0; background: var(--paper); border-radius: 12px; padding: 14px; max-height: 430px; overflow: auto;
+  font: 12.5px/1.55 "JetBrains Mono", ui-monospace, monospace; white-space: pre; color: var(--ink);
+}
+pre.payload mark { background: var(--dw-tint); color: inherit; border-radius: 3px; }
+.empty { color: var(--ink-2); padding: 24px 4px; }
+
+/* Record tracer */
+.tracer-pick { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; flex-wrap: wrap; }
+.tracer-pick select { padding: 7px 10px; border: 1px solid var(--rule); border-radius: 8px; background: var(--sheet); max-width: 100%; }
+.trace-tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+.trace-tbl th { text-align: left; font-weight: 600; color: var(--ink-2); padding: 6px 6px; border-bottom: 1px solid var(--rule); }
+.trace-tbl td { padding: 5px 6px; border-bottom: 1px solid var(--rule); vertical-align: top; overflow-wrap: anywhere; }
+.trace-tbl td.v { font-family: "JetBrains Mono", monospace; font-size: 12px; }
+.trace-tbl .s { color: var(--sap); } .trace-tbl .b { color: var(--boomi); } .trace-tbl .w { color: var(--dw); }
+.trace-tbl .tech { display: block; color: var(--ink-3); font-size: 11.5px; }
+.trace-tbl tr.changed td.w { font-weight: 600; }
+.tracer-scroll { max-height: 470px; overflow: auto; }
+
+/* Warehouse */
+section.dw { margin-top: 26px; }
+.dw-head { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+.facts { display: flex; flex-wrap: wrap; gap: 8px 28px; margin: 8px 0 16px; font-variant-numeric: tabular-nums; }
+.facts div { color: var(--ink-2); font-size: 14px; }
+.facts b { display: block; color: var(--ink); font-size: 24px; font-weight: 700; font-variation-settings: "wdth" 85; }
+.grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 1000px) { .grid3 { grid-template-columns: 1fr; } }
+.bars { display: grid; gap: 8px; }
+.bar { display: grid; grid-template-columns: minmax(0, 8.5em) minmax(0, 1fr) auto; gap: 10px; align-items: center; font-size: 13px; }
+.bar .lbl { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bar .trk { height: 10px; border-radius: 5px; background: var(--paper); overflow: hidden; }
+.bar .fil { height: 100%; background: var(--dw); border-radius: 5px; }
+.bar .val { font-variant-numeric: tabular-nums; color: var(--ink-2); white-space: nowrap; }
+.tbl-scroll { overflow-x: auto; }
+table.rows { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
+table.rows th { text-align: left; color: var(--ink-2); font-weight: 600; padding: 7px 8px; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+table.rows td { padding: 6px 8px; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+table.rows td.num, table.rows th.num { text-align: right; }
+.runs { display: grid; gap: 6px; }
+.run {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: center; text-align: left;
+  border: 1px solid var(--rule); background: transparent; border-radius: 10px; padding: 8px 12px; cursor: pointer; font-size: 13px;
+}
+.run[aria-pressed="true"] { border-color: var(--ink); }
+.pill { font-size: 12px; font-weight: 650; padding: 2px 9px; border-radius: 999px; background: var(--boomi-tint); color: var(--boomi); }
+.pill.FAILED { background: var(--bad-tint); color: var(--bad); }
+.pill.RUNNING { background: var(--dw-tint); color: var(--dw); }
+/* View tabs */
+.views { display: flex; gap: 4px; margin-top: 18px; border-bottom: 1px solid var(--rule); overflow-x: auto; }
+.view-tab {
+  border: 0; background: none; padding: 10px 14px 9px; font-weight: 600; color: var(--ink-2); cursor: pointer;
+  border-bottom: 3px solid transparent; margin-bottom: -1px; white-space: nowrap;
+}
+.view-tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--ink); }
+main.view[hidden] { display: none; }
+.panel.stack { margin-top: 18px; }
+main#view-boomi, main#view-sap { margin-top: 22px; }
+
+/* Boomi canvas */
+.wrapper-strip { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 4px 0 16px; font-size: 13px; }
+.ws-name { font-weight: 650; margin-right: 6px; }
+.ws-step { border: 1px solid var(--boomi); color: var(--ink); background: var(--boomi-tint); border-radius: 6px; padding: 3px 9px; }
+.ws-arrow { width: 18px; height: 2px; background: var(--boomi); position: relative; }
+.ws-arrow::after { content: ""; position: absolute; right: -1px; top: -4px; border: 5px solid transparent; border-left-color: var(--boomi); border-right: 0; }
+.canvas-wrap { overflow-x: auto; background: var(--paper); border-radius: 12px; padding: 14px; }
+.canvas { position: relative; width: 1100px; height: 262px; }
+.canvas svg.wires { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.canvas svg.wires path { fill: none; stroke: var(--ink-3); stroke-width: 1.6; }
+.canvas svg.wires text { fill: var(--ink-2); font: 600 11px "Archivo", sans-serif; }
+.shape {
+  position: absolute; width: 118px; height: 92px; border: 1.5px solid var(--rule); background: var(--sheet); border-radius: 10px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 3px;
+  cursor: pointer; padding: 6px; font-size: 12px; line-height: 1.2;
+}
+.shape svg { width: 22px; height: 22px; stroke: var(--c); fill: none; stroke-width: 1.8; }
+.shape .st { color: var(--ink-3); font-size: 11px; }
+.shape .sl { font-weight: 650; }
+.shape .sm { color: var(--c); font-size: 11px; font-weight: 600; min-height: 1.2em; }
+.shape[aria-pressed="true"] { border-color: var(--c); box-shadow: 0 0 0 3px var(--t); }
+.shape[data-hop="SAP"] { --c: var(--sap); --t: var(--sap-tint); }
+.shape[data-hop="BOOMI"] { --c: var(--boomi); --t: var(--boomi-tint); }
+.shape[data-hop="WAREHOUSE"] { --c: var(--dw); --t: var(--dw-tint); }
+.shape[data-hop="END"] { --c: var(--ink-3); --t: var(--paper); }
+dl.cfg { display: grid; grid-template-columns: minmax(0, 11em) minmax(0, 1fr); gap: 6px 14px; margin: 12px 0 0; font-size: 13px; }
+dl.cfg dt { color: var(--ink-2); }
+dl.cfg dd { margin: 0; overflow-wrap: anywhere; }
+dl.cfg code, .comp code { font: 12px "JetBrains Mono", monospace; }
+.shape-why { margin: 10px 0 0; color: var(--ink-2); font-size: 14px; max-width: 62ch; }
+.map-list { margin-top: 12px; max-height: 300px; overflow: auto; }
+
+/* SAP join diagram */
+.join { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 0; align-items: center; margin-top: 6px; }
+.tbl-card { border: 1.5px solid var(--sap); border-radius: 12px; overflow: hidden; background: var(--sheet); }
+.tbl-card h3 { margin: 0; padding: 9px 14px; background: var(--sap-tint); font-size: 15px; font-weight: 700; }
+.tbl-card h3 span { font-weight: 400; color: var(--ink-2); font-size: 13px; margin-left: 6px; }
+.tbl-card ul { list-style: none; margin: 0; padding: 8px 14px 10px; font-size: 13px; columns: 2; column-gap: 18px; }
+.tbl-card li { padding: 2px 0; break-inside: avoid; }
+.tbl-card li code { font: 12px "JetBrains Mono", monospace; }
+.tbl-card li.key code { color: var(--sap); font-weight: 600; }
+.join-link { padding: 0 14px; text-align: center; font-size: 12px; color: var(--ink-2); }
+.join-link b { display: block; color: var(--sap); font: 600 13px "JetBrains Mono", monospace; }
+.join-link .ln { height: 2px; background: var(--sap); margin: 6px 0; min-width: 70px; }
+@media (max-width: 760px) {
+  .join { grid-template-columns: 1fr; }
+  .join-link .ln { width: 2px; height: 20px; min-width: 0; margin: 6px auto; }
+  .tbl-card ul { columns: 1; }
+}
+.tlink { color: var(--dw); font-weight: 600; text-underline-offset: 3px; }
+footer { color: var(--ink-3); font-size: 13px; padding: 30px 0 40px; }
+@media (prefers-reduced-motion: reduce) {
+  .node.busy .dot { animation: none; }
+  .packet { display: none; }
+}
+</style>
+</head>
+<body>
+<header class="top wrap">
+  <div class="top-row">
+    <div>
+      <h1><span class="sys-sap">SAP</span> purchase orders, through <span class="sys-boomi">Boomi</span>, into the <span class="sys-dw">warehouse</span></h1>
+      <p class="lede">Every run reads purchase order lines from SAP (EKKO header + EKPO item), maps them in Boomi and loads them into a Supabase data warehouse. The payload at each step is the real document Boomi handled.</p>
+    </div>
+    <div>
+      <div class="controls">
+        <button class="btn" id="runBtn" type="button">Run sync</button>
+        <button class="btn ghost" id="replayBtn" type="button">Replay selected run</button>
+        <button class="btn ghost" id="resetBtn" type="button">Clear warehouse</button>
+        <button class="btn ghost" id="authBtn" type="button">Sign in</button>
+      </div>
+      <form class="signin" id="signin">
+        <input type="email" id="email" placeholder="Email" autocomplete="username" required aria-label="Email">
+        <input type="password" id="pw" placeholder="Password" autocomplete="current-password" required aria-label="Password">
+        <button class="btn" type="submit">Sign in</button>
+      </form>
+      <div class="msg" id="msg" role="status" aria-live="polite"></div>
+    </div>
+  </div>
+  <div class="status-line" id="statusLine">Loading warehouse…</div>
+  <nav class="views" role="tablist" aria-label="Views">
+    <button type="button" role="tab" class="view-tab" data-view="flow" aria-selected="true">Live flow</button>
+    <button type="button" role="tab" class="view-tab" data-view="boomi" aria-selected="false">Boomi process</button>
+    <button type="button" role="tab" class="view-tab" data-view="sap" aria-selected="false">SAP table service</button>
+  </nav>
+</header>
+
+<main class="wrap view" id="view-boomi" hidden>
+  <section class="panel" aria-labelledby="bpH">
+    <h2 id="bpH">SAP-Boomi-Supabase DW Process</h2>
+    <p class="sub">The Boomi process as it sits on the canvas, a copy of SAP-Boomi-Redshift Process. Select a step to see how it is configured and what it handled in the selected run.</p>
+    <div class="wrapper-strip" aria-label="Listener process">
+      <span class="ws-name">SAP-Boomi-Supabase DW Listener</span>
+      <span class="ws-step">Web Services Server, listen</span><span class="ws-arrow" aria-hidden="true"></span>
+      <span class="ws-step">Process Call: SAP-Boomi-Supabase DW Process</span><span class="ws-arrow" aria-hidden="true"></span>
+      <span class="ws-step">Return Documents</span>
+    </div>
+    <div class="canvas-wrap"><div class="canvas" id="canvas"></div></div>
+  </section>
+  <section class="panel stack" aria-live="polite"><div id="shapeDetail"></div></section>
+    <section class="panel stack">
+      <h2>Components</h2>
+      <p class="sub">Everything the process uses, in Boomi folder SAP-Supabase-DW-Demo. Reused components keep their original folder.</p>
+      <div class="tbl-scroll"><table class="rows comp" id="components"></table></div>
+    </section>
+</main>
+
+<main class="wrap view" id="view-sap" hidden>
+  <section class="panel" aria-labelledby="tsH">
+    <h2 id="tsH">Table service SAURABH_PO_CHANGEDATA_CAPTURE</h2>
+    <p class="sub">A Boomi for SAP table service on the SAP demo system (client 100). It joins purchase order headers to their items and is exposed to Boomi as one queryable object, so no ABAP or RFC coding is needed.</p>
+    <div class="facts" id="tsFacts"></div>
+    <div class="join" id="tsJoin"></div>
+  </section>
+  <div class="grid2">
+    <section class="panel">
+      <h2>Fields the operation reads</h2>
+      <p class="sub">Selected in the Boomi operation MOBIN_PO_CHANGEDATA_CAPTURE Table Service Operation. Fields marked external carry SAP's external (display) format.</p>
+      <div class="tracer-scroll"><table class="trace-tbl" id="tsFields"></table></div>
+    </section>
+    <section class="panel">
+      <h2>One record as SAP returned it</h2>
+      <p class="sub" id="tsSampleSub">From the selected run.</p>
+      <div id="tsSample"></div>
+    </section>
+  </div>
+</main>
+
+<main class="wrap view" id="view-flow">
+  <section class="rail-sec" aria-label="Integration flow">
+    <div class="rail" id="rail"></div>
+  </section>
+
+  <div class="grid2">
+    <section class="panel" aria-labelledby="inspH">
+      <h2 id="inspH">Data at each step</h2>
+      <p class="sub">Select a step on the flow or a tab to see the document that passed through it.</p>
+      <div class="tabs" id="tabs" role="tablist"></div>
+      <div class="meta" id="payMeta"></div>
+      <div id="payBox"><div class="empty">Run a sync, or pick a run below, to see its payloads.</div></div>
+    </section>
+
+    <section class="panel" aria-labelledby="trH">
+      <h2 id="trH">Follow one record</h2>
+      <p class="sub">One SAP purchase order line, field by field: as SAP returned it, as Boomi's map wrote it, and as the warehouse stored it.</p>
+      <div class="tracer-pick">
+        <label for="poPick">PO line</label>
+        <select id="poPick" disabled><option>No run selected</option></select>
+      </div>
+      <div class="tracer-scroll" id="tracer"></div>
+    </section>
+  </div>
+
+  <section class="dw" aria-labelledby="dwH">
+    <div class="dw-head">
+      <h2 id="dwH">In the warehouse now</h2>
+      <!-- Table Editor links use table OIDs: re-check them if 01_schema.sql is re-run (it recreates the tables). -->
+      <span class="status-line">Supabase Postgres, schema <b>sapdw</b>:
+        <a class="tlink" href="https://supabase.com/dashboard/project/hfovtnceicailrkshvqg/editor/44135?schema=sapdw" target="_blank" rel="noopener">open fact_po_lines in Supabase</a>,
+        <a class="tlink" href="https://supabase.com/dashboard/project/hfovtnceicailrkshvqg/editor/44144?schema=sapdw" target="_blank" rel="noopener">runs</a></span>
+    </div>
+    <div class="facts" id="facts"></div>
+    <div class="grid3">
+      <div class="panel"><h2>Net value by supplier</h2><p class="sub">Top suppliers, in each line's currency.</p><div class="bars" id="bySupplier"></div></div>
+      <div class="panel"><h2>PO lines by month</h2><p class="sub">By SAP creation date.</p><div class="bars" id="byMonth"></div></div>
+      <div class="panel"><h2>Sync runs</h2><p class="sub">Select a run to inspect or replay it.</p><div class="runs" id="runs"></div></div>
+    </div>
+    <div class="panel" style="margin-top:18px">
+      <h2>Latest rows</h2>
+      <p class="sub">The 25 most recently loaded purchase order lines.</p>
+      <div class="tbl-scroll"><table class="rows" id="latest"></table></div>
+    </div>
+  </section>
+</main>
+<footer class="wrap">Synthetic demo over an SAP test system. SAP via Boomi for SAP, orchestration by a Boomi Integration process on the public cloud runtime, warehouse on Supabase Postgres.</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+const SUPABASE_URL = "https://hfovtnceicailrkshvqg.supabase.co";
+const SUPABASE_KEY = "sb_publishable_zr_hBhRP0vv3r9zYcy7DxQ_nwaVsDvB"; // publishable: RLS limits it to the run feed
+const REGION = "forceFunctionRegion=ap-northeast-1";
+const WH = `${SUPABASE_URL}/functions/v1/sapdw-warehouse`;
+const GW = `${SUPABASE_URL}/functions/v1/sapdw-gateway`;
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// Boomi process shapes, in the order documents reach them.
+const ICON = {
+  page: '<path d="M4 5h16v11H4zM9 20h6M12 16v4"/>',
+  wss: '<path d="M4 12h6M14 12h6M10 8l4 4-4 4"/>',
+  sap: '<ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v12c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12c0 1.7 3.1 3 7 3s7-1.3 7-3"/>',
+  branch: '<path d="M6 4v16M6 9c0 4 12 2 12 8M18 17v3"/>',
+  trace: '<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+  combine: '<path d="M4 6h10M4 12h10M4 18h10M18 6v12M15 15l3 3 3-3"/>',
+  map: '<path d="M4 7h6M4 12h6M4 17h6M14 7h6M14 12h6M14 17h6M10 7l4 5M10 12l4 0M10 17l4-10"/>',
+  load: '<path d="M12 3v12M7 10l5 5 5-5M5 21h14"/>',
+  dw: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 10v10M15 10v10"/>',
+  ret: '<path d="M20 12H8M12 7l-5 5 5 5"/>',
+};
+const NODES = [
+  { id: "page", hop: "PAGE", nm: "Demo page", kd: "Run sync" },
+  { id: "wss", hop: "BOOMI", nm: "Web Services listener", kd: "Start" },
+  { id: "sap", hop: "SAP", nm: "Query SAP PO", kd: "Boomi for SAP" },
+  { id: "branch", hop: "BOOMI", nm: "Branch", kd: "Copy document" },
+  { id: "combine", hop: "BOOMI", nm: "Combine", kd: "Data Process" },
+  { id: "map", hop: "BOOMI", nm: "Map to CSV", kd: "Map" },
+  { id: "load", hop: "BOOMI", nm: "Load CSV", kd: "REST POST" },
+  { id: "dw", hop: "WAREHOUSE", nm: "Supabase DW", kd: "Stage + merge" },
+  { id: "ret", hop: "BOOMI", nm: "Return result", kd: "Return Documents" },
+  { id: "done", hop: "PAGE", nm: "Run complete", kd: "Page updates" },
+];
+const SPUR = { id: "trace", hop: "SAP", nm: "Trace payload", kd: "Branch path 1" };
+
+// SAP field (JSON key from the Boomi for SAP table service) → CSV column (map output) → warehouse column
+const FIELDS = [
+  ["EBELN", "Purchasing Document Number(EKKO.EBELN)", "Document Number", "po_number"],
+  ["BSART", "Purchasing Document Type(EKKO)", "Document Type", "doc_type"],
+  ["AEDAT", "Creation Date of Purchasing Document(EKKO)", "Creation Date", "created_on"],
+  ["BUKRS", "Company Code(EKKO)", "Company Code", "company_code"],
+  ["EKORG", "Purchasing Organization(EKKO)", "Organization", "purch_org"],
+  ["WERKS", "Plant(EKPO)", "Plant", "plant"],
+  ["ERNAM", "User of person who created a purchasing document(EKKO)", "Created By", "created_by"],
+  ["STATU", "Status of Purchasing Document(EKKO)", "Status", "status"],
+  ["LIFNR", "Supplier's Account Number(EKKO)", "Supplier", "supplier"],
+  ["EBELP", "Item Number of Purchasing Document(EKPO)", "Item Number", "item_number"],
+  ["MATNR", "Material Number(EKPO)", "Material Number", "material"],
+  ["TXZ01", "Short Text(EKPO)", "Material Name", "material_name"],
+  ["LGORT", "Storage Location(EKPO)", "Storage Location", "storage_location"],
+  ["MENGE", "Purchase Order Quantity(EKPO)", "Quantity", "quantity"],
+  ["NETPR", "Net Price in Purchasing Document (in Document Currency)(EKPO)", "Net Price", "net_price"],
+  ["PEINH", "Price Unit(EKPO)", "Price Unit", "price_unit"],
+  ["MEINS", "Purchase Order Unit of Measure(EKPO)", "Unit of Measure", "uom"],
+  ["NETWR", "Net Order Value in PO Currency(EKPO)", "Net Order Value", "net_value"],
+  ["WAERS", "Currency Key(EKKO)", "Currency", "currency"],
+  ["ELIKZ", "\"Delivery Completed\" Indicator(EKPO)", "Delivery Completed Indicator", "delivery_completed"],
+  ["LASTCHANGEDATETIME", "Change Time Stamp(EKKO)", "Change Time Stamp", "sap_changed_at"],
+];
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const kb = (n) => (n == null ? "" : n < 1024 ? `${n} B` : `${(n / 1024).toFixed(1)} KB`);
+const fmtNum = (v, d = 2) => (v == null || v === "" ? "" : Number(v).toLocaleString(undefined, { maximumFractionDigits: d }));
+const fmtTime = (t) => (t ? new Date(t).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "");
+// JSON.parse rounds long or decimal numbers (SAP timestamps like 20260608162340.2874600).
+// Keep them as text so the page shows exactly what Boomi sent.
+const parseExact = (t) => JSON.parse(t.replace(/(:\s*)(-?\d+\.\d+|-?\d{16,})(?=\s*[,}\]])/g, '$1"$2"'));
+// Re-indent JSON without parsing it, so no value changes.
+function indentJSON(t) {
+  let out = "", ind = 0, inStr = false, esc = false;
+  const nl = () => "\n" + "  ".repeat(ind);
+  for (const ch of t) {
+    if (inStr) { out += ch; if (esc) esc = false; else if (ch === "\\") esc = true; else if (ch === '"') inStr = false; continue; }
+    if (ch === '"') { inStr = true; out += ch; }
+    else if (ch === "{" || ch === "[") { ind++; out += ch + nl(); }
+    else if (ch === "}" || ch === "]") { ind--; out += nl() + ch; }
+    else if (ch === ",") out += ch + nl();
+    else if (ch === ":") out += ": ";
+    else if (!/\s/.test(ch)) out += ch;
+  }
+  return out.replace(/([\[{])\n\s*([\]}])/g, "$1$2");
+}
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const say = (t, bad = false) => { const m = $("msg"); m.textContent = t; m.className = "msg" + (bad ? " bad" : ""); };
+
+const state = { session: null, summary: null, runId: null, detail: null, tab: null, poIndex: 0, sapRecords: [], csvLines: [] };
+
+// ── Rail ──
+function nodeHTML(n, cls = "") {
+  return `<button type="button" class="node ${cls}" data-id="${n.id}" data-hop="${n.hop}" aria-label="${esc(n.nm)}">
+    <span class="dot"><svg viewBox="0 0 24 24" aria-hidden="true">${ICON[n.id === "done" ? "page" : n.id]}</svg></span>
+    <span class="txt"><span class="nm">${esc(n.nm)}</span><span class="kd">${esc(n.kd)}</span><span class="mt" data-metric="${n.id}"></span></span>
+  </button>`;
+}
+function buildRail() {
+  const r = $("rail");
+  const isWide = matchMedia("(min-width: 901px)").matches;
+  let html = NODES.map((n, i) => nodeHTML(n, i === 0 ? "first" : "")).join("");
+  if (isWide) {
+    html = NODES.slice(0, 4).map((n, i) => nodeHTML(n, i === 0 ? "first" : "")).join("")
+      + NODES.slice(4).map((n) => nodeHTML(n)).join("") + nodeHTML(SPUR, "spur")
+      + `<div class="boomi-band" id="band"><span>Boomi process: SAP-Boomi-Supabase DW Process</span></div>`;
+  } else {
+    html = NODES.slice(0, 4).map((n, i) => nodeHTML(n, i === 0 ? "first" : "")).join("") + nodeHTML(SPUR, "spur")
+      + NODES.slice(4).map((n) => nodeHTML(n)).join("");
+  }
+  r.innerHTML = html;
+  if (isWide) {
+    const col = 100 / NODES.length;
+    const spur = r.querySelector('[data-id="trace"]');
+    spur.style.left = `calc(22px + (100% - 44px) * ${3 * col / 100})`;
+    const band = $("band");
+    band.style.left = `calc(22px + (100% - 44px) * ${1 * col / 100} - 4px)`;
+    band.style.width = `calc((100% - 44px) * ${8 * col / 100} + 8px)`;
+  }
+  r.querySelectorAll(".node").forEach((b) => b.addEventListener("click", () => selectNode(b.dataset.id)));
+  if (state.detail) paintRun(state.detail, false);
+}
+let wideMQ = matchMedia("(min-width: 901px)");
+wideMQ.addEventListener("change", buildRail);
+
+function setNode(id, cls, metric) {
+  const el = $("rail").querySelector(`[data-id="${id}"]`);
+  if (!el) return;
+  el.classList.remove("on", "busy", "fail");
+  if (cls) el.classList.add(...cls.split(" "));
+  if (metric !== undefined) el.querySelector(".mt").textContent = metric;
+}
+function resetRail() {
+  [...NODES, SPUR].forEach((n) => setNode(n.id, "", ""));
+}
+
+// Which shapes a logged step proves have run, plus the metric shown under them.
+function stepNodes(s) {
+  const d = s.detail || {};
+  if (s.hop === "PAGE") return [["page", "Requested"]];
+  if (s.hop === "SAP") {
+    const recs = d.records != null ? `${d.records} records` : "";
+    return [["wss", ""], ["sap", [recs, kb(d.bytes)].filter(Boolean).join(", ")], ["branch", "2 paths"], ["trace", "Copied to page"]];
+  }
+  if (s.hop === "WAREHOUSE") {
+    if (s.status === "PROCESSING") return [["combine", ""], ["map", ""], ["load", "Sending CSV"]];
+    if (s.status === "FAILED") return [["combine", ""], ["map", ""], ["load", ""], ["dw", "Load failed"]];
+    return [["combine", "1 document"], ["map", `${d.received ?? ""} CSV lines`], ["load", "HTTP 200"],
+      ["dw", `${d.inserted ?? 0} new, ${d.updated ?? 0} updated`]];
+  }
+  if (s.hop === "BOOMI" && /listener called/i.test(s.action)) return [["wss", "Request received"]];
+  if (s.hop === "BOOMI" && /Return Documents/i.test(s.action)) return [["ret", d.http_status ? `HTTP ${d.http_status}` : ""], ["done", d.duration_ms ? `${(d.duration_ms / 1000).toFixed(1)} s` : ""]];
+  if (s.hop === "BOOMI" && /no response/i.test(s.action)) return [["wss", "No response"]];
+  return [];
+}
+
+function paintRun(detail, animate) {
+  resetRail();
+  const steps = detail.steps || [];
+  const run = detail.run || {};
+  const seq = [];
+  for (const s of steps) for (const [id, m] of stepNodes(s)) seq.push({ id, m, fail: s.status === "FAILED", busy: s.status === "PROCESSING" });
+  if (run.status === "SUCCESS" && !seq.some((x) => x.id === "done")) seq.push({ id: "done", m: "Loaded" });
+  if (!animate || reduced) {
+    for (const x of seq) setNode(x.id, x.fail ? "fail" : x.busy ? "on busy" : "on", x.m || undefined);
+    return Promise.resolve();
+  }
+  return seq.reduce((p, x) => p.then(() => travelTo(x)), Promise.resolve());
+}
+
+// Move a packet along the rail into a node, then light it.
+function travelTo(x) {
+  return new Promise((res) => {
+    const r = $("rail"), el = r.querySelector(`[data-id="${x.id}"]`);
+    const light = () => { setNode(x.id, x.fail ? "fail" : x.busy ? "on busy" : "on", x.m || undefined); res(); };
+    if (!el || !wideMQ.matches || x.id === "page") { light(); return; }
+    const prevLit = [...r.querySelectorAll(".node.on, .node.fail")].pop();
+    const rr = r.getBoundingClientRect();
+    const to = el.querySelector(".dot").getBoundingClientRect();
+    const from = (prevLit || el).querySelector(".dot").getBoundingClientRect();
+    const p = document.createElement("div");
+    p.className = "packet";
+    p.style.setProperty("--c", getComputedStyle(el).getPropertyValue("--c"));
+    const x0 = from.left + from.width / 2 - rr.left, y0 = from.top + from.height / 2 - rr.top;
+    const x1 = to.left + to.width / 2 - rr.left, y1 = to.top + to.height / 2 - rr.top;
+    r.appendChild(p);
+    p.animate([{ left: `${x0}px`, top: `${y0}px` }, { left: `${x1}px`, top: `${y0}px`, offset: y0 === y1 ? 1 : 0.6 }, { left: `${x1}px`, top: `${y1}px` }],
+      { duration: 420, easing: "ease-in-out", fill: "forwards" }).onfinish = () => { p.remove(); light(); };
+  });
+}
+
+// ── Payload inspector ──
+const TAB_FOR = (s) => {
+  if (s.hop === "SAP") return { key: "sap", label: "SAP query result", hop: "SAP" };
+  if (s.hop === "WAREHOUSE") return { key: "csv", label: "Mapped CSV sent to warehouse", hop: "WAREHOUSE" };
+  if (/listener called/i.test(s.action)) return { key: "req", label: "Request to Boomi", hop: "BOOMI" };
+  if (/Return Documents/i.test(s.action)) return { key: "resp", label: "Boomi response", hop: "BOOMI" };
+  return null;
+};
+const NODE_TAB = { page: "req", wss: "req", sap: "sap", branch: "sap", trace: "sap", combine: "csv", map: "csv", load: "csv", dw: "load", ret: "resp", done: "resp" };
+
+function tabsFor(detail) {
+  const tabs = [];
+  for (const s of detail.steps || []) {
+    const t = TAB_FOR(s);
+    if (!t || s.payload == null) continue;
+    tabs.push({ ...t, step: s });
+    if (t.key === "csv" && s.status !== "PROCESSING") {
+      tabs.push({ key: "load", label: "Warehouse load result", hop: "WAREHOUSE", step: { ...s, payload: JSON.stringify(s.detail, null, 2), content_type: "application/json", bytes: null } });
+    }
+  }
+  return tabs;
+}
+function renderTabs() {
+  const tabs = state.detail ? tabsFor(state.detail) : [];
+  if (!tabs.length) { $("tabs").innerHTML = ""; $("payMeta").textContent = ""; $("payBox").innerHTML = '<div class="empty">This run has no captured payloads yet.</div>'; return; }
+  if (!tabs.some((t) => t.key === state.tab)) state.tab = (tabs.find((t) => t.key === "sap") || tabs[0]).key;
+  $("tabs").innerHTML = tabs.map((t) => `<button class="tab" role="tab" type="button" data-key="${t.key}" data-hop="${t.hop}" aria-selected="${t.key === state.tab}">${esc(t.label)}</button>`).join("");
+  $("tabs").querySelectorAll(".tab").forEach((b) => b.addEventListener("click", () => { state.tab = b.dataset.key; renderTabs(); }));
+  const t = tabs.find((x) => x.key === state.tab);
+  const s = t.step;
+  let body = s.payload ?? "";
+  let pretty = body;
+  if (/^[\[{]/.test(body.trim())) pretty = indentJSON(body);
+  const lines = pretty.split("\n").length;
+  $("payMeta").textContent = [s.content_type, s.bytes != null ? kb(s.bytes) : null, `${lines} lines`, fmtTime(s.created_at)].filter(Boolean).join(", ");
+  // Highlight the record picked in the tracer.
+  const rec = state.sapRecords[state.poIndex];
+  let html = esc(pretty);
+  if (rec && t.key === "csv") {
+    const line = state.csvLines[state.poIndex];
+    if (line) html = html.replace(esc(line), `<mark>${esc(line)}</mark>`);
+  }
+  $("payBox").innerHTML = `<pre class="payload" tabindex="0">${html}</pre>`;
+}
+function selectNode(id) {
+  $("rail").querySelectorAll(".node").forEach((n) => n.classList.toggle("sel", n.dataset.id === id));
+  state.tab = NODE_TAB[id] || state.tab;
+  renderTabs();
+}
+
+// ── Record tracer ──
+function prepTracer() {
+  const steps = state.detail?.steps || [];
+  const sap = steps.find((s) => s.hop === "SAP" && s.payload);
+  const csv = steps.find((s) => s.hop === "WAREHOUSE" && s.payload);
+  state.sapRecords = [];
+  state.csvLines = [];
+  try { const j = parseExact(sap?.payload ?? "[]"); state.sapRecords = Array.isArray(j) ? j : j.items || []; } catch {}
+  state.csvLines = (csv?.payload ?? "").split(/\r?\n/).filter((l) => l.trim());
+  state.sapRaw = rawElements(sap?.payload ?? "");
+  const pick = $("poPick");
+  if (!state.sapRecords.length) { pick.disabled = true; pick.innerHTML = "<option>No SAP payload in this run</option>"; $("tracer").innerHTML = ""; return; }
+  pick.disabled = false;
+  pick.innerHTML = state.sapRecords.map((r, i) =>
+    `<option value="${i}">${esc(r[FIELDS[0][1]])} / ${esc(r[FIELDS[9][1]])}, ${esc(r[FIELDS[11][1]] || r[FIELDS[10][1]] || "")}</option>`).join("");
+  state.poIndex = Math.min(state.poIndex, state.sapRecords.length - 1);
+  pick.value = state.poIndex;
+  renderTracer();
+  if (!$("view-sap").hidden) renderSapView();
+  if (!$("view-boomi").hidden) renderCanvas();
+}
+async function renderTracer() {
+  const rec = state.sapRecords[state.poIndex];
+  if (!rec) return;
+  const po = rec[FIELDS[0][1]], item = rec[FIELDS[9][1]];
+  // Map output line for this record: same PO + item in the CSV.
+  const line = state.csvLines.find((l) => { const f = l.split("|"); return f[0] === String(po) && f[9] === String(item); }) || "";
+  state.csvLines[state.poIndex] = line;
+  const csv = line.split("|");
+  let wh = null;
+  try {
+    const r = await fetch(`${WH}/po/${encodeURIComponent(po)}?${REGION}`).then((x) => x.json());
+    wh = (r.rows || []).find((x) => x.item_number === String(item)) || null;
+  } catch {}
+  $("tracer").innerHTML = `<table class="trace-tbl">
+    <thead><tr><th>SAP field</th><th class="s">From SAP</th><th class="b">After Boomi map</th><th class="w">In warehouse</th></tr></thead>
+    <tbody>${FIELDS.map(([tech, key, col, dcol], i) => {
+      const a = rec[key], b = csv[i], c = wh ? wh[dcol] : undefined;
+      const cShow = c === true ? "true" : c === false ? "false" : c;
+      const changed = cShow != null && String(cShow) !== String(b ?? "");
+      return `<tr class="${changed ? "changed" : ""}">
+        <td>${esc(col)}<span class="tech">${esc(tech)}</span></td>
+        <td class="v s">${esc(a)}</td>
+        <td class="v b">${esc(b)}</td>
+        <td class="v w">${wh ? esc(cShow) : "<span style='color:var(--ink-3)'>not loaded</span>"}<span class="tech">${esc(dcol)}</span></td></tr>`;
+    }).join("")}</tbody></table>`;
+  if (state.tab === "csv") renderTabs();
+}
+$("poPick").addEventListener("change", (e) => { state.poIndex = Number(e.target.value); renderTracer(); renderSapView(); });
+// Split a top-level JSON array into each element's original text (no parsing, so values stay exact).
+function rawElements(t) {
+  const out = [];
+  let depth = 0, inStr = false, esc = false, start = -1;
+  for (let i = 0; i < t.length; i++) {
+    const ch = t[i];
+    if (inStr) { if (esc) esc = false; else if (ch === "\\") esc = true; else if (ch === '"') inStr = false; continue; }
+    if (ch === '"') inStr = true;
+    else if (ch === "{" || ch === "[") { if (depth === 1 && ch === "{") start = i; depth++; }
+    else if (ch === "}" || ch === "]") { depth--; if (depth === 1 && start >= 0) { out.push(t.slice(start, i + 1)); start = -1; } }
+  }
+  return out;
+}
+
+// ── Warehouse summary ──
+function bars(el, rows, label, value, fmt) {
+  const max = Math.max(...rows.map((r) => Math.abs(Number(value(r)) || 0)), 1);
+  el.innerHTML = rows.length ? rows.map((r) => `<div class="bar"><span class="lbl" title="${esc(label(r))}">${esc(label(r))}</span>
+    <span class="trk"><span class="fil" style="width:${Math.max(2, (Math.abs(Number(value(r)) || 0) / max) * 100)}%"></span></span>
+    <span class="val">${esc(fmt(r))}</span></div>`).join("") : '<div class="empty">No data loaded yet.</div>';
+}
+function renderSummary() {
+  const s = state.summary;
+  if (!s) return;
+  const k = s.kpis || {};
+  const vals = Object.entries(k.net_value_by_currency || {}).map(([c, v]) => `${fmtNum(v, 0)} ${c}`);
+  $("facts").innerHTML = `<div><b>${fmtNum(k.po_lines, 0) || 0}</b>PO lines</div>
+    <div><b>${fmtNum(k.suppliers, 0) || 0}</b>suppliers</div>
+    <div><b>${fmtNum(k.materials, 0) || 0}</b>materials</div>
+    ${vals.map((v) => `<div><b>${esc(v.split(" ")[0])}</b>net value, ${esc(v.split(" ")[1])}</div>`).join("")}`;
+  bars($("bySupplier"), s.bySupplier || [], (r) => r.supplier, (r) => r.net_value, (r) => `${fmtNum(r.net_value, 0)} ${r.currency}`);
+  bars($("byMonth"), s.byMonth || [], (r) => r.month, (r) => r.po_lines, (r) => `${r.po_lines} lines`);
+  $("latest").innerHTML = `<thead><tr><th>PO</th><th>Item</th><th>Supplier</th><th>Plant</th><th>Material</th><th class="num">Qty</th><th class="num">Net value</th><th>Created</th><th>Loaded</th></tr></thead>
+    <tbody>${(s.latest || []).map((r) => `<tr><td>${esc(r.po_number)}</td><td>${esc(r.item_number)}</td><td>${esc(r.supplier)}</td><td>${esc(r.plant)}</td>
+      <td>${esc(r.material_name || r.material)}</td><td class="num">${fmtNum(r.quantity, 3)} ${esc(r.uom)}</td>
+      <td class="num">${fmtNum(r.net_value)} ${esc(r.currency)}</td><td>${esc(r.created_on)}</td><td>${esc(fmtTime(r.last_loaded_at))}</td></tr>`).join("")
+      || '<tr><td colspan="9" class="empty">No rows yet. Run a sync to load SAP purchase orders.</td></tr>'}</tbody>`;
+  const runs = s.runs || [];
+  $("runs").innerHTML = runs.length ? runs.map((r) => `<button type="button" class="run" data-run="${r.run_id}" aria-pressed="${r.run_id === state.runId}">
+      <span class="pill ${r.status}">${r.status === "SUCCESS" ? "Loaded" : r.status === "FAILED" ? "Failed" : "Running"}</span>
+      <span>${esc(fmtTime(r.started_at))}${r.rows_received != null ? `, ${r.rows_received} lines` : ""}${r.error ? `, ${esc(r.error)}` : ""}</span>
+      <span style="color:var(--ink-3)">${r.trigger === "PAGE" ? "From page" : "From Boomi"}</span></button>`).join("")
+    : '<div class="empty">No runs yet.</div>';
+  $("runs").querySelectorAll(".run").forEach((b) => b.addEventListener("click", () => loadRun(b.dataset.run, false)));
+  const last = runs.find((r) => r.status === "SUCCESS");
+  $("statusLine").innerHTML = last
+    ? `Last load <b>${esc(fmtTime(last.ended_at || last.started_at))}</b>: ${last.rows_received ?? 0} SAP lines, ${last.rows_inserted ?? 0} new, ${last.rows_updated ?? 0} updated.`
+    : "The warehouse is empty. Run a sync to load SAP purchase orders.";
+}
+async function loadSummary() {
+  try {
+    state.summary = await fetch(`${WH}/summary?${REGION}`).then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); });
+    renderSummary();
+    if (!state.runId) {
+      const pick = (state.summary.runs || []).find((r) => r.status === "SUCCESS" && r.rows_received) || (state.summary.runs || [])[0];
+      if (pick) loadRun(pick.run_id, false);
+    }
+  } catch (e) {
+    $("statusLine").textContent = `Could not reach the warehouse (${e.message}). Reload the page to try again.`;
+  }
+}
+
+// ── Runs ──
+async function fetchRun(id) {
+  const r = await fetch(`${WH}/runs/${id}?${REGION}`);
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  return r.json();
+}
+async function loadRun(id, animate) {
+  state.runId = id;
+  $("runs").querySelectorAll(".run").forEach((b) => b.setAttribute("aria-pressed", b.dataset.run === id));
+  try {
+    state.detail = await fetchRun(id);
+  } catch (e) { say(`Could not load that run (${e.message}).`, true); return; }
+  // A run started inside Boomi has SAP and warehouse steps in separate run rows; show what this one holds.
+  renderTabs();
+  prepTracer();
+  await paintRun(state.detail, animate);
+}
+
+// Live: refresh the current run as Boomi reports each step.
+let refreshTimer = null;
+function onLiveStep(row) {
+  if (!row || row.run_id !== state.runId) return;
+  clearTimeout(refreshTimer);
+  refreshTimer = setTimeout(async () => {
+    const before = new Set((state.detail?.steps || []).map((s) => `${s.id}:${s.status}`));
+    state.detail = await fetchRun(state.runId);
+    const fresh = state.detail.steps.filter((s) => !before.has(`${s.id}:${s.status}`));
+    for (const s of fresh) for (const [id, m] of stepNodes(s)) await travelTo({ id, m, fail: s.status === "FAILED", busy: s.status === "PROCESSING" });
+    renderTabs();
+    prepTracer();
+  }, 250);
+}
+sb.channel("sapdw-live")
+  .on("postgres_changes", { event: "*", schema: "sapdw", table: "run_steps" }, (p) => onLiveStep(p.new))
+  .on("postgres_changes", { event: "UPDATE", schema: "sapdw", table: "runs" }, (p) => {
+    if (p.new?.run_id === state.runId && p.new.status !== "RUNNING") {
+      if (p.new.status === "SUCCESS") travelTo({ id: "done", m: "Loaded" });
+      loadSummary();
+    }
+  })
+  .subscribe();
+
+// ── Run sync ──
+$("runBtn").addEventListener("click", async () => {
+  if (!state.session) { $("signin").classList.add("open"); $("email").focus(); say("Sign in to run the sync. Anyone can view and replay runs."); return; }
+  $("runBtn").disabled = true;
+  say("Calling Boomi. SAP data should appear in a few seconds.");
+  resetRail();
+  setNode("page", "on", "Requested");
+  try {
+    const res = await fetch(`${GW}/run?${REGION}`, { method: "POST", headers: { authorization: `Bearer ${state.session.access_token}`, "content-type": "application/json" }, body: "{}" });
+    const out = await res.json().catch(() => ({}));
+    if (out.run_id) { state.runId = out.run_id; state.tab = "sap"; }
+    if (res.ok) {
+      say(`Run finished in ${(out.duration_ms / 1000).toFixed(1)} s.`);
+    } else if (res.status === 409) {
+      say("A sync is already running. Its steps are shown as they arrive.");
+    } else {
+      say(out.error || `Boomi returned HTTP ${out.boomi_status ?? res.status}. Open the run below to see which step failed.`, true);
+    }
+    if (out.run_id) { await loadRun(out.run_id, false); }
+    loadSummary();
+  } catch (e) {
+    say(`The gateway did not respond (${e.message}). Check your connection and try again.`, true);
+  } finally { $("runBtn").disabled = false; }
+});
+// ── Clear warehouse (start the demo afresh) ──
+$("resetBtn").addEventListener("click", async () => {
+  if (!state.session) { $("signin").classList.add("open"); $("email").focus(); say("Sign in to clear the warehouse."); return; }
+  const n = state.summary?.kpis?.po_lines ?? 0;
+  if (!confirm(`Clear the warehouse? This deletes ${n} loaded PO lines and all run history from Supabase. SAP is not touched.`)) return;
+  $("resetBtn").disabled = true;
+  try {
+    const res = await fetch(`${GW}/reset?${REGION}`, { method: "POST", headers: { authorization: `Bearer ${state.session.access_token}` } });
+    const out = await res.json().catch(() => ({}));
+    if (!res.ok) { say(out.error || `Clearing failed with HTTP ${res.status}.`, true); return; }
+    Object.assign(state, { runId: null, detail: null, tab: null, poIndex: 0, sapRecords: [], csvLines: [] });
+    resetRail();
+    renderTabs();
+    prepTracer();
+    $("payBox").innerHTML = '<div class="empty">The warehouse is empty. Select Run sync to load SAP purchase orders.</div>';
+    await loadSummary();
+    say(`Warehouse cleared: ${out.cleared_rows} PO lines and ${out.cleared_runs} runs removed.`);
+  } catch (e) {
+    say(`The gateway did not respond (${e.message}). Try again.`, true);
+  } finally { $("resetBtn").disabled = false; }
+});
+
+$("replayBtn").addEventListener("click", async () => {
+  if (!state.detail) { say("Pick a run below to replay it."); return; }
+  say("Replaying the selected run.");
+  await paintRun(state.detail, true);
+  say("");
+});
+
+// ── Auth ──
+function renderAuth() {
+  $("authBtn").textContent = state.session ? "Sign out" : "Sign in";
+  $("runBtn").title = state.session ? "" : "Sign in to run the sync";
+}
+$("authBtn").addEventListener("click", async () => {
+  if (state.session) { await sb.auth.signOut(); say("Signed out."); return; }
+  $("signin").classList.toggle("open"); $("email").focus();
+});
+$("signin").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const { error } = await sb.auth.signInWithPassword({ email: $("email").value, password: $("pw").value });
+  if (error) { say(`Sign-in failed: ${error.message}`, true); return; }
+  $("signin").classList.remove("open"); $("pw").value = "";
+  say("Signed in. Select Run sync to pull SAP purchase orders now.");
+});
+sb.auth.onAuthStateChange((_e, session) => { state.session = session; renderAuth(); });
+sb.auth.getSession().then(({ data }) => { state.session = data.session; renderAuth(); });
+
+// ── View tabs ──
+function showView(v) {
+  document.querySelectorAll(".view-tab").forEach((t) => t.setAttribute("aria-selected", t.dataset.view === v));
+  ["flow", "boomi", "sap"].forEach((k) => ($(`view-${k}`).hidden = k !== v));
+  if (v === "boomi") renderCanvas();
+  if (v === "sap") renderSapView();
+  try { localStorage.setItem("sapdw-view", v); } catch {}
+}
+document.querySelectorAll(".view-tab").forEach((t) => t.addEventListener("click", () => showView(t.dataset.view)));
+
+// ── Boomi process view: shapes at their canvas positions in the process XML ──
+const SHAPES = [
+  { id: "shape1", x: 48, y: 48, icon: "wss", hop: "BOOMI", type: "Start", label: "Data passthrough", rail: "wss",
+    why: "Receives the document from the listener process. Run on its own (test mode or a schedule) it starts with an empty document.",
+    cfg: [["Start type", "Data Passthrough"], ["Called by", "SAP-Boomi-Supabase DW Listener, Process Call (wait for completion)"], ["Run ID", "Read from process property <code>query_run_id</code>, set by <code>?run_id=</code> on the listener URL"]] },
+  { id: "shape18", x: 240, y: 48, icon: "page", hop: "BOOMI", type: "Message", label: "Clear request body", rail: null,
+    why: "The Boomi for SAP query reads its incoming document as a query filter. Clearing the listener's JSON body here lets the query run with no filter.",
+    cfg: [["Message text", "(empty)"], ["Combine documents", "No"]] },
+  { id: "shape5", x: 432, y: 48, icon: "sap", hop: "SAP", type: "Connector, Query", label: "Query SAP PO (EKKO+EKPO)", rail: "sap",
+    why: "Reads purchase order lines through the Boomi for SAP table service. One call returns every line the service exposes, in batches of 100.",
+    cfg: [["Connector", "Boomi for SAP"], ["Connection", "Boomi for SAP connection by Saurabh (SAP demo system, client 100)"], ["Operation", "MOBIN_PO_CHANGEDATA_CAPTURE Table Service Operation"], ["SAP object", "<code>SAURABH_PO_CHANGEDATA_CAPTURE</code>"], ["Action", "QUERY, 27 fields, no filter, batch size 100, no row limit"], ["Response", "JSON array, one object per PO line"]] },
+  { id: "shape13", x: 624, y: 48, icon: "branch", hop: "BOOMI", type: "Branch", label: "2 paths", rail: "branch",
+    why: "Sends a copy of the SAP result down each path. Path 1 runs to completion before path 2 starts.",
+    cfg: [["Path 1", "Trace the raw SAP payload to the demo page"], ["Path 2", "Combine, map and load into the warehouse"]] },
+  { id: "shape14", x: 816, y: 208, icon: "trace", hop: "SAP", type: "Connector, REST POST", label: "Trace SAP payload", rail: "trace",
+    why: "Demo-only step: posts the untouched SAP JSON to the warehouse API so the page can show exactly what SAP returned.",
+    cfg: [["Connection", "TSI Systems of Record (Supabase), reused"], ["Operation", "POST Supabase DW Trace Step"], ["Endpoint", "<code>/sapdw-warehouse/trace?step=sap_query&amp;run_id=…</code>"], ["Auth", "<code>x-api-key</code> header"]] },
+  { id: "shape15", x: 1008, y: 208, icon: "ret", hop: "END", type: "Stop", label: "Continue", rail: null,
+    why: "Ends path 1 and lets path 2 continue.", cfg: [["Continue processing", "Yes"]] },
+  { id: "shape11", x: 816, y: 48, icon: "combine", hop: "BOOMI", type: "Data Process", label: "Combine documents", rail: "combine",
+    why: "Joins the documents from the SAP query into one, so the warehouse receives one load per run.",
+    cfg: [["Step", "Combine Documents"], ["Profile type", "Flat file, headers retained"]] },
+  { id: "shape12", x: 1008, y: 48, icon: "map", hop: "BOOMI", type: "Map", label: "SAP JSON to CSV", rail: "map", map: true,
+    why: "Maps each SAP PO line to one pipe-delimited row with the warehouse's 21 columns. Same mappings as the Redshift original, on a source profile whose array repeats.",
+    cfg: [["Map", "SAP PO to Supabase DW CSV Map"], ["Source profile", "j.SAP.PO_ChangeData.Query.RESP (Supabase DW), JSON"], ["Target profile", "Redshift Database File Profile, flat file, pipe-delimited, no header"], ["Mappings", "21 fields, no functions"]] },
+  { id: "shape16", x: 1200, y: 48, icon: "load", hop: "WAREHOUSE", type: "Connector, REST POST", label: "Load CSV into Supabase DW", rail: "load",
+    why: "Posts the CSV to the warehouse API, which stages every line and merges it into fact_po_lines on PO number + item.",
+    cfg: [["Connection", "TSI Systems of Record (Supabase), reused"], ["Operation", "POST Supabase DW Load CSV"], ["Endpoint", "<code>/sapdw-warehouse/load?run_id=…</code>"], ["Content type", "<code>text/plain</code>"], ["Warehouse", "Supabase Postgres, <code>sapdw.stg_po_lines</code> then MERGE into <code>sapdw.fact_po_lines</code>"]] },
+  { id: "shape17", x: 1392, y: 48, icon: "ret", hop: "BOOMI", type: "Return Documents", label: "Load result", rail: "ret",
+    why: "Returns the warehouse's load summary to the listener, which sends it back to the caller as the HTTP response.",
+    cfg: [["Label", "Load result"], ["Returned to", "SAP-Boomi-Supabase DW Listener, then the demo page"]] },
+];
+const WIRES = [["shape1", "shape18"], ["shape18", "shape5"], ["shape5", "shape13"], ["shape13", "shape14", "1"], ["shape13", "shape11", "2"],
+  ["shape14", "shape15"], ["shape11", "shape12"], ["shape12", "shape16"], ["shape16", "shape17"]];
+const SX = (x) => (x - 48) * 0.715, SY = (y) => (y - 48) * 0.9 + 14, SW = 118, SH = 92;
+let selShape = "shape5";
+
+function railMetric(id) {
+  const el = id && $("rail").querySelector(`[data-metric="${id}"]`);
+  return el ? el.textContent : "";
+}
+function renderCanvas() {
+  const c = $("canvas");
+  const pos = Object.fromEntries(SHAPES.map((s) => [s.id, { x: SX(s.x), y: SY(s.y) }]));
+  const wires = WIRES.map(([a, b, lbl]) => {
+    const A = pos[a], B = pos[b];
+    const x1 = A.x + SW, y1 = A.y + SH / 2, x2 = B.x, y2 = B.y + SH / 2;
+    const mx = x1 + 14;
+    const d = y1 === y2 ? `M${x1},${y1} H${x2}` : `M${x1},${y1} H${mx} V${y2} H${x2}`;
+    const tip = `M${x2 - 7},${y2 - 4} L${x2},${y2} L${x2 - 7},${y2 + 4}`;
+    return `<path d="${d}"/><path d="${tip}"/>${lbl ? `<text x="${x2 - 14}" y="${y2 - 6}">${lbl}</text>` : ""}`;
+  }).join("");
+  c.innerHTML = `<svg class="wires" aria-hidden="true">${wires}</svg>` + SHAPES.map((s) => `
+    <button type="button" class="shape" data-id="${s.id}" data-hop="${s.hop}" aria-pressed="${s.id === selShape}"
+      style="left:${pos[s.id].x}px;top:${pos[s.id].y}px" aria-label="${esc(s.type)}: ${esc(s.label)}">
+      <svg viewBox="0 0 24 24" aria-hidden="true">${ICON[s.icon]}</svg>
+      <span class="st">${esc(s.type)}</span><span class="sl">${esc(s.label)}</span><span class="sm">${esc(railMetric(s.rail))}</span>
+    </button>`).join("");
+  c.querySelectorAll(".shape").forEach((b) => b.addEventListener("click", () => { selShape = b.dataset.id; renderCanvas(); }));
+  renderShapeDetail();
+}
+function renderShapeDetail() {
+  const s = SHAPES.find((x) => x.id === selShape);
+  const m = railMetric(s.rail);
+  const mapRows = s.map ? `<div class="map-list"><table class="trace-tbl"><thead><tr><th class="s">SAP field</th><th class="b">CSV column</th><th class="w">Warehouse column</th></tr></thead>
+    <tbody>${FIELDS.map(([tech, , col, dcol], i) => `<tr><td class="v s">${esc(tech)}</td><td class="v b">${i + 1}. ${esc(col)}</td><td class="v w">${esc(dcol)}</td></tr>`).join("")}</tbody></table></div>` : "";
+  $("shapeDetail").innerHTML = `<h2>${esc(s.label)}</h2><p class="sub">${esc(s.type)} step <code>${s.id}</code></p>
+    <p class="shape-why">${esc(s.why)}</p>
+    <dl class="cfg">${s.cfg.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${v}</dd>`).join("")}
+      ${m ? `<dt>Selected run</dt><dd>${esc(m)}</dd>` : ""}</dl>${mapRows}`;
+}
+const COMPONENTS = [
+  ["SAP-Boomi-Supabase DW Process", "Process", "9b03a3cc-4a42-40cb-bff7-f520d9d4db67", "New, copy of SAP-Boomi-Redshift Process"],
+  ["SAP-Boomi-Supabase DW Listener", "Process", "f8568c41-dc46-4b4e-a97c-202d61910f12", "New, /ws/simple/executeSapToSupabaseDw"],
+  ["WSS SAP to Supabase DW Listener", "Operation (Web Services Server)", "ea548e87-2c37-4fd8-b958-7609763f49cf", "New"],
+  ["Boomi for SAP connection by Saurabh", "Connection (Boomi for SAP)", "f7a4e327-2eac-459f-ab11-70893d4a3fb4", "Reused from the Redshift process"],
+  ["MOBIN_PO_CHANGEDATA_CAPTURE Table Service Operation", "Operation (Boomi for SAP)", "6c96da54-eab2-4555-8513-1d8dfb5d6bfc", "Reused from the Redshift process"],
+  ["j.SAP.PO_ChangeData.Query.RESP (Supabase DW)", "Profile (JSON)", "f3553bdb-19ec-40c3-a88e-0fd5b5992f1d", "New, array set to repeating"],
+  ["SAP PO to Supabase DW CSV Map", "Map", "ba151a1d-bfdf-4076-9cf3-6e4877236012", "New, copy of SAP to Redshift Table Format Map"],
+  ["Redshift Database File Profile", "Profile (flat file)", "3427ad87-b592-4899-bbf7-5a3b9bcef47a", "Reused"],
+  ["TSI Systems of Record (Supabase)", "Connection (REST)", "6f86917e-85e8-4846-b5a4-55e831a5a4c8", "Reused, same Supabase base URL"],
+  ["POST Supabase DW Trace Step", "Operation (REST)", "b01e75b1-61aa-4865-8078-57c09f5bbc01", "New"],
+  ["POST Supabase DW Load CSV", "Operation (REST)", "9615643f-d316-4c6f-90b6-a7817ce835e9", "New"],
+];
+$("components").innerHTML = `<thead><tr><th>Component</th><th>Type</th><th>ID</th><th>Note</th></tr></thead><tbody>${COMPONENTS.map(([n, t, id, note]) =>
+  `<tr><td>${esc(n)}</td><td>${esc(t)}</td><td><code title="${id}">${id.slice(0, 8)}</code></td><td>${esc(note)}</td></tr>`).join("")}</tbody>`;
+
+// ── SAP table service view ──
+const EXTERNAL = ["EKKO.EBELN", "EKKO.LIFNR", "EKPO.EBELN", "EKPO.MATNR", "EKPO.MEINS"];
+const TABLE_OF = { EBELN: "EKKO", BSART: "EKKO", AEDAT: "EKKO", BUKRS: "EKKO", EKORG: "EKKO", ERNAM: "EKKO", STATU: "EKKO", LIFNR: "EKKO",
+  WAERS: "EKKO", LASTCHANGEDATETIME: "EKKO", WERKS: "EKPO", EBELP: "EKPO", MATNR: "EKPO", TXZ01: "EKPO", LGORT: "EKPO", MENGE: "EKPO",
+  NETPR: "EKPO", PEINH: "EKPO", MEINS: "EKPO", NETWR: "EKPO", ELIKZ: "EKPO" };
+function renderSapView() {
+  const n = state.sapRecords.length;
+  const sap = (state.detail?.steps || []).find((s) => s.hop === "SAP");
+  $("tsFacts").innerHTML = `<div><b>2</b>SAP tables</div><div><b>27</b>fields read</div><div><b>100</b>rows per batch</div>
+    <div><b>${n || "–"}</b>lines in selected run</div><div><b>${sap?.bytes ? kb(sap.bytes) : "–"}</b>response size</div>`;
+  const ekko = FIELDS.filter(([t]) => TABLE_OF[t] === "EKKO"), ekpo = FIELDS.filter(([t]) => TABLE_OF[t] === "EKPO");
+  const li = (tbl) => ([t, key]) => `<li class="${t === "EBELN" ? "key" : ""}"><code>${t}</code> ${esc(key.replace(/\((EKKO|EKPO)(\.[A-Z]+)?\)$/, ""))}</li>`;
+  $("tsJoin").innerHTML = `
+    <div class="tbl-card"><h3>EKKO<span>Purchasing document header</span></h3><ul>${ekko.map(li("EKKO")).join("")}</ul></div>
+    <div class="join-link"><b>EKKO.EBELN = EKPO.EBELN</b><div class="ln"></div>one header, many items</div>
+    <div class="tbl-card"><h3>EKPO<span>Purchasing document item</span></h3><ul><li class="key"><code>EBELN</code> PO number</li>${ekpo.map(li("EKPO")).join("")}</ul></div>`;
+  const rows = [];
+  for (const [t, key, col] of FIELDS) {
+    const tbl = TABLE_OF[t];
+    rows.push([`${tbl}.${t}`, key.replace(/\((EKKO|EKPO)(\.[A-Z]+)?\)$/, ""), `Mapped to ${col}`]);
+    if (t === "EBELN") rows.push(["EKPO.EBELN", "Purchasing document number (item side of the join)", "Not mapped"]);
+  }
+  for (const e of EXTERNAL) rows.push([`${e}@EXTERNAL`, "External (display) format", "Not mapped"]);
+  $("tsFields").innerHTML = `<thead><tr><th>SAP field</th><th>Description</th><th>Use</th></tr></thead><tbody>${rows.map(([f, d, u]) =>
+    `<tr><td class="v s">${esc(f)}</td><td>${esc(d)}</td><td>${esc(u)}</td></tr>`).join("")}</tbody>`;
+  const rec = state.sapRecords[state.poIndex];
+  $("tsSampleSub").textContent = rec ? `PO ${rec[FIELDS[0][1]]}, item ${rec[FIELDS[9][1]]}, from the selected run. Change it under Follow one record.` : "Run a sync to see a record.";
+  const raw = (state.sapRaw || [])[state.poIndex];
+  $("tsSample").innerHTML = raw ? `<pre class="payload" tabindex="0">${esc(indentJSON(raw))}</pre>` : "";
+}
+
+buildRail();
+loadSummary();
+try { const v = localStorage.getItem("sapdw-view"); if (v && v !== "flow") showView(v); } catch {}
+</script>
+</body>
+</html>
